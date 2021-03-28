@@ -10,6 +10,10 @@ def print_goodbye_message_and_die(message):
     sys.exit(1)
 
 
+def print_warning_message(message):
+    print(f"CAUTION: {message}")
+
+
 class COCODataset:
 
     def __init__(self,

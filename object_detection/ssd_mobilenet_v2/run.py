@@ -40,7 +40,14 @@ def get_intra_op_parallelism_threads():
 
 
 def print_benchmark_metrics(first_run_latency, total_inference_time, number_of_runs, batch_size):
-    latency_in_seconds = (total_inference_time - first_run_latency) / (number_of_runs - 1)
+    if number_of_runs == 0:
+        coco_utils.print_goodbye_message_and_die(
+            "Cannot print performance data as not a single run has been completed!")
+    if number_of_runs == 1:
+        coco_utils.print_warning_message(
+            "Printing performance data based just on a single (warm-up) run - values can be underestimated!")
+    latency_in_seconds = \
+        (total_inference_time - first_run_latency) / (number_of_runs - 1) if number_of_runs > 1 else first_run_latency
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
     print("Latency: {:.0f} ms".format(latency_in_ms))
