@@ -48,7 +48,7 @@ class COCODataset:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
             self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
-            self.instance_generator = self.__get_instance()
+            self.example_generator = self.__get_next_example()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
 
@@ -136,7 +136,7 @@ class COCODataset:
         return padded_array
 
     def __get_next_image(self):
-        image_id, annotations = next(self.instance_generator)
+        image_id, annotations = next(self.example_generator)
         self.current_instances[image_id] = annotations
         image_array = cv2.imread(self.__get_path_to_image_under_id(image_id))
         if self.allow_distortion:
@@ -154,7 +154,7 @@ class COCODataset:
             input_array = self.pre_processing_func(input_array)
         return input_array
 
-    def __get_instance(self):
+    def __get_next_example(self):
         for image_id in self.coco_annotations:
             yield image_id, self.coco_annotations[image_id]
 
