@@ -63,7 +63,6 @@ class TensorFlowRunner:
 
     def run(self):
         start = time.time()
-        print(self.feed_dict)
         output = self.sess.run(self.output_dict, self.feed_dict)
         finish = time.time()
         self.total_inference_time += finish - start
@@ -82,7 +81,7 @@ def run_ssd_mn_v2_with_tf(batch_size=1):
         runner.set_input_tensor("image_tensor:0", coco_dataset.get_input_array())
         _ = runner.run()
     print_benchmark_metrics(runner.first_run_latency, runner.total_inference_time, runner.times_invoked, batch_size)
-    sess.close()
+    runner.sess.close()
 
 
 if __name__ == "__main__":
