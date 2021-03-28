@@ -79,7 +79,7 @@ class TensorFlowRunner:
         return output
 
 
-def run_ssd_mn_v2_with_tf(batch_size=1):
+def run_ssd_mn_v2_with_tf(batch_size=16):
     number_of_runs = 5000
     coco_dataset = coco_utils.COCODataset(batch_size, (640, 640))
     #print(coco_dataset.get_input_array())

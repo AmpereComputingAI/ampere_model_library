@@ -40,6 +40,7 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
+        self.current_instances = None
         self.coco_annotations = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
@@ -135,9 +136,9 @@ class COCODataset:
         return padded_array
 
     def __get_next_image(self):
-        current_instance = next(self.instance_generator)
-        self.__store_ground_truth(current_instance)
-        image_array = cv2.imread(self.__get_path_to_next_image(current_instance))
+        image_id, annotations = next(self.instance_generator)
+        self.current_instances[image_id] = annotations
+        image_array = cv2.imread(self.__get_path_to_image_under_id(image_id))
         if self.allow_distortion:
             image_array = cv2.resize(image_array, self.shape)
         else:
@@ -145,6 +146,7 @@ class COCODataset:
         return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
 
     def get_input_array(self):
+        self.current_instances = dict()
         input_array = self.__get_next_image()
         for _ in range(1, self.batch_size):
             input_array = np.concatenate((input_array, self.__get_next_image()), axis=0)
@@ -153,8 +155,8 @@ class COCODataset:
         return input_array
 
     def __get_instance(self):
-        for annotation in self.coco_annotations["annotations"]:
-            yield annotation
+        for image_id in self.coco_annotations:
+            yield image_id, self.coco_annotations[image_id]
 
-    def __get_path_to_next_image(self, current_instance):
-        return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(current_instance["image_id"])))
+    def __get_path_to_image_under_id(self, image_id):
+        return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
