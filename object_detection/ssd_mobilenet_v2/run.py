@@ -82,6 +82,7 @@ class TensorFlowRunner:
 def run_ssd_mn_v2_with_tf(batch_size=1):
     number_of_runs = 1
     coco_dataset = coco_utils.COCODataset(batch_size, (640, 640))
+    print(coco_dataset.get_input_array())
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 
@@ -89,6 +90,7 @@ def run_ssd_mn_v2_with_tf(batch_size=1):
         runner.set_input_tensor("image_tensor:0", coco_dataset.get_input_array())
         output = runner.run()
         print(output)
+        print(coco_dataset.return_annotations())
         # coco_dataset.measure_accuracy(output)
     #coco_dataset.summarize_accuracy()
     print_benchmark_metrics(runner.first_run_latency, runner.total_inference_time, runner.times_invoked, batch_size)

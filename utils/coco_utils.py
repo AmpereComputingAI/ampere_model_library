@@ -1,6 +1,7 @@
 import os
 import cv2
 import sys
+import json
 import pathlib
 import numpy as np
 
@@ -29,18 +30,24 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
+        self.current_instance = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
+        try:
+            with open(pathlib.PurePath(os.environ["COCO_ANNO_PATH"])) as annotations:
+                self.coco_annotations = json.load(annotations)
+                self.instance_generator = self.__get_instance()
+        except KeyError:
+            print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
 
-    def __generate_coco_filename(self):
-        image_id_as_str = str(self.image_id)
-        return self.images_filename_base[:-len(image_id_as_str)] + image_id_as_str + self.images_filename_extension
+    def __generate_coco_filename(self, image_id: int):
+        return self.images_filename_base[:-len(str(image_id))] + str(image_id) + self.images_filename_extension
 
     def __find_next_images_path(self):
         while self.image_id < self.max_image_id:
-            potential_path = pathlib.PurePath(self.coco_directory, self.__generate_coco_filename())
+            potential_path = pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(self.image_id))
             if pathlib.Path(potential_path).is_file():
                 return potential_path
             self.image_id += 1
@@ -94,7 +101,7 @@ class COCODataset:
         return padded_array
 
     def __get_next_image(self):
-        image_array = cv2.imread(self.__get_path_to_image())
+        image_array = cv2.imread(self.__get_path_to_next_image())
         if self.allow_distortion:
             image_array = cv2.resize(image_array, self.shape)
         else:
@@ -109,3 +116,13 @@ class COCODataset:
         if self.pre_processing_func:
             input_array = self.pre_processing_func(input_array)
         return input_array
+
+    def __get_instance(self):
+        for annotation in self.coco_annotations["annotations"]:
+            yield annotation
+
+    def __get_path_to_next_image(self):
+        self.current_instance = next(self.instance_generator)
+        print(self.current_instance)
+        return str(pathlib.PurePath(
+            self.coco_directory, self.__generate_coco_filename(self.current_instance["image_id"])))
