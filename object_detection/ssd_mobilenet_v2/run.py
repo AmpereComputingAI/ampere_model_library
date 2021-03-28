@@ -80,9 +80,14 @@ class TensorFlowRunner:
 
 
 def run_ssd_mn_v2_with_tf(batch_size=1):
-    number_of_runs = 1
+    number_of_runs = 5000
     coco_dataset = coco_utils.COCODataset(batch_size, (640, 640))
-    print(coco_dataset.get_input_array())
+    #print(coco_dataset.get_input_array())
+    #print(coco_dataset.bboxes)
+    #print(coco_dataset.categories)
+    for i in range(number_of_runs):
+        _ = coco_dataset.get_input_array()
+    sfdsd
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 

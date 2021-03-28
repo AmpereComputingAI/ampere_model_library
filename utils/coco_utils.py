@@ -3,7 +3,9 @@ import cv2
 import sys
 import json
 import pathlib
+import hashlib
 import numpy as np
+from cache.utils import get_cache_dir
 
 
 def print_goodbye_message_and_die(message):
@@ -13,6 +15,14 @@ def print_goodbye_message_and_die(message):
 
 def print_warning_message(message):
     print(f"CAUTION: {message}")
+
+
+def get_hash_of_a_file(path_to_file):
+    hash_md5 = hashlib.md5()
+    with open(path_to_file, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 class COCODataset:
@@ -30,17 +40,41 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
-        self.current_instance = None
+        self.coco_annotations = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
-            with open(pathlib.PurePath(os.environ["COCO_ANNO_PATH"])) as annotations:
-                self.coco_annotations = json.load(annotations)
-                self.instance_generator = self.__get_instance()
+            self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
+            self.instance_generator = self.__get_instance()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
+
+    def __initialize_coco_annotations(self, annotations_path):
+        cached_annotations_path = pathlib.PurePath(
+            get_cache_dir(), f"annotations_{get_hash_of_a_file(annotations_path)}.json")
+        if pathlib.Path(cached_annotations_path).is_file():
+            with open(cached_annotations_path) as annotations:
+                self.coco_annotations = json.load(annotations)
+        else:
+            extracted_data = dict()
+            with open(annotations_path) as annotations:
+                annotations = json.load(annotations)
+                for annotation in annotations["annotations"]:
+                    dict_with_bbox_data = {
+                        "bbox": annotation["bbox"],
+                        "category_id": annotation["category_id"]
+                    }
+                    # if the data related to the given image is already present append another bbox to the existing set
+                    if annotation["image_id"] in extracted_data:
+                        extracted_data[annotation["image_id"]].append(dict_with_bbox_data)
+                    # else initialize the set for a given image with current bbox
+                    else:
+                        extracted_data[annotation["image_id"]] = [dict_with_bbox_data]
+            with open(cached_annotations_path, "w") as cached_annotations_file:
+                json.dump(extracted_data, cached_annotations_file)
+            self.__initialize_coco_annotations(annotations_path)
 
     def __generate_coco_filename(self, image_id: int):
         return self.images_filename_base[:-len(str(image_id))] + str(image_id) + self.images_filename_extension
@@ -101,12 +135,13 @@ class COCODataset:
         return padded_array
 
     def __get_next_image(self):
-        image_array = cv2.imread(self.__get_path_to_next_image())
+        current_instance = next(self.instance_generator)
+        self.__store_ground_truth(current_instance)
+        image_array = cv2.imread(self.__get_path_to_next_image(current_instance))
         if self.allow_distortion:
             image_array = cv2.resize(image_array, self.shape)
         else:
             image_array = self.__resize_and_crop_image(image_array)
-        self.image_id += 1
         return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
 
     def get_input_array(self):
@@ -121,8 +156,5 @@ class COCODataset:
         for annotation in self.coco_annotations["annotations"]:
             yield annotation
 
-    def __get_path_to_next_image(self):
-        self.current_instance = next(self.instance_generator)
-        print(self.current_instance)
-        return str(pathlib.PurePath(
-            self.coco_directory, self.__generate_coco_filename(self.current_instance["image_id"])))
+    def __get_path_to_next_image(self, current_instance):
+        return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(current_instance["image_id"])))
