@@ -43,7 +43,7 @@ def print_benchmark_metrics(first_run_latency, total_inference_time, number_of_r
     latency_in_seconds = (total_inference_time - first_run_latency) / (number_of_runs - 1)
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
-    print("Latency: {:.2f} ms".format(latency_in_ms))
+    print("Latency: {:.0f} ms".format(latency_in_ms))
     print("Throughput: {:.2f} ips".format(instances_per_second))
 
 
@@ -72,7 +72,7 @@ class TensorFlowRunner:
         return output
 
 
-def run_ssd_mn_v2_with_tf(batch_size=1):
+def run_ssd_mn_v2_with_tf(batch_size=32):
     coco_dataset = coco_utils.COCODataset(batch_size, (640, 640))
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
