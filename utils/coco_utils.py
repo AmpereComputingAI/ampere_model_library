@@ -11,6 +11,7 @@ def print_goodbye_message_and_die(message):
 
 
 class COCODataset:
+
     def __init__(self,
                  batch_size, shape,
                  allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True):
@@ -104,15 +105,3 @@ class COCODataset:
         if self.pre_processing_func:
             input_array = self.pre_processing_func(input_array)
         return input_array
-
-
-import time
-
-coco_dataset = COCODataset(1, (640, 640))
-
-
-for _ in range(1000):
-    start = time.time()
-    _ = coco_dataset.get_input_array()
-    end = time.time()
-    print(end-start)
