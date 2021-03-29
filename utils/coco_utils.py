@@ -51,7 +51,7 @@ class COCODataset:
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
 
-    class ExamplesTracker:
+    class __ExamplesTracker:
         def __init__(self):
             self.ground_truth = dict()
             self.predictions = dict()
@@ -75,23 +75,30 @@ class COCODataset:
                                 vertical_scale_factor, horizontal_scale_factor,
                                 vertical_shift=0, horizontal_shift=0):
             for instance in self.ground_truth[self.example_id]:
-                bbox = np.array(instance["bbox"])
+                bbox = np.array(instance["bbox"]).astype("float32")
                 if vertical_scale_factor and horizontal_scale_factor:
+                    # if image was resized (w/ or w/o aspect ratio change) we need to appropriately correct bboxes
                     bbox *= np.array([horizontal_scale_factor, vertical_scale_factor,
                                       horizontal_scale_factor, vertical_scale_factor])
                 if vertical_shift > 0 or horizontal_shift > 0:
+                    # if black bars were applied we need to shift
                     bbox += np.array([horizontal_shift, vertical_shift,
                                       horizontal_shift, vertical_shift])
+                # if both dimensions are equal we can use clip op to cap boxes at the edges of new image
                 if shape[0] == shape[1]:
-                    bbox = np.clip(bbox, 0, shape[0])
+                    bbox = np.clip(bbox, 0, shape[0]-1)
+                # otherwise we have to go in alternating order (left boundary -> top -> right -> bottom)
+                # and cap "by hand"
                 else:
                     for i in range(4):
                         if i % 2 == 0:
-                            bbox[i] = bbox[i] if bbox[i] < shape[1] else shape[1]
+                            bbox[i] = bbox[i] if bbox[i] < shape[1] else shape[1] - 1
                         else:
-                            bbox[i] = bbox[i] if bbox[i] < shape[0] else shape[0]
+                            bbox[i] = bbox[i] if bbox[i] < shape[0] else shape[0] - 1
                 instance["bbox"] = list(bbox)
-            print(self.ground_truth[self.example_id])
+
+    def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3):
+        return [bbox[left], bbox[top], bbox[right], bbox[bottom]]
 
     def __initialize_coco_annotations(self, annotations_path):
         cached_annotations_path = pathlib.PurePath(
@@ -178,7 +185,7 @@ class COCODataset:
         padded_array[lower_boundary_h:upper_boundary_h, lower_boundary_w:upper_boundary_w] = image_array
         return padded_array
 
-    def push_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int):
+    def submit_bbox_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int):
         """
         :param id_in_batch:
         :param bbox_in_coco_format:
@@ -205,7 +212,7 @@ class COCODataset:
         return image_array
 
     def get_input_array(self):
-        self.current_examples = self.ExamplesTracker()
+        self.current_examples = self.__ExamplesTracker()
         input_array = self.__get_next_image()
         for _ in range(1, self.batch_size):
             input_array = np.concatenate((input_array, self.__get_next_image()), axis=0)

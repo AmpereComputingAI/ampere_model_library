@@ -78,25 +78,28 @@ class TensorFlowRunner:
         return output
 
 
-def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1):
-    coco = coco_utils.COCODataset(batch_size, (640, 640))
+def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1, shape=(640, 640)):
+    coco = coco_utils.COCODataset(batch_size, shape)
 
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 
     for _ in range(int(number_of_runs/batch_size)):
+        start = time.time()
         runner.set_input_tensor("image_tensor:0", coco.get_input_array())
+        print(time.time() - start)
         output = runner.run()
-        print(list(output["detection_boxes:0"][0][2]))
-        print(coco.current_examples.rescale_params[0].vertical_ratio)
-        print(coco.current_examples.rescale_params[0].horizontal_shift)
-        dsfg
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
-                coco.push_prediction(i, list(output["detection_boxes:0"][i][d]), int(output["detection_classes:0"][i][d]))
-        print(coco.predictions)
-        # coco_dataset.measure_accuracy(output)
-    #coco_dataset.summarize_accuracy()
+                coco.submit_bbox_prediction(
+                    i, coco.convert_bbox_to_coco_order(
+                        output["detection_boxes:0"][i][d] * shape[0], left=1, top=0, right=3, bottom=2),
+                    int(output["detection_classes:0"][i][d]))
+        coco.calculate_accuracy_for_batch()
+        #print(coco.current_examples.predictions)
+        #print(coco.current_examples.ground_truth)
+
+    coco.summarize_accuracy()
     print_benchmark_metrics(runner.first_run_latency, runner.total_inference_time, runner.times_invoked, batch_size)
     runner.sess.close()
 
