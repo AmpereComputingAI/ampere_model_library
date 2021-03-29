@@ -36,7 +36,8 @@ def calc_recall(true_positives, false_negatives):
 class COCODataset:
     def __init__(self,
                  batch_size, shape,
-                 allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True):
+                 allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True,
+                 coco_mAP_lower_iou_thld=0.5, coco_mAP_upper_iou_thld=0.95, coco_mAP_iou_jumps=10):
         # TODO: hide some params from outside world
         self.batch_size = batch_size
         self.shape = shape
@@ -49,16 +50,29 @@ class COCODataset:
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
         self.ongoing_examples = None
-        self.coco_annotations = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
-            self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
+            self.coco_annotations = self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
+            self.accumulated_precision_values, self.category_occurrences_map = self.__init_acc_tracking_arrays(
+                coco_mAP_iou_jumps)
             self.example_generator = self.__get_next_example()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
+
+    def __init_acc_tracking_arrays(self, coco_mAP_iou_jumps, recall_granularity=101):
+        # although COCO indexing starts with 1 and some in-between indices
+        # are missing in 2017 set (like categories under ids: 12, 26, ..., 91)
+        # we don't want to bother translating them etc. so we just create an
+        # array able to accommodate them under their native indices despite
+        # it being bigger than necessary
+        categories_dim_size = self.coco_annotations["max_category_id"] + 1
+        shape = (coco_mAP_iou_jumps, categories_dim_size, recall_granularity)
+        accumulated_precision_values = np.full(shape, np.nan)
+        category_occurrences_map = np.zeros(shape)
+        return accumulated_precision_values, category_occurrences_map
 
     class __ExamplesTracker:
         def __init__(self):
@@ -86,7 +100,8 @@ class COCODataset:
             for instance in self.ground_truth[self.example_id]:
                 bbox = np.array(instance["bbox"]).astype("float32")
                 if vertical_scale_factor and horizontal_scale_factor:
-                    # if image was resized (w/ or w/o aspect ratio change) we need to appropriately correct bboxes
+                    # if image was resized (w/ or w/o aspect ratio change)
+                    # we need to appropriately correct bboxes
                     bbox *= np.array([horizontal_scale_factor, vertical_scale_factor,
                                       horizontal_scale_factor, vertical_scale_factor])
                 if vertical_shift > 0 or horizontal_shift > 0:
@@ -107,6 +122,8 @@ class COCODataset:
                 instance["bbox"] = list(bbox)
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3):
+        # sometimes networks return order of bbox boundary values in different order
+        # than the default COCO left -> top -> right -> bottom
         return [bbox[left], bbox[top], bbox[right], bbox[bottom]]
 
     def __initialize_coco_annotations(self, annotations_path):
@@ -114,9 +131,16 @@ class COCODataset:
             get_cache_dir(), f"annotations_{get_hash_of_a_file(annotations_path)}.json")
         if pathlib.Path(cached_annotations_path).is_file():
             with open(cached_annotations_path) as annotations:
-                self.coco_annotations = json.load(annotations)
+                return json.load(annotations)
         else:
-            extracted_data = dict()
+            extracted_data = {
+                "instances": dict(),
+                "categories": dict(),
+                "num_categories": 0,
+                "max_category_id": 0
+            }
+            extracted_instances = extracted_data["instances"]
+            extracted_categories = extracted_data["categories"]
             with open(annotations_path) as annotations:
                 annotations = json.load(annotations)
                 for annotation in annotations["annotations"]:
@@ -125,14 +149,19 @@ class COCODataset:
                         "category_id": annotation["category_id"]
                     }
                     # if the data related to the given image is already present append another bbox to the existing set
-                    if annotation["image_id"] in extracted_data:
-                        extracted_data[annotation["image_id"]].append(dict_with_bbox_data)
+                    if annotation["image_id"] in extracted_instances:
+                        extracted_instances[annotation["image_id"]].append(dict_with_bbox_data)
                     # else initialize the set for a given image with current bbox
                     else:
-                        extracted_data[annotation["image_id"]] = [dict_with_bbox_data]
+                        extracted_instances[annotation["image_id"]] = [dict_with_bbox_data]
+                for category in annotations["categories"]:
+                    extracted_data["num_categories"] += 1
+                    if category["id"] > extracted_data["max_category_id"]:
+                        extracted_data["max_category_id"] = category["id"]
+                    extracted_categories[category["id"]] = category["name"]
             with open(cached_annotations_path, "w") as cached_annotations_file:
                 json.dump(extracted_data, cached_annotations_file)
-            self.__initialize_coco_annotations(annotations_path)
+            return extracted_data
 
     def __generate_coco_filename(self, image_id: int):
         return self.images_filename_base[:-len(str(image_id))] + str(image_id) + self.images_filename_extension
@@ -219,6 +248,9 @@ class COCODataset:
         image_id, annotations = next(self.example_generator)
         self.ongoing_examples.track_example(annotations)
         image_array = cv2.imread(self.__get_path_to_image_under_id(image_id))
+        assert image_array is not None, "image failed to load, possible causes: " \
+                                        "a) supplied annotations don't match image set, " \
+                                        "b) wrong directory to image set"
         image_array = self.__rescale_image(image_array)
         return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
 
@@ -244,7 +276,7 @@ class COCODataset:
         return False
 
     def __coco_calculate_prev_batch_accuracy(self):
-        for i in self.batch_size:
+        for i in range(self.batch_size):
             true_positives = 0
             false_negatives = 0
             instances = self.ongoing_examples.ground_truth[i]
@@ -254,9 +286,9 @@ class COCODataset:
                 else:
                     false_negatives += 1
             false_positives = len(self.ongoing_examples.predictions[i]) - true_positives
-        print(self.ongoing_examples.predictions)
-        print(self.ongoing_examples.ground_truth)
-        fs
+            recall = calc_recall(true_positives, false_negatives)
+            print(recall)
+            precision = calc_precision(true_positives, false_positives)
 
     def get_input_array(self):
         if self.ongoing_examples:
@@ -270,8 +302,8 @@ class COCODataset:
         return input_array
 
     def __get_next_example(self):
-        for image_id in self.coco_annotations:
-            yield image_id, self.coco_annotations[image_id]
+        for image_id in self.coco_annotations["instances"]:
+            yield image_id, self.coco_annotations["instances"][image_id]
 
     def __get_path_to_image_under_id(self, image_id):
         return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
