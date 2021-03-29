@@ -2,6 +2,7 @@ import os
 import cv2
 import sys
 import json
+import decimal
 import pathlib
 import hashlib
 import numpy as np
@@ -26,18 +27,61 @@ def get_hash_of_a_file(path_to_file):
 
 
 def calc_precision(true_positives, false_positives):
-    return true_positives / (true_positives + false_positives)
+    tp_fp = true_positives + false_positives
+    if tp_fp == 0:
+        return None
+    return true_positives / tp_fp
 
 
 def calc_recall(true_positives, false_negatives):
-    return true_positives / (true_positives + false_negatives)
+    tp_fn = true_positives + false_negatives
+    if tp_fn == 0:
+        return None
+    return true_positives / tp_fn
+
+
+def unpack_bbox_into_vars(bbox: list):
+    return bbox[0], bbox[1], bbox[2], bbox[3]
+
+
+def calc_overlapping_part_of_two_line_segments(a_0, b_0, a_1, b_1):
+    # a denotes smaller of values a and b marking end points of given (_i) line segment
+    assert a_0 <= b_0 and a_1 <= b_1, "a value cannot be bigger than b"
+    return min(b_0, b_1) - max(a_0, a_1)
+
+
+def frange(start_value, end_value, jump):
+    while start_value < end_value + jump:
+        yield float(start_value)
+        start_value += jump
+
+
+def calc_iou(bbox_0: list, bbox_1: list):
+    left_0, top_0, right_0, bottom_0 = unpack_bbox_into_vars(bbox_0)
+    left_1, top_1, right_1, bottom_1 = unpack_bbox_into_vars(bbox_1)
+    if right_0 <= left_1:
+        return 0.0
+    if right_1 <= left_0:
+        return 0.0
+    if bottom_0 <= top_1:
+        return 0.0
+    if bottom_1 <= top_0:
+        return 0.0
+    horizontal_common_length = calc_overlapping_part_of_two_line_segments(left_0, right_0, left_1, right_1)
+    vertical_common_length = calc_overlapping_part_of_two_line_segments(top_0, bottom_0, top_1, bottom_1)
+    intersection_area = horizontal_common_length * vertical_common_length
+    area_of_bbox_0 = (right_0 - left_0) * (bottom_0 - top_0)
+    area_of_bbox_1 = (right_1 - left_1) * (bottom_1 - top_1)
+    union_area = area_of_bbox_0 + area_of_bbox_1 - 2 * intersection_area
+    assert union_area != 0.0, "area of union cannot be equal to 0"
+    return intersection_area / union_area
 
 
 class COCODataset:
     def __init__(self,
                  batch_size, shape,
                  allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True,
-                 coco_mAP_lower_iou_thld=0.5, coco_mAP_upper_iou_thld=0.95, coco_mAP_iou_jumps=10):
+                 coco_mAP_lower_iou_thld=0.5, coco_mAP_upper_iou_thld=0.95, coco_mAP_iou_jump=0.05):
         # TODO: hide some params from outside world
         self.batch_size = batch_size
         self.shape = shape
@@ -50,26 +94,33 @@ class COCODataset:
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
         self.ongoing_examples = None
+        # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
+        # self.coco_mAP_upper_iou_thld = coco_mAP_upper_iou_thld
+        self.coco_mAP_iou_thresholds = list(
+            frange(coco_mAP_lower_iou_thld, coco_mAP_upper_iou_thld, coco_mAP_iou_jump))
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
             self.coco_annotations = self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
-            self.accumulated_precision_values, self.category_occurrences_map = self.__init_acc_tracking_arrays(
-                coco_mAP_iou_jumps)
+            self.accumulated_precision_values, self.category_occurrences_map = self.__init_acc_tracking_arrays()
             self.example_generator = self.__get_next_example()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
 
-    def __init_acc_tracking_arrays(self, coco_mAP_iou_jumps, recall_granularity=101):
+    # def __get_num_of_iou_jumps(self):
+    #    offset = 1  # between eg. 0.5 - 0.95 you have 10 variants when jumps equal 0.05, not 9
+    #    return int(((self.coco_mAP_upper_iou_thld - self.coco_mAP_lower_iou_thld) / self.coco_mAP_iou_jump) + offset)
+
+    def __init_acc_tracking_arrays(self, recall_granularity=101):
         # although COCO indexing starts with 1 and some in-between indices
         # are missing in 2017 set (like categories under ids: 12, 26, ..., 91)
         # we don't want to bother translating them etc. so we just create an
         # array able to accommodate them under their native indices despite
         # it being bigger than necessary
         categories_dim_size = self.coco_annotations["max_category_id"] + 1
-        shape = (coco_mAP_iou_jumps, categories_dim_size, recall_granularity)
+        shape = (len(self.coco_mAP_iou_thresholds), categories_dim_size, recall_granularity)
         accumulated_precision_values = np.full(shape, np.nan)
         category_occurrences_map = np.zeros(shape)
         return accumulated_precision_values, category_occurrences_map
@@ -258,37 +309,47 @@ class COCODataset:
         if self.allow_distortion:
             self.ongoing_examples.rescale_annotations(
                 self.shape, self.shape[0] / image_array.shape[0], self.shape[1] / image_array.shape[1])
-            image_array = cv2.resize(image_array, self.shape)
-        else:
-            image_array = self.__resize_and_crop_image(image_array)
-        # cv2.imwrite("byt.jpg", image_array)
-        return image_array
+            return cv2.resize(image_array, self.shape)
+        return self.__resize_and_crop_image(image_array)
 
-    def __instance_was_predicted(self, id_in_batch, instance, iou_threshold=0.5):
-        instance_id = instance["category_id"]
-        instance_bbox = instance["bbox"]
+    def __instance_was_predicted(self, id_in_batch, instance, iou_threshold):
         iou = 0.0
         for pred in self.ongoing_examples.predictions[id_in_batch]:
             if pred["category_id"] == instance["category_id"]:
-                iou = max(iou, calculate_iou(instance["bbox"], pred["bbox"]))
+                iou = max(iou, calc_iou(instance["bbox"], pred["bbox"]))
         if iou > iou_threshold:
             return True
         return False
 
+    def __valid_instance(self, bbox):
+        # instance is not valid if bbox has an area of 0
+        # (as a result of cropping the image and moving the annotated instance outside)
+        left, top, right, bottom = unpack_bbox_into_vars(bbox)
+        if left == top == right == bottom:
+            return False
+        return True
+
     def __coco_calculate_prev_batch_accuracy(self):
-        for i in range(self.batch_size):
-            true_positives = 0
-            false_negatives = 0
-            instances = self.ongoing_examples.ground_truth[i]
-            for instance in instances:
-                if self.__instance_was_predicted(i, instance):
-                    true_positives += 1
-                else:
-                    false_negatives += 1
-            false_positives = len(self.ongoing_examples.predictions[i]) - true_positives
-            recall = calc_recall(true_positives, false_negatives)
-            print(recall)
-            precision = calc_precision(true_positives, false_positives)
+        for iou_thld in self.coco_mAP_iou_thresholds:
+            for i in range(self.batch_size):
+                true_positives = 0
+                false_negatives = 0
+                instances = self.ongoing_examples.ground_truth[i]
+                for instance in instances:
+                    if not self.__valid_instance(instance["bbox"]):
+                        continue
+                    if self.__instance_was_predicted(i, instance, iou_thld):
+                        true_positives += 1
+                    else:
+                        false_negatives += 1
+                false_positives = len(self.ongoing_examples.predictions[i]) - true_positives
+                recall = calc_recall(true_positives, false_negatives)
+                precision = calc_precision(true_positives, false_positives)
+                print("byt")
+                print(recall)
+                print(precision)
+                self.accumulated_precision_values[iou_thld][]
+        sds
 
     def get_input_array(self):
         if self.ongoing_examples:

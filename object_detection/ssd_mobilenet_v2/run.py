@@ -85,9 +85,9 @@ def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1, shape=(640, 640)):
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 
     for _ in range(int(number_of_runs/batch_size)):
-        start = time.time()
+        #start = time.time()
         runner.set_input_tensor("image_tensor:0", coco.get_input_array())
-        print(time.time() - start)
+        #print(time.time() - start)
         output = runner.run()
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
