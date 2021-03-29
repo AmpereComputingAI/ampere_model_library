@@ -55,7 +55,6 @@ def print_benchmark_metrics(first_run_latency, total_inference_time, number_of_r
 
 
 class TensorFlowRunner:
-
     def __init__(self, path_to_model: str, output_names: list):
         self.graph = initialize_graph(path_to_model)
         self.sess = tf.Session(config=create_config(get_intra_op_parallelism_threads()), graph=self.graph)
@@ -88,9 +87,14 @@ def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1):
     for _ in range(int(number_of_runs/batch_size)):
         runner.set_input_tensor("image_tensor:0", coco.get_input_array())
         output = runner.run()
-        print(output)
-        dfs
-        print(coco.return_annotations())
+        print(list(output["detection_boxes:0"][0][2]))
+        print(coco.current_examples.rescale_params[0].vertical_ratio)
+        print(coco.current_examples.rescale_params[0].horizontal_shift)
+        dsfg
+        for i in range(batch_size):
+            for d in range(int(output["num_detections:0"][i])):
+                coco.push_prediction(i, list(output["detection_boxes:0"][i][d]), int(output["detection_classes:0"][i][d]))
+        print(coco.predictions)
         # coco_dataset.measure_accuracy(output)
     #coco_dataset.summarize_accuracy()
     print_benchmark_metrics(runner.first_run_latency, runner.total_inference_time, runner.times_invoked, batch_size)

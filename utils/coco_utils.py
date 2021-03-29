@@ -26,7 +26,6 @@ def get_hash_of_a_file(path_to_file):
 
 
 class COCODataset:
-
     def __init__(self,
                  batch_size, shape,
                  allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True):
@@ -40,7 +39,7 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
-        self.current_instances = None
+        self.current_examples = None
         self.coco_annotations = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
@@ -51,6 +50,48 @@ class COCODataset:
             self.example_generator = self.__get_next_example()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
+
+    class ExamplesTracker:
+        def __init__(self):
+            self.ground_truth = dict()
+            self.predictions = dict()
+            self.example_id = -1
+
+        def __convert_annotations(self):
+            # eg. 'bbox': [473.07, 395.93, 38.65, 28.67]
+            # value under idx 2/3 is shift to the right/bottom of value under idx 0/1
+            # after conversion this changes to [473.07, 395.93, 473.07+38.65, 395.93+28.67]
+            for instance in self.ground_truth[self.example_id]:
+                instance["bbox"][2] += instance["bbox"][0]
+                instance["bbox"][3] += instance["bbox"][1]
+
+        def track_example(self, annotations):
+            self.example_id += 1
+            self.ground_truth[self.example_id] = annotations
+            self.__convert_annotations()
+            self.predictions[self.example_id] = list()
+
+        def rescale_annotations(self, shape,
+                                vertical_scale_factor, horizontal_scale_factor,
+                                vertical_shift=0, horizontal_shift=0):
+            for instance in self.ground_truth[self.example_id]:
+                bbox = np.array(instance["bbox"])
+                if vertical_scale_factor and horizontal_scale_factor:
+                    bbox *= np.array([horizontal_scale_factor, vertical_scale_factor,
+                                      horizontal_scale_factor, vertical_scale_factor])
+                if vertical_shift > 0 or horizontal_shift > 0:
+                    bbox += np.array([horizontal_shift, vertical_shift,
+                                      horizontal_shift, vertical_shift])
+                if shape[0] == shape[1]:
+                    bbox = np.clip(bbox, 0, shape[0])
+                else:
+                    for i in range(4):
+                        if i % 2 == 0:
+                            bbox[i] = bbox[i] if bbox[i] < shape[1] else shape[1]
+                        else:
+                            bbox[i] = bbox[i] if bbox[i] < shape[0] else shape[0]
+                instance["bbox"] = list(bbox)
+            print(self.ground_truth[self.example_id])
 
     def __initialize_coco_annotations(self, annotations_path):
         cached_annotations_path = pathlib.PurePath(
@@ -119,8 +160,8 @@ class COCODataset:
         else:
             scale_factor = None
 
-        # applying scale factor if image is either smaller or larger by both dimensions
         if scale_factor:
+            # applying scale factor if image is either smaller or larger by both dimensions
             image_array = cv2.resize(image_array,
                                      (int(image_width * scale_factor + 0.9999999999),
                                       int(image_height * scale_factor + 0.9999999999)))
@@ -132,21 +173,39 @@ class COCODataset:
         upper_boundary_h = image_array.shape[0] + lower_boundary_h
         lower_boundary_w = int((target_width - image_array.shape[1]) / 2)
         upper_boundary_w = image_array.shape[1] + lower_boundary_w
+        self.current_examples.rescale_annotations(
+            self.shape, scale_factor, scale_factor, lower_boundary_h, lower_boundary_w)
         padded_array[lower_boundary_h:upper_boundary_h, lower_boundary_w:upper_boundary_w] = image_array
         return padded_array
 
+    def push_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int):
+        """
+        :param id_in_batch:
+        :param bbox_in_coco_format:
+        :param category_id:
+        :return:
+        """
+        self.current_examples.predictions[id_in_batch].append({"bbox": bbox_in_coco_format, "category_id": category_id})
+
     def __get_next_image(self):
         image_id, annotations = next(self.example_generator)
-        self.current_instances[image_id] = annotations
+        self.current_examples.track_example(annotations)
         image_array = cv2.imread(self.__get_path_to_image_under_id(image_id))
+        image_array = self.__rescale_image(image_array)
+        return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
+
+    def __rescale_image(self, image_array):
         if self.allow_distortion:
+            self.current_examples.rescale_annotations(
+                self.shape, self.shape[0] / image_array.shape[0], self.shape[1] / image_array.shape[1])
             image_array = cv2.resize(image_array, self.shape)
         else:
             image_array = self.__resize_and_crop_image(image_array)
-        return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
+        # cv2.imwrite("byt.jpg", image_array)
+        return image_array
 
     def get_input_array(self):
-        self.current_instances = dict()
+        self.current_examples = self.ExamplesTracker()
         input_array = self.__get_next_image()
         for _ in range(1, self.batch_size):
             input_array = np.concatenate((input_array, self.__get_next_image()), axis=0)
@@ -160,3 +219,6 @@ class COCODataset:
 
     def __get_path_to_image_under_id(self, image_id):
         return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
+
+    def evaluate_accuracy(self, category_to_bbox_maps):
+        return None
