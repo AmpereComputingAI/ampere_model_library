@@ -25,10 +25,19 @@ def get_hash_of_a_file(path_to_file):
     return hash_md5.hexdigest()
 
 
+def calc_precision(true_positives, false_positives):
+    return true_positives / (true_positives + false_positives)
+
+
+def calc_recall(true_positives, false_negatives):
+    return true_positives / (true_positives + false_negatives)
+
+
 class COCODataset:
     def __init__(self,
                  batch_size, shape,
                  allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True):
+        # TODO: hide some params from outside world
         self.batch_size = batch_size
         self.shape = shape
         self.allow_distortion = allow_distortion
@@ -86,7 +95,7 @@ class COCODataset:
                                       horizontal_shift, vertical_shift])
                 # if both dimensions are equal we can use clip op to cap boxes at the edges of new image
                 if shape[0] == shape[1]:
-                    bbox = np.clip(bbox, 0, shape[0]-1)
+                    bbox = np.clip(bbox, 0, shape[0] - 1)
                 # otherwise we have to go in alternating order (left boundary -> top -> right -> bottom)
                 # and cap "by hand"
                 else:
@@ -192,17 +201,17 @@ class COCODataset:
         :param category_id:
         :return:
         """
-        assert id_in_batch is int, "id_in_batch should be provided as a single int value " \
-                                   "representing position of image that submission is related " \
-                                   "to in the processed batch"
+        assert type(id_in_batch) is int, "id_in_batch should be provided as a single int value " \
+                                         "representing position of image that submission is related " \
+                                         "to in the processed batch"
         assert id_in_batch < self.batch_size, f"id_in_batch value exceeds range of batch declared " \
-                                              f"- requested: {id_in_batch}; available range: 0-{self.batch_size-1}"
-        assert bbox_in_coco_format is list, "bbox should be provided as a list " \
-                                            "eg. [463.66, 87.198135, 524.76, 225.71562] " \
-                                            "ie. [left_boundary, top_b, right_b, bottom_b]"
+                                              f"- requested: {id_in_batch}; available range: 0-{self.batch_size - 1}"
+        assert type(bbox_in_coco_format) is list, "bbox should be provided as a list " \
+                                                  "eg. [463.66, 87.198135, 524.76, 225.71562] " \
+                                                  "ie. [left_boundary, top_b, right_b, bottom_b]"
         assert len(bbox_in_coco_format) == 4, f"bbox should be provided as a list of 4 values " \
                                               f"- {len(bbox_in_coco_format)} provided"
-        assert category_id is int, "category_id should be provided as a single int value"
+        assert type(category_id) is int, "category_id should be provided as a single int value"
         self.ongoing_examples.predictions[id_in_batch].append(
             {"bbox": bbox_in_coco_format, "category_id": category_id})
 
@@ -223,8 +232,31 @@ class COCODataset:
         # cv2.imwrite("byt.jpg", image_array)
         return image_array
 
-    def __coco_calculate_prev_batch_accuracy(self):
+    def __instance_was_predicted(self, id_in_batch, instance, iou_threshold=0.5):
+        instance_id = instance["category_id"]
+        instance_bbox = instance["bbox"]
+        iou = 0.0
+        for pred in self.ongoing_examples.predictions[id_in_batch]:
+            if pred["category_id"] == instance["category_id"]:
+                iou = max(iou, calculate_iou(instance["bbox"], pred["bbox"]))
+        if iou > iou_threshold:
+            return True
+        return False
 
+    def __coco_calculate_prev_batch_accuracy(self):
+        for i in self.batch_size:
+            true_positives = 0
+            false_negatives = 0
+            instances = self.ongoing_examples.ground_truth[i]
+            for instance in instances:
+                if self.__instance_was_predicted(i, instance):
+                    true_positives += 1
+                else:
+                    false_negatives += 1
+            false_positives = len(self.ongoing_examples.predictions[i]) - true_positives
+        print(self.ongoing_examples.predictions)
+        print(self.ongoing_examples.ground_truth)
+        fs
 
     def get_input_array(self):
         if self.ongoing_examples:
