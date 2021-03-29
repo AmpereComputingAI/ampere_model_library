@@ -39,7 +39,7 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = "000000000000"
         self.images_filename_extension = ".jpg"
-        self.current_examples = None
+        self.ongoing_examples = None
         self.coco_annotations = None
         try:
             self.coco_directory = os.environ["COCO_DIR"]
@@ -60,7 +60,7 @@ class COCODataset:
         def __convert_annotations(self):
             # eg. 'bbox': [473.07, 395.93, 38.65, 28.67]
             # value under idx 2/3 is shift to the right/bottom of value under idx 0/1
-            # after conversion this changes to [473.07, 395.93, 473.07+38.65, 395.93+28.67]
+            # after conversion this changes to [473.07, 395.93, 38.65+473.07, 28.67+395.93]
             for instance in self.ground_truth[self.example_id]:
                 instance["bbox"][2] += instance["bbox"][0]
                 instance["bbox"][3] += instance["bbox"][1]
@@ -180,7 +180,7 @@ class COCODataset:
         upper_boundary_h = image_array.shape[0] + lower_boundary_h
         lower_boundary_w = int((target_width - image_array.shape[1]) / 2)
         upper_boundary_w = image_array.shape[1] + lower_boundary_w
-        self.current_examples.rescale_annotations(
+        self.ongoing_examples.rescale_annotations(
             self.shape, scale_factor, scale_factor, lower_boundary_h, lower_boundary_w)
         padded_array[lower_boundary_h:upper_boundary_h, lower_boundary_w:upper_boundary_w] = image_array
         return padded_array
@@ -192,18 +192,30 @@ class COCODataset:
         :param category_id:
         :return:
         """
-        self.current_examples.predictions[id_in_batch].append({"bbox": bbox_in_coco_format, "category_id": category_id})
+        assert id_in_batch is int, "id_in_batch should be provided as a single int value " \
+                                   "representing position of image that submission is related " \
+                                   "to in the processed batch"
+        assert id_in_batch < self.batch_size, f"id_in_batch value exceeds range of batch declared " \
+                                              f"- requested: {id_in_batch}; available range: 0-{self.batch_size-1}"
+        assert bbox_in_coco_format is list, "bbox should be provided as a list " \
+                                            "eg. [463.66, 87.198135, 524.76, 225.71562] " \
+                                            "ie. [left_boundary, top_b, right_b, bottom_b]"
+        assert len(bbox_in_coco_format) == 4, f"bbox should be provided as a list of 4 values " \
+                                              f"- {len(bbox_in_coco_format)} provided"
+        assert category_id is int, "category_id should be provided as a single int value"
+        self.ongoing_examples.predictions[id_in_batch].append(
+            {"bbox": bbox_in_coco_format, "category_id": category_id})
 
     def __get_next_image(self):
         image_id, annotations = next(self.example_generator)
-        self.current_examples.track_example(annotations)
+        self.ongoing_examples.track_example(annotations)
         image_array = cv2.imread(self.__get_path_to_image_under_id(image_id))
         image_array = self.__rescale_image(image_array)
         return np.expand_dims(image_array, axis=0).astype(self.input_data_type)
 
     def __rescale_image(self, image_array):
         if self.allow_distortion:
-            self.current_examples.rescale_annotations(
+            self.ongoing_examples.rescale_annotations(
                 self.shape, self.shape[0] / image_array.shape[0], self.shape[1] / image_array.shape[1])
             image_array = cv2.resize(image_array, self.shape)
         else:
@@ -211,8 +223,13 @@ class COCODataset:
         # cv2.imwrite("byt.jpg", image_array)
         return image_array
 
+    def __coco_calculate_prev_batch_accuracy(self):
+
+
     def get_input_array(self):
-        self.current_examples = self.__ExamplesTracker()
+        if self.ongoing_examples:
+            self.__coco_calculate_prev_batch_accuracy()
+        self.ongoing_examples = self.__ExamplesTracker()
         input_array = self.__get_next_image()
         for _ in range(1, self.batch_size):
             input_array = np.concatenate((input_array, self.__get_next_image()), axis=0)
@@ -227,5 +244,6 @@ class COCODataset:
     def __get_path_to_image_under_id(self, image_id):
         return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
 
-    def evaluate_accuracy(self, category_to_bbox_maps):
+    def summarize_accuracy(self, category_to_bbox_maps):
+        self.__coco_calculate_prev_batch_accuracy()
         return None

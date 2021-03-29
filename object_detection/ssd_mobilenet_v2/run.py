@@ -78,7 +78,7 @@ class TensorFlowRunner:
         return output
 
 
-def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1, shape=(640, 640)):
+def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=32, shape=(640, 640)):
     coco = coco_utils.COCODataset(batch_size, shape)
 
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
@@ -95,7 +95,6 @@ def run_ssd_mn_v2_with_tf(number_of_runs=5000, batch_size=1, shape=(640, 640)):
                     i, coco.convert_bbox_to_coco_order(
                         output["detection_boxes:0"][i][d] * shape[0], left=1, top=0, right=3, bottom=2),
                     int(output["detection_classes:0"][i][d]))
-        coco.calculate_accuracy_for_batch()
         #print(coco.current_examples.predictions)
         #print(coco.current_examples.ground_truth)
 
