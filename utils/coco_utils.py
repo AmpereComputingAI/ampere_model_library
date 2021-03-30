@@ -2,6 +2,7 @@ import os
 import cv2
 import sys
 import json
+import random
 import decimal
 import pathlib
 import hashlib
@@ -80,8 +81,15 @@ def calc_iou(bbox_0: list, bbox_1: list):
 class COCODataset:
     def __init__(self,
                  batch_size, shape,
-                 allow_distortion=True, pre_processing_func=None, input_data_type="uint8", run_in_loop=True,
-                 coco_mAP_lower_iou_thld=0.5, coco_mAP_upper_iou_thld=0.95, coco_mAP_iou_jump=0.05):
+                 allow_distortion=True,
+                 pre_processing_func=None,
+                 input_data_type="uint8",
+                 run_in_loop=True,
+                 coco_mAP_lower_iou_thld=0.5,
+                 coco_mAP_upper_iou_thld=0.95,
+                 coco_mAP_iou_jump=0.05,
+                 coco_recall_granularity=101):
+
         # TODO: hide some params from outside world
         self.batch_size = batch_size
         self.shape = shape
@@ -96,15 +104,15 @@ class COCODataset:
         self.ongoing_examples = None
         # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
         # self.coco_mAP_upper_iou_thld = coco_mAP_upper_iou_thld
-        self.coco_mAP_iou_thresholds = list(
-            frange(coco_mAP_lower_iou_thld, coco_mAP_upper_iou_thld, coco_mAP_iou_jump))
+        self.coco_mAP_iou_thresholds = list(frange(coco_mAP_lower_iou_thld, coco_mAP_upper_iou_thld, coco_mAP_iou_jump))
+        self.coco_recall_granularity = coco_recall_granularity
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
             self.coco_annotations = self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
-            self.accumulated_precision_values, self.category_occurrences_map = self.__init_acc_tracking_arrays()
+            self.accumulated_precision_matrix, self.occurrences_matrix = self.__init_acc_tracking_arrays()
             self.example_generator = self.__get_next_example()
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
@@ -113,17 +121,17 @@ class COCODataset:
     #    offset = 1  # between eg. 0.5 - 0.95 you have 10 variants when jumps equal 0.05, not 9
     #    return int(((self.coco_mAP_upper_iou_thld - self.coco_mAP_lower_iou_thld) / self.coco_mAP_iou_jump) + offset)
 
-    def __init_acc_tracking_arrays(self, recall_granularity=101):
+    def __init_acc_tracking_arrays(self):
         # although COCO indexing starts with 1 and some in-between indices
         # are missing in 2017 set (like categories under ids: 12, 26, ..., 91)
         # we don't want to bother translating them etc. so we just create an
         # array able to accommodate them under their native indices despite
         # it being bigger than necessary
-        categories_dim_size = self.coco_annotations["max_category_id"] + 1
-        shape = (len(self.coco_mAP_iou_thresholds), categories_dim_size, recall_granularity)
-        accumulated_precision_values = np.full(shape, np.nan)
-        category_occurrences_map = np.zeros(shape)
-        return accumulated_precision_values, category_occurrences_map
+        #categories_dim_size = self.coco_annotations["max_category_id"] + 1
+        shape = (self.coco_recall_granularity, len(self.coco_mAP_iou_thresholds))
+        accumulated_precision_matrix = np.full(shape, np.nan)
+        occurrences_matrix = np.zeros(shape)
+        return accumulated_precision_matrix, occurrences_matrix
 
     class __ExamplesTracker:
         def __init__(self):
@@ -187,8 +195,8 @@ class COCODataset:
             extracted_data = {
                 "instances": dict(),
                 "categories": dict(),
-                "num_categories": 0,
-                "max_category_id": 0
+                #"num_categories": 0,
+                #"max_category_id": 0
             }
             extracted_instances = extracted_data["instances"]
             extracted_categories = extracted_data["categories"]
@@ -206,9 +214,9 @@ class COCODataset:
                     else:
                         extracted_instances[annotation["image_id"]] = [dict_with_bbox_data]
                 for category in annotations["categories"]:
-                    extracted_data["num_categories"] += 1
-                    if category["id"] > extracted_data["max_category_id"]:
-                        extracted_data["max_category_id"] = category["id"]
+                    #extracted_data["num_categories"] += 1
+                    #if category["id"] > extracted_data["max_category_id"]:
+                    #    extracted_data["max_category_id"] = category["id"]
                     extracted_categories[category["id"]] = category["name"]
             with open(cached_annotations_path, "w") as cached_annotations_file:
                 json.dump(extracted_data, cached_annotations_file)
@@ -329,6 +337,15 @@ class COCODataset:
             return False
         return True
 
+    def __push_to_accuracy_matrices(self, precision, recall, iou_threshold):
+        recall_dim_idx = int(recall*100)
+        iou_dim_idx = self.coco_mAP_iou_thresholds.index(iou_threshold)
+        if np.isnan(self.accumulated_precision_matrix[recall_dim_idx][iou_dim_idx]):
+            self.accumulated_precision_matrix[recall_dim_idx][iou_dim_idx] = precision
+        else:
+            self.accumulated_precision_matrix[recall_dim_idx][iou_dim_idx] += precision
+        self.occurrences_matrix[recall_dim_idx][iou_dim_idx] += 1
+
     def __coco_calculate_prev_batch_accuracy(self):
         for iou_thld in self.coco_mAP_iou_thresholds:
             for i in range(self.batch_size):
@@ -343,13 +360,21 @@ class COCODataset:
                     else:
                         false_negatives += 1
                 false_positives = len(self.ongoing_examples.predictions[i]) - true_positives
-                recall = calc_recall(true_positives, false_negatives)
                 precision = calc_precision(true_positives, false_positives)
-                print("byt")
-                print(recall)
-                print(precision)
-                self.accumulated_precision_values[iou_thld][]
-        sds
+                recall = calc_recall(true_positives, false_negatives)
+                if not recall and not precision:
+                    # image does not contain any instances and network didn't make a mistake to say otherwise
+                    continue
+                if recall and not precision:
+                    # image does contain instances but network didn't see any
+                    precision = 0.0
+                if not recall and precision:
+                    # image does not contain any instances but network said it does, arbitrary decision: skip
+                    continue
+                if precision > 1.0:
+                    print("this requires fixing")
+                else:
+                    self.__push_to_accuracy_matrices(precision, recall, iou_thld)
 
     def get_input_array(self):
         if self.ongoing_examples:
@@ -369,6 +394,15 @@ class COCODataset:
     def __get_path_to_image_under_id(self, image_id):
         return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
 
-    def summarize_accuracy(self, category_to_bbox_maps):
+    def summarize_accuracy(self):
         self.__coco_calculate_prev_batch_accuracy()
-        return None
+        for i in self.accumulated_precision_matrix:
+            print(i)
+        print("PROSZE STOP")
+        avg_precision_matrix = np.divide(self.accumulated_precision_matrix, self.occurrences_matrix)
+        for i in reversed(range(1, self.coco_recall_granularity)):
+            # we go in reversed order applying interpolation along recall axis
+            # - precision value will only increase with the decrease of recall
+            avg_precision_matrix[i-1] = np.nanmax(avg_precision_matrix[i-1:i+1], axis=0)
+        coco_mAP = np.nanmean(avg_precision_matrix)
+        print(coco_mAP)
