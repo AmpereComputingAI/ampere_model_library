@@ -73,7 +73,7 @@ def calc_iou(bbox_0: list, bbox_1: list):
     intersection_area = horizontal_common_length * vertical_common_length
     area_of_bbox_0 = (right_0 - left_0) * (bottom_0 - top_0)
     area_of_bbox_1 = (right_1 - left_1) * (bottom_1 - top_1)
-    union_area = area_of_bbox_0 + area_of_bbox_1 - 2 * intersection_area
+    union_area = area_of_bbox_0 + area_of_bbox_1 - intersection_area
     assert union_area != 0.0, "area of union cannot be equal to 0"
     return intersection_area / union_area
 
@@ -373,6 +373,7 @@ class COCODataset:
                     continue
                 if precision > 1.0:
                     print("this requires fixing")
+                    print(self.ongoing_examples.ground_truth[i])
                 else:
                     self.__push_to_accuracy_matrices(precision, recall, iou_thld)
 
@@ -396,9 +397,6 @@ class COCODataset:
 
     def summarize_accuracy(self):
         self.__coco_calculate_prev_batch_accuracy()
-        for i in self.accumulated_precision_matrix:
-            print(i)
-        print("PROSZE STOP")
         avg_precision_matrix = np.divide(self.accumulated_precision_matrix, self.occurrences_matrix)
         for i in reversed(range(1, self.coco_recall_granularity)):
             # we go in reversed order applying interpolation along recall axis
