@@ -104,28 +104,23 @@ class MatchRegistry:
     def register(self, ref_bbox_item):
         self.__registry.append(ref_bbox_item)
 
+    def __rematch(self, ref_bbox):
+        if ref_bbox.matches_available():
+            ref_bbox.move_to_next_match()
+        else:
+            return
+        if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
+            owner_of_alternative = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
+            self.__resolve_conflict(owner_of_alternative, ref_bbox)
+        else:
+            self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
+
     def __resolve_conflict(self, owner, plaintiff):
         if owner.get_best_pred_IoU() < plaintiff.get_best_pred_IoU():
             self.__pred_ownership_array[plaintiff.get_best_pred_id()] = plaintiff.id
-            if owner.matches_available():
-                owner.move_to_next_match()
-            else:
-                return
-            if self.__pred_has_owner(owner.get_best_pred_id()):
-                owner_of_alternative = self.__registry[self.__get_owner_id(owner.get_best_pred_id())]
-                self.__resolve_conflict(owner_of_alternative, owner)
-            else:
-                self.__pred_ownership_array[owner.get_best_pred_id()] = owner.id
+            self.__rematch(owner)
         else:
-            if plaintiff.matches_available():
-                plaintiff.move_to_next_match()
-            else:
-                return
-            if self.__pred_has_owner(plaintiff.get_best_pred_id()):
-                owner_of_alternative = self.__registry[self.__get_owner_id(plaintiff.get_best_pred_id())]
-                self.__resolve_conflict(owner_of_alternative, plaintiff)
-            else:
-                self.__pred_ownership_array[plaintiff.get_best_pred_id()] = plaintiff.id
+            self.__rematch(plaintiff)
 
     def summarize(self):
         for ref_bbox in self.__registry:
@@ -156,9 +151,6 @@ class MatchRegistry:
         self.array_with_matches[ref_bbox_id] = pred_bbox_id
         return True
 
-    def ref_bboxes_without_match_num(self):
-        return sum(x is None for x in self.registry)
-
 
 class RefBBox:
     def __init__(self, ref_bbox_id, array_with_IoUs, IoU_threshold):
@@ -188,8 +180,7 @@ class RefBBox:
         return True
 
 
-
-def match_bboxes(truth, pred, IoU_threshold=0.1):
+def match_bboxes(truth, pred, IoU_threshold=0.5):
     matrix = calculate_ious(truth, pred)
     match_registry = MatchRegistry(len(pred))
     for ref_bbox_id in range(len(truth)):
