@@ -84,6 +84,7 @@ def run_ssd_mn_v2_with_tf(number_of_runs=1000, batch_size=1, shape=(640, 640)):
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
                               ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 
+    # TODO: coco.get_possible_runs()
     for _ in range(int(number_of_runs/batch_size)):
         #start = time.time()
         runner.set_input_tensor("image_tensor:0", coco.get_input_array())

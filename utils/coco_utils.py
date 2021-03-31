@@ -342,12 +342,77 @@ class COCODataset:
 
     class MatchRegistry:
         # registry where reference bboxes are owners of matching predicted bboxes
-        def __init__(self, pred_bboxes_num):
+        def __init__(self, pred_bboxes_num, pred_cat_ids):
             self.__registry = list()
+            self.__ref_population_per_category = dict()
             self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
+            self.__pred_cat_ids = pred_cat_ids
+
+        class AccuracyRegistry:
+            def __init__(self, ref_population_per_category):
+                self.__cat_id_to_metrics = dict()
+                self.__ref_population_per_category = ref_population_per_category
+
+            def __initialize_category(self, category_id):
+                self.__cat_id_to_metrics[category_id] = {
+                    "true_positives": 0,
+                    "false_positives": 0,
+                    "false_negatives": 0
+                }
+
+            def __register_metric(self, category_id, metric_name):
+                if category_id not in self.__cat_id_to_metrics:
+                    self.__initialize_category(category_id)
+                self.__cat_id_to_metrics[category_id][metric_name] += 1
+
+            def register_true_positive(self, category_id):
+                self.__register_metric(category_id, "true_positives")
+
+            def register_false_positive(self, category_id):
+                self.__register_metric(category_id, "false_positives")
+
+            def calc_metrics(self):
+                precisions = list()
+                recalls = list()
+                # first handle matched categories
+                #print(self.__cat_id_to_metrics)
+                for cat_id, metrics in self.__cat_id_to_metrics.items():
+                    if cat_id in self.__ref_population_per_category:
+                        false_negatives = self.__ref_population_per_category[cat_id] - metrics["true_positives"]
+                        self.__ref_population_per_category.pop(cat_id)
+                    else:
+                        false_negatives = metrics["true_positives"]
+                    precision = calc_precision(metrics["true_positives"], metrics["false_positives"])
+                    recall = calc_recall(metrics["true_positives"], false_negatives)
+                    if recall is None and precision is None:
+                        # image does not contain any instances and network didn't make a mistake to say otherwise
+                        continue
+                    if precision is None:
+                        # image does contain instances but network didn't see any
+                        precision = 0.0
+                    if recall is None:
+                        # image does not contain any instances but network said it does
+                        recall = 0.0
+                    precisions.append(precision)
+                    recalls.append(recall)
+                # then the unmatched remainder
+                for _, population in self.__ref_population_per_category.items():
+                    precisions.append(0.0)
+                    #recall = calc_recall(0, population)
+                    #if recall is not None:
+                    recalls.append(calc_recall(0, population))
+                assert len(precisions) > 0
+                assert len(recalls) > 0
+                #print(precisions)
+                #print(recalls)
+                return sum(precisions) / len(precisions), sum(recalls) / len(recalls)
 
         def register(self, ref_bbox_item):
             self.__registry.append(ref_bbox_item)
+            if ref_bbox_item.category_id in self.__ref_population_per_category:
+                self.__ref_population_per_category[ref_bbox_item.category_id] += 1
+            else:
+                self.__ref_population_per_category[ref_bbox_item.category_id] = 1
 
         def __rematch(self, ref_bbox):
             if ref_bbox.matches_available():
@@ -369,16 +434,20 @@ class COCODataset:
 
         def summarize(self):
             for ref_bbox in self.__registry:
-                if ref_bbox:
+                if ref_bbox.has_matches():
                     if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
                         owner = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
                         self.__resolve_conflict(owner, ref_bbox)
                     else:
                         self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
-            true_positives = np.sum(self.__pred_ownership_array != -1)
-            false_positives = np.sum(self.__pred_ownership_array == -1)
-            false_negatives = len(self.__registry) - true_positives
-            return true_positives, false_positives, false_negatives
+            acc_registry = self.AccuracyRegistry(self.__ref_population_per_category)
+            for i in range(len(self.__pred_ownership_array)):
+                if self.__pred_ownership_array[i] == -1:
+                    # pred does not have a match at given IoU threshold - false positive
+                    acc_registry.register_false_positive(self.__pred_cat_ids[i])
+                else:
+                    acc_registry.register_true_positive(self.__pred_cat_ids[i])
+            return acc_registry.calc_metrics()
 
         def __get_owner_id(self, pred_id):
             owner_id = self.__pred_ownership_array[pred_id]
@@ -396,9 +465,18 @@ class COCODataset:
             self.array_with_matches[ref_bbox_id] = pred_bbox_id
             return True
 
-    class RefBBox:
-        def __init__(self, ref_bbox_id, array_with_IoUs, IoU_threshold):
+    class UnmatchedRefBBox:
+        def __init__(self, ref_bbox_id, category_id):
             self.id = ref_bbox_id
+            self.category_id = category_id
+
+        def has_matches(self):
+            return False
+
+    class RefBBox:
+        def __init__(self, ref_bbox_id, category_id, array_with_IoUs, IoU_threshold):
+            self.id = ref_bbox_id
+            self.category_id = category_id
             # sort IoUs in descending order
             self.array_with_IoUs = -np.sort(-array_with_IoUs)
             # create an array with indices in original IoUs matrix for values in array_with_IoUs
@@ -408,6 +486,9 @@ class COCODataset:
             self.array_with_IoUs = np.delete(self.array_with_IoUs, ids_to_delete)
             self.array_with_ids = np.delete(self.array_with_ids, ids_to_delete)
             self.current_pos = 0
+
+        def has_matches(self):
+            return True
 
         def get_best_pred_id(self):
             return self.array_with_ids[self.current_pos]
@@ -427,13 +508,15 @@ class COCODataset:
         # this will contain every iou combination between genuine bboxes (dim 0) and predicted (dim 1)
         # iou_matrix = np.full((len(truth), len(pred)), float(-1))
         iou_matrix = np.zeros((len(truth), len(pred)))
+        pred_cat_ids = np.full(len(pred), -1)
         for true_instance in truth:
             for prediction in pred:
+                pred_cat_ids[pred.index(prediction)] = prediction["category_id"]
                 if true_instance["category_id"] != prediction["category_id"]:
                     continue
                 iou_matrix[truth.index(true_instance)][pred.index(prediction)] = calc_iou(
                     true_instance["bbox"], prediction["bbox"])
-        return iou_matrix
+        return iou_matrix, pred_cat_ids
 
     def __remove_nonvalid_instances(self, truth):
         new_truth = list()
@@ -444,41 +527,32 @@ class COCODataset:
 
     def __match_bboxes(self, truth, pred, IoU_threshold):
         truth = self.__remove_nonvalid_instances(truth)
-        matrix = self.__calculate_IoU_matrix(truth, pred)
+        matrix, pred_cat_ids = self.__calculate_IoU_matrix(truth, pred)
         #print(matrix)
-        match_registry = self.MatchRegistry(len(pred))
+        match_registry = self.MatchRegistry(len(pred), pred_cat_ids)
         for ref_bbox_id in range(len(truth)):
             array_with_IoUs = matrix[ref_bbox_id]
             if array_with_IoUs.size > 0:
                 if np.max(array_with_IoUs) >= IoU_threshold:
-                    match_registry.register(self.RefBBox(ref_bbox_id, array_with_IoUs, IoU_threshold))
+                    match_registry.register(
+                        self.RefBBox(ref_bbox_id, truth[ref_bbox_id]["category_id"], array_with_IoUs, IoU_threshold))
                     continue
-            match_registry.register(None)
-        true_positives, false_positives, false_negatives = match_registry.summarize()
-        return true_positives, false_positives, false_negatives
+            match_registry.register(self.UnmatchedRefBBox(ref_bbox_id, truth[ref_bbox_id]["category_id"]))
+        return match_registry.summarize()
 
     def __coco_calculate_prev_batch_accuracy(self):
         for i in range(self.batch_size):
             for iou_thld in self.coco_mAP_iou_thresholds:
-                true_positives, false_positives, false_negatives = self.__match_bboxes(
+                precision, recall = self.__match_bboxes(
                     self.ongoing_examples.ground_truth[i], self.ongoing_examples.predictions[i], iou_thld)
-                precision = calc_precision(true_positives, false_positives)
-                recall = calc_recall(true_positives, false_negatives)
-                if recall == 1.0:
-                    print(f"iou: {iou_thld}")
-                    print(f"prec: {precision}")
-                    print(f"recall: {recall}")
-                    print(self.ongoing_examples.ground_truth[i])
-                    print(self.ongoing_examples.predictions[i])
-                if recall is None and precision is None:
-                    # image does not contain any instances and network didn't make a mistake to say otherwise
-                    continue
-                if type(recall) is np.float64 and precision is None:
-                    # image does contain instances but network didn't see any
-                    precision = 0.0
-                if recall is None and type(precision) is np.float64:
-                    # image does not contain any instances but network said it does, arbitrary decision: skip
-                    continue
+
+                #if recall == 1.0:
+                    #print(f"iou: {iou_thld}")
+                    #print(f"prec: {precision}")
+                    #print(f"recall: {recall}")
+                    #print(self.ongoing_examples.ground_truth[i])
+                    #print(self.ongoing_examples.predictions[i])
+
                 self.__push_to_accuracy_matrices(precision, recall, iou_thld)
 
     def get_input_array(self):
@@ -508,11 +582,15 @@ class COCODataset:
         #    start_pos = self.coco_recall_granularity - n - 1
         #    current_slice = np.nan_to_num(avg_precision_matrix[start_pos])
         #    for i in reversed(range(start_pos)):
-        #        # we go in reversed order applying interpolation along recall axis
-        #        # - precision value will only increase with the decrease of recall
+                # we go in reversed order applying interpolation along recall axis
+                # - precision value will only increase with the decrease of recall
         #        avg_precision_matrix[i] = np.maximum(avg_precision_matrix[i], current_slice)
+
         precision_sum = np.sum(np.nan_to_num(avg_precision_matrix))
-        for i in avg_precision_matrix:
-            print(i)
+        #print(np.sum(np.nan_to_num(avg_precision_matrix), axis=0) / np.sum(np.nan_to_num(np.maximum(avg_precision_matrix, np.ones(avg_precision_matrix.shape))), axis=0))
+        print(np.sum(np.nan_to_num(avg_precision_matrix), axis=1) / np.sum(
+            np.nan_to_num(np.maximum(avg_precision_matrix, np.ones(avg_precision_matrix.shape))), axis=1))
+        #for i in avg_precision_matrix:
+        #    print(i)
         coco_mAP = precision_sum / num_occurrences
         print(coco_mAP)
