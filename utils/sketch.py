@@ -1,3 +1,6 @@
+import numpy as np
+
+
 truth = [{'bbox': [376.09, 326.5339, 394.67, 387.84268], 'category_id': 44},
          {'bbox': [344.44, 249.50629, 353.54, 308.33807], 'category_id': 44},
          {'bbox': [315.67, 271.16986, 328.43, 315.595], 'category_id': 44},
@@ -79,15 +82,100 @@ def calc_iou(bbox_0: list, bbox_1: list):
     return intersection_area / union_area
 
 
-def match_bboxes(truth, pred):
-    for tbbox in truth:
-        for pbbox in pred:
-            if pbbox["category_id"] != tbbox["category_id"]:
+def calculate_ious(truth, pred):
+    # this will contain every iou combination between genuine bboxes (dim 0) and predicted (dim 1)
+    #iou_matrix = np.full((len(truth), len(pred)), float(-1))
+    iou_matrix = np.zeros((len(truth), len(pred)))
+    for true_instance in truth:
+        for prediction in pred:
+            if true_instance["category_id"] != prediction["category_id"]:
                 continue
-            print(calc_iou(pbbox["bbox"], tbbox["bbox"]))
-            if calc_iou(pbbox["bbox"], tbbox["bbox"]) > 1:
-                print(pbbox["bbox"])
-                print(tbbox["bbox"])
+            iou_matrix[truth.index(true_instance)][pred.index(prediction)] = calc_iou(true_instance["bbox"], prediction["bbox"])
+    print(iou_matrix)
+    return iou_matrix
+
+
+class MatchRegistry:
+    # registry where reference bboxes are owners of matching predicted bboxes
+    def __init__(self, pred_bboxes_num):
+        self.__registry = list()
+        self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
+
+    def register(self, ref_bbox_item):
+        self.registry.append(ref_bbox_item)
+
+    def __resolve_conflict(self, owner, plaintiff):
+        
+
+    def summarize(self):
+        false_negatives = 0
+        for ref_bbox in self.registry:
+            if ref_bbox:
+                if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
+                    owner = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
+                    self.__resolve_conflict(owner, ref_bbox)
+                else:
+                    self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
+            else:
+                false_negatives += 1
+
+    def __get_owner_id(self, pred_id):
+        owner_id = self.__pred_ownership_array[pred_id]
+        assert owner_id != -1, "this prediction does not have owner"
+        return owner_id
+
+    def __pred_has_owner(self, pred_id):
+        if self.__pred_ownership_array[pred_id] != -1:
+            return True
+        return False
+
+    def __try_to_register(self, ref_bbox_id, pred_bbox_id):
+        if pred_bbox_id in self.array_with_matches:
+            return False
+        self.array_with_matches[ref_bbox_id] = pred_bbox_id
+        return True
+
+    def ref_bboxes_without_match_num(self):
+        return sum(x is None for x in self.registry)
+
+
+class RefBBox:
+    def __init__(self, ref_bbox_id, array_with_IoUs, IoU_threshold):
+        self.id = ref_bbox_id
+        # sort IoUs in descending order
+        self.array_with_IoUs = -np.sort(-array_with_IoUs)
+        # create an array with indices in original IoUs matrix for values in array_with_IoUs
+        self.array_with_ids = np.argsort(-array_with_IoUs)
+        # remove IoUs below the threshold
+        ids_to_delete = np.argwhere(self.array_with_IoUs < IoU_threshold).flatten()
+        self.array_with_IoUs = np.delete(self.array_with_IoUs, ids_to_delete)
+        self.array_with_ids = np.delete(self.array_with_ids, ids_to_delete)
+
+    def get_best_pred_id(self):
+        return self.array_with_ids[0]
+
+
+
+def match_bboxes(truth, pred, IoU_threshold=0.1):
+    false_negatives = 0
+    matrix = calculate_ious(truth, pred)
+    match_registry = MatchRegistry(len(pred))
+    for ref_bbox_id in range(len(truth)):
+        array_with_IoUs = matrix[ref_bbox_id]
+        if np.max(array_with_IoUs) >= IoU_threshold:
+            match_registry.register(RefBBox(ref_bbox_id, array_with_IoUs, IoU_threshold))
+        else:
+            match_registry.register(None)
+    print(match_registry.ref_bboxes_without_match_num())
+    for ref_bbox in ref_bboxes_list:
+        if ref_bbox:
+            if not match_registry.try_to_register(ref_bbox.id, ref_bbox.get_best_pred_id()):
+                id_of_owner = match_registry.get_owner_id(ref_bbox.get_best_pred_id())
+               # ref_bboxes_list[id_of_owner].
+        else:
+            false_negatives += 1
+
+
 
 
 match_bboxes(truth, pred)

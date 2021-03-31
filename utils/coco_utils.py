@@ -347,8 +347,9 @@ class COCODataset:
         self.occurrences_matrix[recall_dim_idx][iou_dim_idx] += 1
 
     def __coco_calculate_prev_batch_accuracy(self):
-        for iou_thld in self.coco_mAP_iou_thresholds:
-            for i in range(self.batch_size):
+        for i in range(self.batch_size):
+            matrix_ious = gen_matrix()
+            for iou_thld in self.coco_mAP_iou_thresholds:
                 true_positives = 0
                 false_negatives = 0
                 instances = self.ongoing_examples.ground_truth[i]
