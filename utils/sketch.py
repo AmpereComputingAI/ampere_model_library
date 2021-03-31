@@ -102,22 +102,43 @@ class MatchRegistry:
         self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
 
     def register(self, ref_bbox_item):
-        self.registry.append(ref_bbox_item)
+        self.__registry.append(ref_bbox_item)
 
     def __resolve_conflict(self, owner, plaintiff):
-        
+        if owner.get_best_pred_IoU() < plaintiff.get_best_pred_IoU():
+            self.__pred_ownership_array[plaintiff.get_best_pred_id()] = plaintiff.id
+            if owner.matches_available():
+                owner.move_to_next_match()
+            else:
+                return
+            if self.__pred_has_owner(owner.get_best_pred_id()):
+                owner_of_alternative = self.__registry[self.__get_owner_id(owner.get_best_pred_id())]
+                self.__resolve_conflict(owner_of_alternative, owner)
+            else:
+                self.__pred_ownership_array[owner.get_best_pred_id()] = owner.id
+        else:
+            if plaintiff.matches_available():
+                plaintiff.move_to_next_match()
+            else:
+                return
+            if self.__pred_has_owner(plaintiff.get_best_pred_id()):
+                owner_of_alternative = self.__registry[self.__get_owner_id(plaintiff.get_best_pred_id())]
+                self.__resolve_conflict(owner_of_alternative, plaintiff)
+            else:
+                self.__pred_ownership_array[plaintiff.get_best_pred_id()] = plaintiff.id
 
     def summarize(self):
-        false_negatives = 0
-        for ref_bbox in self.registry:
+        for ref_bbox in self.__registry:
             if ref_bbox:
                 if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
                     owner = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
                     self.__resolve_conflict(owner, ref_bbox)
                 else:
                     self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
-            else:
-                false_negatives += 1
+        true_positives = np.sum(self.__pred_ownership_array != -1)
+        false_positives = np.sum(self.__pred_ownership_array == -1)
+        false_negatives = len(self.__registry) - true_positives
+        return true_positives, false_positives, false_negatives
 
     def __get_owner_id(self, pred_id):
         owner_id = self.__pred_ownership_array[pred_id]
@@ -150,14 +171,25 @@ class RefBBox:
         ids_to_delete = np.argwhere(self.array_with_IoUs < IoU_threshold).flatten()
         self.array_with_IoUs = np.delete(self.array_with_IoUs, ids_to_delete)
         self.array_with_ids = np.delete(self.array_with_ids, ids_to_delete)
+        self.current_pos = 0
 
     def get_best_pred_id(self):
-        return self.array_with_ids[0]
+        return self.array_with_ids[self.current_pos]
+
+    def get_best_pred_IoU(self):
+        return self.array_with_IoUs[self.current_pos]
+
+    def move_to_next_match(self):
+        self.current_pos += 1
+
+    def matches_available(self):
+        if self.current_pos + 1 >= self.array_with_IoUs.shape[0]:
+            return False
+        return True
 
 
 
 def match_bboxes(truth, pred, IoU_threshold=0.1):
-    false_negatives = 0
     matrix = calculate_ious(truth, pred)
     match_registry = MatchRegistry(len(pred))
     for ref_bbox_id in range(len(truth)):
@@ -166,14 +198,8 @@ def match_bboxes(truth, pred, IoU_threshold=0.1):
             match_registry.register(RefBBox(ref_bbox_id, array_with_IoUs, IoU_threshold))
         else:
             match_registry.register(None)
-    print(match_registry.ref_bboxes_without_match_num())
-    for ref_bbox in ref_bboxes_list:
-        if ref_bbox:
-            if not match_registry.try_to_register(ref_bbox.id, ref_bbox.get_best_pred_id()):
-                id_of_owner = match_registry.get_owner_id(ref_bbox.get_best_pred_id())
-               # ref_bboxes_list[id_of_owner].
-        else:
-            false_negatives += 1
+    true_positives, false_positives, false_negatives = match_registry.summarize()
+    print(true_positives, false_positives, false_negatives)
 
 
 
