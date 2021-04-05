@@ -6,6 +6,8 @@ import numpy as np
 import cv2
 from utils.mix import batch
 
+labels = 'model_zoo/utils/ILSVRC2012_validation_ground_truth.txt'
+
 
 class ImageNet:
 
@@ -24,15 +26,17 @@ class ImageNet:
             print('works')
 
     def get_input_tensor(self, batch_size, input_shape, preprocess):
-        final_image = np.empty(0)
-
-        print(final_image)
-        print(final_image.shape)
-        print(self.number_of_images / batch_size)
+        final_batch = np.empty((0, 224, 224, 3))
 
         parent_list = os.listdir(self.images_path)
+        g = batch(parent_list, batch_size)
 
-        g = batch(parent_list, 4)
+        for i in g.__next__():
 
-        for x in g.__next__():
-            print(x)
+            img = cv2.imread(os.path.join(self.images_path, i))
+            resized_img = cv2.resize(img, input_shape)
+            preprocessed_img = preprocess(resized_img)
+            final_batch = np.append(final_batch, preprocessed_img, axis=0)
+
+        return final_batch
+
