@@ -80,8 +80,10 @@ def calc_iou(bbox_0: list, bbox_1: list):
 
 class COCODataset:
     def __init__(self,
-                 batch_size, shape,
+                 batch_size,
                  allow_distortion=True,
+                 processed_annotations_path=None,
+                 images_filename_base="000000000000",
                  pre_processing_func=None,
                  input_data_type="uint8",
                  run_in_loop=True,
@@ -92,14 +94,14 @@ class COCODataset:
 
         # TODO: hide some params from outside world
         self.batch_size = batch_size
-        self.shape = shape
+        self.shape = None
         self.allow_distortion = allow_distortion
         self.pre_processing_func = pre_processing_func
         self.input_data_type = input_data_type
         self.run_in_loop = run_in_loop
         self.image_id = 0
         self.max_image_id = 1000000
-        self.images_filename_base = "000000000000"
+        self.images_filename_base = images_filename_base
         self.images_filename_extension = ".jpg"
         self.ongoing_examples = None
         # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
@@ -111,11 +113,17 @@ class COCODataset:
         except KeyError:
             print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
-            self.coco_annotations = self.__initialize_coco_annotations(pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
-            self.__true_positives_matrix, self.__false_positives_matrix, self.__false_negatives_matrix = self.__init_acc_tracking_arrays()
-            self.example_generator = self.__get_next_example()
+            if processed_annotations_path is None:
+                self.coco_annotations = self.__initialize_coco_annotations(
+                    pathlib.PurePath(os.environ["COCO_ANNO_PATH"]))
+            else:
+                self.coco_annotations = self.__initialize_coco_annotations(
+                    processed_annotations_path, already_processed=True)
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
+        self.__true_positives_matrix, self.__false_positives_matrix, self.__false_negatives_matrix = \
+            self.__init_acc_tracking_arrays()
+        self.example_generator = self.__get_next_example()
 
     # def __get_num_of_iou_jumps(self):
     #    offset = 1  # between eg. 0.5 - 0.95 you have 10 variants when jumps equal 0.05, not 9
@@ -127,9 +135,10 @@ class COCODataset:
         # we don't want to bother translating them etc. so we just create an
         # array able to accommodate them under their native indices despite
         # it being bigger than necessary
-        #categories_dim_size = self.coco_annotations["max_category_id"] + 1
-        shape = (len(self.coco_mAP_iou_thresholds), self.coco_annotations["max_category_id"]+1)
+        # categories_dim_size = self.coco_annotations["max_category_id"] + 1
+        shape = (len(self.coco_mAP_iou_thresholds), self.coco_annotations["max_category_id"] + 1)
         return np.zeros(shape), np.zeros(shape), np.zeros(shape)
+        #return np.zeros(shape), np.full(shape, np.spacing(1)), np.zeros(shape)
 
     class __ExamplesTracker:
         def __init__(self):
@@ -183,9 +192,12 @@ class COCODataset:
         # than the default COCO left -> top -> right -> bottom
         return [bbox[left], bbox[top], bbox[right], bbox[bottom]]
 
-    def __initialize_coco_annotations(self, annotations_path):
+    def __initialize_coco_annotations(self, annotations_path, already_processed=False):
+        if already_processed:
+            with open(annotations_path) as annotations:
+                return json.load(annotations)
         cached_annotations_path = pathlib.PurePath(
-            get_cache_dir(), f"annotations_{get_hash_of_a_file(annotations_path)}.json")
+                get_cache_dir(), f"annotations_{get_hash_of_a_file(annotations_path)}.json")
         if pathlib.Path(cached_annotations_path).is_file():
             with open(cached_annotations_path) as annotations:
                 return json.load(annotations)
@@ -193,7 +205,7 @@ class COCODataset:
             extracted_data = {
                 "instances": dict(),
                 "categories": dict(),
-                #"num_categories": 0,
+                # "num_categories": 0,
                 "max_category_id": 0
             }
             extracted_instances = extracted_data["instances"]
@@ -212,7 +224,7 @@ class COCODataset:
                     else:
                         extracted_instances[annotation["image_id"]] = [dict_with_bbox_data]
                 for category in annotations["categories"]:
-                    #extracted_data["num_categories"] += 1
+                    # extracted_data["num_categories"] += 1
                     if category["id"] > extracted_data["max_category_id"]:
                         extracted_data["max_category_id"] = category["id"]
                     extracted_categories[category["id"]] = category["name"]
@@ -331,9 +343,6 @@ class COCODataset:
         self.__true_positives_matrix[iou_dim_idx] += true_positives
         self.__false_positives_matrix[iou_dim_idx] += false_positives
         self.__false_negatives_matrix[iou_dim_idx] += false_negatives
-        #for i in range(self.accumulated_precision_matrix.shape[0]):
-        #    print(self.accumulated_precision_matrix[i])
-        #    print(self.occurrences_matrix[i])
 
     class MatchRegistry:
         # registry where reference bboxes are owners of matching predicted bboxes
@@ -369,9 +378,9 @@ class COCODataset:
                 self.__register_metric(category_id, "false_positives")
 
             def return_metrics(self):
-                true_positives = np.zeros(self.__max_cat_id_possible+1)
-                false_positives = np.zeros(self.__max_cat_id_possible+1)
-                false_negatives = np.zeros(self.__max_cat_id_possible+1)
+                true_positives = np.zeros(self.__max_cat_id_possible + 1)
+                false_positives = np.zeros(self.__max_cat_id_possible + 1)
+                false_negatives = np.zeros(self.__max_cat_id_possible + 1)
                 # first handle matched categories
                 for cat_id, metrics in self.__cat_id_to_metrics.items():
                     true_positives[cat_id] = metrics["true_positives"]
@@ -507,7 +516,6 @@ class COCODataset:
     def __calc_acc(self, truth, pred, IoU_threshold):
         truth = self.__remove_nonvalid_instances(truth)
         matrix, pred_cat_ids = self.__calculate_IoU_matrix(truth, pred)
-        #print(matrix)
         match_registry = self.MatchRegistry(len(pred), pred_cat_ids, self.coco_annotations["max_category_id"])
         for ref_bbox_id in range(len(truth)):
             array_with_IoUs = matrix[ref_bbox_id]
@@ -524,16 +532,8 @@ class COCODataset:
             for iou_thld in self.coco_mAP_iou_thresholds:
                 self.__calc_acc(self.ongoing_examples.ground_truth[i], self.ongoing_examples.predictions[i], iou_thld)
 
-                #if recall == 1.0:
-                    #print(f"iou: {iou_thld}")
-                    #print(f"prec: {precision}")
-                    #print(f"recall: {recall}")
-                    #print(self.ongoing_examples.ground_truth[i])
-                    #print(self.ongoing_examples.predictions[i])
-
-
-
-    def get_input_array(self):
+    def get_input_array(self, input_shape):
+        self.shape = input_shape
         if self.ongoing_examples:
             self.__coco_calculate_prev_batch_accuracy()
         self.ongoing_examples = self.__ExamplesTracker()
@@ -555,32 +555,5 @@ class COCODataset:
         self.__coco_calculate_prev_batch_accuracy()
         precision_matrix = self.__true_positives_matrix / (self.__true_positives_matrix + self.__false_positives_matrix)
         recall_matrix = self.__true_positives_matrix / (self.__true_positives_matrix + self.__false_negatives_matrix)
-        print("precision_matrix")
-        for i in precision_matrix:
-            print(i)
-            #print(np.nanmean(i))
-        print("recall_matrix")
-        for i in recall_matrix:
-            print(i)
-            #print(np.nanmean(i))
-        print(np.nanmean(precision_matrix))
-
-        self.accumulated_precision_matrix = np.nan_to_num(self.accumulated_precision_matrix)
-        avg_precision_matrix = np.divide(self.accumulated_precision_matrix, self.occurrences_matrix)
-        num_occurrences = np.sum(np.nan_to_num(np.maximum(avg_precision_matrix, np.ones(avg_precision_matrix.shape))))
-        #for n in range(self.coco_recall_granularity):
-        #    start_pos = self.coco_recall_granularity - n - 1
-        #    current_slice = np.nan_to_num(avg_precision_matrix[start_pos])
-        #    for i in reversed(range(start_pos)):
-                # we go in reversed order applying interpolation along recall axis
-                # - precision value will only increase with the decrease of recall
-        #        avg_precision_matrix[i] = np.maximum(avg_precision_matrix[i], current_slice)
-
-        precision_sum = np.sum(np.nan_to_num(avg_precision_matrix))
-        #print(np.sum(np.nan_to_num(avg_precision_matrix), axis=0) / np.sum(np.nan_to_num(np.maximum(avg_precision_matrix, np.ones(avg_precision_matrix.shape))), axis=0))
-        print(np.sum(np.nan_to_num(avg_precision_matrix), axis=1) / np.sum(
-            np.nan_to_num(np.maximum(avg_precision_matrix, np.ones(avg_precision_matrix.shape))), axis=1))
-        #for i in avg_precision_matrix:
-        #    print(i)
-        coco_mAP = precision_sum / num_occurrences
-        print(coco_mAP)
+        print(np.nanmean(precision_matrix * recall_matrix))
+        print(np.nanmean(recall_matrix))
