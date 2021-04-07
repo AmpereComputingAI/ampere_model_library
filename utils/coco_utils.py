@@ -89,8 +89,7 @@ class COCODataset:
                  run_in_loop=True,
                  coco_mAP_lower_iou_thld=0.5,
                  coco_mAP_upper_iou_thld=0.95,
-                 coco_mAP_iou_jump=0.05,
-                 coco_recall_granularity=101):
+                 coco_mAP_iou_jump=0.05):
 
         # TODO: hide some params from outside world
         self.batch_size = batch_size
@@ -107,7 +106,7 @@ class COCODataset:
         # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
         # self.coco_mAP_upper_iou_thld = coco_mAP_upper_iou_thld
         self.coco_mAP_iou_thresholds = list(frange(coco_mAP_lower_iou_thld, coco_mAP_upper_iou_thld, coco_mAP_iou_jump))
-        self.coco_recall_granularity = coco_recall_granularity
+        self.coco_recall_thresholds = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01)) + 1, endpoint=True)
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
@@ -119,15 +118,25 @@ class COCODataset:
             else:
                 self.coco_annotations = self.__initialize_coco_annotations(
                     processed_annotations_path, already_processed=True)
+            self.__num_categories = self.coco_annotations["max_category_id"] + 1
         except KeyError:
             print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
-        self.__true_positives_matrix, self.__false_positives_matrix, self.__false_negatives_matrix = \
+        self.__true_positives_matrix, self.__false_positives_matrix, self.__cat_population = \
             self.__init_acc_tracking_arrays()
         self.example_generator = self.__get_next_example()
 
     # def __get_num_of_iou_jumps(self):
     #    offset = 1  # between eg. 0.5 - 0.95 you have 10 variants when jumps equal 0.05, not 9
     #    return int(((self.coco_mAP_upper_iou_thld - self.coco_mAP_lower_iou_thld) / self.coco_mAP_iou_jump) + offset)
+
+    def __init_list_of_lists(self, dim_0, dim_1):
+        container = list()
+        for _ in range(dim_0):
+            cat_container = list()
+            for _ in range(dim_1):
+                cat_container.append(list())
+            container.append(cat_container)
+        return container
 
     def __init_acc_tracking_arrays(self):
         # although COCO indexing starts with 1 and some in-between indices
@@ -136,8 +145,9 @@ class COCODataset:
         # array able to accommodate them under their native indices despite
         # it being bigger than necessary
         # categories_dim_size = self.coco_annotations["max_category_id"] + 1
-        shape = (len(self.coco_mAP_iou_thresholds), self.coco_annotations["max_category_id"] + 1)
-        return np.zeros(shape), np.zeros(shape), np.zeros(shape)
+        true_positives_container = self.__init_list_of_lists(len(self.coco_mAP_iou_thresholds), self.__num_categories)
+        false_positives_container = self.__init_list_of_lists(len(self.coco_mAP_iou_thresholds), self.__num_categories)
+        return true_positives_container, false_positives_container, np.zeros(self.__num_categories)
         #return np.zeros(shape), np.full(shape, np.spacing(1)), np.zeros(shape)
 
     class __ExamplesTracker:
@@ -338,69 +348,16 @@ class COCODataset:
             return False
         return True
 
-    def __push_to_accuracy_matrices(self, true_positives, false_positives, false_negatives, iou_threshold):
-        iou_dim_idx = self.coco_mAP_iou_thresholds.index(iou_threshold)
-        self.__true_positives_matrix[iou_dim_idx] += true_positives
-        self.__false_positives_matrix[iou_dim_idx] += false_positives
-        self.__false_negatives_matrix[iou_dim_idx] += false_negatives
-
     class MatchRegistry:
         # registry where reference bboxes are owners of matching predicted bboxes
         def __init__(self, pred_bboxes_num, pred_cat_ids, max_cat_id):
             self.__registry = list()
-            self.__ref_population_per_category = dict()
             self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
             self.__pred_cat_ids = pred_cat_ids
             self.__max_cat_id_possible = max_cat_id
 
-        class AccuracyRegistry:
-            def __init__(self, ref_population_per_category, max_cat_id):
-                self.__cat_id_to_metrics = dict()
-                self.__ref_population_per_category = ref_population_per_category
-                self.__max_cat_id_possible = max_cat_id
-
-            def __initialize_category(self, category_id):
-                self.__cat_id_to_metrics[category_id] = {
-                    "true_positives": 0,
-                    "false_positives": 0,
-                    "false_negatives": 0
-                }
-
-            def __register_metric(self, category_id, metric_name):
-                if category_id not in self.__cat_id_to_metrics:
-                    self.__initialize_category(category_id)
-                self.__cat_id_to_metrics[category_id][metric_name] += 1
-
-            def register_true_positive(self, category_id):
-                self.__register_metric(category_id, "true_positives")
-
-            def register_false_positive(self, category_id):
-                self.__register_metric(category_id, "false_positives")
-
-            def return_metrics(self):
-                true_positives = np.zeros(self.__max_cat_id_possible + 1)
-                false_positives = np.zeros(self.__max_cat_id_possible + 1)
-                false_negatives = np.zeros(self.__max_cat_id_possible + 1)
-                # first handle matched categories
-                for cat_id, metrics in self.__cat_id_to_metrics.items():
-                    true_positives[cat_id] = metrics["true_positives"]
-                    false_positives[cat_id] = metrics["false_positives"]
-                    try:
-                        false_negatives[cat_id] = self.__ref_population_per_category[cat_id] - metrics["true_positives"]
-                        self.__ref_population_per_category.pop(cat_id)
-                    except KeyError:
-                        pass
-                # then the unmatched remainder
-                for cat_id, population in self.__ref_population_per_category.items():
-                    false_negatives[cat_id] = population
-                return true_positives, false_positives, false_negatives
-
         def register(self, ref_bbox_item):
             self.__registry.append(ref_bbox_item)
-            if ref_bbox_item.category_id in self.__ref_population_per_category:
-                self.__ref_population_per_category[ref_bbox_item.category_id] += 1
-            else:
-                self.__ref_population_per_category[ref_bbox_item.category_id] = 1
 
         def __rematch(self, ref_bbox):
             if ref_bbox.matches_available():
@@ -420,7 +377,7 @@ class COCODataset:
             else:
                 self.__rematch(plaintiff)
 
-        def summarize(self):
+        def summarize(self, IoU_index, tp_container, fp_container):
             for ref_bbox in self.__registry:
                 if ref_bbox.has_matches():
                     if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
@@ -428,14 +385,21 @@ class COCODataset:
                         self.__resolve_conflict(owner, ref_bbox)
                     else:
                         self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
-            acc_registry = self.AccuracyRegistry(self.__ref_population_per_category, self.__max_cat_id_possible)
+
             for i in range(len(self.__pred_ownership_array)):
+                try:
+                    accumulated_tp = tp_container[IoU_index][self.__pred_cat_ids[i]][-1]
+                    accumulated_fp = fp_container[IoU_index][self.__pred_cat_ids[i]][-1]
+                except IndexError:
+                    accumulated_tp = 0
+                    accumulated_fp = 0
                 if self.__pred_ownership_array[i] == -1:
                     # pred does not have a match at given IoU threshold - false positive
-                    acc_registry.register_false_positive(self.__pred_cat_ids[i])
+                    accumulated_fp += 1
                 else:
-                    acc_registry.register_true_positive(self.__pred_cat_ids[i])
-            return acc_registry.return_metrics()
+                    accumulated_tp += 1
+                tp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_tp)
+                fp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_fp)
 
         def __get_owner_id(self, pred_id):
             owner_id = self.__pred_ownership_array[pred_id]
@@ -513,24 +477,34 @@ class COCODataset:
                 new_truth.append(true_instance)
         return new_truth
 
-    def __calc_acc(self, truth, pred, IoU_threshold):
-        truth = self.__remove_nonvalid_instances(truth)
-        matrix, pred_cat_ids = self.__calculate_IoU_matrix(truth, pred)
-        match_registry = self.MatchRegistry(len(pred), pred_cat_ids, self.coco_annotations["max_category_id"])
-        for ref_bbox_id in range(len(truth)):
-            array_with_IoUs = matrix[ref_bbox_id]
+    def __calc_acc(self, ref_cat_ids, pred_cat_ids, num_preds, IoU_matrix, IoU_threshold):
+        match_registry = self.MatchRegistry(num_preds, pred_cat_ids, self.coco_annotations["max_category_id"])
+
+        for i in range(len(ref_cat_ids)):
+            array_with_IoUs = IoU_matrix[i]
             if array_with_IoUs.size > 0:
                 if np.max(array_with_IoUs) >= IoU_threshold:
                     match_registry.register(
-                        self.RefBBox(ref_bbox_id, truth[ref_bbox_id]["category_id"], array_with_IoUs, IoU_threshold))
+                        self.RefBBox(i, ref_cat_ids[i], array_with_IoUs, IoU_threshold))
                     continue
-            match_registry.register(self.UnmatchedRefBBox(ref_bbox_id, truth[ref_bbox_id]["category_id"]))
-        self.__push_to_accuracy_matrices(*match_registry.summarize(), iou_threshold=IoU_threshold)
+            match_registry.register(self.UnmatchedRefBBox(i, ref_cat_ids[i]))
+
+        match_registry.summarize(
+            self.coco_mAP_iou_thresholds.index(IoU_threshold),
+            self.__true_positives_matrix,
+            self.__false_positives_matrix
+        )
 
     def __coco_calculate_prev_batch_accuracy(self):
         for i in range(self.batch_size):
+            truth = self.__remove_nonvalid_instances(self.ongoing_examples.ground_truth[i])
+            ref_cat_ids = list()
+            for ref_bbox in truth:
+                self.__cat_population[ref_bbox["category_id"]] += 1
+                ref_cat_ids.append(ref_bbox["category_id"])
+            IoU_matrix, pred_cat_ids = self.__calculate_IoU_matrix(truth, self.ongoing_examples.predictions[i])
             for iou_thld in self.coco_mAP_iou_thresholds:
-                self.__calc_acc(self.ongoing_examples.ground_truth[i], self.ongoing_examples.predictions[i], iou_thld)
+                self.__calc_acc(truth, pred_cat_ids, len(self.ongoing_examples.predictions[i]), IoU_matrix, iou_thld)
 
     def get_input_array(self, input_shape):
         self.shape = input_shape
@@ -552,8 +526,44 @@ class COCODataset:
         return str(pathlib.PurePath(self.coco_directory, self.__generate_coco_filename(image_id)))
 
     def summarize_accuracy(self):
+        # we have to process our last request to get_input_tensor() before proceeding to summary
         self.__coco_calculate_prev_batch_accuracy()
-        precision_matrix = self.__true_positives_matrix / (self.__true_positives_matrix + self.__false_positives_matrix)
-        recall_matrix = self.__true_positives_matrix / (self.__true_positives_matrix + self.__false_negatives_matrix)
-        print(np.nanmean(precision_matrix * recall_matrix))
+
+        # let's go
+        precision_matrix = np.full(
+            (len(self.coco_mAP_iou_thresholds), self.__num_categories, len(self.coco_recall_thresholds)), np.nan)
+        recall_matrix = np.full((len(self.coco_mAP_iou_thresholds), self.__num_categories), np.nan)
+        print(recall_matrix.shape)
+        for i in range(len(self.coco_mAP_iou_thresholds)):
+            for c in range(self.__num_categories):
+                if self.__cat_population[c] == 0:
+                    #if len(self.__false_positives_matrix[i][c]) > 0:
+                    #    precision_matrix[i][c][:] = np.zeros((len(self.coco_recall_thresholds)))
+                    continue
+                if len(self.__true_positives_matrix[i][c]) > 0 or len(self.__false_positives_matrix[i][c]) > 0:
+                    recall_to_precision_array = np.zeros((len(self.coco_recall_thresholds)))
+                    true_positives = np.array(self.__true_positives_matrix[i][c])
+                    false_positives = np.array(self.__false_positives_matrix[i][c])
+                    precision_levels = true_positives / (true_positives + false_positives)
+                    if c == 1:
+                        print(precision_levels)
+                    for pos in reversed(range(1, len(precision_levels))):
+                        if precision_levels[pos] > precision_levels[pos-1]:
+                            precision_levels[pos-1] = precision_levels[pos]
+                    recall_levels = true_positives / self.__cat_population[c]
+                    # indices to input precisions under in 101-dimensional recall space
+                    indices = np.searchsorted(recall_levels, self.coco_recall_thresholds, side="left")
+                    for recall_id, idx in enumerate(indices):
+                        try:
+                            recall_to_precision_array[recall_id] = precision_levels[idx]
+                        except IndexError:
+                            # in case we exceed precision levels size by idx we stop
+                            break
+                    precision_matrix[i][c][:] = recall_to_precision_array
+                    recall_matrix[i][c] = recall_levels[-1]
+                else:
+                    # no true positives but we know that cat_population (ie. ref bbox population) is bigger than 0
+                    recall_matrix[i][c] = 0
+
+        print(np.nanmean(precision_matrix))
         print(np.nanmean(recall_matrix))
