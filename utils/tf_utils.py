@@ -74,7 +74,7 @@ class TFFrozenModelRunner:
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
         self.__graph = self.__initialize_graph(path_to_model)
-        self.__sess = tf.Session(config=self.__create_config(get_intra_op_parallelism_threads()), graph=self.graph)
+        self.__sess = tf.Session(config=self.__create_config(get_intra_op_parallelism_threads()), graph=self.__graph)
         self.__feed_dict = dict()
         self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
         self.__warm_up_run_latency = 0.0
