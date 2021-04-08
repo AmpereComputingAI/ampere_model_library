@@ -540,13 +540,12 @@ class COCODataset:
                     #if len(self.__false_positives_matrix[i][c]) > 0:
                     #    precision_matrix[i][c][:] = np.zeros((len(self.coco_recall_thresholds)))
                     continue
+
+                recall_to_precision_array = np.zeros((len(self.coco_recall_thresholds)))
                 if len(self.__true_positives_matrix[i][c]) > 0 or len(self.__false_positives_matrix[i][c]) > 0:
-                    recall_to_precision_array = np.zeros((len(self.coco_recall_thresholds)))
                     true_positives = np.array(self.__true_positives_matrix[i][c])
                     false_positives = np.array(self.__false_positives_matrix[i][c])
-                    precision_levels = true_positives / (true_positives + false_positives)
-                    if c == 1:
-                        print(precision_levels)
+                    precision_levels = true_positives / (true_positives + false_positives + np.spacing(1))
                     for pos in reversed(range(1, len(precision_levels))):
                         if precision_levels[pos] > precision_levels[pos-1]:
                             precision_levels[pos-1] = precision_levels[pos]
@@ -563,7 +562,15 @@ class COCODataset:
                     recall_matrix[i][c] = recall_levels[-1]
                 else:
                     # no true positives but we know that cat_population (ie. ref bbox population) is bigger than 0
+                    precision_matrix[i][c][:] = recall_to_precision_array
                     recall_matrix[i][c] = 0
-
+        for i in precision_matrix:
+            print("HARAK")
+            z = 0
+            for c in i:
+                if z == 84:
+                    print(z)
+                    print(c)
+                z += 1
         print(np.nanmean(precision_matrix))
         print(np.nanmean(recall_matrix))
