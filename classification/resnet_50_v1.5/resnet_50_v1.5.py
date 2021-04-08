@@ -3,7 +3,7 @@ import time
 # np.set_printoptions(threshold=sys.maxsize)
 
 from utils.imagenet import ImageNet
-from utils.vggpreprocessor import vgg_preprocessor
+from utils.mix import vgg_preprocessor
 from utils.mix import calculate_images
 
 
