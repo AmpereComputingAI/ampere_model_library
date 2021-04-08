@@ -12,9 +12,6 @@ from utils.vggpreprocessor import vgg_preprocessor
 from utils.mix import calculate_images
 
 
-labels = '/model_zoo/utils/val.txt'
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description='benchmark resnet model')
 
@@ -30,17 +27,11 @@ def parse_args():
 
 def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
+    # Initialize ImageNet class
+    image_net = ImageNet(model_path, batch_size, "input_tensor:0", "softmax_tensor:0")
+
     # Read labels
-    file_with_labels = open(labels, 'r')
-    lines = file_with_labels.readlines()
-    new_lines = []
-    for line in lines:
-        label = line[28:]
-        label_int = int(label)
-        label_int_plus_one = label_int + 1
-        new_lines.append(label_int_plus_one)
-    labels_iterator = iter(lines)
-    labels_iterator2 = iter(new_lines)
+    labels_iterator = image_net.get_labels_iterator()
 
     # loading graph and starting tensorflow session
     graph = load_graph(model_path)
@@ -50,7 +41,6 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
     number_of_images = calculate_images()
     num_of_iter = number_of_images/batch_size
-    image_net = ImageNet(batch_size)
 
     # benchmarking
     total_time = 0.0
@@ -80,7 +70,7 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
         top_1_index = np.where(result == np.max(result))[1]
         top_1_index = int(top_1_index)
-        label = next(labels_iterator2)
+        label = next(labels_iterator)
 
         if label == top_1_index:
             top_1 += 1

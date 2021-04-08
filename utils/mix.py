@@ -11,3 +11,7 @@ def calculate_images():
     path_to_images = os.environ['IMAGES_PATH']
     number_of_images = len(os.listdir(path_to_images))
     return number_of_images
+
+
+def last_5chars(x):
+    return x[-10:-5]
