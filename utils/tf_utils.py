@@ -18,7 +18,7 @@ def set_global_intra_op_parallelism_threads(num_intra_threads: int):
     INTRA_OP_PARALLELISM_THREADS = num_intra_threads
 
 
-def __get_intra_op_parallelism_threads():
+def get_intra_op_parallelism_threads():
     """
     A function checking the value of global variable INTRA_OP_PARALLELISM_THREADS - if unset recognized system
     environment variables are checked. If they are unset as well a fail message is printed and program quits.
@@ -37,7 +37,7 @@ def __get_intra_op_parallelism_threads():
     return INTRA_OP_PARALLELISM_THREADS
 
 
-def __print_benchmark_metrics(
+def print_performance_metrics(
         warm_up_run_latency: float, total_inference_time: float, number_of_runs: int, batch_size: int):
     """
     A function printing two performance metrics: latency and throughput.
@@ -74,7 +74,7 @@ class TFFrozenModelRunner:
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
         self.__graph = self.__initialize_graph(path_to_model)
-        self.__sess = tf.Session(config=self.__create_config(__get_intra_op_parallelism_threads()), graph=self.graph)
+        self.__sess = tf.Session(config=self.__create_config(get_intra_op_parallelism_threads()), graph=self.graph)
         self.__feed_dict = dict()
         self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
         self.__warm_up_run_latency = 0.0
@@ -136,5 +136,5 @@ class TFFrozenModelRunner:
         return output
 
     def print_performance_metrics(self, batch_size):
-        __print_benchmark_metrics(
+        print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
