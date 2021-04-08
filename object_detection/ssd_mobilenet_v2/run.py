@@ -78,7 +78,7 @@ class TensorFlowRunner:
         return output
 
 
-def run_ssd_mn_v2_with_tf(number_of_runs=4500, batch_size=1, shape=(640, 640)):
+def run_ssd_mn_v2_with_tf(number_of_runs=1000, batch_size=1, shape=(640, 640)):
     coco = coco_utils.COCODataset(batch_size, images_filename_base="COCO_val2014_000000000000")
 
     runner = TensorFlowRunner("ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb",
@@ -90,7 +90,7 @@ def run_ssd_mn_v2_with_tf(number_of_runs=4500, batch_size=1, shape=(640, 640)):
         runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
         #print(time.time() - start)
         output = runner.run()
-        #print(output["detection_scores:0"])
+        print(output["detection_scores:0"])
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
                 #if output["detection_scores:0"][i][d] < 0.6:

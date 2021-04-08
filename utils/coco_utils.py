@@ -51,12 +51,6 @@ def calc_overlapping_part_of_two_line_segments(a_0, b_0, a_1, b_1):
     return min(b_0, b_1) - max(a_0, a_1)
 
 
-def frange(start_value, end_value, jump):
-    while start_value < end_value + jump:
-        yield float(start_value)
-        start_value += jump
-
-
 def calc_iou(bbox_0: list, bbox_1: list):
     left_0, top_0, right_0, bottom_0 = unpack_bbox_into_vars(bbox_0)
     left_1, top_1, right_1, bottom_1 = unpack_bbox_into_vars(bbox_1)
@@ -86,10 +80,7 @@ class COCODataset:
                  images_filename_base="000000000000",
                  pre_processing_func=None,
                  input_data_type="uint8",
-                 run_in_loop=True,
-                 coco_mAP_lower_iou_thld=0.5,
-                 coco_mAP_upper_iou_thld=0.95,
-                 coco_mAP_iou_jump=0.05):
+                 run_in_loop=True):
 
         # TODO: hide some params from outside world
         self.batch_size = batch_size
@@ -105,7 +96,8 @@ class COCODataset:
         self.ongoing_examples = None
         # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
         # self.coco_mAP_upper_iou_thld = coco_mAP_upper_iou_thld
-        self.coco_mAP_iou_thresholds = list(frange(coco_mAP_lower_iou_thld, coco_mAP_upper_iou_thld, coco_mAP_iou_jump))
+        self.coco_mAP_iou_thresholds = np.linspace(
+            .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True).tolist()
         self.coco_recall_thresholds = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01)) + 1, endpoint=True)
         try:
             self.coco_directory = os.environ["COCO_DIR"]
@@ -352,70 +344,102 @@ class COCODataset:
         # registry where reference bboxes are owners of matching predicted bboxes
         def __init__(self, pred_bboxes_num, pred_cat_ids, max_cat_id):
             self.__registry = list()
-            self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
+            self.__pred_ownership = self.PredOwnership(pred_bboxes_num)
             self.__pred_cat_ids = pred_cat_ids
             self.__max_cat_id_possible = max_cat_id
+
+        class PredOwnership:
+            def __init__(self, pred_bboxes_num):
+                self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
+                self.pred_num = pred_bboxes_num
+
+            def get_owner(self, pred_id):
+                return self.__pred_ownership_array[pred_id]
+
+            def register_owner(self, pred_id, owner_id):
+                self.__pred_ownership_array[pred_id] = owner_id
+
+            def pred_has_owner(self, pred_id):
+                if self.__pred_ownership_array[pred_id] != -1:
+                    return True
+                return False
 
         def register(self, ref_bbox_item):
             self.__registry.append(ref_bbox_item)
 
-        def __rematch(self, ref_bbox):
-            if ref_bbox.matches_available():
-                ref_bbox.move_to_next_match()
-            else:
-                return
-            if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
-                owner_of_alternative = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
-                self.__resolve_conflict(owner_of_alternative, ref_bbox)
-            else:
-                self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
+        def optimize_matches(self, registry, pred_ownership):
+            for i, ref_bbox in enumerate(registry):
+                if ref_bbox.has_matches():
+                    if pred_ownership.pred_has_owner(ref_bbox.get_best_pred_id()):
+                        owner_id = pred_ownership.get_owner(ref_bbox.get_best_pred_id())
+                        owner = registry[owner_id]
+                        # if any of concurring reference bboxes still has
+                        # alternative matches we explore the possibilities
+                        if owner.matches_available() or ref_bbox.matches_available():
+                            # variant 0 - we make ref_bbox surrender to current owner
+                            # by removing pred from its matches and making recursive search
+                            registry_0 = copy.deepcopy(registry)
+                            pred_ownership_0 = copy.deepcopy(pred_ownership)
+                            if registry_0[i].matches_available():
+                                registry_0[i].move_to_next_match()
+                            num_matches_0, total_IoU_0, registry_0, pred_ownership_0 = self.optimize_matches(
+                                registry_0, pred_ownership_0)
 
-        def __resolve_conflict(self, owner, plaintiff):
-            if owner.get_best_pred_IoU() < plaintiff.get_best_pred_IoU():
-                self.__pred_ownership_array[plaintiff.get_best_pred_id()] = plaintiff.id
-                self.__rematch(owner)
-            else:
-                self.__rematch(plaintiff)
+                            # variant 1 - we make current owner surrender to ref bbox
+                            registry_1 = copy.deepcopy(registry)
+                            pred_ownership_1 = copy.deepcopy(pred_ownership)
+                            pred_ownership_1.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
+                            if registry_1[owner_id].matches_available():
+                                registry_1[owner_id].move_to_next_match()
+                            num_matches_1, total_IoU_1, registry_1, pred_ownership_1 = self.optimize_matches(
+                                registry_1, pred_ownership_1)
+
+                            if num_matches_0 < num_matches_1:
+                                registry = registry_1
+                                pred_ownership = pred_ownership_1
+                            elif num_matches_0 > num_matches_1:
+                                registry = registry_0
+                                pred_ownership = pred_ownership_0
+                            else:
+                                if total_IoU_0 < total_IoU_1:
+                                    registry = registry_1
+                                    pred_ownership = pred_ownership_1
+                                else:
+                                    registry = registry_0
+                                    pred_ownership = pred_ownership_0
+
+                        # if both dont have any more alternatives we have to choose - we select the one with higher IoU
+                        elif owner.get_best_pred_IoU() < ref_bbox.get_best_pred_IoU():
+                            pred_ownership.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
+                    else:
+                        pred_ownership.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
+
+            num_matches = 0
+            total_IoU = 0.0
+            for i in range(pred_ownership.pred_num):
+                if pred_ownership.pred_has_owner(i):
+                    num_matches += 1
+                    total_IoU += registry[pred_ownership.get_owner(i)].get_best_pred_IoU()
+
+            return num_matches, total_IoU, registry, pred_ownership
 
         def summarize(self, IoU_index, tp_container, fp_container):
-            for ref_bbox in self.__registry:
-                if ref_bbox.has_matches():
-                    if self.__pred_has_owner(ref_bbox.get_best_pred_id()):
-                        owner = self.__registry[self.__get_owner_id(ref_bbox.get_best_pred_id())]
-                        self.__resolve_conflict(owner, ref_bbox)
-                    else:
-                        self.__pred_ownership_array[ref_bbox.get_best_pred_id()] = ref_bbox.id
+            _, _, self.__registry, self.__pred_ownership = self.optimize_matches(self.__registry, self.__pred_ownership)
 
-            for i in range(len(self.__pred_ownership_array)):
+            for i in range(self.__pred_ownership.pred_num):
                 try:
                     accumulated_tp = tp_container[IoU_index][self.__pred_cat_ids[i]][-1]
                     accumulated_fp = fp_container[IoU_index][self.__pred_cat_ids[i]][-1]
                 except IndexError:
                     accumulated_tp = 0
                     accumulated_fp = 0
-                if self.__pred_ownership_array[i] == -1:
+                if self.__pred_ownership.get_owner(i) == -1:
                     # pred does not have a match at given IoU threshold - false positive
                     accumulated_fp += 1
                 else:
                     accumulated_tp += 1
                 tp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_tp)
                 fp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_fp)
-
-        def __get_owner_id(self, pred_id):
-            owner_id = self.__pred_ownership_array[pred_id]
-            assert owner_id != -1, "this prediction does not have owner"
-            return owner_id
-
-        def __pred_has_owner(self, pred_id):
-            if self.__pred_ownership_array[pred_id] != -1:
-                return True
-            return False
-
-        def __try_to_register(self, ref_bbox_id, pred_bbox_id):
-            if pred_bbox_id in self.array_with_matches:
-                return False
-            self.array_with_matches[ref_bbox_id] = pred_bbox_id
-            return True
 
     class UnmatchedRefBBox:
         def __init__(self, ref_bbox_id, category_id):
@@ -546,6 +570,11 @@ class COCODataset:
                     true_positives = np.array(self.__true_positives_matrix[i][c])
                     false_positives = np.array(self.__false_positives_matrix[i][c])
                     precision_levels = true_positives / (true_positives + false_positives + np.spacing(1))
+                    if i == 9 and c == 1:
+                        print(true_positives)
+                        print(false_positives)
+                        print(precision_levels)
+                        sdf
                     for pos in reversed(range(1, len(precision_levels))):
                         if precision_levels[pos] > precision_levels[pos-1]:
                             precision_levels[pos-1] = precision_levels[pos]
@@ -568,7 +597,7 @@ class COCODataset:
             print("HARAK")
             z = 0
             for c in i:
-                if z == 84:
+                if z == 1:
                     print(z)
                     print(c)
                 z += 1
