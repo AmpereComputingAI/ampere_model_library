@@ -49,12 +49,13 @@ def print_performance_metrics(
     """
     if number_of_runs == 0:
         utils.print_goodbye_message_and_die("Cannot print performance data as not a single run has been completed!")
+        
     if number_of_runs == 1:
         utils.print_warning_message("Printing performance data based just on a single (warm-up) run!")
-    if number_of_runs > 1:
-        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (number_of_runs - 1)
-    else:
         latency_in_seconds = warm_up_run_latency
+    else:
+        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (number_of_runs - 1)
+
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
     print("\nLatency: {:.0f} ms".format(latency_in_ms))
