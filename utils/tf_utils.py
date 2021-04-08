@@ -136,5 +136,11 @@ class TFFrozenModelRunner:
         return output
 
     def print_performance_metrics(self, batch_size):
+        """
+        A function printing performance metrics on runs executed by the runner so far and then closing TF session.
+
+        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
+        """
         print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+        self.__sess.close()
