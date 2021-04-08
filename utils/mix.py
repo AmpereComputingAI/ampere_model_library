@@ -1,4 +1,5 @@
 import os
+import tensorflow as tf
 
 
 def batch(iterable, n=1):
@@ -15,3 +16,14 @@ def calculate_images():
 
 def last_5chars(x):
     return x[-10:-5]
+
+
+def initialize_graph(model_path, input_tensor_name, output_tensor_name):
+    with tf.io.gfile.GFile(model_path, "rb") as f:
+        graph_def = tf.compat.v1.GraphDef()
+        graph_def.ParseFromString(f.read())
+
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, name="")
+
+    return graph, graph.get_tensor_by_name(input_tensor_name), graph.get_tensor_by_name(output_tensor_name)
