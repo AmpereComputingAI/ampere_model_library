@@ -1,10 +1,9 @@
 import argparse
 import time
-# np.set_printoptions(threshold=sys.maxsize)
 
 from utils.imagenet import ImageNet
 from utils.mix import vgg_preprocessor
-from utils.mix import calculate_images
+from utils.tf_utils import TFFrozenModelRunner
 
 
 def parse_args():
@@ -23,29 +22,34 @@ def parse_args():
 def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
     # Initialize ImageNet class
-    image_net = ImageNet(model_path, batch_size, "input_tensor:0", "softmax_tensor:0", True)
+    image_net = ImageNet(batch_size, True, 'BGR')
 
-    number_of_images = calculate_images()
-    num_of_iter = number_of_images/batch_size
+    # TF runner initialization
+    tf_runner = TFFrozenModelRunner(model_path, ['softmax_tensor:0'])
 
     check = 0
 
     # timeout
     timeout = time.time() + 60 * float(timeout_in_minutes)
-    for n in range(0, int(num_of_iter)):
+    for n in range(0, image_net.number_of_iterations):
         if time.time() > timeout:
             break
 
         # preprocess input
-        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor, 'BGR')
+        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor)
+
+        # set input tensor and run interference
+        tf_runner.set_input_tensor('input_tensor:0', preprocessed_input)
+        result = tf_runner.run()
+
+        # record measurement
+        image_net.record_measurement(result)
 
         check += 1
         print(check)
 
-        # run inference
-        image_net.run(preprocessed_input)
-
-    # print benchmarks
+    # print benchmarks and accuracy
+    tf_runner.print_performance_metrics(batch_size)
     image_net.print_benchmarks()
 
 

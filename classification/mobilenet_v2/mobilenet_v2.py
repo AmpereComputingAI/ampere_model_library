@@ -3,9 +3,8 @@ import time
 # np.set_printoptions(threshold=sys.maxsize)
 
 from utils.imagenet import ImageNet
-from utils.mix import calculate_images
 from utils.mix import inception_preprocessor
-
+from utils.tf_utils import TFFrozenModelRunner
 
 def parse_args():
     parser = argparse.ArgumentParser(description='benchmark resnet model')
@@ -23,29 +22,29 @@ def parse_args():
 def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
     # Initialize ImageNet class
-    image_net = ImageNet(model_path, batch_size, "input:0", "MobilenetV2/Predictions/Reshape_1:0", True)
+    image_net = ImageNet(batch_size, True, 'RGB')
 
-    number_of_images = calculate_images()
-    num_of_iter = number_of_images/batch_size
-
-    check = 0
+    # TF runner initialization
+    tf_runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
 
     # timeout
     timeout = time.time() + 60 * float(timeout_in_minutes)
-    for n in range(0, int(num_of_iter)):
+    for n in range(0, image_net.number_of_iterations):
         if time.time() > timeout:
             break
 
         # preprocess input
-        preprocessed_input = image_net.get_input_tensor((224, 224), inception_preprocessor, "RGB")
+        preprocessed_input = image_net.get_input_tensor((224, 224), inception_preprocessor)
 
-        check += 1
-        print(check)
+        # set input tensor and run interference
+        tf_runner.set_input_tensor('input:0', preprocessed_input)
+        result = tf_runner.run()
 
-        # run inference
-        image_net.run(preprocessed_input)
+        # record measurement
+        image_net.record_measurement(result)
 
     # print benchmarks
+    tf_runner.print_performance_metrics(batch_size)
     image_net.print_benchmarks()
 
 
