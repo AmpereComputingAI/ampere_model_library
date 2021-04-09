@@ -50,7 +50,7 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
     # print benchmarks and accuracy
     tf_runner.print_performance_metrics(batch_size)
-    image_net.print_benchmarks()
+    image_net.print_accuracy()
 
 
 def main():
