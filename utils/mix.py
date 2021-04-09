@@ -1,7 +1,6 @@
 import os
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
-import numpy as np
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 
 def batch(iterable, n=1):
@@ -31,12 +30,14 @@ def initialize_graph(model_path, input_tensor_name, output_tensor_name):
     return graph, graph.get_tensor_by_name(input_tensor_name), graph.get_tensor_by_name(output_tensor_name)
 
 
-def vgg_preprocessor(image_sample, model):
-    img_array = image.img_to_array(image_sample)
-    img_array_expanded_dims = np.expand_dims(img_array, axis=0)
-    if model == 'resnet':
-        result = tf.keras.applications.resnet.preprocess_input(img_array_expanded_dims)
-    elif model == 'mobilenet':
-        result = tf.keras.applications.mobilenet.preprocess_input(img_array_expanded_dims)
+def vgg_preprocessor(image_sample):
+    result = preprocess_input(image_sample)
 
     return result
+
+
+def inception_preprocessor(image_sample):
+    image_sample /= 255.
+    image_sample -= 0.5
+    image_sample *= 2.
+    return image_sample

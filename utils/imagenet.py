@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 from utils.mix import batch, last_5chars, initialize_graph
 import tensorflow as tf
+from tensorflow.keras.preprocessing import image
 
 
 class ImageNet:
@@ -40,13 +41,23 @@ class ImageNet:
         else:
             print('works')
 
-    def get_input_tensor(self, input_shape, preprocess, model):
+    def get_input_tensor(self, input_shape, preprocess, channels):
         final_batch = np.empty((0, 224, 224, 3))
 
         for i in self.g.__next__():
             img = cv2.imread(os.path.join(self.images_path, i))
-            resized_img = cv2.resize(img, input_shape)
-            preprocessed_img = preprocess(resized_img, model)
+
+            # cv2 returns by default BGR
+            if channels == 'RGB':
+                new_image = img[:, :, [2, 1, 0]]
+                resized_img = cv2.resize(new_image, input_shape)
+            elif channels == "BGR":
+                resized_img = cv2.resize(img, input_shape)
+
+            img_array = image.img_to_array(resized_img)
+            img_array_expanded_dims = np.expand_dims(img_array, axis=0)
+            preprocessed_img = preprocess(img_array_expanded_dims)
+            print(preprocessed_img.shape)
             final_batch = np.append(final_batch, preprocessed_img, axis=0)
 
         print(final_batch.shape)
@@ -58,12 +69,20 @@ class ImageNet:
         end = time.time()
         self.total_time += (end - start)
 
+        print(result.shape)
+
         top_1_index = np.where(result == np.max(result))[1]
         top_1_index = int(top_1_index)
+        print("top1")
+        print(top_1_index)
         label = next(self.labels_iterator)
+        print("label")
+        print(label)
 
         result_flattened = result.flatten()
         top_5_indices = result_flattened.argsort()[-5:][::-1]
+        print('top5')
+        print(top_5_indices)
 
         self.image_count += 1
 

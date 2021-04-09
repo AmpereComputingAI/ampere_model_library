@@ -37,7 +37,7 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
             break
 
         # preprocess input
-        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor, 'resnet')
+        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor, 'BGR')
 
         check += 1
         print(check)

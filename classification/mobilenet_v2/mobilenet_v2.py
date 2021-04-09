@@ -3,8 +3,8 @@ import time
 # np.set_printoptions(threshold=sys.maxsize)
 
 from utils.imagenet import ImageNet
-from utils.mix import vgg_preprocessor
 from utils.mix import calculate_images
+from utils.mix import inception_preprocessor
 
 
 def parse_args():
@@ -37,7 +37,7 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
             break
 
         # preprocess input
-        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor, 'mobilenet')
+        preprocessed_input = image_net.get_input_tensor((224, 224), inception_preprocessor, "RGB")
 
         check += 1
         print(check)
