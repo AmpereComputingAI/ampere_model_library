@@ -29,8 +29,6 @@ def benchmark(model_path, batch_size, images_path, labels_path, timeout_in_minut
     # TF runner initialization
     tf_runner = TFFrozenModelRunner(model_path, ['softmax_tensor:0'])
 
-    check = 0
-
     # timeout
     timeout = time.time() + 60 * float(timeout_in_minutes)
     for n in range(0, image_net.number_of_iterations):
@@ -46,9 +44,6 @@ def benchmark(model_path, batch_size, images_path, labels_path, timeout_in_minut
 
         # record measurement
         image_net.record_measurement(result)
-
-        check += 1
-        print(check)
 
     # print benchmarks and accuracy
     tf_runner.print_performance_metrics(batch_size)
