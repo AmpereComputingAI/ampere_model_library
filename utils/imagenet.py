@@ -63,7 +63,7 @@ class ImageNet:
         print(final_batch.shape)
         return final_batch
 
-    def run(self, preprocessed_input):
+    def perform_measurement(self, preprocessed_input):
         start = time.time()
         result = self.sess.run(self.output_tensor, feed_dict={self.input_tensor: preprocessed_input})
         end = time.time()
