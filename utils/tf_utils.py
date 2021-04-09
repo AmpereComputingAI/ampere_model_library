@@ -26,13 +26,13 @@ def get_intra_op_parallelism_threads():
     :return: value of global variable INTRA_OP_PARALLELISM_THREADS
     """
     global INTRA_OP_PARALLELISM_THREADS
-    if not INTRA_OP_PARALLELISM_THREADS:
+    if INTRA_OP_PARALLELISM_THREADS is None:
         try:
             INTRA_OP_PARALLELISM_THREADS = int(os.environ["OMP_NUM_THREADS"])
         except KeyError:
             INTRA_OP_PARALLELISM_THREADS = int(os.environ["DLS_NUM_THREADS"])
         finally:
-            if not INTRA_OP_PARALLELISM_THREADS:
+            if INTRA_OP_PARALLELISM_THREADS is None:
                 utils.print_goodbye_message_and_die("Number of intra threads to use is not set!")
     return INTRA_OP_PARALLELISM_THREADS
 
@@ -49,12 +49,13 @@ def print_performance_metrics(
     """
     if number_of_runs == 0:
         utils.print_goodbye_message_and_die("Cannot print performance data as not a single run has been completed!")
+        
     if number_of_runs == 1:
         utils.print_warning_message("Printing performance data based just on a single (warm-up) run!")
-    if number_of_runs > 1:
-        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (number_of_runs - 1)
-    else:
         latency_in_seconds = warm_up_run_latency
+    else:
+        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (number_of_runs - 1)
+
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
     print("\nLatency: {:.0f} ms".format(latency_in_ms))
