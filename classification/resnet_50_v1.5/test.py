@@ -24,7 +24,7 @@ def parse_args():
 def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
     # Initialize ImageNet class
-    image_net = ImageNet(model_path, batch_size, "input_tensor:0", "softmax_tensor:0", True)
+    image_net = ImageNet(model_path, batch_size, True)
 
     # TF runner initialization
     tf_runner = TFFrozenModelRunner(model_path, ['softmax_tensor:0'])
@@ -46,15 +46,16 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
         # set input tensor
         tf_runner.set_input_tensor('input_tensor:0', preprocessed_input)
 
-        output = tf_runner.run()
+        result = tf_runner.run()
 
-        # tf_runner.print_performance_metrics(1)
+        image_net.perform_measurement(result)
 
         check += 1
         print(check)
 
-    # print benchmarks
-    # image_net.print_benchmarks()
+    tf_runner.print_performance_metrics(1)
+
+    image_net.print_benchmarks()
 
 
 def main():

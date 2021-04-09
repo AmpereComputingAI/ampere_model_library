@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing import image
 
 class ImageNet:
 
-    def __init__(self, model_path, batch_size, input_tensor_name, output_tensor_name, is1001classes):
+    def __init__(self, model_path, batch_size, is1001classes):
 
         # paths
         self.image_label = '/model_zoo/utils/val.txt'
@@ -23,10 +23,6 @@ class ImageNet:
         self.g = batch(self.parent_list_sorted, batch_size)
 
         # tensorflow session
-        self.graph, self.input_tensor, self.output_tensor = initialize_graph(model_path,
-                                                                             input_tensor_name,
-                                                                             output_tensor_name)
-        self.sess = tf.compat.v1.Session(graph=self.graph)
         self.labels_iterator = self.get_labels_iterator(is1001classes)
 
         # Benchmarks
@@ -63,13 +59,15 @@ class ImageNet:
         print(final_batch.shape)
         return final_batch
 
-    def perform_measurement(self, preprocessed_input):
-        start = time.time()
-        result = self.sess.run(self.output_tensor, feed_dict={self.input_tensor: preprocessed_input})
-        end = time.time()
-        self.total_time += (end - start)
+    def perform_measurement(self, result):
+        # start = time.time()
+        # result = self.sess.run(self.output_tensor, feed_dict={self.input_tensor: preprocessed_input})
+        # end = time.time()
+        # self.total_time += (end - start)
+        #
+        # print(result.shape)
 
-        print(result.shape)
+        result = result.get('softmax_tensor:0')
 
         top_1_index = np.where(result == np.max(result))[1]
         top_1_index = int(top_1_index)
@@ -106,22 +104,22 @@ class ImageNet:
         top_5_accuracy = ((self.top_5 / self.image_count) * 100)
         print("top-5 accuracy: %.2f" % top_5_accuracy, "%")
 
-        print('------------------------------')
+        # print('------------------------------')
 
-        minutes = self.total_time / 60
-        print("total time of run inferences: %.2f" % minutes, "Minutes")
+        # minutes = self.total_time / 60
+        # print("total time of run inferences: %.2f" % minutes, "Minutes")
+        #
+        # print('------------------------------')
+        #
+        # latency_in_milliseconds = (self.total_time / self.image_count) * 1000
+        # print("average latency in miliseconds: %.4f" % latency_in_milliseconds)
+        #
+        # print('------------------------------')
+        #
+        # latency_in_fps = self.image_count / self.total_time
+        # print("average latency in fps: %.4f" % latency_in_fps)
 
-        print('------------------------------')
-
-        latency_in_milliseconds = (self.total_time / self.image_count) * 1000
-        print("average latency in miliseconds: %.4f" % latency_in_milliseconds)
-
-        print('------------------------------')
-
-        latency_in_fps = self.image_count / self.total_time
-        print("average latency in fps: %.4f" % latency_in_fps)
-
-        print('------------------------------')
+        # print('------------------------------')
 
     def get_labels_iterator(self, is1001classes=False):
         file = open(self.image_label, 'r')
