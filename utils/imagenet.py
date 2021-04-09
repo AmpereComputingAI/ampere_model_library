@@ -12,7 +12,7 @@ class ImageNet:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size, is1001classes, channels):
+    def __init__(self, batch_size, is1001classes, channels, images_path, labels_path):
 
         """
         A function for initialization of the class by providing batch size, a boolean whether a model has 1000 classes
@@ -23,11 +23,13 @@ class ImageNet:
         :param is1001classes: boolean, True if model has 10001 classes ( one extra class for background ) &
         False if it doesn't
         :param channels: str, specifies what color channels a model accepts, eg. "BGR", "RGB"
+        :param images_path: str, specify a path to images directory
+        :param labels_path: str, specify a path to images labels
         """
 
         # paths
-        self.image_label = '/model_zoo/utils/val.txt'
-        self.images_path = os.environ['IMAGES_PATH']
+        self.images_path = images_path
+        self.images_label = labels_path
 
         # images
         self.parent_list = os.listdir(self.images_path)
@@ -118,7 +120,7 @@ class ImageNet:
 
         :return: iterator, returns labels iterator
         """
-        file = open(self.image_label, 'r')
+        file = open(self.images_label, 'r')
         lines = file.readlines()
         labels = []
         for line in lines:

@@ -16,13 +16,15 @@ def parse_args():
                                                                              'dataset.')
     parser.add_argument('-p', '--precision', type=int, required=False, help='specify the precision of the model.'
                                                                             'Allowed precisions: int8, fp16, fp32')
+    parser.add_argument('-i', '--images_path', type=str, required=True, help="Provide the path to images")
+    parser.add_argument('-l', '--labels_path', type=str, required=True, help="Provide the path to labels")
     return parser.parse_args()
 
 
-def benchmark(model_path, batch_size, timeout_in_minutes=1):
+def benchmark(model_path, batch_size, images_path, labels_path, timeout_in_minutes=1):
 
     # Initialize ImageNet class
-    image_net = ImageNet(batch_size, True, 'RGB')
+    image_net = ImageNet(batch_size, True, 'RGB', images_path, labels_path)
 
     # TF runner initialization
     tf_runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
@@ -50,7 +52,7 @@ def benchmark(model_path, batch_size, timeout_in_minutes=1):
 
 def main():
     args = parse_args()
-    benchmark(args.model_path, args.batch_size, args.timeout_in_minutes)
+    benchmark(args.model_path, args.batch_size, args.images_path, args.labels_path, args.timeout_in_minutes)
 
 
 if __name__ == "__main__":
