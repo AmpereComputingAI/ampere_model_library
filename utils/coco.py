@@ -8,7 +8,7 @@ import pathlib
 import hashlib
 import numpy as np
 from cache.utils import get_cache_dir
-import utils.utils as utils
+import utils.miscellaneous_utils as utils
 
 
 def get_hash_of_a_file(path_to_file):
@@ -85,7 +85,7 @@ class COCODataset:
         self.max_image_id = 1000000
         self.images_filename_base = images_filename_base
         self.images_filename_extension = ".jpg"
-        self.ongoing_examples = None
+        self.ongoing_examples = self.__ExamplesTracker()
         # self.coco_mAP_lower_iou_thld = coco_mAP_lower_iou_thld
         # self.coco_mAP_upper_iou_thld = coco_mAP_upper_iou_thld
         self.coco_mAP_iou_thresholds = np.linspace(
@@ -153,6 +153,10 @@ class COCODataset:
             self.ground_truth[self.example_id] = annotations
             self.__convert_annotations()
             self.predictions[self.example_id] = list()
+
+        def submit_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int, batch_size: int):
+            self.predictions[len(self.predictions) - batch_size + id_in_batch].append(
+                {"bbox": bbox_in_coco_format, "category_id": category_id})
 
         def rescale_annotations(self, shape,
                                 vertical_scale_factor, horizontal_scale_factor,
@@ -304,8 +308,7 @@ class COCODataset:
         assert len(bbox_in_coco_format) == 4, f"bbox should be provided as a list of 4 values " \
                                               f"- {len(bbox_in_coco_format)} provided"
         assert type(category_id) is int, "category_id should be provided as a single int value"
-        self.ongoing_examples.predictions[id_in_batch].append(
-            {"bbox": bbox_in_coco_format, "category_id": category_id})
+        self.ongoing_examples.submit_prediction(id_in_batch, bbox_in_coco_format, category_id, self.batch_size)
 
     def __get_next_image(self):
         image_id, annotations = next(self.example_generator)
@@ -511,8 +514,8 @@ class COCODataset:
             self.__false_positives_matrix
         )
 
-    def __coco_calculate_prev_batch_accuracy(self):
-        for i in range(self.batch_size):
+    def __coco_calculate_accuracy(self):
+        for i in range(len(self.ongoing_examples.ground_truth)):
             truth = self.__remove_nonvalid_instances(self.ongoing_examples.ground_truth[i])
             ref_cat_ids = list()
             for ref_bbox in truth:
@@ -524,9 +527,6 @@ class COCODataset:
 
     def get_input_array(self, input_shape):
         self.shape = input_shape
-        if self.ongoing_examples:
-            self.__coco_calculate_prev_batch_accuracy()
-        self.ongoing_examples = self.__ExamplesTracker()
         input_array = self.__get_next_image()
         for _ in range(1, self.batch_size):
             input_array = np.concatenate((input_array, self.__get_next_image()), axis=0)
@@ -543,7 +543,7 @@ class COCODataset:
 
     def summarize_accuracy(self):
         # we have to process our last request to get_input_tensor() before proceeding to summary
-        self.__coco_calculate_prev_batch_accuracy()
+        self.__coco_calculate_accuracy()
 
         # let's go
         precision_matrix = np.full(
