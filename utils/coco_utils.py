@@ -8,15 +8,7 @@ import pathlib
 import hashlib
 import numpy as np
 from cache.utils import get_cache_dir
-
-
-def print_goodbye_message_and_die(message):
-    print(f"\nFAIL: {message}")
-    sys.exit(1)
-
-
-def print_warning_message(message):
-    print(f"\nCAUTION: {message}")
+import utils.utils as utils
 
 
 def get_hash_of_a_file(path_to_file):
@@ -102,7 +94,7 @@ class COCODataset:
         try:
             self.coco_directory = os.environ["COCO_DIR"]
         except KeyError:
-            print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
+            utils.print_goodbye_message_and_die("COCO dataset directory has not been specified with COCO_DIR flag")
         try:
             if processed_annotations_path is None:
                 self.coco_annotations = self.__initialize_coco_annotations(
@@ -112,7 +104,7 @@ class COCODataset:
                     processed_annotations_path, already_processed=True)
             self.__num_categories = self.coco_annotations["max_category_id"] + 1
         except KeyError:
-            print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
+            utils.print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
         self.__true_positives_matrix, self.__false_positives_matrix, self.__cat_population = \
             self.__init_acc_tracking_arrays()
         self.example_generator = self.__get_next_example()
@@ -252,7 +244,7 @@ class COCODataset:
                 self.image_id = 0
                 path = self.__find_next_images_path()
             if not path:
-                print_goodbye_message_and_die(
+                utils.print_goodbye_message_and_die(
                     f"Either end of dataset has been reached or "
                     f"files were not found under the directory {self.coco_directory}")
         return str(path)
@@ -574,7 +566,6 @@ class COCODataset:
                         print(true_positives)
                         print(false_positives)
                         print(precision_levels)
-                        sdf
                     for pos in reversed(range(1, len(precision_levels))):
                         if precision_levels[pos] > precision_levels[pos-1]:
                             precision_levels[pos-1] = precision_levels[pos]
