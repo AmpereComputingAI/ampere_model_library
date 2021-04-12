@@ -8,7 +8,7 @@ import pathlib
 import hashlib
 import numpy as np
 from cache.utils import get_cache_dir
-import utils.miscellaneous_utils as utils
+import utils.miscellaneous as utils
 
 
 def get_hash_of_a_file(path_to_file):

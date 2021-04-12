@@ -1,5 +1,5 @@
-import utils.coco_utils as coco_utils
-import utils.tf_utils as tf_utils
+import utils.coco as coco_utils
+import utils.tf as tf_utils
 import tensorflow.compat.v1 as tf
 import time
 import os

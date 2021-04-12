@@ -1,7 +1,7 @@
 import os
 import json
 import pathlib
-import utils.coco_utils as coco_utils
+import utils.coco as coco_utils
 
 
 def open_json_file(json_file_path):
