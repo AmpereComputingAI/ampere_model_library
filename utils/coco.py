@@ -2,6 +2,7 @@ import os
 import cv2
 import sys
 import json
+import copy
 import random
 import decimal
 import pathlib
@@ -105,7 +106,7 @@ class COCODataset:
             self.__num_categories = self.coco_annotations["max_category_id"] + 1
         except KeyError:
             utils.print_goodbye_message_and_die("COCO annotations path has not been specified with COCO_ANNO_PATH flag")
-        self.__true_positives_matrix, self.__false_positives_matrix, self.__cat_population = \
+        self.__true_positives_matrix, self.__false_positives_matrix, self.__scores_container, self.__cat_population = \
             self.__init_acc_tracking_arrays()
         self.example_generator = self.__get_next_example()
 
@@ -131,7 +132,8 @@ class COCODataset:
         # categories_dim_size = self.coco_annotations["max_category_id"] + 1
         true_positives_container = self.__init_list_of_lists(len(self.coco_mAP_iou_thresholds), self.__num_categories)
         false_positives_container = self.__init_list_of_lists(len(self.coco_mAP_iou_thresholds), self.__num_categories)
-        return true_positives_container, false_positives_container, np.zeros(self.__num_categories)
+        scores_container = self.__init_list_of_lists(len(self.coco_mAP_iou_thresholds), self.__num_categories)
+        return true_positives_container, false_positives_container, scores_container, np.zeros(self.__num_categories)
         #return np.zeros(shape), np.full(shape, np.spacing(1)), np.zeros(shape)
 
     class __ExamplesTracker:
@@ -154,9 +156,10 @@ class COCODataset:
             self.__convert_annotations()
             self.predictions[self.example_id] = list()
 
-        def submit_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int, batch_size: int):
+        def submit_prediction(
+                self, id_in_batch: int, score: float, bbox_in_coco_format: list, category_id: int, batch_size: int):
             self.predictions[len(self.predictions) - batch_size + id_in_batch].append(
-                {"bbox": bbox_in_coco_format, "category_id": category_id})
+                {"score": score, "bbox": bbox_in_coco_format, "category_id": category_id})
 
         def rescale_annotations(self, shape,
                                 vertical_scale_factor, horizontal_scale_factor,
@@ -211,7 +214,13 @@ class COCODataset:
             with open(annotations_path) as annotations:
                 annotations = json.load(annotations)
                 for annotation in annotations["annotations"]:
+                    ignore = 0
+                    if "iscrowd" in annotation and annotation["iscrowd"] == 1:
+                        ignore = 1
+                    if "ignore" in annotation and annotation["ignore"] == 1:
+                        ignore = 1
                     dict_with_bbox_data = {
+                        "ignore": ignore,
                         "bbox": annotation["bbox"],
                         "category_id": annotation["category_id"]
                     }
@@ -290,9 +299,10 @@ class COCODataset:
         padded_array[lower_boundary_h:upper_boundary_h, lower_boundary_w:upper_boundary_w] = image_array
         return padded_array
 
-    def submit_bbox_prediction(self, id_in_batch: int, bbox_in_coco_format: list, category_id: int):
+    def submit_bbox_prediction(self, id_in_batch: int, score: float, bbox_in_coco_format: list, category_id: int):
         """
         :param id_in_batch:
+        :param score: float
         :param bbox_in_coco_format:
         :param category_id:
         :return:
@@ -308,7 +318,7 @@ class COCODataset:
         assert len(bbox_in_coco_format) == 4, f"bbox should be provided as a list of 4 values " \
                                               f"- {len(bbox_in_coco_format)} provided"
         assert type(category_id) is int, "category_id should be provided as a single int value"
-        self.ongoing_examples.submit_prediction(id_in_batch, bbox_in_coco_format, category_id, self.batch_size)
+        self.ongoing_examples.submit_prediction(id_in_batch, score, bbox_in_coco_format, category_id, self.batch_size)
 
     def __get_next_image(self):
         image_id, annotations = next(self.example_generator)
@@ -345,22 +355,31 @@ class COCODataset:
 
         class PredOwnership:
             def __init__(self, pred_bboxes_num):
-                self.__pred_ownership_array = np.full(pred_bboxes_num, -1)
+                self.pred_ownership_array = np.full(pred_bboxes_num, -1)
                 self.pred_num = pred_bboxes_num
 
             def get_owner(self, pred_id):
-                return self.__pred_ownership_array[pred_id]
+                return self.pred_ownership_array[pred_id]
 
             def register_owner(self, pred_id, owner_id):
-                self.__pred_ownership_array[pred_id] = owner_id
+                self.pred_ownership_array[pred_id] = owner_id
 
             def pred_has_owner(self, pred_id):
-                if self.__pred_ownership_array[pred_id] != -1:
+                if self.pred_ownership_array[pred_id] != -1:
                     return True
                 return False
 
         def register(self, ref_bbox_item):
             self.__registry.append(ref_bbox_item)
+
+        def __calc_status(self, registry, pred_ownership):
+            num_matches = 0
+            total_IoU = 0.0
+            for i in range(pred_ownership.pred_num):
+                if pred_ownership.pred_has_owner(i):
+                    num_matches += 1
+                    total_IoU += registry[pred_ownership.get_owner(i)].get_best_pred_IoU()
+            return num_matches, total_IoU
 
         def optimize_matches(self, registry, pred_ownership):
             for i, ref_bbox in enumerate(registry):
@@ -373,21 +392,29 @@ class COCODataset:
                         if owner.matches_available() or ref_bbox.matches_available():
                             # variant 0 - we make ref_bbox surrender to current owner
                             # by removing pred from its matches and making recursive search
-                            registry_0 = copy.deepcopy(registry)
-                            pred_ownership_0 = copy.deepcopy(pred_ownership)
-                            if registry_0[i].matches_available():
+                            if registry[i].matches_available():
+                                registry_0 = copy.deepcopy(registry)
+                                pred_ownership_0 = copy.deepcopy(pred_ownership)
                                 registry_0[i].move_to_next_match()
-                            num_matches_0, total_IoU_0, registry_0, pred_ownership_0 = self.optimize_matches(
-                                registry_0, pred_ownership_0)
+                                num_matches_0, total_IoU_0, registry_0, pred_ownership_0 = self.optimize_matches(
+                                    registry_0, pred_ownership_0)
+                            else:
+                                num_matches_0, total_IoU_0 = self.__calc_status(registry, pred_ownership)
+                                registry_0, pred_ownership_0 = registry, pred_ownership
 
                             # variant 1 - we make current owner surrender to ref bbox
-                            registry_1 = copy.deepcopy(registry)
-                            pred_ownership_1 = copy.deepcopy(pred_ownership)
-                            pred_ownership_1.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
-                            if registry_1[owner_id].matches_available():
+                            if registry[owner_id].matches_available():
+                                registry_1 = copy.deepcopy(registry)
+                                pred_ownership_1 = copy.deepcopy(pred_ownership)
+                                pred_ownership_1.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
                                 registry_1[owner_id].move_to_next_match()
-                            num_matches_1, total_IoU_1, registry_1, pred_ownership_1 = self.optimize_matches(
-                                registry_1, pred_ownership_1)
+                                num_matches_1, total_IoU_1, registry_1, pred_ownership_1 = self.optimize_matches(
+                                    registry_1, pred_ownership_1)
+                            else:
+                                pred_ownership_1 = copy.deepcopy(pred_ownership)
+                                pred_ownership_1.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
+                                num_matches_1, total_IoU_1 = self.__calc_status(registry, pred_ownership_1)
+                                registry_1 = registry
 
                             if num_matches_0 < num_matches_1:
                                 registry = registry_1
@@ -409,32 +436,23 @@ class COCODataset:
                     else:
                         pred_ownership.register_owner(ref_bbox.get_best_pred_id(), ref_bbox.id)
 
-            num_matches = 0
-            total_IoU = 0.0
-            for i in range(pred_ownership.pred_num):
-                if pred_ownership.pred_has_owner(i):
-                    num_matches += 1
-                    total_IoU += registry[pred_ownership.get_owner(i)].get_best_pred_IoU()
-
+            num_matches, total_IoU = self.__calc_status(registry, pred_ownership)
             return num_matches, total_IoU, registry, pred_ownership
 
-        def summarize(self, IoU_index, tp_container, fp_container):
+        def summarize(self, IoU_index, tp_container, fp_container, scores_container, pred_scores, ignore_mask):
             _, _, self.__registry, self.__pred_ownership = self.optimize_matches(self.__registry, self.__pred_ownership)
 
             for i in range(self.__pred_ownership.pred_num):
-                try:
-                    accumulated_tp = tp_container[IoU_index][self.__pred_cat_ids[i]][-1]
-                    accumulated_fp = fp_container[IoU_index][self.__pred_cat_ids[i]][-1]
-                except IndexError:
-                    accumulated_tp = 0
-                    accumulated_fp = 0
+                if ignore_mask[self.__pred_ownership.get_owner(i)] == 1:
+                    continue
+                scores_container[IoU_index][self.__pred_cat_ids[i]].append(pred_scores[i])
                 if self.__pred_ownership.get_owner(i) == -1:
                     # pred does not have a match at given IoU threshold - false positive
-                    accumulated_fp += 1
+                    tp_container[IoU_index][self.__pred_cat_ids[i]].append(0)
+                    fp_container[IoU_index][self.__pred_cat_ids[i]].append(1)
                 else:
-                    accumulated_tp += 1
-                tp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_tp)
-                fp_container[IoU_index][self.__pred_cat_ids[i]].append(accumulated_fp)
+                    tp_container[IoU_index][self.__pred_cat_ids[i]].append(1)
+                    fp_container[IoU_index][self.__pred_cat_ids[i]].append(0)
 
     class UnmatchedRefBBox:
         def __init__(self, ref_bbox_id, category_id):
@@ -480,14 +498,16 @@ class COCODataset:
         # iou_matrix = np.full((len(truth), len(pred)), float(-1))
         iou_matrix = np.zeros((len(truth), len(pred)))
         pred_cat_ids = np.full(len(pred), -1)
+        pred_scores = np.full(len(pred), 0.)
         for true_instance in truth:
             for prediction in pred:
                 pred_cat_ids[pred.index(prediction)] = prediction["category_id"]
+                pred_scores[pred.index(prediction)] = prediction["score"]
                 if true_instance["category_id"] != prediction["category_id"]:
                     continue
                 iou_matrix[truth.index(true_instance)][pred.index(prediction)] = calc_iou(
                     true_instance["bbox"], prediction["bbox"])
-        return iou_matrix, pred_cat_ids
+        return iou_matrix, pred_cat_ids, pred_scores
 
     def __remove_nonvalid_instances(self, truth):
         new_truth = list()
@@ -496,7 +516,7 @@ class COCODataset:
                 new_truth.append(true_instance)
         return new_truth
 
-    def __calc_acc(self, ref_cat_ids, pred_cat_ids, num_preds, IoU_matrix, IoU_threshold):
+    def __calc_acc(self, ignore_mask, ref_cat_ids, pred_cat_ids, pred_scores, num_preds, IoU_matrix, IoU_threshold):
         match_registry = self.MatchRegistry(num_preds, pred_cat_ids, self.coco_annotations["max_category_id"])
 
         for i in range(len(ref_cat_ids)):
@@ -511,19 +531,26 @@ class COCODataset:
         match_registry.summarize(
             self.coco_mAP_iou_thresholds.index(IoU_threshold),
             self.__true_positives_matrix,
-            self.__false_positives_matrix
+            self.__false_positives_matrix,
+            self.__scores_container,
+            pred_scores,
+            ignore_mask
         )
 
     def __coco_calculate_accuracy(self):
         for i in range(len(self.ongoing_examples.ground_truth)):
             truth = self.__remove_nonvalid_instances(self.ongoing_examples.ground_truth[i])
             ref_cat_ids = list()
+            ignore_mask = list()
             for ref_bbox in truth:
                 self.__cat_population[ref_bbox["category_id"]] += 1
                 ref_cat_ids.append(ref_bbox["category_id"])
-            IoU_matrix, pred_cat_ids = self.__calculate_IoU_matrix(truth, self.ongoing_examples.predictions[i])
+                ignore_mask.append(ref_bbox["ignore"])
+            IoU_matrix, pred_cat_ids, pred_scores = self.__calculate_IoU_matrix(
+                truth, self.ongoing_examples.predictions[i])
             for iou_thld in self.coco_mAP_iou_thresholds:
-                self.__calc_acc(truth, pred_cat_ids, len(self.ongoing_examples.predictions[i]), IoU_matrix, iou_thld)
+                self.__calc_acc(
+                    ignore_mask, ref_cat_ids, pred_cat_ids, pred_scores, len(self.ongoing_examples.predictions[i]), IoU_matrix, iou_thld)
 
     def get_input_array(self, input_shape):
         self.shape = input_shape
@@ -549,7 +576,7 @@ class COCODataset:
         precision_matrix = np.full(
             (len(self.coco_mAP_iou_thresholds), self.__num_categories, len(self.coco_recall_thresholds)), np.nan)
         recall_matrix = np.full((len(self.coco_mAP_iou_thresholds), self.__num_categories), np.nan)
-        print(recall_matrix.shape)
+        #print(recall_matrix.shape)
         for i in range(len(self.coco_mAP_iou_thresholds)):
             for c in range(self.__num_categories):
                 if self.__cat_population[c] == 0:
@@ -559,13 +586,15 @@ class COCODataset:
 
                 recall_to_precision_array = np.zeros((len(self.coco_recall_thresholds)))
                 if len(self.__true_positives_matrix[i][c]) > 0 or len(self.__false_positives_matrix[i][c]) > 0:
-                    true_positives = np.array(self.__true_positives_matrix[i][c])
-                    false_positives = np.array(self.__false_positives_matrix[i][c])
+                    inds = np.argsort(-np.array(self.__scores_container[i][c]), kind='mergesort')
+                    true_positives = np.cumsum(np.array(self.__true_positives_matrix[i][c])[inds])
+                    false_positives = np.cumsum(np.array(self.__false_positives_matrix[i][c])[inds])
                     precision_levels = true_positives / (true_positives + false_positives + np.spacing(1))
-                    if i == 9 and c == 1:
-                        print(true_positives)
-                        print(false_positives)
-                        print(precision_levels)
+                    #if i == 9 and c == 1:
+                    #    print(true_positives)
+                    #    print(false_positives)
+                    #    print(precision_levels)
+                    #    print("FFF")
                     for pos in reversed(range(1, len(precision_levels))):
                         if precision_levels[pos] > precision_levels[pos-1]:
                             precision_levels[pos-1] = precision_levels[pos]
@@ -584,13 +613,13 @@ class COCODataset:
                     # no true positives but we know that cat_population (ie. ref bbox population) is bigger than 0
                     precision_matrix[i][c][:] = recall_to_precision_array
                     recall_matrix[i][c] = 0
-        for i in precision_matrix:
-            print("HARAK")
-            z = 0
-            for c in i:
-                if z == 1:
-                    print(z)
-                    print(c)
-                z += 1
+        #for i in precision_matrix:
+        #    print("HARAK")
+        #    z = 0
+        #    for c in i:
+        #        if z == 1:
+        #            print(z)
+        #            print(c)
+        #        z += 1
         print(np.nanmean(precision_matrix))
         print(np.nanmean(recall_matrix))

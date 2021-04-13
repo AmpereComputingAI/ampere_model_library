@@ -18,13 +18,16 @@ def run_ssd_mn_v2_with_tf(number_of_runs=100, batch_size=1, shape=(640, 640)):
         runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
         # print(time.time() - start)
         output = runner.run()
-        print(output["detection_scores:0"])
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
                 # if output["detection_scores:0"][i][d] < 0.6:
                 #    continue
+                #if int(output["detection_classes:0"][i][d]) == 1:
+                #    print(output["detection_scores:0"][i][d])
+
                 coco.submit_bbox_prediction(
                     i,
+                    output["detection_scores:0"][i][d],
                     coco.convert_bbox_to_coco_order(output["detection_boxes:0"][i][d] * shape[0], 1, 0, 3, 2),
                     int(output["detection_classes:0"][i][d])
                 )
