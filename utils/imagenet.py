@@ -1,10 +1,42 @@
-import sys
 import os.path
-from os import path
 import numpy as np
 import cv2
-from utils.mix import batch, last_5chars
+import utils.misc as utils
 from tensorflow.keras.preprocessing import image
+
+
+def get_labels_path(labels_path):
+    """
+    A function returning the path to file with validation dataset labels
+
+    :return: labels_path: str
+    # """
+    if labels_path is None:
+        try:
+            labels_path = os.environ['LABELS_PATH']
+        except Exception as e:
+            print(e)
+        finally:
+            if labels_path is None:
+                utils.print_goodbye_message_and_die('The path to labels was not defined!')
+    return labels_path
+
+
+def get_images_path(images_path):
+    """
+    A function returning the path to file with validation dataset labels
+
+    :return: labels_path: str
+    # """
+    if images_path is None:
+        try:
+            images_path = os.environ['IMAGES_PATH']
+        except Exception as e:
+            print(e)
+        finally:
+            if images_path is None:
+                utils.print_goodbye_message_and_die('The path to images was not defined!')
+    return images_path
 
 
 class ImageNet:
@@ -15,42 +47,33 @@ class ImageNet:
     def __init__(self, batch_size, is1001classes, channels, images_path, labels_path):
 
         """
-        A function for initialization of the class by providing batch size, a boolean whether a model has 1000 classes
-        or 1001 classes and what color channels it uses.
+        A function for initialization of the class
 
-        :param batch_size: int, a batch (set of images) on which a model wil run an inference,
+        :param batch_size: int, a batch size on which a model will run an inference,
         usual sizes are 1, 4, 16, 32, 64
         :param is1001classes: boolean, True if model has 10001 classes ( one extra class for background ) &
         False if it doesn't
-        :param channels: str, specifies what color channels a model accepts, eg. "BGR", "RGB"
-        :param images_path: str, specify a path to images directory
-        :param labels_path: str, specify a path to images labels
+        :param channels: str, specifies the order of color channels a model accepts, eg. "BGR", "RGB"
+        :param images_path: str, specify a path of images folder
+        :param labels_path: str, specify a path of file with validation labels
         """
 
         # paths
-        self.images_path = images_path
-        self.images_label = labels_path
+        self.images_path = get_images_path(images_path)
+        self.labels_path = get_labels_path(labels_path)
 
         # images
-        self.parent_list = os.listdir(self.images_path)
-        self.parent_list_sorted = sorted(self.parent_list, key=last_5chars)
-        self.g = batch(self.parent_list_sorted, batch_size)
         self.channels = channels
-        self.number_of_images = 50000
-        self.number_of_iterations = int(self.number_of_images / batch_size)
 
         # labels
         self.is1001classes = is1001classes
-        self.labels_iterator = self.get_labels_iterator()
+        self.labels_iterator, self.lines = self.get_labels_iterator()
+        self.g = utils.batch(self.lines, batch_size)
 
         # Accuracy
         self.image_count = 0
         self.top_1 = 0
         self.top_5 = 0
-
-        if not path.exists(self.images_path):
-            print("path doesn't exist")
-            sys.exit(1)
 
     def get_input_tensor(self, input_shape, preprocess):
         """
@@ -64,19 +87,22 @@ class ImageNet:
 
         for i in self.g.__next__():
 
-            # note: cv2 returns by default BGR
-            img = cv2.imread(os.path.join(self.images_path, i))
+            try:
+                # note: cv2 returns by default BGR
+                img = cv2.imread(os.path.join(self.images_path, i[:28]))
+            except FileNotFoundError as e:
+                print(e)
+            except Exception as e:
+                print(e)
+            else:
+                if self.channels == 'RGB':
+                    img = img[:, :, [2, 1, 0]]
 
-            if self.channels == 'RGB':
-                img = img[:, :, [2, 1, 0]]
-
-            resized_img = cv2.resize(img, input_shape)
-            img_array = image.img_to_array(resized_img)
-            img_array_expanded_dims = np.expand_dims(img_array, axis=0)
-            print(type(img_array_expanded_dims))
-            print(img_array_expanded_dims.shape)
-            preprocessed_img = preprocess(img_array_expanded_dims)
-            final_batch = np.append(final_batch, preprocessed_img, axis=0)
+                resized_img = cv2.resize(img, input_shape)
+                img_array = image.img_to_array(resized_img)
+                img_array_expanded_dims = np.expand_dims(img_array, axis=0)
+                preprocessed_img = preprocess(img_array_expanded_dims)
+                final_batch = np.append(final_batch, preprocessed_img, axis=0)
 
         return final_batch
 
@@ -84,11 +110,10 @@ class ImageNet:
         """
         A function recording measurements of each run inference.
 
-        :param result: dictionary, a dictionary of output tensors and it's results
+        :param result: numpy array, containing the results of inference
         """
-        # Get value of first key in the dictionary
-        result = result.get(list(result.keys())[0])
 
+        print(result.shape)
         # get index of highest value from array of results
         top_1_index = int(np.where(result == np.max(result))[1])
 
@@ -100,8 +125,8 @@ class ImageNet:
 
         if label == top_1_index:
             self.top_1 += 1
-            self.top_5 += 1
-        elif label in top_5_indices:
+
+        if label in top_5_indices:
             self.top_5 += 1
 
     def print_accuracy(self):
@@ -120,16 +145,21 @@ class ImageNet:
 
         :return: iterator, returns labels iterator
         """
-        file = open(self.images_label, 'r')
-        lines = file.readlines()
-        labels = []
-        for line in lines:
-            label = int(line[28:])
-            label_plus_one = label + 1
-            if self.is1001classes:
-                labels.append(label_plus_one)
-            else:
-                labels.append(label)
+        try:
+            file = open(self.labels_path, 'r')
+        except FileNotFoundError as e:
+            print(e)
+        except Exception as e:
+            print(e)
+        else:
+            lines = file.readlines()
+            labels = []
+            for line in lines:
+                label = int(line[28:])
+                if self.is1001classes:
+                    labels.append(label + 1)
+                else:
+                    labels.append(label)
         labels_iterator = iter(labels)
 
-        return labels_iterator
+        return labels_iterator, lines

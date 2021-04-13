@@ -1,15 +1,14 @@
 import argparse
 import time
-# np.set_printoptions(threshold=sys.maxsize)
 
 from utils.imagenet import ImageNet
-from utils.mix import inception_preprocessor
+from utils.misc import inception_preprocessor
 from utils.tf_utils import TFFrozenModelRunner
 
 def parse_args():
     parser = argparse.ArgumentParser(description='benchmark resnet model')
 
-    parser.add_argument('-m', '--model_path', type=str, required=False, help='Path to frozen model directory.')
+    parser.add_argument('-m', '--model_path', type=str, required=True, help='Path to frozen model.')
     parser.add_argument('-t', '--timeout_in_minutes', type=str, required=False, help='timeout for processing evaluation'
                                                                                      'dataset. Default is 1 minute.')
     parser.add_argument('-b', '--batch_size', type=int, required=False, help='batch size for processing evaluation'
