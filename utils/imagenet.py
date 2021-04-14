@@ -120,6 +120,7 @@ class ImageNet:
 
         # get the index of top 5 predictions
         top_5_indices = np.argpartition(result, -5)[:, -5:]
+        print(top_5_indices.shape)
 
         # get the array of ground truth labels
         label_array = np.array(next(self.labels_iterator))
