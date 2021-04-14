@@ -23,14 +23,18 @@ def vgg_preprocessor(image):
     :return: numpy array, array after subtracting the mean RGB value, computed on the training set, from each pixel
     """
 
+    # print(image.shape)
+
+    result = preprocess_input(image)
+
     _R_MEAN = 123.68
     _G_MEAN = 116.779
     _B_MEAN = 103.939
 
     means = [_R_MEAN, _G_MEAN, _B_MEAN]
-    image -= means
+    # image -= means
 
-    return image
+    return result
 
     # return result
 

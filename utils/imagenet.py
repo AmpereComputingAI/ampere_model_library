@@ -68,10 +68,10 @@ class ImageNet:
 
         # labels
         self.is1001classes = is1001classes
-        self.labels_iterator, self.lines = self.get_labels_iterator()
-        self.g = utils.batch(self.lines, batch_size)
+        self.labels, self.lines = self.get_labels_iterator()
 
-        self.test = "/model_zoo/tetstet/"
+        self.labels_iterator = utils.batch(self.labels, batch_size)
+        self.g = utils.batch(self.lines, batch_size)
 
         # Accuracy
         self.image_count = 0
@@ -93,6 +93,7 @@ class ImageNet:
             try:
                 # note: cv2 returns by default BGR
                 img = cv2.imread(os.path.join(self.images_path, i[:28]))
+                assert img is not None
             except Exception as e:
                 print(e)
             else:
@@ -114,31 +115,30 @@ class ImageNet:
         :param result: numpy array, containing the results of inference
         """
 
-        # print('-' * 40)
-        # print(result.shape)
-        # print(type(result))
-        # print(result)
-        # print('-' * 40)
+        # get the index of top 1 prediction
+        top_1_indices = np.argmax(result, axis=1)
+
+        # get the index of top 5 predictions
+        top_5_indices = np.argpartition(result, -5)[:, -5:]
+
+        # get the array of ground truth labels
+        label_array = np.array(next(self.labels_iterator))
+
+        # count the images
+        self.image_count += self.batch_size
+
         if self.batch_size == 1:
-            # get index of highest value from array of results
-            top_1_index = int(np.where(result == np.max(result))[1])
-
-            # create sorted array of indices of 5 highest values
-            top_5_indices = result.flatten().argsort()[-5:][::-1]
-
-            label = next(self.labels_iterator)
-            self.image_count += 1
-
-            if label == top_1_index:
+            if label_array == top_1_indices:
                 self.top_1 += 1
 
-            if label in top_5_indices:
-                self.top_5 += 1
+        if self.batch_size > 1:
+            self.top_1 += np.count_nonzero(top_1_indices == label_array)
 
-        elif self.batch_size == 4:
-            print('heeeee')
-            top_1_indices = np.argmax(result, axis=1)
-            print(top_1_indices)
+        n = 0
+        for i in label_array:
+            if i in top_5_indices[n]:
+                self.top_5 += 1
+                n += 1
 
     def print_accuracy(self):
         """
@@ -171,6 +171,5 @@ class ImageNet:
                     labels.append(label + 1)
                 else:
                     labels.append(label)
-        labels_iterator = iter(labels)
 
-        return labels_iterator, lines
+        return labels, lines
