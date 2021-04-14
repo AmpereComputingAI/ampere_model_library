@@ -64,11 +64,14 @@ class ImageNet:
 
         # images
         self.channels = channels
+        self.batch_size = batch_size
 
         # labels
         self.is1001classes = is1001classes
         self.labels_iterator, self.lines = self.get_labels_iterator()
         self.g = utils.batch(self.lines, batch_size)
+
+        self.test = "/model_zoo/tetstet/"
 
         # Accuracy
         self.image_count = 0
@@ -90,8 +93,6 @@ class ImageNet:
             try:
                 # note: cv2 returns by default BGR
                 img = cv2.imread(os.path.join(self.images_path, i[:28]))
-            except FileNotFoundError as e:
-                print(e)
             except Exception as e:
                 print(e)
             else:
@@ -113,21 +114,31 @@ class ImageNet:
         :param result: numpy array, containing the results of inference
         """
 
-        print(result.shape)
-        # get index of highest value from array of results
-        top_1_index = int(np.where(result == np.max(result))[1])
+        # print('-' * 40)
+        # print(result.shape)
+        # print(type(result))
+        # print(result)
+        # print('-' * 40)
+        if self.batch_size == 1:
+            # get index of highest value from array of results
+            top_1_index = int(np.where(result == np.max(result))[1])
 
-        # create sorted array of indices of 5 highest values
-        top_5_indices = result.flatten().argsort()[-5:][::-1]
+            # create sorted array of indices of 5 highest values
+            top_5_indices = result.flatten().argsort()[-5:][::-1]
 
-        label = next(self.labels_iterator)
-        self.image_count += 1
+            label = next(self.labels_iterator)
+            self.image_count += 1
 
-        if label == top_1_index:
-            self.top_1 += 1
+            if label == top_1_index:
+                self.top_1 += 1
 
-        if label in top_5_indices:
-            self.top_5 += 1
+            if label in top_5_indices:
+                self.top_5 += 1
+
+        elif self.batch_size == 4:
+            print('heeeee')
+            top_1_indices = np.argmax(result, axis=1)
+            print(top_1_indices)
 
     def print_accuracy(self):
         """

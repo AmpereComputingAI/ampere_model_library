@@ -22,24 +22,15 @@ def vgg_preprocessor(image):
     :param image: numpy array, an image which will be added to a batch, eg. shape of array (1, 224, 224, 3)
     :return: numpy array, array after subtracting the mean RGB value, computed on the training set, from each pixel
     """
-    # result = preprocess_input(image)
-    # print(type(image))
-    # print(image.get_shape)
 
     _R_MEAN = 123.68
-    _G_MEAN = 116.78
-    _B_MEAN = 103.94
+    _G_MEAN = 116.779
+    _B_MEAN = 103.939
 
-    # if image.get_shape().ndims != 3:
-    #     raise ValueError('Input must be of size [height, width, C>0]')
-    #
-    # if len(means) != num_channels:
-    #     raise ValueError('len(means) must match the number of channels')
+    means = [_R_MEAN, _G_MEAN, _B_MEAN]
+    image -= means
 
-    #
-    means = [_B_MEAN, _G_MEAN, _R_MEAN]
-
-    return image - means
+    return image
 
     # return result
 
