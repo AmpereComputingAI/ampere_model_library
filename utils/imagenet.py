@@ -120,24 +120,6 @@ class ImageNet:
                     self.top_5 += 1
                 n += 1
 
-
-        # top1 = top1_func(result)
-        # top5 = top5_func(result)
-
-        # get the array of ground truth labels
-        # label_array = np.array(next(self.labels_iterator))
-
-        # count the images
-        # self.image_count += self.batch_size
-
-        # self.top_1 += np.count_nonzero(top1 == label_array)
-
-        # n = 0
-        # for i in label_array:
-        #     if i in top5[n]:
-        #         self.top_5 += 1
-        #     n += 1
-
     def print_accuracy(self):
         """
         A function printing accuracy obtained after running all batches of images.
