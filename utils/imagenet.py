@@ -2,28 +2,21 @@ import os.path
 import numpy as np
 import cv2
 import utils.misc as utils
-# from tensorflow.keras.preprocessing import image
 
 
-def get_path(labels_path, images_path):
+def get_path(path, path_env_variable, error_message):
     """
-    A function returning the paths to file with validation dataset labels and directory with ImageNet images.
+    A function returning the paths to file with validation dataset labels or directory with ImageNet images.
 
     :return: labels_path: str
     # """
-    if labels_path is None:
+    if path is None:
         try:
-            labels_path = os.environ['LABELS_PATH']
+            path = os.environ[path_env_variable]
         except KeyError:
-            utils.print_goodbye_message_and_die('The path to labels was not defined!')
+            utils.print_goodbye_message_and_die(error_message)
 
-    if images_path is None:
-        try:
-            images_path = os.environ['IMAGES_PATH']
-        except KeyError:
-            utils.print_goodbye_message_and_die('The path to images was not defined!')
-
-    return labels_path, images_path
+    return path
 
 
 class ImageNet:
@@ -46,18 +39,19 @@ class ImageNet:
         """
 
         # paths
-        self.labels_path, self.images_path = get_path(labels_path, images_path)
-        
+        self.labels_path = get_path(labels_path, 'LABELS_PATH', 'The path to labels was not defined!')
+        self.images_path = get_path(images_path, 'IMAGES_PATH', 'The path to images was not defined!')
+
         # images
         self.channels = channels
         self.batch_size = batch_size
 
         # labels
         self.is1001classes = is1001classes
-        self.labels, self.lines = self.get_labels_iterator()
+        self.labels, self.file_names = self.get_labels_iterator()
 
         self.labels_iterator = utils.batch(self.labels, batch_size)
-        self.g = utils.batch(self.lines, batch_size)
+        self.file_names_iterator = utils.batch(self.file_names, batch_size)
 
         # Accuracy
         self.image_count = 0
@@ -74,11 +68,11 @@ class ImageNet:
         """
         final_batch = np.empty((0, 224, 224, 3))
 
-        for i in self.g.__next__():
+        for i in self.file_names_iterator.__next__():
 
             try:
                 # note: cv2 returns by default BGR
-                img = cv2.imread(os.path.join(self.images_path, i[:28]))
+                img = cv2.imread(os.path.join(self.images_path, i))
                 assert img is not None
             except Exception as e:
                 print(e)
@@ -87,26 +81,32 @@ class ImageNet:
                     img = img[:, :, [2, 1, 0]]
 
                 resized_img = cv2.resize(img, input_shape)
-                # img_array = image.img_to_array(resized_img)
                 img_array_expanded_dims = np.expand_dims(resized_img, axis=0)
                 preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"))
+
                 final_batch = np.append(final_batch, preprocessed_img, axis=0)
 
         return final_batch
 
-    def record_measurement(self, result):
+    def extract_top1(self, result):
+        top_1_indices = np.argmax(result, axis=1)
+        return top_1_indices
+
+    def extract_top5(self, result):
+        top_5_indices = np.argpartition(result, -5)[:, -5:]
+        return top_5_indices
+
+    def record_measurement(self, result, top1_func, top5_func):
         """
         A function recording measurements of each run inference.
 
         :param result: numpy array, containing the results of inference
+        :param top1_func:
+        :param top5_func:
         """
 
-        # get the index of top 1 prediction
-        top_1_indices = np.argmax(result, axis=1)
-
-        # get the index of top 5 predictions
-        top_5_indices = np.argpartition(result, -5)[:, -5:]
-        print(top_5_indices.shape)
+        top1 = top1_func(result)
+        top5 = top5_func(result)
 
         # get the array of ground truth labels
         label_array = np.array(next(self.labels_iterator))
@@ -114,18 +114,13 @@ class ImageNet:
         # count the images
         self.image_count += self.batch_size
 
-        if self.batch_size == 1:
-            if label_array == top_1_indices:
-                self.top_1 += 1
-
-        if self.batch_size > 1:
-            self.top_1 += np.count_nonzero(top_1_indices == label_array)
+        self.top_1 += np.count_nonzero(top1 == label_array)
 
         n = 0
         for i in label_array:
-            if i in top_5_indices[n]:
+            if i in top5[n]:
                 self.top_5 += 1
-                n += 1
+            n += 1
 
     def print_accuracy(self):
         """
@@ -152,6 +147,7 @@ class ImageNet:
         else:
             lines = file.readlines()
             labels = []
+            file_names = []
             for line in lines:
                 label = int(line[28:])
                 if self.is1001classes:
@@ -159,4 +155,7 @@ class ImageNet:
                 else:
                     labels.append(label)
 
-        return labels, lines
+                file_name = line[:28]
+                file_names.append(file_name)
+
+        return labels, file_names

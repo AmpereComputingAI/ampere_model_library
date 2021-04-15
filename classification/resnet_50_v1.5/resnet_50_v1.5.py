@@ -47,7 +47,7 @@ def benchmark(model_path, batch_size, images_path, labels_path, timeout):
         result = tf_runner.run()
 
         # record measurement
-        image_net.record_measurement(result['softmax_tensor:0'])
+        image_net.record_measurement(result['softmax_tensor:0'], image_net.extract_top1, image_net.extract_top5)
 
     # print benchmarks and accuracy
     tf_runner.print_performance_metrics(batch_size)
