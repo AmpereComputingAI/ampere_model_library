@@ -2,41 +2,28 @@ import os.path
 import numpy as np
 import cv2
 import utils.misc as utils
-from tensorflow.keras.preprocessing import image
+# from tensorflow.keras.preprocessing import image
 
 
-def get_labels_path(labels_path):
+def get_path(labels_path, images_path):
     """
-    A function returning the path to file with validation dataset labels
+    A function returning the paths to file with validation dataset labels and directory with ImageNet images.
 
     :return: labels_path: str
     # """
     if labels_path is None:
         try:
             labels_path = os.environ['LABELS_PATH']
-        except Exception as e:
-            print(e)
-        finally:
-            if labels_path is None:
-                utils.print_goodbye_message_and_die('The path to labels was not defined!')
-    return labels_path
+        except KeyError:
+            utils.print_goodbye_message_and_die('The path to labels was not defined!')
 
-
-def get_images_path(images_path):
-    """
-    A function returning the path to file with validation dataset labels
-
-    :return: labels_path: str
-    # """
     if images_path is None:
         try:
             images_path = os.environ['IMAGES_PATH']
-        except Exception as e:
-            print(e)
-        finally:
-            if images_path is None:
-                utils.print_goodbye_message_and_die('The path to images was not defined!')
-    return images_path
+        except KeyError:
+            utils.print_goodbye_message_and_die('The path to images was not defined!')
+
+    return labels_path, images_path
 
 
 class ImageNet:
@@ -59,9 +46,8 @@ class ImageNet:
         """
 
         # paths
-        self.images_path = get_images_path(images_path)
-        self.labels_path = get_labels_path(labels_path)
-
+        self.labels_path, self.images_path = get_path(labels_path, images_path)
+        
         # images
         self.channels = channels
         self.batch_size = batch_size
@@ -97,13 +83,13 @@ class ImageNet:
             except Exception as e:
                 print(e)
             else:
-                if self.channels == 'RGB':
+                if True:
                     img = img[:, :, [2, 1, 0]]
 
                 resized_img = cv2.resize(img, input_shape)
-                img_array = image.img_to_array(resized_img)
-                img_array_expanded_dims = np.expand_dims(img_array, axis=0)
-                preprocessed_img = preprocess(img_array_expanded_dims)
+                # img_array = image.img_to_array(resized_img)
+                img_array_expanded_dims = np.expand_dims(resized_img, axis=0)
+                preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"))
                 final_batch = np.append(final_batch, preprocessed_img, axis=0)
 
         return final_batch
