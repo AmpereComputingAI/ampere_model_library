@@ -96,7 +96,7 @@ class ImageNet:
         top_5_indices = np.argpartition(result, -5)[:, -5:]
         return top_5_indices
 
-    def record_measurement(self, result, top1_func, top5_func):
+    def record_measurement(self, result, top1_func=None, top5_func=None):
         """
         A function recording measurements of each run inference.
 
@@ -104,23 +104,39 @@ class ImageNet:
         :param top1_func:
         :param top5_func:
         """
-
-        top1 = top1_func(result)
-        top5 = top5_func(result)
-
-        # get the array of ground truth labels
         label_array = np.array(next(self.labels_iterator))
-
-        # count the images
         self.image_count += self.batch_size
 
-        self.top_1 += np.count_nonzero(top1 == label_array)
+        if top1_func is not None:
+            top1 = top1_func(result)
 
-        n = 0
-        for i in label_array:
-            if i in top5[n]:
-                self.top_5 += 1
-            n += 1
+            self.top_1 += np.count_nonzero(top1 == label_array)
+
+        if top5_func is not None:
+            top5 = top5_func(result)
+            n = 0
+            for i in label_array:
+                if i in top5[n]:
+                    self.top_5 += 1
+                n += 1
+
+
+        # top1 = top1_func(result)
+        # top5 = top5_func(result)
+
+        # get the array of ground truth labels
+        # label_array = np.array(next(self.labels_iterator))
+
+        # count the images
+        # self.image_count += self.batch_size
+
+        # self.top_1 += np.count_nonzero(top1 == label_array)
+
+        # n = 0
+        # for i in label_array:
+        #     if i in top5[n]:
+        #         self.top_5 += 1
+        #     n += 1
 
     def print_accuracy(self):
         """
