@@ -2,7 +2,7 @@ import argparse
 import time
 
 from utils.imagenet import ImageNet
-from utils.misc import vgg_preprocessor
+from utils.misc import inception_preprocessor
 from utils.tf_utils import TFFrozenModelRunner
 
 
@@ -26,10 +26,10 @@ def parse_args():
 def benchmark(model_path, batch_size, images_path, labels_path, timeout):
 
     # Initialize ImageNet class
-    image_net = ImageNet(batch_size, True, 'BGR', images_path, labels_path)
+    image_net = ImageNet(batch_size, True, 'RGB', images_path, labels_path)
 
     # TF runner initialization
-    tf_runner = TFFrozenModelRunner(model_path, ['softmax_tensor:0'])
+    tf_runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
 
     # timeout
     time_of_start = time.time()
@@ -38,18 +38,20 @@ def benchmark(model_path, batch_size, images_path, labels_path, timeout):
     while time.time() - time_of_start < timeout:
 
         # preprocess input
-        preprocessed_input = image_net.get_input_tensor((224, 224), vgg_preprocessor)
+        preprocessed_input = image_net.get_input_tensor((224, 224), inception_preprocessor)
         count += 1
         print(count)
 
         # set input tensor and run interference
-        tf_runner.set_input_tensor('input_tensor:0', preprocessed_input)
+        tf_runner.set_input_tensor('input:0', preprocessed_input)
         result = tf_runner.run()
 
         # record measurement
-        image_net.record_measurement(result['softmax_tensor:0'], image_net.extract_top1, image_net.extract_top5)
+        image_net.record_measurement(result["MobilenetV2/Predictions/Reshape_1:0"],
+                                     image_net.extract_top1,
+                                     image_net.extract_top5)
 
-    # print benchmarks and accuracy
+    # print benchmarks
     tf_runner.print_performance_metrics(batch_size)
     image_net.print_accuracy()
 

@@ -1,6 +1,6 @@
 import os
 import time
-import utils.utils as utils
+import utils.misc as utils
 import tensorflow.compat.v1 as tf
 
 INTRA_OP_PARALLELISM_THREADS = None
