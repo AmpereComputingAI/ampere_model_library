@@ -1,4 +1,12 @@
+import os
 import sys
+
+
+def get_env_variable(env_var_name: str, fail_message: str):
+    try:
+        return os.environ[env_var_name]
+    except KeyError:
+        print_goodbye_message_and_die(fail_message)
 
 
 def print_goodbye_message_and_die(message):
