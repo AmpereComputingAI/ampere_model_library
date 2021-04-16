@@ -26,19 +26,25 @@ class TFLiteRunner:
 
     def set_input_tensor(self, input_index: int, input_array):
         """
-        A function assigning given numpy input array to the tensor under the provided input name.
+        A function assigning given numpy input array to the tensor under the provided input index.
 
-        :param input_index: str, name of a input node in a model, eg. "image_tensor:0"
+        :param input_index: int, index of the input node in a model (can be obtained by accessing self.input_details)
         :param input_array: numpy array with intended input
         """
         self.__interpreter.set_tensor(input_index, input_array)
 
     def get_output_tensor(self, output_index):
+        """
+        A function returning an array with model's output available under the provided output index.
+
+        :param output_index: int, index of the output node in a model (can be obtained by accessing self.output_details)
+        :return: output tensor available under the supplied index
+        """
         return self.__interpreter.get_tensor(output_index)
 
     def run(self):
         """
-        A function executing single pass over the network, measuring the time need and returning the output.
+        A function executing single pass over the network, measuring the time needed and number of passes.
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
@@ -52,7 +58,7 @@ class TFLiteRunner:
 
     def print_performance_metrics(self, batch_size):
         """
-        A function printing performance metrics on runs executed by the runner so far and then closing TF session.
+        A function printing performance metrics on runs executed by the runner so far.
 
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
