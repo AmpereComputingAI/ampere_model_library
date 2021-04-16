@@ -31,7 +31,8 @@ def get_intra_op_parallelism_threads():
             INTRA_OP_PARALLELISM_THREADS = int(os.environ["DLS_NUM_THREADS"])
         finally:
             if INTRA_OP_PARALLELISM_THREADS is None:
-                utils.print_goodbye_message_and_die("Number of intra threads to use is not set!")
+                utils.print_goodbye_message_and_die("Number of intra threads to use is not set!"
+                                                    "\nUse DLS_NUM_THREADS or OMP_NUM_THREADS flags.")
     return INTRA_OP_PARALLELISM_THREADS
 
 
