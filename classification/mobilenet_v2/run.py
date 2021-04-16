@@ -15,9 +15,10 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=1, help='Batch size for processing evaluation'
                                                                         'dataset. Possible values: 1, 4, 16, 32, 64.'
                                                                         'Default value is 1.')
-    parser.add_argument('-p', '--precision', type=str, choices=['fp32', 'fp16', 'int8'], help='Specify the precision of'
-                                                                                              'the model provided with'
-                                                                                              ' --model_path argument.')
+    parser.add_argument('-p', '--precision', type=str, required=True, choices=['fp32', 'fp16', 'int8'],
+                        help='Specify the precision of'
+                             'the model provided with'
+                             ' --model_path argument.')
     parser.add_argument('-i', '--images_path', type=str, help="Path to ImageNet validation dataset.")
     parser.add_argument('-l', '--labels_path', type=str, help="Path to validation labels.")
     return parser.parse_args()
@@ -33,14 +34,11 @@ def benchmark(model_path, batch_size, images_path, labels_path, timeout):
 
     # timeout
     time_of_start = time.time()
-    count = 0
 
     while time.time() - time_of_start < timeout:
 
         # preprocess input
         preprocessed_input = image_net.get_input_tensor((224, 224), inception_preprocessor)
-        count += 1
-        print(count)
 
         # set input tensor and run interference
         tf_runner.set_input_tensor('input:0', preprocessed_input)

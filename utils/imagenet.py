@@ -39,8 +39,16 @@ class ImageNet:
         """
 
         # paths
-        self.labels_path = get_path(labels_path, 'LABELS_PATH', 'The path to labels was not defined!')
-        self.images_path = get_path(images_path, 'IMAGES_PATH', 'The path to images was not defined!')
+        self.labels_path = get_path(labels_path, 'LABELS_PATH', 'The path to labels was not defined!\n' 
+                                                                'You can specify the path when running the script: '
+                                                                "'-l path/to/labels' \n"
+                                                                'alternatively you can set the environment variable: '
+                                                                "'export IMAGES_PATH=/path/to/images'")
+        self.images_path = get_path(images_path, 'IMAGES_PATH', 'The path to images was not defined!\n'
+                                                                'You can specify the path when running the script: '
+                                                                "'-i path/to/images' \n"
+                                                                'alternatively you can set the environment variable: '
+                                                                "'export IMAGES_PATH=/path/to/images'")
 
         # images
         self.channels = channels
@@ -52,6 +60,8 @@ class ImageNet:
 
         self.labels_iterator = utils.batch(self.labels, batch_size)
         self.file_names_iterator = utils.batch(self.file_names, batch_size)
+
+        self.isNotDone = True
 
         # Accuracy
         self.image_count = 0
@@ -68,23 +78,30 @@ class ImageNet:
         """
         final_batch = np.empty((0, 224, 224, 3))
 
-        for i in self.file_names_iterator.__next__():
+        try:
+            batch = self.file_names_iterator.__next__()
+        except StopIteration:
+            print('you have reached the end of the dataset')
+            raise self.OutOfImageNetImages("you have reached the end of the dataset")
 
-            try:
+        if len(batch) == self.batch_size:
+            for i in batch:
                 # note: cv2 returns by default BGR
                 img = cv2.imread(os.path.join(self.images_path, i))
-                assert img is not None
-            except Exception as e:
-                print(e)
-            else:
-                if True:
+                assert img is not None, 'looks like the image in the provided path does not exist!'
+
+                if self.channels == 'RGB':
                     img = img[:, :, [2, 1, 0]]
 
                 resized_img = cv2.resize(img, input_shape)
                 img_array_expanded_dims = np.expand_dims(resized_img, axis=0)
-                preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"))
+                preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"), self.channels)
 
                 final_batch = np.append(final_batch, preprocessed_img, axis=0)
+
+        else:
+            print("can't form a batch from remaining images ... skipping the last images")
+            raise self.OutOfImageNetImages()
 
         return final_batch
 
@@ -104,6 +121,7 @@ class ImageNet:
         :param top1_func:
         :param top5_func:
         """
+
         label_array = np.array(next(self.labels_iterator))
         self.image_count += self.batch_size
 
@@ -157,3 +175,9 @@ class ImageNet:
                 file_names.append(file_name)
 
         return labels, file_names
+
+    class OutOfImageNetImages(Exception):
+        """
+        An exception class being raised as an error in case of lack of further images to process by the pipeline.
+        """
+        pass

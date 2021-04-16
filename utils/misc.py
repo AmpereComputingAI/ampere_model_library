@@ -14,11 +14,12 @@ def batch(iterable, n=1):
         yield iterable[ndx:min(ndx + n, length)]
 
 
-def vgg_preprocessor(image):
+def vgg_preprocessor(image, channels):
     """
     A function which returns a preprocessed image.
 
     :param image: numpy array, an image which will be added to a batch, eg. shape of array (1, 224, 224, 3)
+    :param channels: str, order of colors which model accepts
     :return: numpy array, array after subtracting the mean RGB value, computed on the training set, from each pixel
     """
 
@@ -26,8 +27,13 @@ def vgg_preprocessor(image):
     _G_MEAN = 116.779
     _B_MEAN = 103.939
 
-    means = [_R_MEAN, _G_MEAN, _B_MEAN]
-    image -= means
+    if channels == 'RGB':
+        means = [_R_MEAN, _G_MEAN, _B_MEAN]
+        image -= means
+
+    elif channels == 'GBR':
+        means = [_B_MEAN, _G_MEAN, _R_MEAN]
+        image -= means
 
     return image
 
