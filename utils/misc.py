@@ -14,7 +14,7 @@ def batch(iterable, n=1):
         yield iterable[ndx:min(ndx + n, length)]
 
 
-def vgg_preprocessor(image, channels):
+def vgg_preprocessor(image):
     """
     A function which returns a preprocessed image.
 
@@ -27,13 +27,8 @@ def vgg_preprocessor(image, channels):
     _G_MEAN = 116.779
     _B_MEAN = 103.939
 
-    if channels == 'RGB':
-        means = [_R_MEAN, _G_MEAN, _B_MEAN]
-        image -= means
-
-    elif channels == 'GBR':
-        means = [_B_MEAN, _G_MEAN, _R_MEAN]
-        image -= means
+    means = [_R_MEAN, _G_MEAN, _B_MEAN]
+    image -= means
 
     return image
 

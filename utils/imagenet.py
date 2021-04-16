@@ -90,12 +90,11 @@ class ImageNet:
                 img = cv2.imread(os.path.join(self.images_path, i))
                 assert img is not None, 'looks like the image in the provided path does not exist!'
 
-                if self.channels == 'RGB':
-                    img = img[:, :, [2, 1, 0]]
+                img = img[:, :, [2, 1, 0]]
 
                 resized_img = cv2.resize(img, input_shape)
                 img_array_expanded_dims = np.expand_dims(resized_img, axis=0)
-                preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"), self.channels)
+                preprocessed_img = preprocess(img_array_expanded_dims.astype("float32"))
 
                 final_batch = np.append(final_batch, preprocessed_img, axis=0)
 
