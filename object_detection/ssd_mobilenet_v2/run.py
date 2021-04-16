@@ -105,7 +105,6 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, a
         detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
         detection_scores = runner.get_output_tensor(runner.output_details[2]["index"])
         num_detections = runner.get_output_tensor(runner.output_details[3]["index"])
-        print(detection_boxes)
         for i in range(batch_size):
             for d in range(int(num_detections[i])):
                 coco.submit_bbox_prediction(

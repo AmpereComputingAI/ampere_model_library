@@ -167,7 +167,6 @@ class COCODataset(ImageDataset):
         """
         try:
             image_id = self.__image_ids[self.__current_img]
-            #print(image_id)
         except IndexError:
             raise self.OutOfCOCOImages("No more COCO images to process in the directory provided")
         self.__current_image_ids.append(image_id)
