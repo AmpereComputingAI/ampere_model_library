@@ -1,4 +1,10 @@
 def pre_process_ssd(input_array):
+    """
+    A function pre-processing an input array in the way expected by some SSD models.
+
+    :param input_array: numpy array containing image data
+    :return: numpy array containing pre-processed image data
+    """
     input_array = input_array.astype("float32")
     input_array *= (2.0 / 255.0)
     input_array -= 1.0

@@ -35,7 +35,7 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
-    shape = (640, 640)
+    shape = (300, 300)
     coco = coco_utils.COCODataset(batch_size, "COCO_val2014_000000000000", images_path, anno_path,
                                   sort_ascending=True)
 
