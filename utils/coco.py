@@ -34,7 +34,7 @@ class COCODataset(ImageDataset):
         if annotations_path is None:
             env_var = "COCO_ANNO_PATH"
             annotations_path = utils.get_env_variable(
-                env_var, f"Path to COCO annotations has not been specified with {env_var} flag")
+                env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
         self.__images_path = images_path

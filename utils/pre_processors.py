@@ -5,12 +5,13 @@ def pre_process_ssd(input_array):
     """
     A function pre-processing an input array in the way expected by some SSD models.
 
-    Pixel RGB values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+    Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
 
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
     input_array = input_array.astype("float32")
+
     input_array *= (2.0 / 255.0)
     input_array -= 1.0
     # kinda equivalent solution:
@@ -21,7 +22,10 @@ def pre_process_ssd(input_array):
 
 def pre_process_vgg(input_array, color_model: str):
     """
-    A function pre-processing an input array in the way described in original VGG paper.
+    A function pre-processing an input array in the way described in the original VGG paper.
+
+    Values are converted from int 0 <-> 255 range to asymmetrical float ranges different for every color channel.
+    Pre-processing is used by various classification models other than VGG, for example ResNet.
 
     :param input_array: numpy array containing image data
     :param color_model: str, color model of image data, possible values: ["RGB", "BGR"]
@@ -29,6 +33,8 @@ def pre_process_vgg(input_array, color_model: str):
     """
     if color_model not in ["RGB", "BGR"]:
         utils.print_goodbye_message_and_die(f"Color model {color_model} is not supported.")
+
+    input_array = input_array.astype("float32")
 
     r_mean = 123.68
     g_mean = 116.779
@@ -39,4 +45,23 @@ def pre_process_vgg(input_array, color_model: str):
         per_channel_means = np.flip(per_channel_means)
 
     input_array -= per_channel_means
+    return input_array
+
+
+def pre_process_inception(input_array):
+    """
+    A function pre-processing an input array in the way described in the original Inception paper.
+
+    Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+    Pre-processing is used by various classification models other than Inception, for example MobileNet.
+
+    :param input_array: numpy array containing image data
+    :return: numpy array containing pre-processed image data
+    """
+
+    input_array = input_array.astype("float32")
+
+    input_array /= 255.
+    input_array -= 0.5
+    input_array *= 2.
     return input_array

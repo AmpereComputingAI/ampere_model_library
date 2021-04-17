@@ -1,7 +1,5 @@
-import os.path
 import numpy as np
-import cv2
-import utils.misc as utils
+from utils.dataset import ImageDataset
 
 
 def batch(iterable, n=1):
@@ -16,20 +14,7 @@ def batch(iterable, n=1):
         yield iterable[ndx:min(ndx + n, length)]
 
 
-def inception_preprocessor(image_sample):
-    """
-    A function which returns a preprocessed image.
-    :param image_sample: numpy array, numpy array with image to be pre-processed
-    :return: numpy array
-    """
-    image_sample /= 255.
-    image_sample -= 0.5
-    image_sample *= 2.
-
-    return image_sample
-
-
-class ImageNet:
+class ImageNet(ImageDataset):
     """
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
@@ -48,17 +33,14 @@ class ImageNet:
         :param labels_path: str, specify a path of file with validation labels
         """
 
-        # paths
-        self.labels_path = get_path(labels_path, 'LABELS_PATH', 'The path to labels was not defined!\n' 
-                                                                'You can specify the path when running the script: '
-                                                                "'-l path/to/labels' \n"
-                                                                'alternatively you can set the environment variable: '
-                                                                "'export IMAGES_PATH=/path/to/images'")
-        self.images_path = get_path(images_path, 'IMAGES_PATH', 'The path to images was not defined!\n'
-                                                                'You can specify the path when running the script: '
-                                                                "'-i path/to/images' \n"
-                                                                'alternatively you can set the environment variable: '
-                                                                "'export IMAGES_PATH=/path/to/images'")
+        if images_path is None:
+            env_var = "IMAGENET_IMG_PATH"
+            images_path = utils.get_env_variable(
+                env_var, f"Path to ImageNet images directory has not been specified with {env_var} flag")
+        if labels_path is None:
+            env_var = "IMAGENET_LABELS_PATH"
+            labels_path = utils.get_env_variable(
+                env_var, f"Path to ImageNet labels file has not been specified with {env_var} flag")
 
         # images
         self.channels = channels
