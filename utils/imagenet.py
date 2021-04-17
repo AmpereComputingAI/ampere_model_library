@@ -101,8 +101,8 @@ class ImageNet:
         self.is1001classes = is1001classes
         self.labels, self.file_names = self.get_labels_iterator()
 
-        self.labels_iterator = utils.batch(self.labels, batch_size)
-        self.file_names_iterator = utils.batch(self.file_names, batch_size)
+        self.labels_iterator = batch(self.labels, batch_size)
+        self.file_names_iterator = batch(self.file_names, batch_size)
 
         self.isNotDone = True
 
