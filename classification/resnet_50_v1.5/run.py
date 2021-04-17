@@ -3,7 +3,7 @@ import time
 
 from utils.imagenet import ImageNet
 from utils.imagenet import vgg_preprocessor
-from utils.tf_utils import TFFrozenModelRunner
+from utils.tf import TFFrozenModelRunner
 
 
 def parse_args():
