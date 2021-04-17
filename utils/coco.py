@@ -11,82 +11,22 @@ class ImageDataset:
     """
     A class providing facilities shared by image-related datasets' pipelines like ImageNet and COCO.
     """
-    def __init__(self, allow_distortion=True):
-        """
-        A function initializing the class.
-
-        :param allow_distortion: bool, parameter adjusting whether distortion of the image during the resizing is
-        allowed
-        """
-        self.__allow_distortion = allow_distortion
-
-    def __resize_and_crop_image(self, image_array, target_shape):
-        """
-        A function resizing and cropping the image instead of rescaling it with proportions' distortion.
-
-        :param image_array: numpy array with image data
-        :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array with resized padded or cropped image data
-        """
-        image_height = image_array.shape[0]
-        image_width = image_array.shape[1]
-        target_height = target_shape[0]
-        target_width = target_shape[1]
-
-        if target_height < image_height and target_width < image_width:
-            if image_height < image_width:
-                scale_factor = target_height / image_height
-            else:
-                scale_factor = target_width / image_width
-        elif target_height > image_height and target_width > image_width:
-            if image_height < image_width:
-                scale_factor = target_width / image_width
-            else:
-                scale_factor = target_height / image_height
-        else:
-            scale_factor = None
-
-        if scale_factor:
-            # applying scale factor if image is either smaller or larger by both dimensions
-            image_array = cv2.resize(image_array,
-                                     (int(image_width * scale_factor + 0.9999999999),
-                                      int(image_height * scale_factor + 0.9999999999)))
-
-        # padding - interpretable as black bars
-        padded_array = np.zeros((*target_shape, 3))
-        image_array = image_array[:target_height, :target_width]
-        lower_boundary_h = int((target_height - image_array.shape[0]) / 2)
-        upper_boundary_h = image_array.shape[0] + lower_boundary_h
-        lower_boundary_w = int((target_width - image_array.shape[1]) / 2)
-        upper_boundary_w = image_array.shape[1] + lower_boundary_w
-        padded_array[lower_boundary_h:upper_boundary_h, lower_boundary_w:upper_boundary_w] = image_array
-        return padded_array
+    def __init__(self):
+        pass
 
     def __resize_image(self, image_array, target_shape):
         """
-        A function resizing an image with distortion of its proportions allowed.
+        A function resizing an image.
 
         :param image_array: numpy array with image data
         :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array with rescaled image data, tuple with ratios of rescaling applied
+        :return: numpy array with resized image data, tuple with ratios of resizing applied (height, width)
         """
         vertical_ratio = target_shape[0] / image_array.shape[0]
         horizontal_ratio = target_shape[1] / image_array.shape[1]
         return cv2.resize(image_array, target_shape), (vertical_ratio, horizontal_ratio)
 
-    def __rescale_image(self, image_array, target_shape):
-        """
-        A function delegating further resize work based on allow_distortion setting.
-
-        :param image_array: numpy array with image data
-        :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array with rescaled image data, tuple with ratios of rescaling applied
-        """
-        if self.__allow_distortion:
-            return self.__resize_image(image_array, target_shape)
-        return self.__resize_and_crop_image(image_array, target_shape), None
-
-    def __load_image(self, image_path, target_shape, get_resize_ratios=False):
+    def __load_image(self, image_path, target_shape):
         """
         A function loading image available under the supplied path and then applying proper rescaling/resizing.
 
@@ -95,12 +35,10 @@ class ImageDataset:
         :return: numpy array with resized image data in NHWC/NCHW format
         """
         image_array = cv2.imread(str(image_path))
-        assert image_array is not None
-        image_array, resize_ratios = self.__rescale_image(image_array, target_shape)
-        if get_resize_ratios:
-            return np.expand_dims(image_array, axis=0), resize_ratios
-        else:
-            return np.expand_dims(image_array, axis=0)
+        if image_array is None:
+            utils.print_goodbye_message_and_die(f"Image not found under path {str(image_path)}!")
+        image_array, resize_ratios = self.__resize_image(image_array, target_shape)
+        return np.expand_dims(image_array, axis=0), resize_ratios
 
 
 class COCODataset(ImageDataset):
@@ -109,8 +47,7 @@ class COCODataset(ImageDataset):
     """
     def __init__(self,
                  batch_size: int, images_filename_base: str,
-                 images_path=None, annotations_path=None,
-                 allow_distortion=True, pre_processing_func=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing_func=None, sort_ascending=False):
         """
         A function initializing the class.
 
@@ -119,7 +56,6 @@ class COCODataset(ImageDataset):
         eg. "COCO_val2014_000000000000"
         :param images_path: str, path to directory containing COCO images
         :param annotations_path: str, path to file containing COCO annotations
-        :param allow_distortion: bool, parameter setting whether image distortion is allowed
         :param pre_processing_func: python function, function handling pre-processing of an array containing image data
         :param sort_ascending: bool, parameter setting whether images in dataset should be processed in ascending order
         regarding their files' names
@@ -149,9 +85,8 @@ class COCODataset(ImageDataset):
         self.__image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
             self.__image_ids = sorted(self.__image_ids)
-        self.available_images = len(self.__image_ids)
-        assert allow_distortion, "Not implemented yet for COCO"
-        super().__init__(allow_distortion)
+        self.available_images_count = len(self.__image_ids)
+        super().__init__()
 
     class OutOfCOCOImages(Exception):
         """
@@ -204,7 +139,7 @@ class COCODataset(ImageDataset):
         :return: numpy array containing rescaled image data
         """
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.__get_path_to_img(), target_shape, get_resize_ratios=True)
+            self.__get_path_to_img(), target_shape)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
@@ -217,9 +152,9 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        input_array = self.__load_image_and_store_ratios(target_shape)
-        for _ in range(1, self.__batch_size):
-            input_array = np.concatenate((input_array, self.__load_image_and_store_ratios(target_shape)), axis=0)
+        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+        for i in range(self.__batch_size):
+            input_array[i] = self.__load_image_and_store_ratios(target_shape)
         if self.__pre_processing_func:
             input_array = self.__pre_processing_func(input_array)
         return input_array

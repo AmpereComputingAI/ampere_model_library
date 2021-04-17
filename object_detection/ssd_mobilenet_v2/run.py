@@ -2,6 +2,7 @@ import os
 import time
 import argparse
 import utils.tf as tf_utils
+import utils.misc as utils
 import utils.coco as coco_utils
 import utils.tflite as tflite_utils
 import utils.pre_processors as pp
@@ -38,6 +39,10 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     shape = (300, 300)
     coco = coco_utils.COCODataset(batch_size, "COCO_val2014_000000000000", images_path, anno_path,
                                   sort_ascending=True)
+
+    if coco.available_images_count < num_of_runs:
+        utils.print_goodbye_message_and_die(
+            f"Number of runs requested exceeds number of images available in dataset!")
 
     runner = tf_utils.TFFrozenModelRunner(
         model_path,
@@ -78,6 +83,10 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, a
     shape = (300, 300)
     coco = coco_utils.COCODataset(batch_size, "COCO_val2014_000000000000", images_path, anno_path,
                                   pre_processing_func=pp.pre_process_ssd, sort_ascending=True)
+
+    if coco.available_images_count < num_of_runs:
+        utils.print_goodbye_message_and_die(
+            f"Number of runs requested exceeds number of images available in dataset!")
 
     runner = tflite_utils.TFLiteRunner(
         model_path

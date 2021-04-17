@@ -2,6 +2,8 @@ def pre_process_ssd(input_array):
     """
     A function pre-processing an input array in the way expected by some SSD models.
 
+    Pixel RGB values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
