@@ -1,50 +1,18 @@
+import os
 import sys
 
 
-def batch(iterable, n=1):
+def get_env_variable(env_var_name: str, fail_message: str):
     """
-    A generator function which yields batches of images.
+    A function checking the value of environment variable and returning given fail message if not set.
 
-    :param iterable: iterable, a sorted list of images in the parent directory
-    :param n: integer, a batch size
-    :return: yields an iterable of batch images
+    :param env_var_name: str
+    :param fail_message: str
     """
-    length = len(iterable)
-    for ndx in range(0, length, n):
-        yield iterable[ndx:min(ndx + n, length)]
-
-
-def vgg_preprocessor(image):
-    """
-    A function which returns a preprocessed image.
-
-    :param image: numpy array, an image which will be added to a batch, eg. shape of array (1, 224, 224, 3)
-    :param channels: str, order of colors which model accepts
-    :return: numpy array, array after subtracting the mean RGB value, computed on the training set, from each pixel
-    """
-
-    _R_MEAN = 123.68
-    _G_MEAN = 116.779
-    _B_MEAN = 103.939
-
-    means = [_R_MEAN, _G_MEAN, _B_MEAN]
-    image -= means
-
-    return image
-
-
-def inception_preprocessor(image_sample):
-    """
-    A function which returns a preprocessed image.
-
-    :param image_sample: numpy array, numpy array with image to be pre-processed
-    :return: numpy array
-    """
-    image_sample /= 255.
-    image_sample -= 0.5
-    image_sample *= 2.
-
-    return image_sample
+    try:
+        return os.environ[env_var_name]
+    except KeyError:
+        print_goodbye_message_and_die(fail_message)
 
 
 def print_goodbye_message_and_die(message):
