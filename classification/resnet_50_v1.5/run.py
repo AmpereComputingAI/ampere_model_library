@@ -2,7 +2,7 @@ import argparse
 import time
 
 from utils.imagenet import ImageNet
-from utils.misc import vgg_preprocessor
+from utils.imagenet import vgg_preprocessor
 from utils.tf_utils import TFFrozenModelRunner
 
 
