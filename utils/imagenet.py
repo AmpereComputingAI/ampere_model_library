@@ -4,21 +4,6 @@ import cv2
 import utils.misc as utils
 
 
-def get_path(path, path_env_variable, error_message):
-    """
-    A function returning the paths to file with validation dataset labels or directory with ImageNet images.
-
-    :return: labels_path: str
-    # """
-    if path is None:
-        try:
-            path = os.environ[path_env_variable]
-        except KeyError:
-            utils.print_goodbye_message_and_die(error_message)
-
-    return path
-
-
 def batch(iterable, n=1):
     """
     A generator function which yields batches of images.
@@ -29,24 +14,6 @@ def batch(iterable, n=1):
     length = len(iterable)
     for ndx in range(0, length, n):
         yield iterable[ndx:min(ndx + n, length)]
-
-
-def vgg_preprocessor(image):
-    """
-    A function which returns a preprocessed image.
-    :param image: numpy array, an image which will be added to a batch, eg. shape of array (1, 224, 224, 3)
-    :param channels: str, order of colors which model accepts
-    :return: numpy array, array after subtracting the mean RGB value, computed on the training set, from each pixel
-    """
-
-    _R_MEAN = 123.68
-    _G_MEAN = 116.779
-    _B_MEAN = 103.939
-
-    means = [_R_MEAN, _G_MEAN, _B_MEAN]
-    image -= means
-
-    return image
 
 
 def inception_preprocessor(image_sample):
