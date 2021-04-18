@@ -1,7 +1,7 @@
 import os
 import time
-import tensorflow.compat.v1 as tf
 import utils.misc as utils
+import tensorflow.compat.v1 as tf
 import utils.benchmark as bench_utils
 
 

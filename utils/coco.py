@@ -1,44 +1,11 @@
-import os
 import cv2
 import pathlib
 import numpy as np
 import utils.misc as utils
+from utils.dataset import ImageDataset
+import utils.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
-
-class ImageDataset:
-    """
-    A class providing facilities shared by image-related datasets' pipelines like ImageNet and COCO.
-    """
-    def __init__(self):
-        pass
-
-    def __resize_image(self, image_array, target_shape):
-        """
-        A function resizing an image.
-
-        :param image_array: numpy array with image data
-        :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array with resized image data, tuple with ratios of resizing applied (height, width)
-        """
-        vertical_ratio = target_shape[0] / image_array.shape[0]
-        horizontal_ratio = target_shape[1] / image_array.shape[1]
-        return cv2.resize(image_array, target_shape), (vertical_ratio, horizontal_ratio)
-
-    def __load_image(self, image_path, target_shape):
-        """
-        A function loading image available under the supplied path and then applying proper rescaling/resizing.
-
-        :param image_path: PathLib.PurePath or str, path to the image
-        :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array with resized image data in NHWC/NCHW format
-        """
-        image_array = cv2.imread(str(image_path))
-        if image_array is None:
-            utils.print_goodbye_message_and_die(f"Image not found under path {str(image_path)}!")
-        image_array, resize_ratios = self.__resize_image(image_array, target_shape)
-        return np.expand_dims(image_array, axis=0), resize_ratios
 
 
 class COCODataset(ImageDataset):
@@ -46,8 +13,8 @@ class COCODataset(ImageDataset):
     A class providing facilities to measure accuracy of object detection models trained on COCO dataset.
     """
     def __init__(self,
-                 batch_size: int, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing_func=None, sort_ascending=False):
+                 batch_size: int, color_model: str, images_filename_base: str,
+                 images_path=None, annotations_path=None, pre_processing_approach=None, sort_ascending=False):
         """
         A function initializing the class.
 
@@ -68,15 +35,15 @@ class COCODataset(ImageDataset):
         if annotations_path is None:
             env_var = "COCO_ANNO_PATH"
             annotations_path = utils.get_env_variable(
-                env_var, f"Path to COCO annotations has not been specified with {env_var} flag")
+                env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
+        self.__color_model = color_model
+        self.__images_filename_base = images_filename_base
+        self.__images_filename_ext = ".jpg"
         self.__images_path = images_path
         self.__annotations_path = annotations_path
-        self.images_filename_base = images_filename_base
-        self.images_filename_extension = ".jpg"
-        self.__pre_processing_func = pre_processing_func
-        self.__batch_size = batch_size
+        self.__pre_processing_approach = pre_processing_approach
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
         self.__detections = list()
@@ -105,7 +72,7 @@ class COCODataset(ImageDataset):
         except IndexError:
             raise self.OutOfCOCOImages("No more COCO images to process in the directory provided")
         self.__current_image_ids.append(image_id)
-        image_path = self.images_filename_base[:-len(str(image_id))] + str(image_id) + self.images_filename_extension
+        image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, image_path)
 
@@ -139,7 +106,7 @@ class COCODataset(ImageDataset):
         :return: numpy array containing rescaled image data
         """
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.__get_path_to_img(), target_shape)
+            self.__get_path_to_img(), target_shape, self.__color_model)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
@@ -155,8 +122,8 @@ class COCODataset(ImageDataset):
         input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
-        if self.__pre_processing_func:
-            input_array = self.__pre_processing_func(input_array)
+        if self.__pre_processing_approach:
+            input_array = pp.pre_process(input_array, self.__pre_processing_approach)
         return input_array
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):
@@ -185,7 +152,7 @@ class COCODataset(ImageDataset):
 
     def submit_bbox_prediction(self, id_in_batch, bbox, score, category):
         """
-        A function allowing to submit a single bbox prediction for a given image.
+        A function meant for submitting a single bbox prediction for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
         :param bbox: list, list containing bbox coordinates
