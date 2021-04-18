@@ -1,4 +1,23 @@
+import numpy as np
 import utils.misc as utils
+
+
+def pre_process(input_array, pre_processing_approach: str, color_model=None):
+    """
+    A function delegating further pre-processing work to proper function.
+
+    :param input_array: numpy array containing image data
+    :param pre_processing_approach: string naming the pre-processing approach to be applied
+    :param color_model: color model to be used if pre-processing depends on the order
+    :return: numpy array containing pre-processed image data
+    """
+    if pre_processing_approach == "SSD":
+        return pre_process_ssd(input_array)
+    if pre_processing_approach == "VGG":
+        return pre_process_vgg(input_array, color_model)
+    if pre_processing_approach == "Inception":
+        return pre_process_inception(input_array)
+    utils.print_goodbye_message_and_die(f"Pre-processing approach \"{pre_processing_approach}\" undefined.")
 
 
 def pre_process_ssd(input_array):

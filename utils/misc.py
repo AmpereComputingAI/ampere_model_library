@@ -8,7 +8,7 @@ def get_hash_of_a_file(path_to_file):
     A function calculating md5 hash for a file under the supplied path.
 
     :param path_to_file: str, path to a file of which a hash should be calculated
-    :return: string containing md5 hash of a file
+    :return: string containing the md5 hash of a file
     """
     hash_md5 = hashlib.md5()
     with open(path_to_file, "rb") as f:

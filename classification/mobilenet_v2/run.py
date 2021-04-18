@@ -2,7 +2,6 @@ import time
 import argparse
 from utils.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
-from utils.pre_processors import pre_process_inception
 
 
 def parse_args():
@@ -34,7 +33,7 @@ def parse_args():
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
     shape = (224, 224)
     imagenet = ImageNet(batch_size, "RGB", images_path, labels_path,
-                        pre_processing_func=pre_process_inception, is1001classes=True)
+                        pre_processing_approach="Inception", is1001classes=True)
 
     runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
 

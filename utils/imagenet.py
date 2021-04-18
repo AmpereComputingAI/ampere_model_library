@@ -1,6 +1,7 @@
 import numpy as np
 import pathlib
 import utils.misc as utils
+import utils.pre_processing as pp
 from utils.dataset import ImageDataset
 
 
@@ -10,7 +11,7 @@ class ImageNet(ImageDataset):
     """
 
     def __init__(self, batch_size: int, color_model: str,
-                 images_path=None, labels_path=None, pre_processing_func=None, is1001classes=False):
+                 images_path=None, labels_path=None, pre_processing_approach=None, is1001classes=False):
 
         if images_path is None:
             env_var = "IMAGENET_IMG_PATH"
@@ -25,7 +26,7 @@ class ImageNet(ImageDataset):
         self.__images_filename_extension = ".JPEG"
         self.__color_model = color_model
         self.__images_path = images_path
-        self.__pre_processing_func = pre_processing_func
+        self.__pre_processing_approach = pre_processing_approach
         self.__current_img = 0
         self.__file_names, self.__labels = self.__parse_val_file(labels_path, is1001classes)
         self.available_images_count = len(self.__file_names)
@@ -95,8 +96,8 @@ class ImageNet(ImageDataset):
             input_array[i], _ = self._ImageDataset__load_image(
                 self.__get_path_to_img(), target_shape, self.__color_model
             )
-        if self.__pre_processing_func:
-            input_array = self.__pre_processing_func(input_array)
+        if self.__pre_processing_approach:
+            input_array = pp.pre_process(input_array, self.__pre_processing_approach, self.__color_model)
         return input_array
 
     def extract_top1(self, output_array):

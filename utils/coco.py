@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import utils.misc as utils
 from utils.dataset import ImageDataset
+import utils.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
@@ -13,7 +14,7 @@ class COCODataset(ImageDataset):
     """
     def __init__(self,
                  batch_size: int, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing_func=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing_approach=None, sort_ascending=False):
         """
         A function initializing the class.
 
@@ -41,7 +42,7 @@ class COCODataset(ImageDataset):
         self.__images_filename_ext = ".jpg"
         self.__images_path = images_path
         self.__annotations_path = annotations_path
-        self.__pre_processing_func = pre_processing_func
+        self.__pre_processing_approach = pre_processing_approach
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
         self.__detections = list()
@@ -120,8 +121,8 @@ class COCODataset(ImageDataset):
         input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
-        if self.__pre_processing_func:
-            input_array = self.__pre_processing_func(input_array)
+        if self.__pre_processing_approach:
+            input_array = pp.preprocess(input_array, self.__pre_processing_approach)
         return input_array
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):
