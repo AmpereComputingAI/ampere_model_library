@@ -179,3 +179,4 @@ class COCODataset(ImageDataset):
         coco_eval.accumulate()
         coco_eval.summarize()
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        return {"coco_map": coco_eval.stats[0]}

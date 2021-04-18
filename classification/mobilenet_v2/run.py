@@ -1,6 +1,8 @@
 import time
+from tqdm.auto import tqdm
 import argparse
 from utils.imagenet import ImageNet
+import utils.misc as utils
 from utils.tf import TFFrozenModelRunner
 
 
@@ -19,7 +21,7 @@ def parse_args():
                         type=float, default=60.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
-                        type=int,
+                        type=int, default=-1,
                         help="number of passes through network to execute")
     parser.add_argument("--images_path",
                         type=str,
@@ -31,29 +33,9 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    shape = (224, 224)
-    imagenet = ImageNet(batch_size, "RGB", images_path, labels_path,
-                        pre_processing_approach="Inception", is1001classes=True)
-
-    runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
-
-    iter = 0
-    start = time.time()
-    while True:
-        if num_of_runs is None:
-            if time.time() - start > timeout:
-                break
-        elif not iter < num_of_runs:
-            break
-
-        try:
-            runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
-        except imagenet.OutOfImageNetImages:
-            break
-
+    def run_single_pass():
+        runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
         output = runner.run()
-        iter += 1
-
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -61,8 +43,30 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
                 imagenet.extract_top5(output["MobilenetV2/Predictions/Reshape_1:0"][i])
             )
 
-    imagenet.summarize_accuracy()
-    runner.print_performance_metrics(batch_size)
+    shape = (224, 224)
+    imagenet = ImageNet(batch_size, "RGB", images_path, labels_path,
+                        pre_processing_approach="Inception", is1001classes=True)
+
+    if imagenet.available_images_count < num_of_runs:
+        utils.print_goodbye_message_and_die(
+            f"Number of runs requested exceeds number of images available in dataset!")
+
+    runner = TFFrozenModelRunner(model_path, ["MobilenetV2/Predictions/Reshape_1:0"])
+
+    try:
+        if num_of_runs == -1:
+            start = time.time()
+            while time.time() - start < timeout:
+                run_single_pass()
+        else:
+            for _ in tqdm(range(num_of_runs)):
+                run_single_pass()
+    except imagenet.OutOfImageNetImages:
+        pass
+
+    acc = imagenet.summarize_accuracy()
+    perf = runner.print_performance_metrics(batch_size)
+    return acc, perf
 
 
 def main():

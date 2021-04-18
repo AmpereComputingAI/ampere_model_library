@@ -149,3 +149,4 @@ class ImageNet(ImageDataset):
         print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}

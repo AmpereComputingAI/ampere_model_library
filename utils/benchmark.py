@@ -74,3 +74,4 @@ def print_performance_metrics(
     instances_per_second = batch_size / latency_in_seconds
     print("\nLatency: {:.0f} ms".format(latency_in_ms))
     print("Throughput: {:.2f} ips".format(instances_per_second))
+    return {"lat_ms": latency_in_ms, "throughput": instances_per_second}
