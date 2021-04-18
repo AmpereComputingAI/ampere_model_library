@@ -123,7 +123,7 @@ class COCODataset(ImageDataset):
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
         if self.__pre_processing_approach:
-            input_array = pp.preprocess(input_array, self.__pre_processing_approach)
+            input_array = pp.pre_process(input_array, self.__pre_processing_approach)
         return input_array
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):
