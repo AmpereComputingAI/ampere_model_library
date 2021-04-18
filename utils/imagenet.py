@@ -23,8 +23,8 @@ class ImageNet(ImageDataset):
                 env_var, f"Path to ImageNet labels file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
-        self.__images_filename_extension = ".JPEG"
         self.__color_model = color_model
+        self.__images_filename_extension = ".JPEG"
         self.__images_path = images_path
         self.__pre_processing_approach = pre_processing_approach
         self.__current_img = 0

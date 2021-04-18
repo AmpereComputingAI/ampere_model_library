@@ -36,7 +36,7 @@ def parse_args():
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     shape = (300, 300)
-    coco = COCODataset(batch_size, "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
+    coco = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
 
     if coco.available_images_count < num_of_runs:
         utils.print_goodbye_message_and_die(
@@ -79,7 +79,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     shape = (300, 300)
-    coco = COCODataset(batch_size, "COCO_val2014_000000000000", images_path, anno_path,
+    coco = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
                        pre_processing_approach="SSD", sort_ascending=True)
 
     if coco.available_images_count < num_of_runs:

@@ -13,7 +13,7 @@ class COCODataset(ImageDataset):
     A class providing facilities to measure accuracy of object detection models trained on COCO dataset.
     """
     def __init__(self,
-                 batch_size: int, images_filename_base: str,
+                 batch_size: int, color_model: str, images_filename_base: str,
                  images_path=None, annotations_path=None, pre_processing_approach=None, sort_ascending=False):
         """
         A function initializing the class.
@@ -38,6 +38,7 @@ class COCODataset(ImageDataset):
                 env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
+        self.__color_model = color_model
         self.__images_filename_base = images_filename_base
         self.__images_filename_ext = ".jpg"
         self.__images_path = images_path
@@ -105,7 +106,7 @@ class COCODataset(ImageDataset):
         :return: numpy array containing rescaled image data
         """
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.__get_path_to_img(), target_shape)
+            self.__get_path_to_img(), target_shape, self.__color_model)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
