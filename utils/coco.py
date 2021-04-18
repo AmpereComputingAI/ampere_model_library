@@ -37,12 +37,11 @@ class COCODataset(ImageDataset):
                 env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
+        self.__images_filename_base = images_filename_base
+        self.__images_filename_ext = ".jpg"
         self.__images_path = images_path
         self.__annotations_path = annotations_path
-        self.images_filename_base = images_filename_base
-        self.images_filename_extension = ".jpg"
         self.__pre_processing_func = pre_processing_func
-        self.__batch_size = batch_size
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
         self.__detections = list()
@@ -71,7 +70,7 @@ class COCODataset(ImageDataset):
         except IndexError:
             raise self.OutOfCOCOImages("No more COCO images to process in the directory provided")
         self.__current_image_ids.append(image_id)
-        image_path = self.images_filename_base[:-len(str(image_id))] + str(image_id) + self.images_filename_extension
+        image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, image_path)
 
@@ -151,7 +150,7 @@ class COCODataset(ImageDataset):
 
     def submit_bbox_prediction(self, id_in_batch, bbox, score, category):
         """
-        A function allowing to submit a single bbox prediction for a given image.
+        A function for submitting a single bbox prediction for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
         :param bbox: list, list containing bbox coordinates
