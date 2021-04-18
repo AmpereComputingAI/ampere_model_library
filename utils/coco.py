@@ -150,7 +150,7 @@ class COCODataset(ImageDataset):
 
     def submit_bbox_prediction(self, id_in_batch, bbox, score, category):
         """
-        A function for submitting a single bbox prediction for a given image.
+        A function meant for submitting a single bbox prediction for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
         :param bbox: list, list containing bbox coordinates

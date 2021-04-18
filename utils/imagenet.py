@@ -40,6 +40,17 @@ class ImageNet(ImageDataset):
         pass
 
     def __parse_val_file(self, labels_path, is1001classes):
+        """
+        A function parsing validation file for ImageNet 2012 validation dataset.
+
+        .txt file consists of 50000 lines each holding data on a single image: its file name and 1 label with class best
+        describing image's content
+
+        :param labels_path: str, path to file containing image file names and labels
+        :param is1001classes: bool, parameter setting whether the tested model has 1001 classes (+ background) or
+        original 1000 classes
+        :return: list of strings, list of ints
+        """
         if utils.get_hash_of_a_file(labels_path) != "b6284a7c08fba47457c2c1f6049a156e":
             utils.print_goodbye_message_and_die("Wrong labels file supplied!")
 
@@ -89,20 +100,37 @@ class ImageNet(ImageDataset):
         return input_array
 
     def extract_top1(self, output_array):
+        """
+        A helper function for extracting top-1 prediction from an output array holding soft-maxed data on 1 image.
+
+        :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
+        :return: int, index of highest value in the supplied array
+        """
+        if not 0.999 < np.sum(output_array) < 1.001:
+            utils.print_goodbye_message_and_die("Provided array has not been subject to softmax operation.")
         top_1_index = np.argmax(output_array)
         return top_1_index
 
     def extract_top5(self, output_array):
+        """
+        A helper function for extracting top-5 predictions from an output array holding soft-maxed data on 1 image.
+
+        :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
+        :return: list of ints, list containing indices of 5 highest values in the supplied array
+        """
+        if not 0.999 < np.sum(output_array) < 1.001:
+            utils.print_goodbye_message_and_die("Provided array has not been subject to softmax operation.")
         top_5_indices = np.argpartition(output_array, -5)[-5:]
         return top_5_indices
 
     def submit_predictions(self, id_in_batch: int, top_1_index: int, top_5_indices: list):
         """
-        A function for submitting a class predictions for a given image.
+        A function meant for submitting a class predictions for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided predictions relate to
-        :param top_1_prediction: int, index of top-1 prediction
-        :param top_5_predictions: list of ints, indices of top-5 predictions (including top-1 supplied separately)
+        :param top_1_index: int, index of a prediction with highest confidence
+        :param top_5_indices: list of ints, indices of 5 predictions with highest confidence
+        :return:
         """
         ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
@@ -114,9 +142,9 @@ class ImageNet(ImageDataset):
         predictions done where supplied with submit_predictions() function.
         """
         top_1_accuracy = self.__top_1_count / self.__current_img
-        print("\n Top-1 accuracy: {:.2f}".format(top_1_accuracy))
+        print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
 
         top_5_accuracy = self.__top_5_count / self.__current_img
-        print(" Top-5 accuracy = {:.2f}\n".format(top_5_accuracy))
+        print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
