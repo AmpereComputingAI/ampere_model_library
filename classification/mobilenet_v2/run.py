@@ -3,6 +3,7 @@ import argparse
 from utils.imagenet import ImageNet
 import utils.misc as utils
 from utils.tf import TFFrozenModelRunner
+from utils.benchmark import run_model
 
 
 def parse_args():
