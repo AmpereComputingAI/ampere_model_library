@@ -56,7 +56,7 @@ def get_intra_op_parallelism_threads():
 
 def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
     """
-    A function running TensorFlow model in unified way.
+    A function running model in unified way.
 
     If num_of_runs is specified the function will execute single_pass_func n times and then summarize accuracy and perf.
     If num_of_runs is unspecified (None) the function will execute single_pass_func until either timeout is reached or
