@@ -1,9 +1,8 @@
 import time
-from tqdm.auto import tqdm
 import argparse
 from utils.imagenet import ImageNet
 import utils.misc as utils
-from utils.tf import TFFrozenModelRunner
+from utils.tf import run_model
 
 
 def parse_args():
@@ -21,7 +20,7 @@ def parse_args():
                         type=float, default=60.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
-                        type=int, default=-1,
+                        type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--images_path",
                         type=str,
@@ -33,7 +32,8 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    def run_single_pass():
+    def run_single_pass(runner, imagenet):
+        shape = (224, 224)
         runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
         output = runner.run()
         for i in range(batch_size):
@@ -43,30 +43,10 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
                 imagenet.extract_top5(output["softmax_tensor:0"][i])
             )
 
-    shape = (224, 224)
-    imagenet = ImageNet(batch_size, "RGB", images_path, labels_path,
-                        pre_processing_approach="VGG", is1001classes=True)
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing_approach="VGG", is1001classes=True)
 
-    if imagenet.available_images_count < num_of_runs:
-        utils.print_goodbye_message_and_die(
-            f"Number of runs requested exceeds number of images available in dataset!")
-
-    runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
-
-    try:
-        if num_of_runs == -1:
-            start = time.time()
-            while time.time() - start < timeout:
-                run_single_pass()
-        else:
-            for _ in tqdm(range(num_of_runs)):
-                run_single_pass()
-    except imagenet.OutOfImageNetImages:
-        pass
-
-    acc = imagenet.summarize_accuracy()
-    perf = runner.print_performance_metrics(batch_size)
-    return acc, perf
+    return run_model(["softmax_tensor:0"], run_single_pass, dataset, model_path, batch_size, num_of_runs, timeout)
 
 
 def main():

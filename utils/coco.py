@@ -52,10 +52,10 @@ class COCODataset(ImageDataset):
         self.__image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
             self.__image_ids = sorted(self.__image_ids)
-        self.available_images_count = len(self.__image_ids)
+        self.available_instances = len(self.__image_ids)
         super().__init__()
 
-    class OutOfCOCOImages(Exception):
+    class OutOfInstances(Exception):
         """
         An exception class being raised as an error in case of lack of further images to process by the pipeline.
         """
