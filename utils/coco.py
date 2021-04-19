@@ -55,12 +55,6 @@ class COCODataset(utils_ds.ImageDataset):
         self.available_instances = len(self.__image_ids)
         super().__init__()
 
-    class OutOfInstances(Exception):
-        """
-        An exception class being raised as an error in case of lack of further images to process by the pipeline.
-        """
-        pass
-
     def __get_path_to_img(self):
         """
         A function providing path to the COCO image.
