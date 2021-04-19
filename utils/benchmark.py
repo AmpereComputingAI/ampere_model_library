@@ -1,5 +1,7 @@
 import os
+import time
 import utils.misc as utils
+from tqdm.auto import tqdm
 
 intra_op_parallelism_threads = None
 
@@ -49,6 +51,44 @@ def get_intra_op_parallelism_threads():
         print(f"\nRunning with {intra_op_parallelism_threads} threads\n")
 
     return intra_op_parallelism_threads
+
+
+def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
+    """
+    A function running TensorFlow model in unified way.
+
+    If num_of_runs is specified the function will execute single_pass_func n times and then summarize accuracy and perf.
+    If num_of_runs is unspecified (None) the function will execute single_pass_func until either timeout is reached or
+    end of dataset.
+
+    :param single_pass_func: python function that:
+        1. sets input tensor,
+        2. invokes the run by a call to runner,
+        3. post-processes the output
+    :param runner: python class providing the unified runner facilities
+    :param dataset: python class providing the unified dataset facilities
+    :param batch_size: int, batch size
+    :param num_of_runs: int, number of times that single_pass_func should be executed
+    :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
+    :return: dict containing accuracy metrics and dict containing perf metrics
+    """
+    if num_of_runs is not None:
+        if dataset.available_instances < num_of_runs:
+            utils.print_goodbye_message_and_die(
+                f"Number of runs requested exceeds number of instances available in dataset!")
+
+    try:
+        if num_of_runs is None:
+            start = time.time()
+            while time.time() - start < timeout:
+                single_pass_func(runner, dataset)
+        else:
+            for _ in tqdm(range(num_of_runs)):
+                single_pass_func(runner, dataset)
+    except dataset.OutOfInstances:
+        pass
+
+    return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
 
 def print_performance_metrics(

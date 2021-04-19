@@ -2,7 +2,7 @@ import time
 import argparse
 from utils.imagenet import ImageNet
 import utils.misc as utils
-from utils.tf import run_model
+from utils.tf import TFFrozenModelRunner
 
 
 def parse_args():
@@ -32,10 +32,10 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    def run_single_pass(runner, imagenet):
+    def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
-        runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
-        output = runner.run()
+        tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        output = tf_runner.run()
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -45,8 +45,9 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing_approach="VGG", is1001classes=True)
+    runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
 
-    return run_model(["softmax_tensor:0"], run_single_pass, dataset, model_path, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def main():

@@ -1,31 +1,7 @@
 import os
 import time
-from tqdm.auto import tqdm
-import utils.misc as utils
 import tensorflow.compat.v1 as tf
 import utils.benchmark as bench_utils
-
-
-def run_model(output_names, single_pass_func, dataset, model_path, batch_size, num_of_runs, timeout):
-    if num_of_runs is not None:
-        if dataset.available_instances < num_of_runs:
-            utils.print_goodbye_message_and_die(
-                f"Number of runs requested exceeds number of instances available in dataset!")
-
-    runner = TFFrozenModelRunner(model_path, output_names)
-
-    try:
-        if num_of_runs is None:
-            start = time.time()
-            while time.time() - start < timeout:
-                single_pass_func(runner, dataset)
-        else:
-            for _ in tqdm(range(num_of_runs)):
-                single_pass_func(runner, dataset)
-    except dataset.OutOfInstances:
-        pass
-
-    return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
 
 class TFFrozenModelRunner:
