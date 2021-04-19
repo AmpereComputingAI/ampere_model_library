@@ -80,6 +80,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
 
     try:
         if num_of_runs is None:
+            single_pass_func(runner, dataset)
             start = time.time()
             while time.time() - start < timeout:
                 single_pass_func(runner, dataset)
