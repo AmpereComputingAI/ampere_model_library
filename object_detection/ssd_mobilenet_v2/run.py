@@ -1,10 +1,11 @@
 import os
 import time
 import argparse
-import utils.tf as tf_utils
 import utils.misc as utils
 from utils.coco import COCODataset
-import utils.tflite as tflite_utils
+from utils.tflite import TFLiteRunner
+from utils.tf import TFFrozenModelRunner
+from utils.benchmark import run_model
 import tensorflow.compat.v1 as tf
 
 
@@ -35,35 +36,10 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
-    shape = (300, 300)
-    coco = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
-
-    if coco.available_images_count < num_of_runs:
-        utils.print_goodbye_message_and_die(
-            f"Number of runs requested exceeds number of images available in dataset!")
-
-    runner = tf_utils.TFFrozenModelRunner(
-        model_path,
-        ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"]
-    )
-
-    iter = 0
-    start = time.time()
-    while True:
-        if num_of_runs is None:
-            if time.time() - start > timeout:
-                break
-        elif not iter < num_of_runs:
-            break
-
-        try:
-            runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
-        except coco.OutOfCOCOImages:
-            break
-
-        output = runner.run()
-        iter += 1
-
+    def run_single_pass(tf_runner, coco):
+        shape = (300, 300)
+        tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
+        output = tf_runner.run()
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
                 coco.submit_bbox_prediction(
@@ -73,45 +49,23 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
                     int(output["detection_classes:0"][i][d])
                 )
 
-    coco.summarize_accuracy()
-    runner.print_performance_metrics(batch_size)
+    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
+    runner = TFFrozenModelRunner(
+        model_path, ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
-    shape = (300, 300)
-    coco = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
-                       pre_processing_approach="SSD", sort_ascending=True)
-
-    if coco.available_images_count < num_of_runs:
-        utils.print_goodbye_message_and_die(
-            f"Number of runs requested exceeds number of images available in dataset!")
-
-    runner = tflite_utils.TFLiteRunner(
-        model_path
-    )
-
-    iter = 0
-    start = time.time()
-    while True:
-        if num_of_runs is None:
-            if time.time() - start > timeout:
-                break
-        elif not iter < num_of_runs:
-            break
-
-        try:
-            runner.set_input_tensor(runner.input_details[0]["index"], coco.get_input_array(shape))
-        except coco.OutOfCOCOImages:
-            break
-
-        runner.run()
-        iter += 1
-
-        detection_boxes = runner.get_output_tensor(runner.output_details[0]["index"])
-        detection_classes = runner.get_output_tensor(runner.output_details[1]["index"])
+    def run_single_pass(tflite_runner, coco):
+        shape = (300, 300)
+        tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
+        tflite_runner.run()
+        detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
+        detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
         detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
-        detection_scores = runner.get_output_tensor(runner.output_details[2]["index"])
-        num_detections = runner.get_output_tensor(runner.output_details[3]["index"])
+        detection_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[2]["index"])
+        num_detections = tflite_runner.get_output_tensor(tflite_runner.output_details[3]["index"])
         for i in range(batch_size):
             for d in range(int(num_detections[i])):
                 coco.submit_bbox_prediction(
@@ -121,8 +75,11 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, a
                     int(detection_classes[i][d])
                 )
 
-    coco.summarize_accuracy()
-    runner.print_performance_metrics(batch_size)
+    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
+                          pre_processing_approach="SSD", sort_ascending=True)
+    runner = TFLiteRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def main():

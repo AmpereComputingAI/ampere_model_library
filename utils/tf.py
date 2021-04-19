@@ -1,6 +1,5 @@
 import os
 import time
-import utils.misc as utils
 import tensorflow.compat.v1 as tf
 import utils.benchmark as bench_utils
 
@@ -88,6 +87,7 @@ class TFFrozenModelRunner:
 
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        bench_utils.print_performance_metrics(
+        perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         self.__sess.close()
+        return perf

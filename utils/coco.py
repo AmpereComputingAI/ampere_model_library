@@ -52,10 +52,10 @@ class COCODataset(ImageDataset):
         self.__image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
             self.__image_ids = sorted(self.__image_ids)
-        self.available_images_count = len(self.__image_ids)
+        self.available_instances = len(self.__image_ids)
         super().__init__()
 
-    class OutOfCOCOImages(Exception):
+    class OutOfInstances(Exception):
         """
         An exception class being raised as an error in case of lack of further images to process by the pipeline.
         """
@@ -179,3 +179,4 @@ class COCODataset(ImageDataset):
         coco_eval.accumulate()
         coco_eval.summarize()
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        return {"coco_map": coco_eval.stats[0]}

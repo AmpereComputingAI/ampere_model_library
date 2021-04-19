@@ -29,12 +29,12 @@ class ImageNet(ImageDataset):
         self.__pre_processing_approach = pre_processing_approach
         self.__current_img = 0
         self.__file_names, self.__labels = self.__parse_val_file(labels_path, is1001classes)
-        self.available_images_count = len(self.__file_names)
+        self.available_instances = len(self.__file_names)
         self.__top_1_count = 0
         self.__top_5_count = 0
         super().__init__()
 
-    class OutOfImageNetImages(Exception):
+    class OutOfInstances(Exception):
         """
         An exception class being raised as an error in case of lack of further images to process by the pipeline.
         """
@@ -149,3 +149,4 @@ class ImageNet(ImageDataset):
         print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
