@@ -2,13 +2,13 @@ import cv2
 import pathlib
 import numpy as np
 import utils.misc as utils
-from utils.dataset import ImageDataset
+import utils.dataset as utils_ds
 import utils.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 
-class COCODataset(ImageDataset):
+class COCODataset(utils_ds.ImageDataset):
     """
     A class providing facilities to measure accuracy of object detection models trained on COCO dataset.
     """
@@ -70,7 +70,7 @@ class COCODataset(ImageDataset):
         try:
             image_id = self.__image_ids[self.__current_img]
         except IndexError:
-            raise self.OutOfCOCOImages("No more COCO images to process in the directory provided")
+            raise utils_ds.OutOfInstances("No more COCO images to process in the directory provided")
         self.__current_image_ids.append(image_id)
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1

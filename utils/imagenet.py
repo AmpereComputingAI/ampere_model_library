@@ -2,10 +2,10 @@ import numpy as np
 import pathlib
 import utils.misc as utils
 import utils.pre_processing as pp
-from utils.dataset import ImageDataset
+import utils.dataset as utils_ds
 
 
-class ImageNet(ImageDataset):
+class ImageNet(utils_ds.ImageDataset):
     """
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
@@ -33,12 +33,6 @@ class ImageNet(ImageDataset):
         self.__top_1_count = 0
         self.__top_5_count = 0
         super().__init__()
-
-    class OutOfInstances(Exception):
-        """
-        An exception class being raised as an error in case of lack of further images to process by the pipeline.
-        """
-        pass
 
     def __parse_val_file(self, labels_path, is1001classes):
         """
@@ -79,7 +73,7 @@ class ImageNet(ImageDataset):
         try:
             file_name = self.__file_names[self.__current_img]
         except IndexError:
-            raise self.OutOfImageNetImages("No more ImageNet images to process in the directory provided")
+            raise utils_ds.OutOfInstances("No more ImageNet images to process in the directory provided")
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
 
