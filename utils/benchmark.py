@@ -1,6 +1,7 @@
 import os
 import time
 import utils.misc as utils
+import utils.dataset as utils_ds
 from tqdm.auto import tqdm
 
 intra_op_parallelism_threads = None
@@ -55,7 +56,7 @@ def get_intra_op_parallelism_threads():
 
 def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
     """
-    A function running TensorFlow model in unified way.
+    A function running model in unified way.
 
     If num_of_runs is specified the function will execute single_pass_func n times and then summarize accuracy and perf.
     If num_of_runs is unspecified (None) the function will execute single_pass_func until either timeout is reached or
@@ -85,7 +86,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
         else:
             for _ in tqdm(range(num_of_runs)):
                 single_pass_func(runner, dataset)
-    except dataset.OutOfInstances:
+    except utils_ds.OutOfInstances:
         pass
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
