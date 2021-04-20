@@ -51,10 +51,33 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    def run_single_pass(tf_runner, imagenet):
+        shape = (224, 224)
+        tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        output = tf_runner.run()
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output["softmax_tensor:0"][i]),
+                imagenet.extract_top5(output["softmax_tensor:0"][i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing_approach="VGG", is1001classes=True)
+    runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
 def main():
     args = parse_args()
     if args.precision == "fp32":
         run_tf_fp32(
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+        )
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     else:
