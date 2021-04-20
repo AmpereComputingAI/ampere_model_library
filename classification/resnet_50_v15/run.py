@@ -1,7 +1,5 @@
-import time
 import argparse
 from utils.imagenet import ImageNet
-import utils.misc as utils
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 
@@ -33,6 +31,7 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
         tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
@@ -53,9 +52,11 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
 def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
     def run_single_pass(tf_runner, imagenet):
+        print('i am here')
         shape = (224, 224)
         tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
+        print(output)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
