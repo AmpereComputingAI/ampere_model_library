@@ -58,6 +58,7 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, label
         tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
         print(output)
+        print(output["softmax_tensor:0"])
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -78,15 +79,17 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
         tflite_runner.run()
-        test = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
-        imagenet.submit_predictions(
-            0,
-            imagenet.extract_top1(test),
-            imagenet.extract_top5(test)
-        )
+        output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output_tensor[i]),
+                imagenet.extract_top5(output_tensor[i])
+            )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="Inception", is1001classes=True)
+                       pre_processing_approach="VGG", is1001classes=True)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
