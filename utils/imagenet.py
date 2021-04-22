@@ -101,8 +101,6 @@ class ImageNet(utils_ds.ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: int, index of highest value in the supplied array
         """
-        if not 0.999 < np.sum(output_array) < 1.001:
-            utils.print_goodbye_message_and_die("Provided array has not been subject to softmax operation.")
         top_1_index = np.argmax(output_array)
         return top_1_index
 
@@ -113,8 +111,6 @@ class ImageNet(utils_ds.ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: list of ints, list containing indices of 5 highest values in the supplied array
         """
-        if not 0.999 < np.sum(output_array) < 1.001:
-            utils.print_goodbye_message_and_die("Provided array has not been subject to softmax operation.")
         top_5_indices = np.argpartition(output_array, -5)[-5:]
         return top_5_indices
 

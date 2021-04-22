@@ -35,18 +35,18 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
-        tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output["softmax_tensor:0"][i]),
-                imagenet.extract_top5(output["softmax_tensor:0"][i])
+                imagenet.extract_top1(output["densenet169/predictions/Reshape_1:0"][i][0][0]),
+                imagenet.extract_top5(output["densenet169/predictions/Reshape_1:0"][i][0][0])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="VGG", is1001classes=True)
-    runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
+                       pre_processing_approach="Inception", is1001classes=False)
+    runner = TFFrozenModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
@@ -55,18 +55,18 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, label
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
-        tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output["softmax_tensor:0"][i]),
-                imagenet.extract_top5(output["softmax_tensor:0"][i])
+                imagenet.extract_top1(output["densenet169/predictions/Reshape_1:0"][i][0][0]),
+                imagenet.extract_top5(output["densenet169/predictions/Reshape_1:0"][i][0][0])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="VGG", is1001classes=True)
-    runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
+                       pre_processing_approach="Inception", is1001classes=False)
+    runner = TFFrozenModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
@@ -81,12 +81,12 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output_tensor[i]),
-                imagenet.extract_top5(output_tensor[i])
+                imagenet.extract_top1(output_tensor[i][0][0]),
+                imagenet.extract_top5(output_tensor[i][0][0])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="VGG", is1001classes=True)
+                       pre_processing_approach="Inception", is1001classes=False)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
