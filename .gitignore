@@ -10,5 +10,3 @@ __pycache__
 temp/
 images/
 dockerfiles/x86_marcel.Dockerfile
-
-test

@@ -111,7 +111,6 @@ class ImageNet(utils_ds.ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: list of ints, list containing indices of 5 highest values in the supplied array
         """
-
         top_5_indices = np.argpartition(output_array, -5)[-5:]
         return top_5_indices
 
