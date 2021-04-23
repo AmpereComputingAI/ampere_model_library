@@ -74,7 +74,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
     if num_of_runs is not None:
-        if dataset.available_instances < num_of_runs:
+        if dataset.available_instances < num_of_runs * batch_size:
             utils.print_goodbye_message_and_die(
                 f"Number of runs requested exceeds number of instances available in dataset!")
 
