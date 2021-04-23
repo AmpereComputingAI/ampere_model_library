@@ -46,8 +46,6 @@ class ImageNet(utils_ds.ImageDataset):
         original 1000 classes
         :return: list of strings, list of ints
         """
-        if utils.get_hash_of_a_file(labels_path) != "b6284a7c08fba47457c2c1f6049a156e":
-            utils.print_goodbye_message_and_die("Wrong labels file supplied!")
 
         boundary = 28  # single line of labels file looks like this "ILSVRC2012_val_00050000.JPEG 456"
         file = open(labels_path, "r")
