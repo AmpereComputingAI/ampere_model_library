@@ -42,10 +42,6 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
         for i in range(batch_size):
             for j in range(output_boxes.shape[1]):
-                threshold = output_boxes[i][j][4]
-
-                if threshold < 0.01:
-                    continue
 
                 left_boundary = output_boxes[i][j][0]
                 top_boundary = output_boxes[i][j][1]
