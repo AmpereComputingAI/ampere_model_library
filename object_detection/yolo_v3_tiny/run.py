@@ -1,11 +1,10 @@
 import argparse
-import sys
-
-from utils.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.coco import COCODataset
-from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
+from utils.misc import COCO_MAP
+
+import numpy as np
 
 
 def parse_args():
@@ -35,22 +34,36 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-
-    def run_single_pass(tf_runner, imagenet):
+    def run_single_pass(tf_runner, coco):
         shape = (416, 416)
-        tf_runner.set_input_tensor("inputs:0", imagenet.get_input_array(shape))
+        tf_runner.set_input_tensor("inputs:0", coco.get_input_array(shape))
         output = tf_runner.run()
-        print(type(output))
-        # print(output)
-        test = output["output_boxes:0"]
-        print(test.shape)
-        print(test)
-        count = 0
-        # for i in range(85):
-        #     print(test[0][0][i])
-        #     count += 1
+        output_boxes = output["output_boxes:0"]
 
-    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, labels_path)
+        for i in range(batch_size):
+            for j in range(output_boxes.shape[1]):
+                threshold = output_boxes[i][j][4]
+
+                if threshold < 0.01:
+                    continue
+
+                left_boundary = output_boxes[i][j][0]
+                top_boundary = output_boxes[i][j][1]
+                right_boundary = output_boxes[i][j][2]
+                bottom_boundary = output_boxes[i][j][3]
+                confidence_score = output_boxes[i][j][4]
+                box = [left_boundary, top_boundary, right_boundary, bottom_boundary]
+
+                classes = output_boxes[i][j][5:]
+                coco_index = COCO_MAP[np.argmax(classes) + 1]
+                coco.submit_bbox_prediction(
+                    i,
+                    coco.convert_bbox_to_coco_order(box, 0, 1, 2, 3, True),
+                    confidence_score,
+                    coco_index
+                )
+
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, labels_path, sort_ascending=True)
 
     runner = TFFrozenModelRunner(model_path, ["output_boxes:0"])
 
@@ -69,6 +82,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
