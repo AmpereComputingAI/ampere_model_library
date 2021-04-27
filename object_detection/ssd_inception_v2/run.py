@@ -6,7 +6,6 @@ from utils.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
-import tensorflow.compat.v1 as tf
 
 
 def parse_args():
