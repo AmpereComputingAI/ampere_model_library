@@ -106,9 +106,8 @@ class TFSavedModelRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
-        #self.__sess = tf.compat.v1.InteractiveSession(
-        #    config=self.__create_config(bench_utils.get_intra_op_parallelism_threads())
-        #)
+        tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
+        tf.config.threading.set_inter_op_parallelism_threads(1)
         self.__saved_model_loaded = tf.saved_model.load(path_to_weights, tags=[tag_constants.SERVING])
         self.__model = self.__saved_model_loaded.signatures['serving_default']
         self.__warm_up_run_latency = 0.0

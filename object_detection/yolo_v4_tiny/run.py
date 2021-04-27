@@ -76,24 +76,26 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(tflite_runner, coco):
-        shape = (300, 300)
+        shape = (416, 416)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
         tflite_runner.run()
         detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
-        detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
-        detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
-        detection_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[2]["index"])
-        num_detections = tflite_runner.get_output_tensor(tflite_runner.output_details[3]["index"])
-        for i in range(batch_size):
-            for d in range(int(num_detections[i])):
-                coco.submit_bbox_prediction(
-                    i,
-                    coco.convert_bbox_to_coco_order(detection_boxes[i][d] * shape[0], 1, 0, 3, 2),
-                    detection_scores[i][d],
-                    int(detection_classes[i][d])
-                )
+        print(detection_boxes.shape)
+        #for
+        # detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
+        # detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
+        # detection_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[2]["index"])
+        # num_detections = tflite_runner.get_output_tensor(tflite_runner.output_details[3]["index"])
+        # for i in range(batch_size):
+        #     for d in range(int(num_detections[i])):
+        #         coco.submit_bbox_prediction(
+        #             i,
+        #             coco.convert_bbox_to_coco_order(detection_boxes[i][d] * shape[0], 1, 0, 3, 2),
+        #             detection_scores[i][d],
+        #             int(detection_classes[i][d])
+        #         )
 
-    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="SSD", sort_ascending=True)
     runner = TFLiteRunner(model_path)
 
