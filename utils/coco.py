@@ -14,7 +14,7 @@ class COCODataset(utils_ds.ImageDataset):
     """
     def __init__(self,
                  batch_size: int, color_model: str, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing_approach=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
         """
         A function initializing the class.
 
@@ -23,7 +23,7 @@ class COCODataset(utils_ds.ImageDataset):
         eg. "COCO_val2014_000000000000"
         :param images_path: str, path to directory containing COCO images
         :param annotations_path: str, path to file containing COCO annotations
-        :param pre_processing_func: python function, function handling pre-processing of an array containing image data
+        :param pre_processing: pre-processing approach to be applied
         :param sort_ascending: bool, parameter setting whether images in dataset should be processed in ascending order
         regarding their files' names
         """
@@ -43,7 +43,7 @@ class COCODataset(utils_ds.ImageDataset):
         self.__images_filename_ext = ".jpg"
         self.__images_path = images_path
         self.__annotations_path = annotations_path
-        self.__pre_processing_approach = pre_processing_approach
+        self.__pre_processing = pre_processing
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
         self.__detections = list()
@@ -116,8 +116,8 @@ class COCODataset(utils_ds.ImageDataset):
         input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
-        if self.__pre_processing_approach:
-            input_array = pp.pre_process(input_array, self.__pre_processing_approach)
+        if self.__pre_processing:
+            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):

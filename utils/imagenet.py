@@ -11,7 +11,7 @@ class ImageNet(utils_ds.ImageDataset):
     """
 
     def __init__(self, batch_size: int, color_model: str,
-                 images_path=None, labels_path=None, pre_processing_approach=None, is1001classes=False):
+                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False):
 
         if images_path is None:
             env_var = "IMAGENET_IMG_PATH"
@@ -26,7 +26,7 @@ class ImageNet(utils_ds.ImageDataset):
         self.__color_model = color_model
         self.__images_filename_extension = ".JPEG"
         self.__images_path = images_path
-        self.__pre_processing_approach = pre_processing_approach
+        self.__pre_processing = pre_processing
         self.__current_img = 0
         self.__file_names, self.__labels = self.__parse_val_file(labels_path, is1001classes)
         self.available_instances = len(self.__file_names)
@@ -88,8 +88,8 @@ class ImageNet(utils_ds.ImageDataset):
             input_array[i], _ = self._ImageDataset__load_image(
                 self.__get_path_to_img(), target_shape, self.__color_model
             )
-        if self.__pre_processing_approach:
-            input_array = pp.pre_process(input_array, self.__pre_processing_approach, self.__color_model)
+        if self.__pre_processing:
+            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array
 
     def extract_top1(self, output_array):
