@@ -9,62 +9,24 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 ### Accuracy:
 
-<table>
-	<thead>
-	<tr>
-		<th></th>
-		<th style="width: 150px">Top-1 Accuracy</th>
-		<th style="width: 150px">Top-5 Accuracy</th>
-	</tr>
-	</thead>
-	<tbody>
-	<tr>
-		<td>FP32</td>
-		<td style="text-align: center">70%</td>
-		<td style="text-align: center">91%</td>
-	</tr>
-	</tbody>
-</table>
+|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 70%  | 91 %  |
 
 
 ### Performance: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
-<table>
-	<caption>Latency</caption>
-	<thead>
-	<tr>
-		<th></th>
-		<th style="width: 150px"> 1 thread  </th>
-		<th style="width: 150px">18 threads</th>
-	</tr>
-	</thead>
-	<tbody>
-	<tr>
-		<td>FP32</td>
-		<td style="text-align: center">11 ms</td>
-		<td style="text-align: center">5 ms</td>
-	</tr>
-	</tbody>
-</table>
+Latency:
 
+|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 11 ms | 5 ms  |
 
-<table>
-	<caption>Throughput (batch size = 16)</caption>
-	<thead>
-	<tr>
-		<th></th>
-		<th style="width: 150px"> 1 thread  </th>
-		<th style="width: 150px">18 threads</th>
-	</tr>
-	</thead>
-	<tbody>
-	<tr>
-		<td>FP32</td>
-		<td style="text-align: center">191.17 ips</td>
-		<td style="text-align: center">467.31 ips</td>
-	</tr>
-	</tbody>
-</table>
+Throughput ( batch size 16 ):
+
+|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 191.17 ips | 467.31 ips  |
 
 
 ### Datasets
