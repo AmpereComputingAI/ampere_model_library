@@ -24,7 +24,7 @@ Model name: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 	</tbody>
 </table>
 
-## eudev
+## Intel
 
 <table>
 	<caption>Latency</caption>
@@ -63,7 +63,7 @@ Model name: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 	</tbody>
 </table>
 
-###Datasets
+### Datasets
 
 
 * validation dataset can be downloaded from here: \
@@ -84,26 +84,26 @@ To run the model you have to first specify a few things. For best experience you
 For linux & Mac
 
 ```
-export OMP_NUM_THREADS=1\
-export PYTHONPATH=/path/to/model_zoo\
-export IMAGENET_IMG_PATH=/path/to/images\
+export OMP_NUM_THREADS=1
+export PYTHONPATH=/path/to/model_zoo
+export IMAGENET_IMG_PATH=/path/to/images
 export IMAGENET_LABELS_PATH=/path/to/labels
 ```
 
 For Windows:
 
 ```
-SET OMP_NUM_THREADS=1\
-SET PYTHONPATH=/path/to/model_zoo\
-SET IMAGENET_IMG_PATH=/path/to/images\
-SET IMAGENET_LABELS_PATH=/path/to/labels
+SET OMP_NUM_THREADS=1
+SET PYTHONPATH=\path\to\model_zoo
+SET IMAGENET_IMG_PATH=\path\to\images
+SET IMAGENET_LABELS_PATH=\path\to\labels
 ```
 
 next you will be able to run the run.py script. 
 
 to get detailed information about the script run it with -h flag for help.
 
-the path to model (with flag "-m") as well as it's precision (with flag "-p") have to be specified\
+the path to model (with a flag "-m") as well as it's precision (with a flag "-p") have to be specified\
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 
