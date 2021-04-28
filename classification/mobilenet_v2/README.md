@@ -1,7 +1,7 @@
 # MobileNet v2
 
 
-This folder contains the script to run Mobilenet V2 on ImageNet classification task.\
+This folder contains the script to run MobileNet V2 on ImageNet classification task.\
 Variant supplied below accepts input of shape 224x224 and has 1.0x multiplier.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
