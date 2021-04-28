@@ -6,7 +6,7 @@ https://arxiv.org/abs/1704.04861
 
 Model name: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
-Accuracy
+Accuracy:
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
@@ -21,7 +21,7 @@ Latency:
 |:---:|:---:|:---:|
 | FP32  | 11 ms | 5 ms  |
 
-Throughput ( batch size 16 )
+Throughput ( batch size 16 ):
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
