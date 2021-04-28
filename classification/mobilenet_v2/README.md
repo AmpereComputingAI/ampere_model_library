@@ -86,7 +86,7 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
   https://www.dropbox.com/s/s35x24b04apd9b7/mobilenet_v2_tflite_int8.tflite
 
 
-### Run instructions
+### Running instructions
 
 To run the model you have to first specify a few things.\
 For the best experience we recommend setting environment variables as specified below.
