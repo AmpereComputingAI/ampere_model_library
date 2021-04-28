@@ -1,8 +1,9 @@
 # Mobilenet v2
 
+This folder contains the script to run MobileNet V2 on ImageNet classification task.
+Variant supplied below in three different precisions accepts input of shape 224x224 and has 1.0x multiplier.
 
-This folder contains the script for Mobilenet V2. The paper is available to be downloaded from here: \
-https://arxiv.org/abs/1704.04861
+The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 Model name: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
@@ -21,7 +22,7 @@ Latency:
 |:---:|:---:|:---:|
 | FP32  | 11 ms | 5 ms  |
 
-Throughput ( batch size 16 ):
+Throughput (batch size=16):
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
@@ -32,26 +33,34 @@ Throughput ( batch size 16 ):
 
 ### Dataset, Model and Labels
 
+* validation dataset of 1000 images can be downloaded from here:\
+https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz \
+(note: you can unpack them using terminal command in terminal "tar -xvfxf ./file")
 
-* validation dataset can be downloaded from here: \
-  https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz </br> 
-  (note: you can unpack them using command in terminal "tar -xvf ./file")
- 
-   
-* validation dataset labels can de downloaded from here:\
-  https://www.dropbox.com/s/7ej242ym43v635i/imagenet_labels_onspecta.txt
 
-* model is available to download from here:\
-  https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb
+* validation dataset labels for the reduced set above can de downloaded from here: \
+https://www.dropbox.com/s/7ej242ym43v635i/imagenet_labels_onspecta.txt
 
-### Run instructions
+
+* fp32 model is available to download from here: \
+https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb
+  
+
+* fp16 model is available to download from here: \
+https://www.dropbox.com/s/ppzx4oz8ne9txeq/mobilenet_v2_fp16.pb
+
+
+* int8 model is available to download from here: \
+https://www.dropbox.com/s/s35x24b04apd9b7/mobilenet_v2_tflite_int8.tflite
+
+### Running instructions
 
 To run the model first you have to specify a few things. 
 
 Before running any code you should first export the PYTHONPATH variable with path pointing to the model zoo directory,
 as well as OMP_NUM_THREADS specifying the number of threads to be used.
 
-For linux & Mac:
+For Linux & Mac OS:
 
 ```
 export PYTHONPATH=/path/to/model_zoo
@@ -65,10 +74,9 @@ SET PYTHONPATH=\path\to\model_zoo
 SET OMP_NUM_THREADS=1
 ```
 
-For best experience you can export the following environment variables, however those paths can also be specified when 
-running the script directly:
+For the best experience we recommend the following environment variables as specified below: 
 
-For linux & Mac:
+For Linux & Mac OS:
 
 ```
 export IMAGENET_IMG_PATH=/path/to/images
@@ -82,11 +90,11 @@ SET IMAGENET_IMG_PATH=\path\to\images
 SET IMAGENET_LABELS_PATH=\path\to\labels
 ```
 
-next you will be able to run the run.py script. 
+No you are be able to run the run.py script. 
 
-to get detailed information about the script run it with -h flag for help.
+To get detailed information on the script's recognized arguments run it with -h flag for help.
 
-the path to model (with a flag "-m") as well as it's precision (with a flag "-p") have to be specified.\
+The path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.\
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 
