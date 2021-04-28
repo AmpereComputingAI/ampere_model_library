@@ -16,6 +16,8 @@ Accuracy:
 
 ## Intel
 
+### **Performance on Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz**
+
 Latency:
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
@@ -33,24 +35,24 @@ Throughput (batch size=16):
 
 ### Dataset, Model and Labels
 
-* validation dataset of 1000 images can be downloaded from here:\
-https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz \
+* validation dataset of 1000 images can be downloaded from here:  
+  https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz  
 (note: you can unpack them using terminal command in terminal "tar -xvfxf ./file")
 
 
-* validation dataset labels for the reduced set above can de downloaded from here: \
+* validation dataset labels for the reduced set above can de downloaded from here:  
 https://www.dropbox.com/s/7ej242ym43v635i/imagenet_labels_onspecta.txt
 
 
-* fp32 model is available to download from here: \
+* fp32 model is available to download from here:  
 https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb
   
 
-* fp16 model is available to download from here: \
+* fp16 model is available to download from here:  
 https://www.dropbox.com/s/ppzx4oz8ne9txeq/mobilenet_v2_fp16.pb
 
 
-* int8 model is available to download from here: \
+* int8 model is available to download from here:  
 https://www.dropbox.com/s/s35x24b04apd9b7/mobilenet_v2_tflite_int8.tflite
 
 ### Running instructions
