@@ -7,14 +7,14 @@ Variant supplied below in three different precisions accepts input of shape 224x
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 
-### Accuracy:
+### Accuracy
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 70%  | 91 %  |
 
 
-### Performance: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
+### Performance on Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
 Latency:
 
@@ -22,7 +22,7 @@ Latency:
 |:---:|:---:|:---:|
 | FP32  | 11 ms | 5 ms  |
 
-Throughput ( batch size 16 ):
+Throughput (batch size = 16):
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
