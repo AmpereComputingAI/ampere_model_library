@@ -2,7 +2,7 @@
 
 
 This folder contains the script to run Mobilenet V2 on ImageNet classification task.\
-Variant supplied below accepts input of shape 224x224 and has 1.0x multiplier.\
+Variant supplied below accepts input of shape 224x224 and has 1.0x multiplier.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
@@ -110,9 +110,9 @@ SET IMAGENET_IMG_PATH=\path\to\images
 SET IMAGENET_LABELS_PATH=\path\to\labels
 ```
 
-Now you are able to run the run.py script.\
+Now you are able to run the run.py script.
 
-To get detailed information on the script's recognized arguments run it with -h flag for help.\
+To get detailed information on the script's recognized arguments run it with -h flag for help.
 
 The path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.\
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
