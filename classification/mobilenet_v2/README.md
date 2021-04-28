@@ -46,13 +46,31 @@ Throughput ( batch size 16 ):
 
 ### Run instructions
 
-To run the model you have to first specify a few things. For best experience you can export environment variables 
+To run the model first you have to specify a few things. 
 
-For linux & Mac
+Before running any code you should first export the PYTHONPATH variable with path pointing to the model zoo directory,
+as well as OMP_NUM_THREADS specifying the number of threads to be used.
+
+For linux & Mac:
 
 ```
-export OMP_NUM_THREADS=1
 export PYTHONPATH=/path/to/model_zoo
+export OMP_NUM_THREADS=1
+```
+
+for Windows: 
+
+```
+SET PYTHONPATH=\path\to\model_zoo
+SET OMP_NUM_THREADS=1
+```
+
+For best experience you can export the following environment variables, however those paths can also be specified when 
+running the script directly:
+
+For linux & Mac:
+
+```
 export IMAGENET_IMG_PATH=/path/to/images
 export IMAGENET_LABELS_PATH=/path/to/labels
 ```
@@ -60,8 +78,6 @@ export IMAGENET_LABELS_PATH=/path/to/labels
 For Windows:
 
 ```
-SET OMP_NUM_THREADS=1
-SET PYTHONPATH=\path\to\model_zoo
 SET IMAGENET_IMG_PATH=\path\to\images
 SET IMAGENET_LABELS_PATH=\path\to\labels
 ```
@@ -70,7 +86,7 @@ next you will be able to run the run.py script.
 
 to get detailed information about the script run it with -h flag for help.
 
-the path to model (with a flag "-m") as well as it's precision (with a flag "-p") have to be specified\
+the path to model (with a flag "-m") as well as it's precision (with a flag "-p") have to be specified.\
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 
