@@ -10,7 +10,6 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 ### Accuracy
 
 <table>
-	<caption>Accuracy</caption>
 	<thead>
 	<tr>
 		<th></th>
