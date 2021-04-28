@@ -30,7 +30,7 @@ Throughput ( batch size 16 ):
 
 
 
-### Datasets
+### Dataset, Model and Labels
 
 
 * validation dataset can be downloaded from here: \
