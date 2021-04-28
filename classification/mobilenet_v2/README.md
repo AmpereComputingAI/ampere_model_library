@@ -7,7 +7,7 @@ Variant supplied below accepts input of shape 224x224 and has 1.0x multiplier.
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 
-### Accuracy
+### Accuracy:
 
 <table>
 	<thead>
@@ -27,7 +27,7 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 </table>
 
 
-### Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
+### Performance: Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
 <table>
 	<caption>Latency</caption>
