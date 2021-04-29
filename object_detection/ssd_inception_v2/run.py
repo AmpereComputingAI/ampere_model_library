@@ -14,7 +14,7 @@ def parse_args():
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -34,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
@@ -55,10 +55,22 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
+
+
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
+
+
 def main():
     args = parse_args()
     if args.precision == "fp32":
         run_tf_fp32(
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+        )
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
     else:
