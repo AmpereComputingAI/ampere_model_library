@@ -59,7 +59,7 @@ as well as DLS_NUM_THREADS specifying the number of threads to be used.
 
 ```
 export PYTHONPATH=/path/to/model_zoo
-export OMP_NUM_THREADS=1
+export DLS_NUM_THREADS=1
 ```
 
 For the best experience we also recommend setting environment variables as specified below.
