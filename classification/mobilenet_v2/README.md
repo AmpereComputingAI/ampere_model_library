@@ -52,8 +52,6 @@ Throughput (batch size = 16):
 
 ### Running instructions
 
-To run the model first you have to specify a few things. 
-
 Before running any code you should first export the PYTHONPATH variable with path pointing to the model zoo directory,
 as well as DLS_NUM_THREADS specifying the number of threads to be used.
 
@@ -69,7 +67,7 @@ export IMAGENET_IMG_PATH=/path/to/images
 export IMAGENET_LABELS_PATH=/path/to/labels
 ```
 
-Now you are be able to run the run.py script. 
+Now you are able to run the run.py script. 
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
 
