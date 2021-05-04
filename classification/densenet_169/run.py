@@ -74,8 +74,8 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, label
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(tflite_runner, imagenet):
-        shape = (224, 224)
-        tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
+        tflite_runner.set_input_tensor(
+            tflite_runner.input_details[0]['index'], imagenet.get_input_array(imagenet.get_shape()))
         tflite_runner.run()
         output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
         for i in range(batch_size):

@@ -57,8 +57,8 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(tflite_runner, coco):
-        shape = (300, 300)
-        tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
+        tflite_runner.set_input_tensor(
+            tflite_runner.input_details[0]["index"], coco.get_input_array(coco.get_shape()))
         tflite_runner.run()
         detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
         detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])

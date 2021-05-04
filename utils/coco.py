@@ -174,3 +174,10 @@ class COCODataset(utils_ds.ImageDataset):
         coco_eval.summarize()
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
         return {"coco_map": coco_eval.stats[0]}
+
+    def get_shape(self):
+        """
+        Function returning the default shape of the dataset
+        """
+        return (300, 300)
+        

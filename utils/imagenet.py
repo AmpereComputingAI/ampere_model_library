@@ -138,3 +138,10 @@ class ImageNet(utils_ds.ImageDataset):
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
         return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
+
+    def get_shape(self):
+        """
+        Function returning the default shape of the dataset
+        """
+        return (224, 224)
+        
