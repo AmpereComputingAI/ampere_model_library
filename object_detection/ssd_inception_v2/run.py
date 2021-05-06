@@ -9,12 +9,12 @@ from utils.benchmark import run_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run SSD MobileNet v2 model.")
+    parser = argparse.ArgumentParser(description="Run SSD Inception v2 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "int8"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -34,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
@@ -55,30 +55,12 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
-    def run_single_pass(tflite_runner, coco):
-        shape = (300, 300)
-        tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
-        tflite_runner.run()
-        detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
-        detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
-        detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
-        detection_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[2]["index"])
-        num_detections = tflite_runner.get_output_tensor(tflite_runner.output_details[3]["index"])
-        for i in range(batch_size):
-            for d in range(int(num_detections[i])):
-                coco.submit_bbox_prediction(
-                    i,
-                    coco.convert_bbox_to_coco_order(detection_boxes[i][d] * shape[0], 1, 0, 3, 2),
-                    detection_scores[i][d],
-                    int(detection_classes[i][d])
-                )
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
 
-    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
-                          pre_processing="SSD", sort_ascending=True)
-    runner = TFLiteRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
 
 
 def main():
@@ -87,8 +69,8 @@ def main():
         run_tf_fp32(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
-    elif args.precision == "int8":
-        run_tflite_int8(
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
     else:

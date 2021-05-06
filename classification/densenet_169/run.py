@@ -45,7 +45,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="Inception", is1001classes=False)
+                       pre_processing="Inception", is1001classes=False)
     runner = TFFrozenModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -65,7 +65,7 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, label
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="Inception", is1001classes=False)
+                       pre_processing="Inception", is1001classes=False)
     runner = TFFrozenModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -86,7 +86,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing_approach="Inception", is1001classes=False)
+                       pre_processing="Inception", is1001classes=False)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)

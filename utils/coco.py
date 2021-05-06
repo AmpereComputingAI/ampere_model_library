@@ -23,7 +23,7 @@ class COCODataset(utils_ds.ImageDataset):
         eg. "COCO_val2014_000000000000"
         :param images_path: str, path to directory containing COCO images
         :param annotations_path: str, path to file containing COCO annotations
-        :param pre_processing: name of pre-processing approach to apply
+        :param pre_processing: pre-processing approach to be applied
         :param sort_ascending: bool, parameter setting whether images in dataset should be processed in ascending order
         regarding their files' names
         """
@@ -117,7 +117,7 @@ class COCODataset(utils_ds.ImageDataset):
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
         if self.__pre_processing:
-            input_array = pp.pre_process(input_array, self.__pre_processing)
+            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array
 
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):
