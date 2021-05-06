@@ -43,9 +43,9 @@ def pre_process_ssd(input_array):
 
 def pre_process_yolo(input_array):
     """
-    A function pre-processing an input array in the way expected by some SSD models.
+    A function pre-processing an input array in the way expected by some YOLO models.
 
-    Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+    Values are converted from int 0 <-> 255 range to float range of 0.0 <-> 1.0. (IN RATHER DIRECT WAY)
 
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
