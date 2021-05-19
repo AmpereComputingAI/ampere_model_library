@@ -12,6 +12,7 @@ class COCODataset(utils_ds.ImageDataset):
     """
     A class providing facilities to measure accuracy of object detection models trained on COCO dataset.
     """
+
     def __init__(self,
                  batch_size: int, color_model: str, images_filename_base: str,
                  images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
@@ -53,6 +54,7 @@ class COCODataset(utils_ds.ImageDataset):
         if sort_ascending:
             self.__image_ids = sorted(self.__image_ids)
         self.available_instances = len(self.__image_ids)
+        self.path_to_latest_image = None
         super().__init__()
 
     def __get_path_to_img(self):
@@ -70,21 +72,6 @@ class COCODataset(utils_ds.ImageDataset):
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, image_path)
 
-    def __rescale_bbox(self, id_in_batch: int, bbox: list):
-        """
-        A function rescaling bbox coordinates back to the original scale.
-
-        :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
-        :param bbox: list, a list containing coordinates of bbox already in COCO format
-        :return: list, bbox in the original scale
-        """
-
-        bbox[0] /= self.__current_image_ratios[id_in_batch][1]  # left boundary divided by horizontal ratio
-        bbox[1] /= self.__current_image_ratios[id_in_batch][0]  # top boundary divided by vertical ratio
-        bbox[2] /= self.__current_image_ratios[id_in_batch][1]  # shift to the right divided by horizontal ratio
-        bbox[3] /= self.__current_image_ratios[id_in_batch][0]  # shift to the bottom boundary divided by vertical ratio
-        return bbox
-
     def __reset_containers(self):
         """
         A function resetting containers (lists) containing data on the on-going batch.
@@ -99,8 +86,9 @@ class COCODataset(utils_ds.ImageDataset):
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled image data
         """
+        self.path_to_latest_image = self.__get_path_to_img()
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.__get_path_to_img(), target_shape, self.__color_model)
+            self.path_to_latest_image, target_shape, self.__color_model)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
@@ -144,6 +132,21 @@ class COCODataset(utils_ds.ImageDataset):
             bottom -= top
         return [left, top, right, bottom]
 
+    def rescale_bbox(self, id_in_batch: int, bbox: list):
+        """
+        A function rescaling bbox coordinates back to the original scale.
+
+        :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
+        :param bbox: list, a list containing coordinates of bbox already in COCO format
+        :return: list, bbox in the original scale
+        """
+
+        bbox[0] /= self.__current_image_ratios[id_in_batch][1]  # left boundary divided by horizontal ratio
+        bbox[1] /= self.__current_image_ratios[id_in_batch][0]  # top boundary divided by vertical ratio
+        bbox[2] /= self.__current_image_ratios[id_in_batch][1]  # shift to the right divided by horizontal ratio
+        bbox[3] /= self.__current_image_ratios[id_in_batch][0]  # shift to the bottom boundary divided by vertical ratio
+        return bbox
+
     def translate_cat_id_to_coco(self, id: int, switch_to_indexing_from_1=True):
         """
         A function allowing for an easy translation of some networks' COCO category output that is in range of [0, 79]
@@ -179,7 +182,7 @@ class COCODataset(utils_ds.ImageDataset):
         """
         instance = list()
         instance.append(self.__current_image_ids[id_in_batch])
-        instance += self.__rescale_bbox(id_in_batch, bbox)
+        instance += self.rescale_bbox(id_in_batch, bbox)
         instance.append(score)
         instance.append(category)
         self.__detections.append(instance)
