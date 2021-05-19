@@ -1,5 +1,5 @@
+import cv2
 import numpy as np
-import utils.misc as utils
 
 
 def initialize_colors(colors_to_generate=100):
