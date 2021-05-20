@@ -66,13 +66,13 @@ def get_imagenet_names(ids_array):
     A function translating numpy array with ImageNet category ids to their readable counterparts.
 
     :param ids_array: numpy array with ImageNet category ids
-    :return: list of strings with ImageNet category names
+    :return: strings with ImageNet category names
     """
     ids_list = ids_array.tolist()
-    list_of_names = list()
     if type(ids_list) is list:
+        string_with_names = ""
         for id in ids_list:
-            list_of_names.append(imagenet_labels[id])
+            string_with_names += imagenet_labels[id] + ", "
     else:
-        list_of_names.append(imagenet_labels[ids_list])
-    return list_of_names
+        string_with_names = imagenet_labels[ids_list]
+    return string_with_names
