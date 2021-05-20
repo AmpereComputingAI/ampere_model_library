@@ -20,3 +20,8 @@ wget -O object_detection/ssd_mobilenet_v2/ssd_mobilenet_v2_tflite_int8.tflite ht
 # ssd_inception_v2
 wget -O object_detection/ssd_inception_v2/ssd_inception_v2_tf_fp32.pb https://www.dropbox.com/s/jbjgimlrctjgkik/ssd_inception_v2_tf_fp32.pb
 wget -O object_detection/ssd_inception_v2/ssd_inception_v2_tf_fp16.pb https://www.dropbox.com/s/lib0gld5tpkudue/ssd_inception_v2_tf_fp16.pb
+
+# yolo_v4_tiny
+wget -O object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz https://www.dropbox.com/s/2ogna8d0wqa5war/yolo_v4_tiny_tf_fp32.tar.gz
+tar -xvf object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz -C object_detection/yolo_v4_tiny/
+rm object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz
