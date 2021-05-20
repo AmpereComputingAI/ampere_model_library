@@ -68,8 +68,11 @@ def get_imagenet_names(ids_array):
     :param ids_array: numpy array with ImageNet category ids
     :return: list of strings with ImageNet category names
     """
-    ids_array.tolist()
+    ids_list = ids_array.tolist()
     list_of_names = list()
-    for id in ids_array:
-        list_of_names.append(imagenet_labels[id])
+    if type(ids_list) is list:
+        for id in ids_list:
+            list_of_names.append(imagenet_labels[id])
+    else:
+        list_of_names.append(imagenet_labels[ids_list])
     return list_of_names
