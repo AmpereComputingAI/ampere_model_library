@@ -32,6 +32,7 @@ class ImageNet(utils_ds.ImageDataset):
         self.available_instances = len(self.__file_names)
         self.__top_1_count = 0
         self.__top_5_count = 0
+        self.path_to_latest_image = None
         super().__init__()
 
     def __parse_val_file(self, labels_path, is1001classes):
@@ -85,8 +86,9 @@ class ImageNet(utils_ds.ImageDataset):
         """
         input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
+            self.path_to_latest_image = self.__get_path_to_img()
             input_array[i], _ = self._ImageDataset__load_image(
-                self.__get_path_to_img(), target_shape, self.__color_model
+                self.path_to_latest_image, target_shape, self.__color_model
             )
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
