@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from utils.labels import imagenet_labels
 
 
 def initialize_colors(colors_to_generate=100):
@@ -58,3 +59,16 @@ def draw_bbox(image, bbox, cat):
     image = draw_line(image, cat, bbox[0], bbox[3], bbox[2], bbox[3])
     image = draw_line(image, cat, bbox[2], bbox[3], bbox[2], bbox[1])
     return image
+
+
+def get_imagenet_names(ids_array):
+    """
+    A function translating numpy array with ImageNet category ids to their readable counterparts.
+
+    :param ids_array: numpy array with ImageNet category ids
+    :return: list of strings with ImageNet category names
+    """
+    list_of_names = list()
+    for id in ids_array:
+        list_of_names.append(imagenet_labels[id])
+    return list_of_names
