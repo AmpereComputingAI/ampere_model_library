@@ -40,7 +40,7 @@ def draw_line(image, cat, x_0, y_0, x_1, y_1):
                      (x_1, y_1),
                      color=COLORS_PER_CAT[cat],
                      lineType=cv2.LINE_AA,
-                     thickness=2)
+                     thickness=8)
     return image
 
 
