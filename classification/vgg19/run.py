@@ -40,13 +40,13 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output["vgg_19/fc8/BiasAdd:0"][i]),
-                imagenet.extract_top5(output["vgg_19/fc8/BiasAdd:0"][i])
+                imagenet.extract_top1(output["vgg_19/fc8/squeezed:0"][i]),
+                imagenet.extract_top5(output["vgg_19/fc8/squeezed:0"][i])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing="VGG", is1001classes=False)
-    runner = TFFrozenModelRunner(model_path, ["vgg_19/fc8/BiasAdd:0"])
+    runner = TFFrozenModelRunner(model_path, ["vgg_19/fc8/squeezed:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
@@ -60,13 +60,13 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, label
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output["vgg_19/fc8/BiasAdd:0"][i]),
-                imagenet.extract_top5(output["vgg_19/fc8/BiasAdd:0"][i])
+                imagenet.extract_top1(output["vgg_19/fc8/squeezed:0"][i]),
+                imagenet.extract_top5(output["vgg_19/fc8/squeezed:0"][i])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing="VGG", is1001classes=False)
-    runner = TFFrozenModelRunner(model_path, ["vgg_19/fc8/BiasAdd:0"])
+    runner = TFFrozenModelRunner(model_path, ["vgg_19/fc8/squeezed:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
