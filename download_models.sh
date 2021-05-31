@@ -25,3 +25,12 @@ wget -O object_detection/ssd_inception_v2/ssd_inception_v2_tf_fp16.pb https://ww
 wget -O object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz https://www.dropbox.com/s/2ogna8d0wqa5war/yolo_v4_tiny_tf_fp32.tar.gz
 tar -xvf object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz -C object_detection/yolo_v4_tiny/
 rm object_detection/yolo_v4_tiny/yolo_v4_tiny_tf_fp32.tar.gz
+
+# vgg_19
+wget -O classification/vgg_19/vgg_19_tf_fp32.tar.gz https://www.dropbox.com/s/6jz4h03qqb05qgg/vgg_19.tar.gz
+tar -xvf classification/vgg_19/vgg_19_tf_fp32.tar.gz -C classification/vgg_19/
+rm classification/vgg_19/vgg_19_tf_fp32.tar.gz
+wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/jr8p2stcnth8r7g/vgg_19_frozen_fp16.pb
+wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/s/r74fccbs5p3qgwm/vgg_19_quant.tflite
+
+
