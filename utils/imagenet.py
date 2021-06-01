@@ -124,6 +124,16 @@ class ImageNet(utils_ds.ImageDataset):
         :return:
         """
         ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
+        # print('ground truth:')
+        # print(ground_truth)
+        #
+        # print('top 1:')
+        # print(top_1_index)
+        #
+        # print('top 5:')
+        # print(top_5_indices)
+        #
+        # print('-' * 45)
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
 
