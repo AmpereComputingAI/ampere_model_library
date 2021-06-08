@@ -102,7 +102,7 @@ class TFSavedModelRunner:
         """
         A function initializing runner by providing path to model directory.
 
-        :param path_to_model: str, eg. "./ugabuga/yolo_saved_model/"
+        :param path_to_model: str, eg. "./path/to/yolo_saved_model/"
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
