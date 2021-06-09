@@ -64,7 +64,7 @@ def run_tf_fp32(sound_path):
 
     for file in os.listdir(sound_path):
         if file.endswith('.wav'):
-            wav_file_name = 'sounds/' + file
+            wav_file_name = sound_path + file
             sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
             sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
 
