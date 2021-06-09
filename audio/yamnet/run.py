@@ -22,7 +22,7 @@ def parse_args():
                         type=str, choices=["fp32", "fp16", "int8"], required=False,
                         help="precision of the model provided")
     parser.add_argument("--sound_path", type=str, required=True, help="For example: "
-                                                                       "'sounds/test_sounds/accordion.wav'")
+                                                                      "'sounds/test_sounds/accordion.wav'")
     return parser.parse_args()
 
 
@@ -48,7 +48,6 @@ def ensure_sample_rate(original_sample_rate, waveform,
 
 
 def run_tf_fp32(sound_path):
-
     # Load the model.
     model = hub.load('https://tfhub.dev/google/yamnet/1')
 
@@ -63,23 +62,24 @@ def run_tf_fp32(sound_path):
     class_map_path = model.class_map_path().numpy()
     class_names = class_names_from_csv(class_map_path)
 
-    wav_file_name = sound_path
-    sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
-    sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
+    for file in os.listdir(sound_path):
+        if file.endswith('.wav'):
+            wav_file_name = 'sounds/' + file
+            sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
+            sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
 
-    # The wav_data needs to be normalized to values in [-1.0, 1.0]
-    waveform = wav_data / tf.int16.max
+            # The wav_data needs to be normalized to values in [-1.0, 1.0]
+            waveform = wav_data / tf.int16.max
 
-    # Run the model, check the output.
-    scores, embeddings, spectrogram = model(waveform)
+            # Run the model, check the output.
+            scores, embeddings, spectrogram = model(waveform)
 
-    scores_np = scores.numpy()
-    infered_class = class_names[scores_np.mean(axis=0).argmax()]
-    print(f'The main sound is: {infered_class}')
+            scores_np = scores.numpy()
+            infered_class = class_names[scores_np.mean(axis=0).argmax()]
+            print(f'The main sound is: {infered_class}')
 
 
 if __name__ == "__main__":
     args = parse_args()
     # if args.precision == "fp32":
     run_tf_fp32(args.sound_path)
-
