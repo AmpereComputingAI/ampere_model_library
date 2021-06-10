@@ -52,32 +52,55 @@ def run_tf_fp32(sound_path):
     # Load the model.
     model = hub.load('https://tfhub.dev/google/yamnet/1')
 
-    # example_file = '/onspecta/model_zoo/sounds/audioset_v1_embeddings/eval/'
-    # raw_dataset = tf.data.TFRecordDataset(example_file)
-    # print(type(raw_dataset))
-    # print(raw_dataset)
-
-    # for raw_record in raw_dataset.take(10):
-    #     print(repr(raw_record))
-
     class_map_path = model.class_map_path().numpy()
     class_names = class_names_from_csv(class_map_path)
 
-    for file in os.listdir(sound_path):
-        if file.endswith('.wav'):
-            wav_file_name = sound_path + file
-            sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
-            sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
+    wav_file_name = sound_path
+    sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
+    sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
 
-            # The wav_data needs to be normalized to values in [-1.0, 1.0]
-            waveform = wav_data / tf.int16.max
+    # The wav_data needs to be normalized to values in [-1.0, 1.0]
+    waveform = wav_data / tf.int16.max
 
-            # Run the model, check the output.
-            scores, embeddings, spectrogram = model(waveform)
+    # Run the model, check the output.
+    scores, embeddings, spectrogram = model(waveform)
 
-            scores_np = scores.numpy()
-            infered_class = class_names[scores_np.mean(axis=0).argmax()]
-            print(f'The main sound is: {infered_class}')
+    scores_np = scores.numpy()
+    infered_class = class_names[scores_np.mean(axis=0).argmax()]
+    print(f'The main sound is: {infered_class}')
+
+
+"""
+run_yamnet():
+    
+    run_single_pass():
+    
+        yamnet.get_input_sound
+        
+        
+    return run_model(run_single_pass, 
+
+
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+
+    def run_single_pass(tf_runner, imagenet):
+        shape = (224, 224)
+        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
+        output = tf_runner.run()
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output["densenet169/predictions/Reshape_1:0"][i][0][0]),
+                imagenet.extract_top5(output["densenet169/predictions/Reshape_1:0"][i][0][0])
+            )
+
+    dataset = YAMNet(batch_size, sounds_path,
+                       pre_processing="Yamnet")
+                       
+    runner = TFFrozenModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+"""
 
 def run_tf_int8(model_path):
     interpreter = tf.lite.Interpreter(model_path)

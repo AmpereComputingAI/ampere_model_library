@@ -48,3 +48,13 @@ class ImageDataset:
             image_array = image_array[:, :, [2, 1, 0]]  # cv2 loads images in BGR order
         image_array, resize_ratios = self.__resize_image(image_array, target_shape)
         return np.expand_dims(image_array, axis=0), resize_ratios
+
+
+class AudioDataset:
+
+    def __init__(self):
+        pass
+
+    def __resize_audio_file(self, audio_file, target_shape):
+        # TODO: implement this
+        pass
