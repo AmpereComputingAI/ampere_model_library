@@ -33,4 +33,8 @@ rm classification/vgg_19/vgg_19_tf_fp32.tar.gz
 wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/jr8p2stcnth8r7g/vgg_19_frozen_fp16.pb
 wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/s/r74fccbs5p3qgwm/vgg_19_quant.tflite
 
-
+# resnet_50_v2
+wget -O classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz https://www.dropbox.com/s/qcgzapqj2j3vjg4/resnet50_v2.tar.gz
+tar -xvf classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz classification/resnet_50_v2/
+rm classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz
+wget -O classification/resnet_50_v2/resnet_50_v2_tflite_int8.tflite https://www.dropbox.com/s/igfber3q86yq1bh/resnet_50_v2_quant.tflite
