@@ -3,6 +3,7 @@ import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from tensorflow.python.saved_model import tag_constants
+import tensorflow_hub as hub
 
 
 class TFFrozenModelRunner:
@@ -98,7 +99,7 @@ class TFSavedModelRunner:
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
-    def __init__(self, path_to_model: str):
+    def __init__(self, path_to_model=None, url_to_model=None):
         """
         A function initializing runner by providing path to model directory.
 
@@ -106,8 +107,11 @@ class TFSavedModelRunner:
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
-        self.__saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
-        self.__model = self.__saved_model_loaded.signatures['serving_default']
+        if path_to_model is not None:
+            self.__saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
+            self.__model = self.__saved_model_loaded.signatures['serving_default']
+        elif url_to_model is not None:
+            self.__hub_model = hub.load(url_to_model)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
@@ -127,6 +131,18 @@ class TFSavedModelRunner:
             self.__warm_up_run_latency += finish - start
         self.__times_invoked += 1
         return output
+
+    def run_from_hub(self, input):
+        start = time.time()
+        scores, embeddings, spectrogram = self.__hub_model(input)
+        finish = time.time()
+        self.__total_inference_time += finish - start
+        if self.__times_invoked == 0:
+            self.__warm_up_run_latency += finish - start
+        self.__times_invoked += 1
+
+        class_map_path = self.__hub_model.class_map_path().numpy()
+        return scores, class_map_path
 
     def print_performance_metrics(self, batch_size):
         """

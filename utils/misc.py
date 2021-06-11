@@ -2,6 +2,8 @@ import os
 import sys
 import hashlib
 from scipy.signal import resample
+import tensorflow as tf
+import csv
 
 
 def get_hash_of_a_file(path_to_file):

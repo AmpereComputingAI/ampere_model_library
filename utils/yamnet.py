@@ -3,9 +3,10 @@ import utils.dataset as utils_ds
 from scipy.io import wavfile
 import tensorflow as tf
 
+
 class Yamnet(utils_ds.AudioDataset):
 
-    def __init__(self, batch_size: int, sound_path=None, labels_path=None, pre_processing=None):
+    def __init__(self, batch_size: int, sound_path=None, labels_path=None):
 
         if sound_path is None:
             env_var = "SOUND_PATH"
@@ -15,9 +16,12 @@ class Yamnet(utils_ds.AudioDataset):
         self.sound_path = sound_path
         self.labels_path = labels_path
         self.batch_size = batch_size
-        self.pre_processing = pre_processing
         self.file_names, self.labels = self.parse_val_file(labels_path)
         self.current_sound = 0
+        self.correct = 0
+
+        print(self.file_names)
+        print(self.labels)
 
     def parse_val_file(self, sound_path):
         """
@@ -48,10 +52,12 @@ class Yamnet(utils_ds.AudioDataset):
         return file_names, labels
 
     def __get_path_to_audio(self):
+        print(self.current_sound)
         try:
             file_name = self.file_names[self.current_sound]
         except IndexError:
             raise utils_ds.OutOfInstances("No more ImageNet images to process in the directory provided")
+
         self.current_sound += 1
         print(self.sound_path + file_name)
         return self.sound_path + file_name
@@ -67,14 +73,23 @@ class Yamnet(utils_ds.AudioDataset):
 
         if waveform.shape[0] > 16029:
             waveform_processed = waveform[:16029]
-        elif waveform.shape[0] <= 130000:
-
-            difference = 130000 - waveform.shape[0]
-            empty_array = np.zeros(difference)
-            waveform_processed = np.append(waveform, empty_array * 0, axis=0)
 
         return waveform_processed
 
+    def submit_predictions(self, scores, class_map_path):
+        try:
+            ground_truth = self.labels[self.current_sound]
+        except IndexError:
+            raise utils_ds.OutOfInstances("No more sounds to process in the directory provided")
+
+        class_names = utils.class_names_from_csv(class_map_path)
+        scores_np = scores.numpy()
+        infered_class = class_names[scores_np.mean(axis=0).argmax()]
+        self.correct += int(ground_truth == infered_class)
+
     def summarize_accuracy(self):
-        # TODO: implement this
-        pass
+        accuracy = self.correct / self.current_sound
+        print("\n Top-1 accuracy = {:.3f}".format(accuracy))
+
+        print(f"\nAccuracy figures above calculated on the basis of {self.current_sound} images.")
+        return {"top_1_acc": accuracy}

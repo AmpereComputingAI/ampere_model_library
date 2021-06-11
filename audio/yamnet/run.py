@@ -10,6 +10,7 @@ from scipy.io import wavfile
 from scipy.signal import resample
 from utils.yamnet import Yamnet
 from utils.benchmark import run_model
+from utils.tf import TFSavedModelRunner
 
 # rsync for graviton
 # alias temp_sync=
@@ -63,8 +64,8 @@ def run_tf_fp32(sound_path):
     # Load the model.
     model = hub.load('https://tfhub.dev/google/yamnet/1')
 
-    class_map_path = model.class_map_path().numpy()
-    class_names = class_names_from_csv(class_map_path)
+    # class_map_path = model.class_map_path().numpy()
+    # class_names = class_names_from_csv(class_map_path)
 
     yamnet_classes = yamnet_model.class_names('yamnet_class_map.csv')
 
@@ -117,21 +118,20 @@ def run_tf_fp32(sound_path):
 
 def run_yamnet(batch_size, num_of_runs, timeout, sound_path, labels_path):
     def run_single_pass(yamnet_model, yamnet):
-        scores, embeddings, spectrogram = yamnet_model(yamnet.get_input_array())
 
-    dataset = Yamnet(batch_size, sound_path, labels_path,
-                     pre_processing="Yamnet")
-    runner = hub.load('https://tfhub.dev/google/yamnet/1')
-    print(type(runner))
+        scores, class_map_path = yamnet_model.run_from_hub(yamnet.get_input_array())
+        yamnet.submit_predictions(scores, class_map_path)
+
+    dataset = Yamnet(batch_size, sound_path, labels_path)
+
+    runner = TFSavedModelRunner(url_to_model='https://tfhub.dev/google/yamnet/1')
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    if args.precision == "fp32":
+    if args.precision == "benchmark":
         run_tf_fp32(args.sound_path)
-    elif args.precision == "int8":
-        run_tf_int8(args.model_path)
-    elif args.precision == "test":
+    elif args.precision == "fp32":
         run_yamnet(args.batch_size, args.num_runs, args.timeout, args.sound_path, args.labels_path)
