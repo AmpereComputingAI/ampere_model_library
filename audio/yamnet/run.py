@@ -18,9 +18,9 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
-    parser.add_argument("--sound_path", type=str, required=False, help="Path to directory with audio files, e.g."
+    parser.add_argument("--sound_path", type=str, required=False, help="path to directory with audio files, e.g."
                                                                        "path/to/sounds/")
-    parser.add_argument("--labels_path", type=str, required=False, help="path to labels")
+    parser.add_argument("--labels_path", type=str, required=False, help="path to labels, e.g. path/to/labels.csv")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")

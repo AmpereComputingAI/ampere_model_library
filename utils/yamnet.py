@@ -104,7 +104,7 @@ class Yamnet(utils_ds.AudioDataset):
         predictions done where supplied with submit_predictions() function.
         """
         accuracy = self.correct / self.current_sound
-        print("\n accuracy = {:.3f}".format(accuracy))
+        print("\n top 1 accuracy = {:.3f}".format(accuracy))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.current_sound} audio files.")
         return {"acc": accuracy}
