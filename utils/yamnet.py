@@ -1,24 +1,25 @@
 import utils.misc as utils
 import utils.dataset as utils_ds
 from scipy.io import wavfile
-
+import tensorflow as tf
 
 class Yamnet(utils_ds.AudioDataset):
 
-    def __init__(self, batch_size: int, sounds_path=None, pre_processing=None):
+    def __init__(self, batch_size: int, sound_path=None, labels_path=None, pre_processing=None):
 
-        if sounds_path is None:
-            env_var = "SOUNDS_PATH"
-            sounds_path = utils.get_env_variable(
+        if sound_path is None:
+            env_var = "SOUND_PATH"
+            sound_path = utils.get_env_variable(
                 env_var, f"Path to ImageNet images directory has not been specified with {env_var} flag")
 
-        self.__sounds_path = sounds_path
+        self.sound_path = sound_path
+        self.labels_path = labels_path
         self.batch_size = batch_size
         self.pre_processing = pre_processing
-        self.__file_names, self.__labels = self.__parse_val_file(sounds_path)
-        self.__current_sound = 0
+        self.file_names, self.labels = self.parse_val_file(labels_path)
+        self.current_sound = 0
 
-    def __parse_val_file(self, sounds_path):
+    def parse_val_file(self, sound_path):
         """
         A function parsing validation file for ImageNet 2012 validation dataset.
 
@@ -32,7 +33,7 @@ class Yamnet(utils_ds.AudioDataset):
         """
 
         boundary = 11  # single line of labels file looks like this "sound01.wav 456"
-        with open(sounds_path, 'r') as opened_file:
+        with open(sound_path, 'r') as opened_file:
             lines = opened_file.readlines()
 
         file_names = list()
@@ -48,13 +49,14 @@ class Yamnet(utils_ds.AudioDataset):
 
     def __get_path_to_audio(self):
         try:
-            file_name = self.__file_names[self.__current_sound]
+            file_name = self.file_names[self.current_sound]
         except IndexError:
             raise utils_ds.OutOfInstances("No more ImageNet images to process in the directory provided")
-        self.__current_sound += 1
-        return self.__sound_path + file_name
+        self.current_sound += 1
+        print(self.sound_path + file_name)
+        return self.sound_path + file_name
 
-    def __get_input_array(self):
+    def get_input_array(self):
 
         wav_file_name = self.__get_path_to_audio()
         sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
@@ -72,3 +74,7 @@ class Yamnet(utils_ds.AudioDataset):
             waveform_processed = np.append(waveform, empty_array * 0, axis=0)
 
         return waveform_processed
+
+    def summarize_accuracy(self):
+        # TODO: implement this
+        pass
