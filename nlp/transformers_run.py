@@ -12,10 +12,10 @@ benchmark = TensorFlowBenchmark(args)
 results = benchmark.run()
 
 
-# with gzip.open("a28979997299.trace.json.gz", "r") as f:
-#     data = f.read()
-#     j = json.loads(data.decode('utf-8'))
-#     print(j)
+with gzip.open("../logs/plugins/profile/2021_06_15_15_34_43/49524a0fc1dd.trace.json.gz", "r") as f:
+    data = f.read()
+    j = json.loads(data.decode('utf-8'))
+    print(j)
 
 
 tf.DLS.print_profile_data()
