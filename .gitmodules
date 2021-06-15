@@ -1,0 +1,3 @@
+[submodule "nlp/transformers"]
+	path = nlp/transformers
+	url = git@github.com:OnSpecta/transformers.git
