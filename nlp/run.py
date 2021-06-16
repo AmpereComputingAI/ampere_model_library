@@ -36,7 +36,7 @@ def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
         print('no hejka')
 
     results = benchmark.run()
-    tf.DLS.print_profile_data()
+    # tf.DLS.print_profile_data()
 
     print(results)
 
