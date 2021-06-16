@@ -5,6 +5,8 @@ from datetime import datetime
 import os
 import argparse
 import utils.misc as utils
+from profiler1 import profiler1
+import shutil
 
 
 def parse_args():
@@ -22,23 +24,35 @@ def parse_args():
 
 
 def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
+    print(profiler)
 
     env_var = "PROFILER_LOG_DIR"
     logs_dir = utils.get_env_variable(
         env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
 
+    try:
+        shutil.rmtree(os.environ['PROFILER_LOG_DIR'] + '/plugins/profile')
+    except:
+        print('some error occured')
+
     args = TensorFlowBenchmarkArguments(models=["bert-base-uncased"], batch_sizes=[batch_size],
                                         sequence_lengths=[sequence_length])
 
     benchmark = TensorFlowBenchmark(args)
-
-    if profiler:
-        print('no hejka')
-
     results = benchmark.run()
-    # tf.DLS.print_profile_data()
 
     print(results)
+    profiler1(logs_dir)
+
+    env_var_dls = 'DLS_PROFILER'
+    dls_profiler = utils.get_env_variable(
+        env_var_dls, f"Path to profiler log directory has not been specified with {env_var_dls} flag")
+
+    print(type(dls_profiler))
+    if dls_profiler == '1':
+        print('tetetetet')
+        tf.DLS.print_profile()
+
 
 
 def main():
