@@ -22,14 +22,7 @@ def profiler1(path_to_logs: str):
     with gzip.open(directory + '/' + matching[0], "r") as f:
         data = f.read()
         j = json.loads(data.decode('utf-8'))
-        # print(j)
-        print(j.keys())
 
-        print('the events are stored in: ', type(j["traceEvents"]))
-        # print(type(j["traceEvents"]))
-        print('the data is:', type(j))
-
-        print(len(j["traceEvents"]))
         total_time = 0.0
 
         read_variable_op_total_time = 0.0
