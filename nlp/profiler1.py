@@ -6,9 +6,6 @@ import os
 
 def profiler1(path_to_logs: str):
 
-    print(path_to_logs)
-    print('gere')
-
     for root, dirs, _ in os.walk(path_to_logs + '/plugins/profile/'):
         for d in dirs:
             directory = os.path.join(root, d)
