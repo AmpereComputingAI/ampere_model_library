@@ -3,18 +3,15 @@ import argparse
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run bert-base-uncased")
-    parser.add_argument("-m", "--model", type=str, default="bert-base-uncased",
+    parser = argparse.ArgumentParser(description="Benchmark NLP models")
+    parser.add_argument("-m", "--model", type=str, default="bert-base-uncased", required=False,
                         help="you can see the available list of models here: "
                              "https://huggingface.co/transformers/pretrained_models.html")
     parser.add_argument("-b", "--batch_size",
-                        type=int, default=8,
+                        type=int, default=8, required=False,
                         help="batch size to feed the model with")
-    parser.add_argument("--sequence_length",
+    parser.add_argument("--sequence_length", required=False,
                         type=int, default=8,
-                        help="sequence length to feed the model with")
-    parser.add_argument("--profiler",
-                        action="store_const", const=True,
                         help="sequence length to feed the model with")
     return parser.parse_args()
 
@@ -32,7 +29,7 @@ def benchmark_nlp_model(model, batch_size, sequence_length):
 
 def main():
     args = parse_args()
-    benchmark_nlp_model(args.batch_size, args.sequence_length, args.profiler)
+    benchmark_nlp_model(args.model, args.batch_size, args.sequence_length)
 
 
 if __name__ == "__main__":
