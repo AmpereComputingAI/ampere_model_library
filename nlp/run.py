@@ -24,7 +24,10 @@ def parse_args():
 
 
 def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
-    tf.DLS.force_enable_profiler()
+    # tf.DLS.force_enable_profiler()
+    dls_profiler = os.environ['DLS_PROFILER']
+
+    print(f'the dls profiler is : {dls_profiler}')
 
     env_var = "PROFILER_LOG_DIR"
     logs_dir = utils.get_env_variable(
@@ -35,18 +38,26 @@ def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
     except:
         print('some error occured')
 
-    args = TensorFlowBenchmarkArguments(models=["bert-base-uncased"], batch_sizes=[batch_size],
+    tf.DLS.print_profile_data()
+
+    args = TensorFlowBenchmarkArguments(models=["distilbert-base-uncased"], batch_sizes=[batch_size],
                                         sequence_lengths=[sequence_length])
 
+    tf.DLS.print_profile_data()
+
+    print(f'the dls profiler is : {dls_profiler}')
     benchmark = TensorFlowBenchmark(args)
+    print(f'the dls profiler is : {dls_profiler}')
     results = benchmark.run()
+    print(f'the dls profiler is : {dls_profiler}')
 
     print(results)
     profiler1(logs_dir)
 
-    dls_profiler = os.environ['DLS_PROFILER']
+    print(f'the dls profiler is : {dls_profiler}')
 
     if dls_profiler == '1':
+        print('yey1')
         tf.DLS.print_profile_data()
 
 
