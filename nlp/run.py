@@ -26,11 +26,12 @@ def parse_args():
 
 def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
 
-    if profiler or 'DLS_PROFILER' in os.environ:
+    # if profiler or os.environ['DLS_PROFILER'] == '1':
+    if profiler or 'DLS_PROFILER' in os.environ and os.environ['DLS_PROFILER'] == '1':
         os.environ["PROFILER"] = "1"
-        env_var = "PROFILER_LOG_DIR"
 
         # set the logs
+        env_var = "PROFILER_LOG_DIR"
         logs_dir = utils.get_env_variable(
             env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
         # remove old logs from logs directory
@@ -46,11 +47,8 @@ def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
     results = benchmark.run()
     print(results)
 
-    if profiler or 'DLS_PROFILER' in os.environ:
+    if 'PROFILER' in os.environ:
         print_profiler_results(logs_dir)
-
-    if 'DLS_PROFILER' in os.environ:
-        tf.DLS.print_profile_data()
 
 
 def main():
