@@ -1,10 +1,11 @@
 import gzip
 import json
-from collections import Counter
 import os
 
+from collections import Counter
 
-def profiler1(path_to_logs: str):
+
+def print_profiler_results(path_to_logs: str):
 
     for root, dirs, _ in os.walk(path_to_logs + '/plugins/profile/'):
         for d in dirs:

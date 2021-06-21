@@ -1,11 +1,12 @@
 from transformers import TensorFlowBenchmark, TensorFlowBenchmarkArguments, BertConfig
+
 import tensorflow as tf
 from tensorflow.python.profiler import model_analyzer
 from datetime import datetime
 import os
 import argparse
 import utils.misc as utils
-from profiler1 import profiler1
+from profiler import print_profiler_results
 import shutil
 
 
@@ -24,40 +25,31 @@ def parse_args():
 
 
 def benchmark_bert_base_uncased(batch_size, sequence_length, profiler):
-    # tf.DLS.force_enable_profiler()
-    dls_profiler = os.environ['DLS_PROFILER']
 
-    print(f'the dls profiler is : {dls_profiler}')
+    if profiler or 'DLS_PROFILER' in os.environ:
+        os.environ["PROFILER"] = "1"
+        env_var = "PROFILER_LOG_DIR"
 
-    env_var = "PROFILER_LOG_DIR"
-    logs_dir = utils.get_env_variable(
-        env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
+        # set the logs
+        logs_dir = utils.get_env_variable(
+            env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
+        # remove old logs from logs directory
+        try:
+            shutil.rmtree(logs_dir + '/plugins/profile')
+        except FileNotFoundError:
+            print('no logs to clear, moving on ...')
 
-    try:
-        shutil.rmtree(os.environ['PROFILER_LOG_DIR'] + '/plugins/profile')
-    except:
-        print('some error occured')
+    args = TensorFlowBenchmarkArguments(models=["bert-base-uncased"], batch_sizes=[batch_size],
+                                        sequence_lengths=[sequence_length], inference=True, memory=False)
 
-    tf.DLS.print_profile_data()
-
-    args = TensorFlowBenchmarkArguments(models=["distilbert-base-uncased"], batch_sizes=[batch_size],
-                                        sequence_lengths=[sequence_length])
-
-    tf.DLS.print_profile_data()
-
-    print(f'the dls profiler is : {dls_profiler}')
     benchmark = TensorFlowBenchmark(args)
-    print(f'the dls profiler is : {dls_profiler}')
     results = benchmark.run()
-    print(f'the dls profiler is : {dls_profiler}')
-
     print(results)
-    profiler1(logs_dir)
 
-    print(f'the dls profiler is : {dls_profiler}')
+    if profiler or 'DLS_PROFILER' in os.environ:
+        print_profiler_results(logs_dir)
 
-    if dls_profiler == '1':
-        print('yey1')
+    if 'DLS_PROFILER' in os.environ:
         tf.DLS.print_profile_data()
 
 
