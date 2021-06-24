@@ -28,40 +28,12 @@ class ImageNet(utils_ds.ImageDataset):
         self.__images_path = images_path
         self.__pre_processing = pre_processing
         self.__current_img = 0
-        self.__file_names, self.__labels = self.__parse_val_file(labels_path, is1001classes)
+        self.__file_names, self.__labels = utils.parse_val_file(labels_path, is1001classes, 28, False)
         self.available_instances = len(self.__file_names)
         self.__top_1_count = 0
         self.__top_5_count = 0
         self.path_to_latest_image = None
         super().__init__()
-
-    def __parse_val_file(self, labels_path, is1001classes):
-        """
-        A function parsing validation file for ImageNet 2012 validation dataset.
-
-        .txt file consists of 50000 lines each holding data on a single image: its file name and 1 label with class best
-        describing image's content
-
-        :param labels_path: str, path to file containing image file names and labels
-        :param is1001classes: bool, parameter setting whether the tested model has 1001 classes (+ background) or
-        original 1000 classes
-        :return: list of strings, list of ints
-        """
-
-        boundary = 28  # single line of labels file looks like this "ILSVRC2012_val_00050000.JPEG 456"
-        file = open(labels_path, "r")
-        lines = file.readlines()
-        file_names = list()
-        labels = list()
-        for line in lines:
-            file_name = line[:boundary]
-            file_names.append(file_name)
-            label = int(line[boundary:])
-            if is1001classes:
-                labels.append(label + 1)
-            else:
-                labels.append(label)
-        return file_names, labels
 
     def __get_path_to_img(self):
         """

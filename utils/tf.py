@@ -111,7 +111,7 @@ class TFSavedModelRunner:
             self.__saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
             self.__model = self.__saved_model_loaded.signatures['serving_default']
         elif url_to_model is not None:
-            self.__hub_model = hub.load(url_to_model)
+            self.__model = hub.load(url_to_model)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
@@ -130,19 +130,8 @@ class TFSavedModelRunner:
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
         self.__times_invoked += 1
+
         return output
-
-    def run_from_hub(self, input):
-        start = time.time()
-        scores, embeddings, spectrogram = self.__hub_model(input)
-        finish = time.time()
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        self.__times_invoked += 1
-
-        class_map_path = self.__hub_model.class_map_path().numpy()
-        return scores, class_map_path
 
     def print_performance_metrics(self, batch_size):
         """

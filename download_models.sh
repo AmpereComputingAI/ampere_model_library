@@ -32,11 +32,3 @@ tar -xvf classification/vgg_19/vgg_19_tf_fp32.tar.gz -C classification/vgg_19/
 rm classification/vgg_19/vgg_19_tf_fp32.tar.gz
 wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/jr8p2stcnth8r7g/vgg_19_frozen_fp16.pb
 wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/s/r74fccbs5p3qgwm/vgg_19_quant.tflite
-
-# YAMNet
-wget -O audio/yamnet/sounds.tar.gz https://www.dropbox.com/s/2qlbvaianfbw3l8/sounds.tar.gz
-tar -xvf audio/yamnet/sounds.tar.gz -C audio/yamnet/
-rm audio/yamnet/sounds.tar.gz
-wget -O audio/yamnet/sounds_labels.txt https://www.dropbox.com/s/2nb9jmc9126rz42/yamnet_labels.csv
-
-

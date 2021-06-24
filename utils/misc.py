@@ -1,7 +1,6 @@
 import os
 import sys
 import hashlib
-from scipy.signal import resample
 import tensorflow as tf
 import csv
 
@@ -55,7 +54,7 @@ def print_warning_message(message):
 def class_names_from_csv(class_map_csv_text):
     """Returns list of class names corresponding to score vector."""
     class_names = []
-    with tf.io.gfile.GFile(class_map_csv_text) as csvfile:
+    with open(class_map_csv_text) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             class_names.append(row['display_name'])
@@ -63,11 +62,42 @@ def class_names_from_csv(class_map_csv_text):
     return class_names
 
 
-def ensure_sample_rate(original_sample_rate, waveform,
-                       desired_sample_rate=16000):
-    """Resample waveform if required."""
-    if original_sample_rate != desired_sample_rate:
-        desired_length = int(round(float(len(waveform)) /
-                                   original_sample_rate * desired_sample_rate))
-        waveform = resample(waveform, desired_length)
-    return desired_sample_rate, waveform
+def parse_val_file(labels_path, is1001classes, boundary, audioset):
+    """
+    A function parsing validation file for ImageNet 2012 validation dataset.
+
+    .txt file consists of 50000 lines each holding data on a single image: its file name and 1 label with class best
+    describing image's content
+
+    :param labels_path: str, path to file containing image file names and labels
+    :param is1001classes: bool, parameter setting whether the tested model has 1001 classes (+ background) or
+    original 1000 classes
+    :param boundary: int, index to slash the string in an appropriate labels file
+    :param audioset: boolean, specify if the underlying labels file belongs to audioset or not
+    :return: list of strings, list of ints
+    """
+    # single line of labels file for ImageNet dataset looks like this "ILSVRC2012_val_00050000.JPEG 456"
+    # single line of labels file for AudioSet dataset looks like this "sound01.wav Music"
+
+    with open(labels_path, 'r') as opened_file:
+        lines = opened_file.readlines()
+
+    file_names = list()
+    labels = list()
+
+    for line in lines:
+        file_name = line[:boundary]
+        file_names.append(file_name)
+        label = line[boundary + 1:]
+        if audioset:
+            labels.append(label)
+        else:
+            label = int(line[boundary:])
+            if is1001classes:
+                labels.append(label + 1)
+            else:
+                labels.append(label)
+
+    return file_names, labels
+
+

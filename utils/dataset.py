@@ -1,6 +1,7 @@
-# import cv2
+import cv2
 import numpy as np
 import utils.misc as utils
+from scipy.signal import resample
 
 
 class OutOfInstances(Exception):
@@ -58,3 +59,12 @@ class AudioDataset:
     def __resize_audio_file(self, audio_file, target_shape):
         # TODO: implement this
         pass
+
+
+    def __ensure_sample_rate(self, original_sample_rate, waveform, desired_sample_rate=16000):
+        """Resample waveform if required."""
+        if original_sample_rate != desired_sample_rate:
+            desired_length = int(round(float(len(waveform)) /
+                                       original_sample_rate * desired_sample_rate))
+            waveform = resample(waveform, desired_length)
+        return desired_sample_rate, waveform
