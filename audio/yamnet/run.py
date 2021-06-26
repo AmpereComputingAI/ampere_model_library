@@ -3,7 +3,6 @@ import argparse
 
 from utils.audioset import AudioSet
 from utils.benchmark import run_model
-# from utils.tf import TFSavedModelRunner
 from audio.yamnet.runner import YamnetRunner
 
 import tensorflow_hub as hub
