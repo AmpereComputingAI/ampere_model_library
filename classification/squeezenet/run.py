@@ -37,9 +37,6 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
         shape = (224, 224)
         tf_runner.set_input_tensor("Placeholder:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
-        # print('here :')
-        # print(type(output))
-        # print(output["softmax_tensor:0"].shape)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -89,7 +86,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=True)
+                       pre_processing="Inception", is1001classes=False)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
