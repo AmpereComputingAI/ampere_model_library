@@ -1,4 +1,5 @@
 import argparse
+
 from utils.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
