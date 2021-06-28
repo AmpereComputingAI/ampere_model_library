@@ -10,12 +10,15 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 72%  | 91 %  |
+| FP32  | 74.08%  | 91.75 %  |
 
 
 ### Dataset
 
 Dataset can be acquired here https://www.image-net.org/
+
+model can be downloaded from here:
+https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 
