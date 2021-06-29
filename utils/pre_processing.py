@@ -59,6 +59,15 @@ def pre_process_yolo(input_array):
 
 
 def pre_process_squeezenet(input_array):
+    """
+    A function pre-processing an input array in the way expected by SqueezeNet model.
+
+    Values are converted from int 0 <-> 255 range to float range of 0.0 <-> 1.0
+    and normalized using mean = [0.485, 0.456, 0.406].
+
+    :param input_array: numpy array containing image data
+    :return: numpy array containing pre-processed image data
+    """
     input_array = input_array.astype("float32")
 
     input_array /= 255.0
