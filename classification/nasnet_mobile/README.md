@@ -8,9 +8,12 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 ### Accuracy:
 
+Based on 1000 images from ImageNet Validation Dataset
+
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 74.08%  | 91.75 %  |
+| FP32  | 73.9%  | 90.9 %  |
+| INT8  | 73.9%  | 90.9 %  |
 
 
 ### Dataset
