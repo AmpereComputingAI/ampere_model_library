@@ -33,4 +33,9 @@ rm classification/vgg_19/vgg_19_tf_fp32.tar.gz
 wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/jr8p2stcnth8r7g/vgg_19_frozen_fp16.pb
 wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/s/r74fccbs5p3qgwm/vgg_19_quant.tflite
 
+# squeezenet
+
+wget -O classification/squeezenet/squeezenet_tf_fp32.pb https://www.dropbox.com/s/h6y4wazwod6qvnm/squeezenet_tf_fp32.pb
+wget -O classification/squeezenet/squeezenet_tflite_int8.tflite https://www.dropbox.com/s/bhxiyv8ixwiujt1/squeezenet_tflite_int8.tflite
+
 

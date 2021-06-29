@@ -11,7 +11,7 @@ def parse_args():
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "fp16", "int8"], required=True,
+                        type=str, choices=["fp32", "int8"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -45,28 +45,8 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=True)
+                       pre_processing="SqueezeNet", is1001classes=True)
     runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
-
-
-def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-
-    def run_single_pass(tf_runner, imagenet):
-        shape = (224, 224)
-        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
-        output = tf_runner.run()
-        for i in range(batch_size):
-            imagenet.submit_predictions(
-                i,
-                imagenet.extract_top1(output["vgg_19/fc8/squeezed:0"][i]),
-                imagenet.extract_top5(output["vgg_19/fc8/squeezed:0"][i])
-            )
-
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="VGG", is1001classes=False)
-    runner = TFFrozenModelRunner(model_path, ["vgg_19/fc8/squeezed:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
@@ -86,7 +66,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=False)
+                       pre_processing="SqueezeNet", is1001classes=True)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -96,10 +76,6 @@ def main():
     args = parse_args()
     if args.precision == "fp32":
         run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
-    elif args.precision == "fp16":
-        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     elif args.precision == "int8":
