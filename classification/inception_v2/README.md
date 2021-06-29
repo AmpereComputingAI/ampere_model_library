@@ -14,8 +14,8 @@ Based on 1000 images from ImageNet Validation Dataset
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 73.0%  | 90.8%  |
-| FP16  | 73.0%  | 90.8%  |
-| INT8  | 73.0%  | 90.8%  |
+| FP16  | 72.8%  | 90.9%  |
+| INT8  | 72.3%  | 90.3%  |
 
 
 ### Dataset
