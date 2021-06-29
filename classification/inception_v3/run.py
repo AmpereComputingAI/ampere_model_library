@@ -11,7 +11,7 @@ def parse_args():
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "fp16", "int8"], required=True,
+                        type=str, choices=["fp32", "int8"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -83,7 +83,7 @@ def main():
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     else:
-        assert False
+        assert False, f"Behaviour undefined for precision {args.precision}"
 
 
 if __name__ == "__main__":

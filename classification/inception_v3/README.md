@@ -2,18 +2,19 @@
 
 
 This folder contains the script to run Inception v3 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 299x299 and has 1.0x multiplier.
+Variant supplied below in three different precisions accepts input of shape 299x299.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 
 ### Accuracy:
 
-based on 1000 images from validation dataset
+based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 77%  | 93 %  |
+| FP32  | 75.7%  | 93.2 %  |
+| INT8  | 75.7%  | 93.2 %  |
 
 
 
@@ -21,7 +22,7 @@ based on 1000 images from validation dataset
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-models can be downloaded from here: https://www.tensorflow.org/lite/guide/hosted_models
+models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 
