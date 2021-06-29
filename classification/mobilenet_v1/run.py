@@ -6,7 +6,7 @@ from utils.benchmark import run_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run MobileNet v2 model.")
+    parser = argparse.ArgumentParser(description="Run MobileNet v1 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
@@ -83,7 +83,7 @@ def main():
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     else:
-        assert False
+        assert False, f"Behaviour undefined for precision {args.precision}"
 
 
 if __name__ == "__main__":

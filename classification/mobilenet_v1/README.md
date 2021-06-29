@@ -9,11 +9,12 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 ### Accuracy:
 
-measured on 1000 images from ImageNet validation dataset
+measured on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 70%  | 89 %  |
+| FP32  | 70.1%  | 88.8 %  |
+| INT8  | 70.1%  | 88.8 %  |
 
 
 ### Dataset and models
