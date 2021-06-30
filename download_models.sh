@@ -42,3 +42,7 @@ wget -O classification/resnet_50_v2/resnet_50_v2_tflite_int8.tflite https://www.
 # mobilenet_v1
 wget -O classification/mobilenet_v1/mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/eqdm9sloz7o10hd/mobilenet_v1_tf_fp32.pb
 wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.dropbox.com/s/yhdxaf9wderav2a/mobilenet_v1_tflite_int8.tflite
+
+# MnasNet_1.0_224 (nasnet mobile)
+wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
+wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
