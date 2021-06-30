@@ -34,8 +34,30 @@ wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/jr8p2s
 wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/s/r74fccbs5p3qgwm/vgg_19_quant.tflite
 
 # squeezenet
-
 wget -O classification/squeezenet/squeezenet_tf_fp32.pb https://www.dropbox.com/s/h6y4wazwod6qvnm/squeezenet_tf_fp32.pb
 wget -O classification/squeezenet/squeezenet_tflite_int8.tflite https://www.dropbox.com/s/bhxiyv8ixwiujt1/squeezenet_tflite_int8.tflite
 
+# resnet_50_v2
+wget -O classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz https://www.dropbox.com/s/qcgzapqj2j3vjg4/resnet50_v2.tar.gz
+tar -xvf classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz classification/resnet_50_v2/
+rm classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz
+wget -O classification/resnet_50_v2/resnet_50_v2_tflite_int8.tflite https://www.dropbox.com/s/igfber3q86yq1bh/resnet_50_v2_quant.tflite
 
+# inception v3
+wget -O classification/inception_v3/inception_v3_tf_fp32.pb https://www.dropbox.com/s/ccfmzojpo3v90bv/inception_v3_tf_fp32.pb
+wget -O classification/inception_v3/inception_v3_tflite_int8.tflite https://www.dropbox.com/s/wtq3gix7lhyef6t/inception_v3_tflite_int8.tflite
+
+#inception v2
+wget -O classification/inception_v2/inception_v2.tar.gz https://www.dropbox.com/s/5eeg3y5yf3267l6/inception_v2.tar.gz
+tar -xvf classification/inception_v2/inception_v2.tar.gz classification/inception_v2/
+rm classification/inception_v2/inception_v2.tar.gz
+wget -O classification/inception_v2/inception_v2_tf_fp16.pb https://www.dropbox.com/s/kafigzam12b0vko/inception_v2_fp16.pb
+wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/hystiauh7x6xjdp/inception_v2_quant.tflite
+
+# mobilenet_v1
+wget -O classification/mobilenet_v1/mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/eqdm9sloz7o10hd/mobilenet_v1_tf_fp32.pb
+wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.dropbox.com/s/yhdxaf9wderav2a/mobilenet_v1_tflite_int8.tflite
+
+# MnasNet_1.0_224 (nasnet mobile)
+wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
+wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
