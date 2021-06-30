@@ -45,3 +45,11 @@ tar -xvf classification/inception_v2/inception_v2.tar.gz classification/inceptio
 rm classification/inception_v2/inception_v2.tar.gz
 wget -O classification/inception_v2/inception_v2_tf_fp16.pb https://www.dropbox.com/s/kafigzam12b0vko/inception_v2_fp16.pb
 wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/hystiauh7x6xjdp/inception_v2_quant.tflite
+
+# mobilenet_v1
+wget -O classification/mobilenet_v1/mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/eqdm9sloz7o10hd/mobilenet_v1_tf_fp32.pb
+wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.dropbox.com/s/yhdxaf9wderav2a/mobilenet_v1_tflite_int8.tflite
+
+# MnasNet_1.0_224 (nasnet mobile)
+wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
+wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
