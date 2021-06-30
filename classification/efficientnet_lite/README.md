@@ -11,44 +11,13 @@ The original paper on the architecture is available here: INSERT LINK TO PAPER
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | TBM  | TBM  |
-
-
-### Performance on Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
-
-Latency:
-
-|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| FP32  | TBM | TBM  |
-
-Throughput (batch size = 16):
-
-|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| FP32  | TBM | TBM  |
+| FP32  | 73.7 %  | 91.7 %  |
+| INT8  | 67.8 %  | 88.8 %  |
 
 
 ### Dataset and models
 
-* validation dataset of 1000 images:\
-  https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz  
-  (note: you can unpack it using terminal command "tar -xf ./file")
-
-* validation dataset labels for the reduced set:\
-  https://www.dropbox.com/s/7ej242ym43v635i/imagenet_labels_onspecta.txt
-
-* fp32 model:\
-  
-  
-
-* fp16 model:\
-  
-
-
-* int8 model:\
-  
-
+the dataset can be downloaded here: https://www.image-net.org/ 
 
 ### Running instructions
 

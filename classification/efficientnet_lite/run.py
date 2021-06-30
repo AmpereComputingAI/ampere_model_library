@@ -6,12 +6,12 @@ from utils.benchmark import run_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run MobileNet v2 model.")
+    parser = argparse.ArgumentParser(description="Run EfficientNet Lite model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "fp16", "int8"], required=True,
+                        type=str, choices=["fp32", "int8"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -31,7 +31,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_tflite_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
     def run_single_pass(tflite_runner, imagenet):
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
@@ -66,7 +66,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=False)
+                       pre_processing="uint8", is1001classes=False)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -75,7 +75,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 def main():
     args = parse_args()
     if args.precision == "fp32":
-        run_tf_fp32(
+        run_tflite_fp32(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     elif args.precision == "int8":

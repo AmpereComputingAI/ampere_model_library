@@ -19,6 +19,8 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
         return pre_process_vgg(input_array, color_model)
     if pre_processing_approach == "Inception":
         return pre_process_inception(input_array)
+    if pre_processing_approach == "uint8":
+        return pre_process_uint8(input_array)
     utils.print_goodbye_message_and_die(f"Pre-processing approach \"{pre_processing_approach}\" undefined.")
 
 
@@ -100,4 +102,17 @@ def pre_process_inception(input_array):
     input_array /= 255.
     input_array -= 0.5
     input_array *= 2.
+    return input_array
+
+
+def pre_process_uint8(input_array):
+    """
+    Function casting the input array to uint8 type
+
+    :param input_array: numpy array containing image data
+    :return: numpy array containing pre-processed image data
+    """
+
+    input_array = input_array.astype("uint8")
+
     return input_array

@@ -38,3 +38,7 @@ wget -O classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz https://www.drop
 tar -xvf classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz classification/resnet_50_v2/
 rm classification/resnet_50_v2/resnet_50_v2_tf_fp32.tar.gz
 wget -O classification/resnet_50_v2/resnet_50_v2_tflite_int8.tflite https://www.dropbox.com/s/igfber3q86yq1bh/resnet_50_v2_quant.tflite
+
+# efficientnet_lite
+wget -O classification/efficientnet_lite/efficientnet_lite_tflite_fp32.tflite https://www.dropbox.com/s/qb35q4oyn053psi/efficientnet_lite_tflite_fp32.tflite
+wget -O classification/efficientnet_lite/efficientnet_lite_tflite_int8.tflite https://www.dropbox.com/s/i5rguguvpuqymgt/efficientnet_lite_tflite_int8.tflite
