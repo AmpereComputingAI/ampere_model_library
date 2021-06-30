@@ -45,6 +45,7 @@ wget -O classification/resnet_50_v2/resnet_50_v2_tflite_int8.tflite https://www.
 
 # resnet_v2_101
 wget -O classification/resnet_v2_101/resnet_v2_101_tf_fp32.pb https://www.dropbox.com/s/ckojofwnj30ouhn/resnet_v2_101_tf_fp32.pb
+wget -O classification/resnet_v2_101/resnet_v2_101_tf_fp16.pb https://www.dropbox.com/s/sq1qz2d39x6vtr8/resnet_101_v2_tf_fp16.pb
 wget -O classification/resnet_v2_101/resnet_v2_101_tflite_int8.tflite https://www.dropbox.com/s/n5sw2povn7cmdio/resnet_v2_101_tflite_int8.tflite
 
 # inception v3
