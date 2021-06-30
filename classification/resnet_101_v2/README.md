@@ -1,7 +1,7 @@
-# ResNet v2 101
+# ResNet 101 v2
 
 
-This folder contains the script to run ResNet v2 101 on ImageNet classification task.\
+This folder contains the script to run ResNet 101 v2 on ImageNet classification task.\
 Variant supplied below in three different precisions accepts input of shape 299x299.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
@@ -12,6 +12,7 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 74.0%  | 92.9 %  |
+| FP16  | 73.7%  | 93.1 %  |
 | INT8  | 74.0%  | 92.9 %  |
 
 
