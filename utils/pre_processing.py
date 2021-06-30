@@ -15,6 +15,8 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
         return pre_process_ssd(input_array)
     if pre_processing_approach == "YOLO":
         return pre_process_yolo(input_array)
+    if pre_processing_approach == "SqueezeNet":
+        return pre_process_squeezenet(input_array)
     if pre_processing_approach == "VGG":
         return pre_process_vgg(input_array, color_model)
     if pre_processing_approach == "Inception":
@@ -53,6 +55,31 @@ def pre_process_yolo(input_array):
     input_array = input_array.astype("float32")
 
     input_array /= 255.0
+    return input_array
+
+
+def pre_process_squeezenet(input_array):
+    """
+    A function pre-processing an input array in the way expected by SqueezeNet model.
+
+    Values are converted from int 0 <-> 255 range to float range of 0.0 <-> 1.0
+    and normalized using mean = [0.485, 0.456, 0.406].
+
+    :param input_array: numpy array containing image data
+    :return: numpy array containing pre-processed image data
+    """
+    input_array = input_array.astype("float32")
+
+    input_array /= 255.0
+
+    r_mean = 0.485
+    g_mean = 0.456
+    b_mean = 0.406
+
+    per_channel_means = np.array([r_mean, g_mean, b_mean])
+
+    input_array -= per_channel_means
+
     return input_array
 
 
