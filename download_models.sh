@@ -66,3 +66,4 @@ wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.
 # MnasNet_1.0_224 (nasnet mobile)
 wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
 wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
+wget -O classification/nasnet_mobile/mnasnet_tf_fp16.pb https://www.dropbox.com/s/9vhsd3qfe5dy4hh/mnasnet_tf_fp16.pb
