@@ -1,7 +1,7 @@
 # densenet_169
-wget -O classification/densenet_169/densenet_169_tf_fp32.pb https://www.dropbox.com/s/rs3s28o8ml07kyk/densenet_169_tf_fp32.pb
-wget -O classification/densenet_169/densenet_169_tf_fp16.pb https://www.dropbox.com/s/1s5pc2ww32tkr9f/densenet_169_tf_fp16.pb
-wget -O classification/densenet_169/densenet_169_tflite_int8.tflite https://www.dropbox.com/s/7qsrivpuw3f0n2r/densenet_169_tflite_int8.tflite
+wget -O classification/densenet_169/densenet_169_tf_fp32.pb https://www.dropbox.com/s/txqyl9tsrza0l55/densenet_169_tf_fp32.pb
+wget -O classification/densenet_169/densenet_169_tf_fp16.pb https://www.dropbox.com/s/kaue3ualwq4qphp/densenet_169_tf_fp16.pb
+wget -O classification/densenet_169/densenet_169_tflite_int8.tflite https://www.dropbox.com/s/1nd80f3eq3y5d83/densenet_169_tflite_int8.tflite
 
 # mobilenet_v2
 wget -O classification/mobilenet_v2/mobilenet_v2_tf_fp32.pb https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb

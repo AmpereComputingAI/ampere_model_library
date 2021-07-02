@@ -9,45 +9,21 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 ### Accuracy:
 
+based on 1000 images from ImageNet Validation Dataset`
+
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 70%  | 91 %  |
-
-
-### Performance on Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
-
-Latency:
-
-|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| FP32  | 11 ms | 5 ms  |
-
-Throughput (batch size = 16):
-
-|   | &nbsp;&nbsp;&nbsp;&nbsp; 1 thread&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; 18 threads &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| FP32  | 191.17 ips | 467.31 ips  |
+| FP32  | 70%  | 90.5 %  |
+| FP16  | 70%  | 90.5 %  |
+| INT8  | 69%  | 90.3 %  |
 
 
 ### Dataset and models
 
-* validation dataset of 1000 images:\
-  https://www.dropbox.com/s/nxgzz67tpux8wud/ILSVRC2012_onspecta.tar.gz  
-  (note: you can unpack it using terminal command "tar -xf ./file")
+Dataset can be downloaded here: https://www.image-net.org/
 
-* validation dataset labels for the reduced set:\
-  https://www.dropbox.com/s/7ej242ym43v635i/imagenet_labels_onspecta.txt
+models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
-* fp32 model:\
-  https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb
-  
-
-* fp16 model:\
-  https://www.dropbox.com/s/ppzx4oz8ne9txeq/mobilenet_v2_fp16.pb
-
-
-* int8 model:\
-  https://www.dropbox.com/s/s35x24b04apd9b7/mobilenet_v2_tflite_int8.tflite
 
 
 ### Running instructions
