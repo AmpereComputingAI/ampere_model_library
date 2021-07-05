@@ -53,10 +53,10 @@ wget -O classification/inception_v3/inception_v3_tf_fp32.pb https://www.dropbox.
 wget -O classification/inception_v3/inception_v3_tflite_int8.tflite https://www.dropbox.com/s/wtq3gix7lhyef6t/inception_v3_tflite_int8.tflite
 
 #inception v2
-wget -O classification/inception_v2/inception_v2.tar.gz https://www.dropbox.com/s/5eeg3y5yf3267l6/inception_v2.tar.gz
-tar -xvf classification/inception_v2/inception_v2.tar.gz classification/inception_v2/
-rm classification/inception_v2/inception_v2.tar.gz
-wget -O classification/inception_v2/inception_v2_tf_fp16.pb https://www.dropbox.com/s/kafigzam12b0vko/inception_v2_fp16.pb
+wget -O classification/inception_v2/inception_v2_fp32.pb https://www.dropbox.com/s/lwm47zymbu7mcdl/inception_v2_tf_fp32.pb
+wget -O classification/inception_v2/inception_v2_fp16.pb  https://www.dropbox.com/s/rwf7wzcczncca1k/inception_v2_tf_fp16.pb
+wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/jk3qtrboknjsdkr/inception_v2_tflite_int8.tflite
+
 wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/hystiauh7x6xjdp/inception_v2_quant.tflite
 
 # mobilenet_v1
