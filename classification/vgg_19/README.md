@@ -1,7 +1,7 @@
-# VGG 19
+# VGG-19
 
 
-This folder contains the script to run VGG 19 on ImageNet classification task.\
+This folder contains the script to run VGG-19 on ImageNet classification task.\
 Variant supplied below in three different precisions accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1602.07261.pdf
@@ -13,8 +13,9 @@ based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | TBM  | TBM  |
-| FP16  | TBM  | TBM  |
+| FP32  | 66.6%  | 87.4%  |
+| FP16  | 67.0%  | 87.1%  |
+| INT8  | 66.8%  | 87.4%  |
 
 
 
