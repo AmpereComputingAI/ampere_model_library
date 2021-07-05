@@ -99,7 +99,7 @@ def main():
         run_tf_fp32(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
-    if args.precision == "fp16":
+    elif args.precision == "fp16":
         run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )

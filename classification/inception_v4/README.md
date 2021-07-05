@@ -13,8 +13,8 @@ based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | TBM  | TBM  |
-| FP16  | TBM  | TBM  |
+| FP32  | 77.8%  | 95.2%  |
+| FP16  | 77.8%  | 95.2%  |
 
 
 

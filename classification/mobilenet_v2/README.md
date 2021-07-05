@@ -9,7 +9,7 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 ### Accuracy:
 
-based on 1000 images from ImageNet Validation Dataset`
+based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|

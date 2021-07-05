@@ -3,10 +3,14 @@ wget -O classification/densenet_169/densenet_169_tf_fp32.pb https://www.dropbox.
 wget -O classification/densenet_169/densenet_169_tf_fp16.pb https://www.dropbox.com/s/kaue3ualwq4qphp/densenet_169_tf_fp16.pb
 wget -O classification/densenet_169/densenet_169_tflite_int8.tflite https://www.dropbox.com/s/1nd80f3eq3y5d83/densenet_169_tflite_int8.tflite
 
+# mobilenet_v1
+wget -O classification/mobilenet_v1/mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/eqdm9sloz7o10hd/mobilenet_v1_tf_fp32.pb
+wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.dropbox.com/s/yhdxaf9wderav2a/mobilenet_v1_tflite_int8.tflite
+
 # mobilenet_v2
-wget -O classification/mobilenet_v2/mobilenet_v2_tf_fp32.pb https://www.dropbox.com/s/jnop89eowak1w6n/mobilenet_v2_tf_fp32.pb
-wget -O classification/mobilenet_v2/mobilenet_v2_tf_fp16.pb https://www.dropbox.com/s/ppzx4oz8ne9txeq/mobilenet_v2_fp16.pb
-wget -O classification/mobilenet_v2/mobilenet_v2_tflite_int8.tflite https://www.dropbox.com/s/s35x24b04apd9b7/mobilenet_v2_tflite_int8.tflite
+wget -O classification/mobilenet_v2/mobilenet_v2_tf_fp32.pb https://www.dropbox.com/s/thl4v2s6ngspkg3/mobilenet_v2_tf_fp32.pb
+wget -O classification/mobilenet_v2/mobilenet_v2_tf_fp16.pb https://www.dropbox.com/s/iqo5xchr8tx8qjt/mobilenet_v2_tf_fp16.pb
+wget -O classification/mobilenet_v2/mobilenet_v2_tflite_int8.tflite https://www.dropbox.com/s/euxgo5yficcif9i/mobilenet_v2_tflite_int8.tflite
 
 # resnet_50_v1.5
 wget -O classification/resnet_50_v15/resnet_50_v15_tf_fp32.pb https://www.dropbox.com/s/8pth3hamvsvp5q3/resnet_50_v15_tf_fp32.pb
@@ -48,26 +52,25 @@ wget -O classification/resnet_101_v2/resnet_101_v2_tf_fp32.pb https://www.dropbo
 wget -O classification/resnet_101_v2/resnet_101_v2_tf_fp16.pb https://www.dropbox.com/s/sq1qz2d39x6vtr8/resnet_101_v2_tf_fp16.pb
 wget -O classification/resnet_101_v2/resnet_101_v2_tflite_int8.tflite https://www.dropbox.com/s/n5sw2povn7cmdio/resnet_v2_101_tflite_int8.tflite
 
-# inception v3
-wget -O classification/inception_v3/inception_v3_tf_fp32.pb https://www.dropbox.com/s/ccfmzojpo3v90bv/inception_v3_tf_fp32.pb
-wget -O classification/inception_v3/inception_v3_tflite_int8.tflite https://www.dropbox.com/s/wtq3gix7lhyef6t/inception_v3_tflite_int8.tflite
-
 #inception v2
 wget -O classification/inception_v2/inception_v2_fp32.pb https://www.dropbox.com/s/lwm47zymbu7mcdl/inception_v2_tf_fp32.pb
 wget -O classification/inception_v2/inception_v2_fp16.pb  https://www.dropbox.com/s/rwf7wzcczncca1k/inception_v2_tf_fp16.pb
 wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/jk3qtrboknjsdkr/inception_v2_tflite_int8.tflite
 
-wget -O classification/inception_v2/inception_v2_tflite_int8.tflite https://www.dropbox.com/s/hystiauh7x6xjdp/inception_v2_quant.tflite
-
-# mobilenet_v1
-wget -O classification/mobilenet_v1/mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/eqdm9sloz7o10hd/mobilenet_v1_tf_fp32.pb
-wget -O classification/mobilenet_v1/mobilenet_v1_tflite_int8.tflite https://www.dropbox.com/s/yhdxaf9wderav2a/mobilenet_v1_tflite_int8.tflite
-
-# MnasNet_1.0_224 (nasnet mobile)
-wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
-wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
-wget -O classification/nasnet_mobile/mnasnet_tf_fp16.pb https://www.dropbox.com/s/9vhsd3qfe5dy4hh/mnasnet_tf_fp16.pb
+# inception v3
+wget -O classification/inception_v3/inception_v3_tf_fp32.pb https://www.dropbox.com/s/ccfmzojpo3v90bv/inception_v3_tf_fp32.pb
+wget -O classification/inception_v3/inception_v3_tflite_int8.tflite https://www.dropbox.com/s/wtq3gix7lhyef6t/inception_v3_tflite_int8.tflite
 
 # inception v4
 wget -O classification/inception_v4/inception_v4_tf_fp32.pb https://www.dropbox.com/s/icyu1qk33mrnzpt/inception_v4_tf_fp32.pb
 wget -O classification/inception_v4/inception_v4_tf_fp16.pb https://www.dropbox.com/s/tw24objllprx3nj/inception_v4_tf_fp16.pb
+
+# MnasNet_1.0_224 (nasnet mobile)
+wget -O classification/nasnet_mobile/mnasnet_tf_fp32.pb https://www.dropbox.com/s/2ja6mlrsartkyg8/mnasnet_tf_fp32.pb
+wget -O classification/nasnet_mobile/mnasnet_tf_fp16.pb https://www.dropbox.com/s/9vhsd3qfe5dy4hh/mnasnet_tf_fp16.pb
+wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.dropbox.com/s/3yrx7f0egyxoaxt/mnasnet_tflite_int8.tflite
+
+# Nasnet Large
+wget -O classification/nasnet_large/nasnet_large_tf_fp32.pb https://www.dropbox.com/s/9g41juu9zmebglc/nasnet_large_tf_fp32.pb
+wget -O classification/nasnet_large/nasnet_large_tf_fp16.pb https://www.dropbox.com/s/170ybm6ytpnbwge/nasnet_large_tf_fp16.pb
+
