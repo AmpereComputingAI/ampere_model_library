@@ -1,30 +1,26 @@
-# MobileNet v2
+# ResNet-101 v2
 
 
-This folder contains the script to run MobileNet V2 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 224x224 and has 1.0x multiplier.
+This folder contains the script to run ResNet-101 v2 on ImageNet classification task.\
+Variant supplied below in three different precisions accepts input of shape 299x299.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 
 ### Accuracy:
 
-based on 1000 images from ImageNet Validation Dataset
-
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 70%  | 90.5 %  |
-| FP16  | 70%  | 90.5 %  |
-| INT8  | 69%  | 90.3 %  |
+| FP32  | 74.0%  | 92.9 %  |
+| FP16  | 73.7%  | 93.1 %  |
+| INT8  | 74.0%  | 92.9 %  |
 
 
 ### Dataset and models
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
-
-
+model can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 

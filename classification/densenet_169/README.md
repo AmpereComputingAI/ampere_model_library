@@ -1,25 +1,29 @@
-# ResNet v2 101
+# DenseNet 169
 
 
-This folder contains the script to run ResNet v2 101 on ImageNet classification task.\
+This folder contains the script to run DenseNet 169 on ImageNet classification task.\
 Variant supplied below in three different precisions accepts input of shape 299x299.
 
-The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
+The original paper on the architecture is available here: https://arxiv.org/pdf/1608.06993.pdf
 
 
 ### Accuracy:
 
+based on 1000 images from ImageNet Validation Dataset
+
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 74.0%  | 92.9 %  |
-| INT8  | 74.0%  | 92.9 %  |
+| FP32  | 73.6%  | 92.6 %  |
+| FP16  | 73.6%  | 92.6 %  |
+| INT8  | 67.8%  | 87.9 %  |
+
 
 
 ### Dataset and models
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-model can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
+models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 

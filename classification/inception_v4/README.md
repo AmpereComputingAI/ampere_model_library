@@ -1,10 +1,10 @@
-# MobileNet v2
+# Inception V4
 
 
-This folder contains the script to run MobileNet V2 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 224x224 and has 1.0x multiplier.
+This folder contains the script to run Inception v4 on ImageNet classification task.\
+Variant supplied below in three different precisions accepts input of shape 299x299.
 
-The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
+The original paper on the architecture is available here: https://arxiv.org/pdf/1602.07261.pdf
 
 
 ### Accuracy:
@@ -13,9 +13,9 @@ based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 70%  | 90.5 %  |
-| FP16  | 70%  | 90.5 %  |
-| INT8  | 69%  | 90.3 %  |
+| FP32  | 77.8%  | 95.2%  |
+| FP16  | 77.8%  | 95.2%  |
+
 
 
 ### Dataset and models
@@ -23,8 +23,6 @@ based on 1000 images from ImageNet Validation Dataset
 Dataset can be downloaded here: https://www.image-net.org/
 
 models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
-
-
 
 ### Running instructions
 
