@@ -13,16 +13,16 @@ Based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 77.4%  | 93.4%  |
-| FP16  | 72.8%  | 90.9%  |
-| INT8  | 72.3%  | 90.3%  |
+| FP32  | 77.4 %  | 93.4 %  |
+| FP16  | 77.5 %  | 93.5 %  |
+| INT8  | 75.0 %  | 95.0 %  |
 
 
 ### Dataset
 
 dataset can be downloaded from here: https://www.image-net.org/
 
-
+model can be downloaded from here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 
