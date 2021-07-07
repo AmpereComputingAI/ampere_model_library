@@ -42,6 +42,7 @@ wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.drop
 # nasnet_large
 wget -O classification/nasnet_large/nasnet_large_tf_fp32.pb https://www.dropbox.com/s/9g41juu9zmebglc/nasnet_large_tf_fp32.pb
 wget -O classification/nasnet_large/nasnet_large_tf_fp16.pb https://www.dropbox.com/s/170ybm6ytpnbwge/nasnet_large_tf_fp16.pb
+wget -O classification/nasnet_large/nasnet_large_tflite_int8.tflite https://www.dropbox.com/s/52wauftnjh8izqk/nasnet_large_tflite_int8.tflite
 
 # resnet_50_v2
 wget -O classification/resnet_50_v2/resnet_50_v2_tf_fp32.pb https://www.dropbox.com/s/1bpxukbzftik5q5/resnet_50_v2_tf_fp32.pb
