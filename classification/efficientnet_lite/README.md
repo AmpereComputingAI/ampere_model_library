@@ -9,6 +9,8 @@ The original paper on the architecture is available here: INSERT LINK TO PAPER
 
 ### Accuracy:
 
+Based on 1000 images from ImageNet Validation Dataset
+
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 73.7 %  | 91.7 %  |
@@ -17,7 +19,9 @@ The original paper on the architecture is available here: INSERT LINK TO PAPER
 
 ### Dataset and models
 
-the dataset can be downloaded here: https://www.image-net.org/ 
+the dataset can be downloaded here: https://www.image-net.org/
+
+the model can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 

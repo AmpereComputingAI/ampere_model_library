@@ -83,7 +83,7 @@ def main():
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     else:
-        assert False
+        assert False, f"Behaviour undefined for precision {args.precision}"
 
 
 if __name__ == "__main__":
