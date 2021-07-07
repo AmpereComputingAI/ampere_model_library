@@ -1,29 +1,30 @@
-# Nasnet Large
+# VGG-16
 
 
-This folder contains the script to run Nasnet Large on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 331x331.
+This folder contains the script to run VGG-16 on ImageNet classification task.\
+Variant supplied below in three different precisions accepts input of shape 224x224.
 
-The original paper on the architecture is available here: https://arxiv.org/pdf/1707.07012.pdf
+The original paper on the architecture is available here: https://arxiv.org/pdf/1409.1556.pdf
+
 
 ### Accuracy:
 
-Based on 1000 images from ImageNet Validation Dataset
+based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 80.2 %  | 95.7 % |
-| FP16  | 80.6%  | 96.7%  |
-| INT8  | 80.8 %  | 95.8 %  |
+| FP32  | 65.8 %  | 87.7 %  |
+| FP16  | 65.7 %  | 87.7 %  |
+| INT8  | 65.5 %  | 87.4 %  |
 
 
 
-### Dataset
 
-Dataset can be acquired here https://www.image-net.org/
+### Dataset and models
 
-model can be downloaded from here:
-https://www.tensorflow.org/lite/guide/hosted_models
+Dataset can be downloaded here: https://www.image-net.org/
+
+models can be downloaded here: https://github.com/tensorflow/models/tree/master/research/slim
 
 ### Running instructions
 

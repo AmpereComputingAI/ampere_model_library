@@ -7,6 +7,11 @@ wget -O classification/densenet_169/densenet_169_tf_fp32.pb https://www.dropbox.
 wget -O classification/densenet_169/densenet_169_tf_fp16.pb https://www.dropbox.com/s/kaue3ualwq4qphp/densenet_169_tf_fp16.pb
 wget -O classification/densenet_169/densenet_169_tflite_int8.tflite https://www.dropbox.com/s/1nd80f3eq3y5d83/densenet_169_tflite_int8.tflite
 
+# inception resnet v2
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tf_fp16.pb https://www.dropbox.com/s/gph2519qfj0m56g/inception_resnet_v2_tf_fp16.pb
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tf_fp32.pb https://www.dropbox.com/s/cdpy80nqb2vg94i/inception_resnet_v2_tf_fp32.pb
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tflite_int8.tflite https://www.dropbox.com/s/dpqewxv1k9huy5j/inception_resnet_v2_tflite_int8.tflite
+
 #inception v2
 wget -O classification/inception_v2/inception_v2_fp32.pb https://www.dropbox.com/s/lwm47zymbu7mcdl/inception_v2_tf_fp32.pb
 wget -O classification/inception_v2/inception_v2_fp16.pb  https://www.dropbox.com/s/rwf7wzcczncca1k/inception_v2_tf_fp16.pb
@@ -37,6 +42,7 @@ wget -O classification/nasnet_mobile/mnasnet_tflite_int8.tflite https://www.drop
 # nasnet_large
 wget -O classification/nasnet_large/nasnet_large_tf_fp32.pb https://www.dropbox.com/s/9g41juu9zmebglc/nasnet_large_tf_fp32.pb
 wget -O classification/nasnet_large/nasnet_large_tf_fp16.pb https://www.dropbox.com/s/170ybm6ytpnbwge/nasnet_large_tf_fp16.pb
+wget -O classification/nasnet_large/nasnet_large_tflite_int8.tflite https://www.dropbox.com/s/52wauftnjh8izqk/nasnet_large_tflite_int8.tflite
 
 # resnet_50_v2
 wget -O classification/resnet_50_v2/resnet_50_v2_tf_fp32.pb https://www.dropbox.com/s/1bpxukbzftik5q5/resnet_50_v2_tf_fp32.pb
@@ -55,6 +61,11 @@ wget -O classification/resnet_101_v2/resnet_101_v2_tflite_int8.tflite https://ww
 # squeezenet
 wget -O classification/squeezenet/squeezenet_tf_fp32.pb https://www.dropbox.com/s/h6y4wazwod6qvnm/squeezenet_tf_fp32.pb
 wget -O classification/squeezenet/squeezenet_tflite_int8.tflite https://www.dropbox.com/s/bhxiyv8ixwiujt1/squeezenet_tflite_int8.tflite
+
+# vgg_16
+wget -O classification/vgg_16/vgg_16_tf_fp32.pb https://www.dropbox.com/s/871xghfb5x5ztj0/vgg_16_tf_fp32.pb
+wget -O classification/vgg_16/vgg_16_tf_fp16.pb https://www.dropbox.com/s/9grty90wna3oekw/vgg_16_tf_fp16.pb
+wget -O classification/vgg_16/vgg_16_tflite_int8.tflite https://www.dropbox.com/s/4ww0nqmq36pv0j5/vgg_16_tflite_int8.tflite
 
 # vgg_19
 wget -O classification/vgg_19/vgg_19_tf_fp32.pb https://www.dropbox.com/s/khw0sura36kel0z/vgg_19_tf_fp32.pb
