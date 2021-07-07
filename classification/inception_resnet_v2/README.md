@@ -4,7 +4,7 @@
 This folder contains the script to run Inception ResNet v2 on ImageNet classification task.\
 Variant supplied below in three different precisions accepts input of shape 299x299.
 
-The original paper on the architecture is available here: https://arxiv.org/abs/1512.00567
+The original paper on the architecture is available here: https://arxiv.org/pdf/1602.07261.pdf
 
 
 ### Accuracy:
