@@ -13,9 +13,9 @@ based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 66.6%  | 87.4%  |
-| FP16  | 67.0%  | 87.1%  |
-| INT8  | 66.8%  | 87.4%  |
+| FP32  | 65.8 %  | 87.7 %  |
+| FP16  | t  | t  |
+| INT8  | t  | t  |
 
 
 
@@ -23,7 +23,7 @@ based on 1000 images from ImageNet Validation Dataset
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
+models can be downloaded here: https://github.com/tensorflow/models/tree/master/research/slim
 
 ### Running instructions
 
