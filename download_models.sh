@@ -7,6 +7,11 @@ wget -O classification/densenet_169/densenet_169_tf_fp32.pb https://www.dropbox.
 wget -O classification/densenet_169/densenet_169_tf_fp16.pb https://www.dropbox.com/s/kaue3ualwq4qphp/densenet_169_tf_fp16.pb
 wget -O classification/densenet_169/densenet_169_tflite_int8.tflite https://www.dropbox.com/s/1nd80f3eq3y5d83/densenet_169_tflite_int8.tflite
 
+# inception resnet v2
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tf_fp16.pb https://www.dropbox.com/s/gph2519qfj0m56g/inception_resnet_v2_tf_fp16.pb
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tf_fp32.pb https://www.dropbox.com/s/cdpy80nqb2vg94i/inception_resnet_v2_tf_fp32.pb
+wget -O classification/inception_resnet_v2/inception_resnet_v2_tflite_int8.tflite https://www.dropbox.com/s/dpqewxv1k9huy5j/inception_resnet_v2_tflite_int8.tflite
+
 #inception v2
 wget -O classification/inception_v2/inception_v2_fp32.pb https://www.dropbox.com/s/lwm47zymbu7mcdl/inception_v2_tf_fp32.pb
 wget -O classification/inception_v2/inception_v2_fp16.pb  https://www.dropbox.com/s/rwf7wzcczncca1k/inception_v2_tf_fp16.pb
