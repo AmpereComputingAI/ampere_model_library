@@ -56,6 +56,11 @@ wget -O classification/resnet_101_v2/resnet_101_v2_tflite_int8.tflite https://ww
 wget -O classification/squeezenet/squeezenet_tf_fp32.pb https://www.dropbox.com/s/h6y4wazwod6qvnm/squeezenet_tf_fp32.pb
 wget -O classification/squeezenet/squeezenet_tflite_int8.tflite https://www.dropbox.com/s/bhxiyv8ixwiujt1/squeezenet_tflite_int8.tflite
 
+# vgg_16
+wget -O classification/vgg_16/vgg_16_tf_fp32.pb https://www.dropbox.com/s/871xghfb5x5ztj0/vgg_16_tf_fp32.pb
+wget -O classification/vgg_16/vgg_16_tf_fp16.pb https://www.dropbox.com/s/9grty90wna3oekw/vgg_16_tf_fp16.pb
+wget -O classification/vgg_16/vgg_16_tflite_int8.tflite https://www.dropbox.com/s/4ww0nqmq36pv0j5/vgg_16_tflite_int8.tflite
+
 # vgg_19
 wget -O classification/vgg_19/vgg_19_tf_fp32.pb https://www.dropbox.com/s/khw0sura36kel0z/vgg_19_tf_fp32.pb
 wget -O classification/vgg_19/vgg_19_tf_fp16.pb https://www.dropbox.com/s/0uzvmyotuv1yz5d/vgg_19_tf_fp16.pb
