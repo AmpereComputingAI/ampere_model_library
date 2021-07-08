@@ -57,6 +57,10 @@ def benchmark_nlp_model(model, batch_size, sequence_length, profiler, precision)
                                         sequence_lengths=[sequence_length], inference=True, cuda=False, tpu=True, verbose=False, memory=False,
                                         fp16=fp16, eager_mode=False, use_xla=False, repeat=1, num_runs=1, multi_process=False, save_to_csv=False, log_print=False)
     benchmark = TensorFlowBenchmark(args)
+
+    if profiler or os.environ.get('DLS_PROFILER', "0") == "1":
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+
     results = benchmark.run()
 
 
