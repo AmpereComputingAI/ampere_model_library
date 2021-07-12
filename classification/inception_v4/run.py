@@ -85,8 +85,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
                 imagenet.extract_top5(output_tensor[i])
             )
 
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=True)
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path, is1001classes=True)
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
