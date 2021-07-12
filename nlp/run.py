@@ -22,10 +22,10 @@ def parse_args():
 def benchmark_nlp_model(model, batch_size, sequence_length, intra):
 
     tf.config.threading.set_intra_op_parallelism_threads(intra)
-    tf.config.threading.set_inter_op_parallelism_threads(40)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
 
     args = TensorFlowBenchmarkArguments(models=[model], batch_sizes=[batch_size],
-                                        sequence_lengths=[sequence_length], no_memory=True)
+                                        sequence_lengths=[sequence_length], memory=True)
 
     benchmark = TensorFlowBenchmark(args)
     results = benchmark.run()
