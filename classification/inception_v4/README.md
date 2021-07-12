@@ -2,7 +2,7 @@
 
 
 This folder contains the script to run Inception v4 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 299x299.
+Variant supplied below in two different precisions accepts input of shape 299x299.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1602.07261.pdf
 

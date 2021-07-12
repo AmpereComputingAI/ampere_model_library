@@ -2,7 +2,7 @@
 
 
 This folder contains the script to run ResNet-50 v2 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 224x224.
+Variant supplied below in two different precisions accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1512.03385.pdf
 

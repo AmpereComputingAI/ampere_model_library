@@ -2,7 +2,7 @@
 
 
 This folder contains the script to run MobileNet v1 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 224x224 and has 1.0x multiplier.
+Variant supplied below in two different precisions accepts input of shape 224x224 and has 1.0x multiplier.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1704.04861.pdf
 

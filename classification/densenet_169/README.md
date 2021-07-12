@@ -2,7 +2,7 @@
 
 
 This folder contains the script to run DenseNet 169 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 299x299.
+Variant supplied below in three different precisions accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1608.06993.pdf
 
