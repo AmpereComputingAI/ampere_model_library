@@ -2,6 +2,7 @@ import utils.misc as utils
 import utils.dataset as utils_ds
 from scipy.io import wavfile
 import tensorflow as tf
+import pathlib
 
 
 class AudioSet(utils_ds.AudioDataset):
@@ -39,7 +40,7 @@ class AudioSet(utils_ds.AudioDataset):
 
         self.__ground_truth = self.__labels[self.__current_sound]
         self.__current_sound += 1
-        return self.__sound_path + file_name
+        return pathlib.PurePath(self.__sound_path, file_name)
 
     def get_input_array(self):
         """
