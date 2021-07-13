@@ -15,7 +15,6 @@ based on 1000 images from ImageNet Validation Dataset
 |:---:|:---:|:---:|
 | FP32  | 77.8%  | 95.2%  |
 | FP16  | 77.8%  | 95.2%  |
-| INT8  | tbm  | tbm  |
 
 
 
