@@ -4,14 +4,14 @@ import tensorflow as tf
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark NLP models")
-    parser.add_argument("-m", "--model", nargs='+', type=str, required=True,
+    parser.add_argument("-m", "--model", nargs='+', type=str, required=False, default=["bert-base-cased"],
                         help="you can see the available list of models here: "
                         "https://huggingface.co/transformers/pretrained_models.html")
     parser.add_argument("-b", "--batch_size", default=8,
                         type=int, required=False,
                         help="batch size to feed the model with")
     parser.add_argument("--sequence_length", nargs='+', required=False,
-                        type=int, default=8,
+                        type=int, default=[8],
                         help="sequence length to feed the model with")
     parser.add_argument("--intra", required=False,
                         type=int, default=1,
@@ -43,4 +43,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
