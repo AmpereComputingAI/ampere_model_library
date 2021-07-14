@@ -3,6 +3,7 @@ import argparse
 import tensorflow as tf
 import utils.benchmark as bench_utils
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark NLP models")
     parser.add_argument("-m", "--model", nargs='+', type=str, required=False, default=["bert-base-cased"],
