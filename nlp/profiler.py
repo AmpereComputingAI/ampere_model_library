@@ -20,17 +20,17 @@ def calculate_total_time(events_df):
     end = -1
     
     for index, row in events_df.iterrows():
-        print('start')
-        print(row["Start"])
-        print('duraton')
-        print(row["Duration"])
+        # print('start')
+        # print(row["Start"])
+        # print('duraton')
+        # print(row["Duration"])
 
-        print('func_end_time')
+        # print('func_end_time')
         func_end_time = row["Start"] + row["Duration"]
-        print(func_end_time)
+        # print(func_end_time)
 
-        print('end')
-        print(end)
+        # print('end')
+        # print(end)
         if func_end_time > end:
             end = func_end_time
 
