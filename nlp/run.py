@@ -29,19 +29,19 @@ def benchmark_nlp_model(model, batch_size, sequence_length):
     benchmark = TensorFlowBenchmark(args)
     results = benchmark.run()
 
-    for k, v in results.time_inference_result.items():
-
-        result = v.get("result")
-        batch_size = v.get("bs")
-        sequence_length = v.get("ss")
-
-        print('\n')
-        print(f'for model {k}:')
-        for i in batch_size:
-            for j in sequence_length:
-                inference_time = result.get(i).get(j)
-
-                print(f"for {i} batch size and {j} sequence length, the latency is {i/inference_time}")
+    # for k, v in results.time_inference_result.items():
+    #
+    #     result = v.get("result")
+    #     batch_size = v.get("bs")
+    #     sequence_length = v.get("ss")
+    #
+    #     print('\n')
+    #     print(f'for model {k}:')
+    #     for i in batch_size:
+    #         for j in sequence_length:
+    #             inference_time = result.get(i).get(j)
+    #
+    #             print(f"for {i} batch size and {j} sequence length, the latency is {i/inference_time}")
 
 
 def main():
