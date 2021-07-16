@@ -6,17 +6,43 @@ import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification, TFTrainer, TFTrainingArguments
 from sklearn.metrics import precision_recall_fscore_support
 from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
+import wget
+import subprocess
+from downloads.utils import get_downloads_path
+import pathlib
+from pathlib import Path
+import os
+
+dataset_filename = 'SMSSpamCollection'
+dataset_url = 'https://www.dropbox.com/s/ymd54rur6atkvqu/SMSSpamCollection'
+
+model_filename = 'model.tar.gz'
+model_url = 'https://www.dropbox.com/s/fp43347je178wo8/model.tar.gz'
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run MobileNet v2 model.")
-    parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
-                        help="path to the model")
-    parser.add_argument('-d', "--dataset_path", type=str, required=True,
-                        help="path to dataset")
+downloads_dir_path = pathlib.Path(get_downloads_path())
 
-    return parser.parse_args()
+path_to_dataset = Path(os.path.join(downloads_dir_path, dataset_filename))
+path_to_model = Path(os.path.join(downloads_dir_path, 'senti_model'))
+
+if path_to_dataset.is_file():
+    pass
+else:
+    try:
+        subprocess.run(["wget", dataset_url])
+        subprocess.run(["mv", dataset_filename, str(downloads_dir_path)])
+    except KeyboardInterrupt:
+        subprocess.run(["rm", dataset_filename])
+
+if path_to_model.is_dir():
+    pass
+else:
+    try:
+        subprocess.run(["wget", model_url])
+        subprocess.run(["tar", "-xf", model_filename, "-C", str(downloads_dir_path)])
+        subprocess.run(["rm", model_filename])
+    except KeyboardInterrupt:
+        subprocess.run(["rm", model_filename])
 
 
 def compute_metrics(pred):
@@ -32,7 +58,7 @@ def compute_metrics(pred):
     }
 
 
-def test_accuracy(pretrained_model, path_to_dataset):
+def test_accuracy(path_to_model, path_to_dataset):
 
     df = pd.read_csv(path_to_dataset, sep='\t',
                                names=["label", "message"])
@@ -71,7 +97,7 @@ def test_accuracy(pretrained_model, path_to_dataset):
     )
 
     with training_args.strategy.scope():
-        model = TFDistilBertForSequenceClassification.from_pretrained(pretrained_model)
+        model = TFDistilBertForSequenceClassification.from_pretrained(path_to_model)
 
     trainer = TFTrainer(
         model=model,                         # the instantiated 🤗 Transformers model to be trained
@@ -88,12 +114,4 @@ def test_accuracy(pretrained_model, path_to_dataset):
     print((accuracy['eval_accuracy']))
 
 
-def main():
-    args = parse_args()
-    test_accuracy(
-        args.model_path, args.dataset_path
-    )
-
-
-if __name__ == "__main__":
-    main()
+test_accuracy(path_to_model, path_to_dataset)
