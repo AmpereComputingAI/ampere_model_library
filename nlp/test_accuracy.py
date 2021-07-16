@@ -82,10 +82,9 @@ def test_accuracy(pretrained_model, path_to_dataset):
     )
 
     print('here: ')
-    print(trainer.evaluate())
 
-    print('here 2: ')
-    print(trainer.predict(test_dataset))
+    accuracy = trainer.evaluate()
+    print(type(accuracy))
 
 
 def main():
