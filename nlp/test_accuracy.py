@@ -81,7 +81,10 @@ def test_accuracy(pretrained_model, path_to_dataset):
         compute_metrics=compute_metrics
     )
 
+    print('here: ')
     print(trainer.evaluate())
+
+    print('here 2: ')
     print(trainer.predict(test_dataset))
 
 
