@@ -52,4 +52,5 @@ trainer = TFTrainer(
 )
 
 # print(trainer.evaluate(test_dataset))
+trainer.train()
 print(trainer.evaluate())
