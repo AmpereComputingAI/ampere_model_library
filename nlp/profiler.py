@@ -20,17 +20,8 @@ def calculate_total_time(events_df):
     end = -1
     
     for index, row in events_df.iterrows():
-        # print('start')
-        # print(row["Start"])
-        # print('duraton')
-        # print(row["Duration"])
 
-        # print('func_end_time')
         func_end_time = row["Start"] + row["Duration"]
-        # print(func_end_time)
-
-        # print('end')
-        # print(end)
         if func_end_time > end:
             end = func_end_time
 
@@ -76,6 +67,7 @@ def print_profiler_results_all(events_df, total):
     console.print(res_table)
 
 
+# still under development
 def print_profiler_results_all_by_occurrences(events_df, total):
     console = Console()
     res_table = Table(show_header=True, header_style="bold magenta", title="TF Profiler results - All ops")
@@ -191,7 +183,7 @@ def print_profiler_results(path_to_logs: str):
 
         var_read_op = variable_read_op_time(events_df)
         print_total_vs_dls_time(total, dls_time_sum, var_read_op)
-        # print_profiler_results_dls_only(dls_opts_df, total)
+        print_profiler_results_dls_only(dls_opts_df, total)
         # print_profiler_results_all(events_df, total)
-        print_profiler_results_all_by_occurrences(events_df, total)
+        # print_profiler_results_all_by_occurrences(events_df, total)
         generate_otput_csv_file(events_df, dls_opts_df, path_to_logs)
