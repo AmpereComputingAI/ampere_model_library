@@ -6,7 +6,6 @@ import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification, TFTrainer, TFTrainingArguments
 from sklearn.metrics import precision_recall_fscore_support
 from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
-import wget
 import subprocess
 from downloads.utils import get_downloads_path
 import pathlib
