@@ -34,9 +34,7 @@ def compute_metrics(pred):
 
 def test_accuracy(pretrained_model, path_to_dataset):
 
-    print(path_to_dataset)
-
-    df = messages = pd.read_csv(path_to_dataset, sep='\t',
+    df = pd.read_csv(path_to_dataset, sep='\t',
                                names=["label", "message"])
 
     X = list(df['message'])
@@ -85,8 +83,6 @@ def test_accuracy(pretrained_model, path_to_dataset):
 
     print(trainer.evaluate())
     print(trainer.predict(test_dataset))
-
-    trainer.save_model('senti_model')
 
 
 def main():
