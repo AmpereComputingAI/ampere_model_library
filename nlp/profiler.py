@@ -84,34 +84,12 @@ def print_profiler_results_all_by_occurrences(events_df, total):
     res_table.add_column("Ratio of total time %", width=10)
     res_table.add_column("Number of occurrences", width=5)
 
-    my_dict = {}
-
     df = events_df.groupby('Op_Name').Duration.sum()
-    # df1 = events_df.groupby('Op_Name')['Op_Name'].nunique()
-
     df1 = events_df.Op_Name.value_counts()
-
     test = pd.concat([df, df1], axis=1).reset_index()
-
     df_new = test.rename(columns={'index': 'Op_Name', 'Op_Name': 'Occurrences'})
-
     tetete = df_new.sort_values(by=['Occurrences'], ascending=False)
 
-    # df2 = pd.merge(df, df1, how="left", on="Op_Name")
-    # print(type(df))
-    # print(type(df1))
-    # print(type(test))
-    #
-    # print(df)
-    # print(df1)
-    # print(test)
-    # print(df_new)
-    # print(tetete)
-
-    print((tetete.Duration.sum()) * micro_to_seconds)
-
-    # print(df2)
-    # if 'name' in j["traceEvents"][i] and j["traceEvents"][i].get("name") not in my_dict.keys():
 
     for index, row in tetete.iterrows():
         name = row["Op_Name"]
