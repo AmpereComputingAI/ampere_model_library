@@ -3,6 +3,8 @@ from sklearn.model_selection import train_test_split
 from transformers import DistilBertTokenizerFast
 import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification, TFTrainer, TFTrainingArguments
+from sklearn.metrics import precision_recall_fscore_support
+from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 df = messages = pd.read_csv('/onspecta/dev/krishnaik_transformers/SMSSpamCollection', sep='\t',
                            names=["label", "message"])
@@ -31,6 +33,20 @@ test_dataset = tf.data.Dataset.from_tensor_slices((
     y_test
 ))
 
+
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
+    acc = accuracy_score(labels, preds)
+    return {
+        'accuracy': acc,
+        'f1': f1,
+        'precision': precision,
+        'recall': recall
+    }
+
+
 training_args = TFTrainingArguments(
     output_dir='./results',          # output directory
     num_train_epochs=2,              # total number of training epochs
@@ -48,9 +64,16 @@ trainer = TFTrainer(
     model=model,                         # the instantiated 🤗 Transformers model to be trained
     args=training_args,                  # training arguments, defined above
     train_dataset=train_dataset,         # training dataset
-    eval_dataset=test_dataset             # evaluation dataset
+    eval_dataset=test_dataset,             # evaluation dataset
+    compute_metrics=compute_metrics
 )
 
 # print(trainer.evaluate(test_dataset))
 trainer.train()
 print(trainer.evaluate())
+
+trainer.predict(test_dataset)
+
+trainer.save_model('senti_model')
+
+
