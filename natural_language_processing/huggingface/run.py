@@ -12,7 +12,7 @@ import csv
 # from tensorflow.python.framework.ops import disable_eager_execution
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Benchmark NLP models")
+    parser = argparse.ArgumentParser(description="Run NLP model from Hugging Face Transformers repo.")
     parser.add_argument("-m", "--model",
                         type=str, default='bert-base-uncased',
                         help="batch size to feed the model with")
