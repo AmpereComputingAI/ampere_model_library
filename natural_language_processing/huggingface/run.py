@@ -1,11 +1,11 @@
-from transformers import TensorFlowBenchmark, TensorFlowBenchmarkArguments, BertConfig
+import transformers
 
 import tensorflow as tf
 from tensorflow.python.profiler import model_analyzer
 from datetime import datetime
 import os
 import argparse
-import utils.misc as utils
+from utils.misc import print_goodbye_message_and_die
 from profiler import print_profiler_results
 import shutil
 import csv
@@ -13,89 +13,82 @@ import csv
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run NLP model from Hugging Face Transformers repo.")
-    parser.add_argument("-m", "--model",
-                        type=str, default='bert-base-uncased',
-                        help="batch size to feed the model with")
+    parser.add_argument("-m", "--model_name",
+                        type=str, required=True,
+                        help="name of the model")
+    # parser.add_argument("--profiler",
+    #                     action="store_const", const=True,
+    #                     help="Run the model with Tensorflow profiler")
+    parser.add_argument("-p,", "--precision",
+                        type=str, choices=["fp32", "fp16"], required=True,
+                        help="precision of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=8,
                         help="batch size to feed the model with")
-    parser.add_argument("--sequence_length",
+    parser.add_argument("-s", "--sequence_length",
                         type=int, default=8,
                         help="sequence length to feed the model with")
-    parser.add_argument("--profiler",
-                        action="store_const", const=True,
-                        help="Run the model with Tensorflow profiler")
-    parser.add_argument("--precision",
-                        type=str, default="fp32", choices=["fp32", "fp16"],
-                        help="precision of the model")
+    parser.add_argument("--timeout",
+                        type=float, default=60.0,
+                        help="timeout in seconds")
+    parser.add_argument("--num_runs",
+                        type=int,
+                        help="number of passes through network to execute")
     return parser.parse_args()
 
 
-def get_benchmark_args(model, batch_size, sequence_length, fp16, ):
-    return TensorFlowBenchmarkArguments(models=[model], batch_sizes=[batch_size], sequence_lengths=[sequence_length],
-                                        fp16=False, repeat=1, num_runs=num_of_runs, timeout=timeout,
-                                        inference=True, memory=False, eager_mode=False)
+def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, fp16):
+    return transformers.TensorFlowBenchmarkArguments(models=[model_name],
+                                                     batch_sizes=[batch_size],
+                                                     sequence_lengths=[sequence_length],
+                                                     num_runs=num_of_runs,
+                                                     timeout=timeout,
+                                                     fp16=fp16,
+                                                     repeat=1, memory=False)
 
 
-def run_tf_fp32(model, batch_size, sequence_length):
-    if profiler or os.environ.get('DLS_PROFILER', "0") == "1":
-        os.environ["PROFILER"] = "1"
+def parse_perf_metrics(output, model_name):
+    inference_output = output[0][model_name]
+    assert len(inference_output["bs"]) == 1
+    assert len(inference_output["ss"]) == 1
+    bs = inference_output["bs"][0]
+    ss = inference_output["ss"][0]
+    latency_in_s = inference_output["result"][bs][ss]
+    if type(latency_in_s) is str:
+        print_goodbye_message_and_die("Model seems to be unsupported by Transformers in requested config")
 
-        env_var = "PROFILER_LOG_DIR"
-        logs_dir = utils.get_env_variable(
-            env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
+    latency_in_ms = latency_in_s * 1000
+    instances_per_second = bs / latency_in_s
 
-        # set the logs
-        # remove old logs from logs directory
-        try:
-            shutil.rmtree(logs_dir + '/plugins/profile')
-        except FileNotFoundError:
-            print('no logs to clear, moving on ...')
-
-
-    benchmark = TensorFlowBenchmark(args)
-
-    if profiler or os.environ.get('DLS_PROFILER', "0") == "1":
-        tf.config.threading.set_inter_op_parallelism_threads(1)
-        # disable_eager_execution()
-
-    results = benchmark.run()
+    print("\n Latency: {:.0f} ms".format(latency_in_ms))
+    print(" Throughput: {:.2f} ips".format(instances_per_second))
+    return {"lat_ms": latency_in_ms, "throughput": instances_per_second}
 
 
-def run_tf_fp16(model, batch_size, sequence_length):
-    if profiler or os.environ.get('DLS_PROFILER', "0") == "1":
-        os.environ["PROFILER"] = "1"
+def run_tf_fp32(args):
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout)
+    runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=False))
+    return parse_perf_metrics(runner.run(), args.model_name)
 
-        env_var = "PROFILER_LOG_DIR"
-        logs_dir = utils.get_env_variable(
-            env_var, f"Path to profiler log directory has not been specified with {env_var} flag")
 
-        # set the logs
-        # remove old logs from logs directory
-        try:
-            shutil.rmtree(logs_dir + '/plugins/profile')
-        except FileNotFoundError:
-            print('no logs to clear, moving on ...')
-
-    benchmark = TensorFlowBenchmark(args)
-
-    if profiler or os.environ.get('DLS_PROFILER', "0") == "1":
-        tf.config.threading.set_inter_op_parallelism_threads(1)
-        # disable_eager_execution()
-
-    results = benchmark.run()
+def run_tf_fp16(args):
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout)
+    runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=True))
+    return parse_perf_metrics(runner.run(), args.model_name)
 
 
 def main():
+    try:
+        transformers.onspecta()
+    except AttributeError:
+        print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.")
+
     args = parse_args()
+
     if args.precision == "fp32":
-        run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
+        run_tf_fp32(args)
     elif args.precision == "fp16":
-        run_tf_fp16(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
+        run_tf_fp16(args)
     else:
         assert False
 

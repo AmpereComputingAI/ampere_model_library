@@ -54,6 +54,29 @@ def get_intra_op_parallelism_threads():
     return intra_op_parallelism_threads
 
 
+def benchmark_func(func, num_of_runs, timeout):
+    def benchmark(function):
+        start = time.time()
+        function()
+        return time.time() - start
+
+    _ = benchmark(func)
+
+    total_time = 0.
+    if num_of_runs is None:
+        i = 0
+        benchmarking_start = time.time()
+        while time.time() - benchmarking_start < timeout:
+            total_time += benchmark(func)
+            i += 1
+    else:
+        i = num_of_runs
+        for _ in tqdm(range(num_of_runs)):
+            total_time += benchmark(func)
+
+    return total_time / i
+
+
 def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
     """
     A function running model in unified way.
