@@ -79,10 +79,12 @@ def run_tf_fp16(args):
 
 
 def main():
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+
     try:
         transformers.onspecta()
     except AttributeError:
-        print_goodbye_message_and_die("\nOnSpecta's fork of Transformers repo is not installed.\n")
+        print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.")
 
     args = parse_args()
 
