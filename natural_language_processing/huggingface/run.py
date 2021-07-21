@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import argparse
 from utils.misc import print_goodbye_message_and_die
-from profiler import print_profiler_results
+from utils.profiling import set_profile_path, get_profile_path, summarize_tf_profiling
 import shutil
 import csv
 
@@ -16,9 +16,6 @@ def parse_args():
     parser.add_argument("-m", "--model_name",
                         type=str, required=True,
                         help="name of the model")
-    # parser.add_argument("--profiler",
-    #                     action="store_const", const=True,
-    #                     help="Run the model with Tensorflow profiler")
     parser.add_argument("-p,", "--precision",
                         type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model")
@@ -34,16 +31,20 @@ def parse_args():
     parser.add_argument("--num_runs",
                         type=int,
                         help="number of passes through network to execute")
+    parser.add_argument("--profiler",
+                        action="store_true",
+                        help="enables TF profiler tracing")
     return parser.parse_args()
 
 
-def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, fp16):
+def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, profiler, fp16):
     return transformers.TensorFlowBenchmarkArguments(models=[model_name],
                                                      batch_sizes=[batch_size],
                                                      sequence_lengths=[sequence_length],
                                                      num_runs=num_of_runs,
                                                      timeout=timeout,
                                                      fp16=fp16,
+                                                     profiler=profiler,
                                                      repeat=1, memory=False)
 
 
@@ -66,13 +67,13 @@ def parse_perf_metrics(output, model_name):
 
 
 def run_tf_fp32(args):
-    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout)
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, args.profiler)
     runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=False))
     return parse_perf_metrics(runner.run(), args.model_name)
 
 
 def run_tf_fp16(args):
-    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout)
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, args.profiler)
     runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=True))
     return parse_perf_metrics(runner.run(), args.model_name)
 
@@ -81,9 +82,12 @@ def main():
     try:
         transformers.onspecta()
     except AttributeError:
-        print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.")
+        print_goodbye_message_and_die("\nOnSpecta's fork of Transformers repo is not installed.\n")
 
     args = parse_args()
+
+    if args.profiler:
+        set_profile_path(args.model_name)
 
     if args.precision == "fp32":
         run_tf_fp32(args)
@@ -91,6 +95,9 @@ def main():
         run_tf_fp16(args)
     else:
         assert False
+
+    if args.profiler:
+        summarize_tf_profiling()
 
 
 if __name__ == "__main__":

@@ -54,13 +54,14 @@ def get_intra_op_parallelism_threads():
     return intra_op_parallelism_threads
 
 
-def benchmark_func(func, num_of_runs, timeout):
+def benchmark_func(func, num_of_runs, timeout, warm_up=True):
     def benchmark(function):
         start = time.time()
         function()
         return time.time() - start
 
-    _ = benchmark(func)
+    if warm_up:
+        _ = benchmark(func)
 
     total_time = 0.
     if num_of_runs is None:
