@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import argparse
 from utils.misc import print_goodbye_message_and_die
-from utils.profiling import set_profile_path, get_profile_path, summarize_tf_profiling
+from utils.profiling import *
 import shutil
 import csv
 
@@ -66,14 +66,14 @@ def parse_perf_metrics(output, model_name):
     return {"lat_ms": latency_in_ms, "throughput": instances_per_second}
 
 
-def run_tf_fp32(args):
-    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, args.profiler)
+def run_tf_fp32(args, use_profiler):
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, use_profiler)
     runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=False))
     return parse_perf_metrics(runner.run(), args.model_name)
 
 
-def run_tf_fp16(args):
-    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, args.profiler)
+def run_tf_fp16(args, use_profiler):
+    selected_args = (args.model_name, args.batch_size, args.sequence_length, args.num_runs, args.timeout, use_profiler)
     runner = transformers.TensorFlowBenchmark(get_TensorFlowBenchmarkArguments(*selected_args, fp16=True))
     return parse_perf_metrics(runner.run(), args.model_name)
 
@@ -88,17 +88,19 @@ def main():
 
     args = parse_args()
 
-    if args.profiler:
+    use_profiler = dls_profiler_enabled() or args.profiler
+
+    if use_profiler:
         set_profile_path(args.model_name)
 
     if args.precision == "fp32":
-        run_tf_fp32(args)
+        run_tf_fp32(args, use_profiler)
     elif args.precision == "fp16":
-        run_tf_fp16(args)
+        run_tf_fp16(args, use_profiler)
     else:
         assert False
 
-    if args.profiler:
+    if use_profiler:
         summarize_tf_profiling()
 
 
