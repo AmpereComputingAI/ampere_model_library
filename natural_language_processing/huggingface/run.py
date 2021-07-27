@@ -112,7 +112,7 @@ def main():
         assert False
 
     if use_profiler:
-        summarize_tf_profiling()
+        summarize_tf_profiling(get_profile_path())
 
 
 if __name__ == "__main__":
