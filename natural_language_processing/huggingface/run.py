@@ -38,6 +38,7 @@ def parse_args():
 
 
 def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, profiler, fp16):
+
     return transformers.TensorFlowBenchmarkArguments(models=[model_name],
                                                      batch_sizes=[batch_size],
                                                      sequence_lengths=[sequence_length],
@@ -45,7 +46,17 @@ def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, nu
                                                      timeout=timeout,
                                                      fp16=fp16,
                                                      profiler=profiler,
-                                                     repeat=1, memory=False)
+                                                     repeat=1,
+                                                     memory=False,
+                                                     inference=True,
+                                                     cuda=False,
+                                                     tpu=True,
+                                                     verbose=False,
+                                                     eager_mode=False,
+                                                     use_xla=False,
+                                                     multi_process=False,
+                                                     save_to_csv=False,
+                                                     log_print=False)
 
 
 def parse_perf_metrics(output, model_name):
