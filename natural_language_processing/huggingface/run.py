@@ -99,6 +99,8 @@ def main():
 
     args = parse_args()
 
+    print('test')
+
     use_profiler = dls_profiler_enabled() or args.profiler
 
     if use_profiler:
