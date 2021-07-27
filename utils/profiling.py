@@ -225,7 +225,7 @@ def print_profiler_results(path_to_logs: str):
 
         var_read_op = variable_read_op_time(events_df)
         print_total_vs_dls_time(total, dls_time_sum, var_read_op)
-        # print_profiler_results_dls_only(dls_opts_df, total)
+        print_profiler_results_dls_only(dls_opts_df, total)
         print_profiler_results_all(events_df, total)
         generate_otput_csv_file(events_df, dls_opts_df, path_to_logs)
 
