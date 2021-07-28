@@ -96,12 +96,8 @@ def print_csv_logfile_location(directory):
 
 
 def generate_output_csv_file(events_df, dls_opts_df, path_to_logs):
-    f = open(path_to_logs + '/output_data.csv', 'w')
-    writer = csv.writer(f)
-    writer.writerow(['name', 'time in milliseconds', 'ratio', 'occurrences'])
-    # events_df.to_csv(path_to_logs + '/output_data_df.csv', index = False)
+    events_df.to_csv(path_to_logs + '/output_data_df.csv', index=False)
     # TODO add business logic
-    f.close()
 
 
 def print_profiler_results(path_to_logs: str):
@@ -185,7 +181,6 @@ def set_profile_path(model_name):
     global profile_path
     profiler_results_dir_path = pathlib.Path(get_profiler_results_path())
     profile_path = os.path.join(profiler_results_dir_path, "{}_{:%Y_%m_%d_%H_%M_%S}".format(model_name, datetime.now()))
-    print(profile_path)
 
 
 def get_profile_path():
