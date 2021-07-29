@@ -2,7 +2,7 @@ import pandas as pd
 import argparse
 from sklearn.model_selection import train_test_split
 from transformers import DistilBertTokenizerFast
-from transformers import BertBertTokenizerFast
+from transformers import BertTokenizerFast
 import tensorflow as tf
 from transformers import TFDistilBertForSequenceClassification, TFTrainer, TFTrainingArguments
 from sklearn.metrics import precision_recall_fscore_support
@@ -71,7 +71,7 @@ def test_accuracy(path_to_model, path_to_dataset):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=0)
 
     # tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-    tokenizer = BertBertTokenizerFast.from_pretrained('bert-base-uncased')
+    tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
 
     train_encodings = tokenizer(X_train, truncation=True, padding=True)
     test_encodings = tokenizer(X_test, truncation=True, padding=True)
