@@ -16,7 +16,7 @@ from natural_language_processing.huggingface.profiler_results.utils import get_p
 micro_to_minutes = 1.66666667 * 10 ** (-8)
 micro_to_milliseconds = 0.001
 micro_to_seconds = 0.000001
-pd.set_option('display.max_rows', 500)
+profile_path = None
 
 
 def calculate_total_time(events_df):
@@ -29,7 +29,6 @@ def calculate_total_time(events_df):
         if func_end_time > end:
             end = func_end_time
 
-    print(end)
     return end
 
 
@@ -81,18 +80,17 @@ def print_total_vs_dls_time(total, dls_time_sum, variable_read_ops):
     table.add_column("DLS to Total ratio %", width=8, justify="right")
     table.add_column("DLS to Total ratio excle varReadOP %", width=11, justify="right")
     ratio = dls_time_sum / total * 100
-    ratio_excl_varReadOP = dls_time_sum / (total - variable_read_ops) * 100
+    ratio_excl_var_read_op = dls_time_sum / (total - variable_read_ops) * 100
     table.add_row("{:.5f}".format(total * micro_to_seconds), "{:.5f}".format(dls_time_sum * micro_to_seconds),
-                  "{:.2f}".format(ratio), "{:.2f}".format(ratio_excl_varReadOP))
+                  "{:.2f}".format(ratio), "{:.2f}".format(ratio_excl_var_read_op))
     console.print(table)
 
 
 def print_csv_logfile_location(directory):
-    console = Console()
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("CSV log file stored under address:", width=118, justify="center")
-    table.add_row(directory)
-    console.print(table)
+    print('\n')
+    print(" CSV log file stored under address:")
+    print(" " + directory)
+    print('\n')
 
 
 def generate_output_csv_file(events_df, dls_opts_df, path_to_logs):
@@ -112,52 +110,19 @@ def print_profiler_results(path_to_logs: str):
     json_path = directory + '/' + matching[-1]
 
     with gzip.open(json_path, "r") as f:
+
         data = f.read()
         json_data = json.loads(data.decode('utf-8'))
 
-        data_columns = ["Op_Name", "Start", "Duration", "occurrences", "Shape", "Is_DLS_Op"]
+        data_columns = ["Op_Name", "Start", "Duration", "occurrences", "Shape", "is_DLS_Op"]
         events_df = pd.DataFrame(columns=data_columns)
 
-        # unique_operations = {}
-
-        for i in range(len(json_data["traceEvents"])):
-            name = ""
-            start = -1.0
-            duration = -1.0
-            shape = str("")
-            is_DLS_Op = False
-            occurrences = 0
-
-            if 'name' in json_data["traceEvents"][i]:
-                tmp_name = json_data["traceEvents"][i].get("name")
-                if tmp_name not in events_df["Op_Name"]:
-                    name = tmp_name
-                    occurrences = 1
-                    if json_data["traceEvents"][i]["name"].find("DLS") != -1:
-                        is_DLS_Op = True
-                else:
-                    occurrences_val = events_df.loc[events_df['Op_Name'] == tmp_name]["occurrences"]
-                    occurrences_val = occurrences_val + 1
-                    events_df.loc[events_df['Op_Name'] == tmp_name]["occurrences"] = occurrences_val
-
-            if 'dur' in json_data["traceEvents"][i].keys():
-                duration = json_data["traceEvents"][i].get("dur")
-
-            if 'ts' in json_data["traceEvents"][i].keys():
-                start = json_data["traceEvents"][i].get("ts")
-
-            if 'args' in json_data["traceEvents"][i].keys():
-                if 'shape' in json_data["traceEvents"][i]['args'].keys():
-                    shape_str = json_data["traceEvents"][i]['args'].get("shape")
-                    if bool(shape_str.strip().replace('(', '').replace(')', '')):
-                        shape = shape_str
-            events_df = events_df.append(pd.DataFrame([[name, start, duration, occurrences, shape, is_DLS_Op]],
-                                                      columns=data_columns), ignore_index=True)
+        events_df = parse_tfprofiler_json_file(json_data, events_df, data_columns)
 
         events_df = events_df.sort_values(by="Duration", ascending=False)
         total = calculate_total_time(events_df)
 
-        dls_opts_df = events_df[events_df["Is_DLS_Op"] == True]
+        dls_opts_df = events_df[events_df["is_DLS_Op"] == True]
         dls_opts_df = dls_opts_df.sort_values(by="Duration", ascending=False)
         dls_time_sum = dls_opts_df["Duration"].sum()
 
@@ -167,7 +132,42 @@ def print_profiler_results(path_to_logs: str):
         generate_output_csv_file(events_df, dls_opts_df, path_to_logs)
 
 
-profile_path = None
+def parse_tfprofiler_json_file(json_data, events_df, data_columns):
+    for i in range(len(json_data["traceEvents"])):
+        name = ""
+        start = -1.0
+        duration = -1.0
+        shape = str("")
+        is_dls_op = False
+        occurrences = 0
+
+        if 'name' in json_data["traceEvents"][i]:
+            tmp_name = json_data["traceEvents"][i].get("name")
+            if tmp_name not in events_df["Op_Name"]:
+                name = tmp_name
+                occurrences = 1
+                if json_data["traceEvents"][i]["name"].find("DLS") != -1:
+                    is_dls_op = True
+            else:
+                occurrences_val = events_df.loc[events_df['Op_Name'] == tmp_name]["occurrences"]
+                occurrences_val = occurrences_val + 1
+                events_df.loc[events_df['Op_Name'] == tmp_name]["occurrences"] = occurrences_val
+
+        if 'dur' in json_data["traceEvents"][i].keys():
+            duration = json_data["traceEvents"][i].get("dur")
+
+        if 'ts' in json_data["traceEvents"][i].keys():
+            start = json_data["traceEvents"][i].get("ts")
+
+        if 'args' in json_data["traceEvents"][i].keys():
+            if 'shape' in json_data["traceEvents"][i]['args'].keys():
+                shape_str = json_data["traceEvents"][i]['args'].get("shape")
+                if bool(shape_str.strip().replace('(', '').replace(')', '')):
+                    shape = shape_str
+        events_df = events_df.append(pd.DataFrame([[name, start, duration, occurrences, shape, is_dls_op]],
+                                                  columns=data_columns), ignore_index=True)
+
+    return events_df
 
 
 def dls_profiler_enabled():
