@@ -1,6 +1,3 @@
-[submodule "nlp/transformers"]
-	path = natural_language_processing/huggingface/transformers
-	url = git@github.com:OnSpecta/transformers.git
 [submodule "natural_language_processing/huggingface/transformers"]
 	path = natural_language_processing/huggingface/transformers
 	url = git@github.com:OnSpecta/transformers.git
