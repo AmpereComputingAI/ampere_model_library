@@ -26,10 +26,10 @@ def parse_args():
                         type=int, default=8,
                         help="sequence length to feed the model with")
     parser.add_argument("--timeout",
-                        type=float, default=60.0,
+                        type=float, default=15.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
-                        type=int, default=100,
+                        type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--profiler",
                         action="store_true",
@@ -50,10 +50,8 @@ def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, nu
                                                      memory=False,
                                                      inference=True,
                                                      cuda=False,
-                                                     tpu=True,
                                                      verbose=False,
                                                      eager_mode=False,
-                                                     use_xla=False,
                                                      multi_process=False,
                                                      save_to_csv=False,
                                                      log_print=False)
