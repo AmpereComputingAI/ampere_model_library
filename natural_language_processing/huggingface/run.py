@@ -29,7 +29,7 @@ def parse_args():
                         type=float, default=60.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
-                        type=int,
+                        type=int, default=100,
                         help="number of passes through network to execute")
     parser.add_argument("--profiler",
                         action="store_true",
@@ -95,7 +95,9 @@ def main():
     try:
         transformers.onspecta()
     except AttributeError:
-        print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.")
+        print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.\n"
+                                      "please refer to the README.md in natural_language_processing directory for "
+                                      "instructions on how to set up the project")
 
     args = parse_args()
 
