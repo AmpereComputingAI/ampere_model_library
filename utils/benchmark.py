@@ -55,6 +55,16 @@ def get_intra_op_parallelism_threads():
 
 
 def benchmark_func(func, num_of_runs, timeout, warm_up=True):
+    """
+    A function for benchmarking functions compliant to model_zoo approach in other parts of the code.
+
+    :param func: python function to be benchmarked
+    :param num_of_runs: int, number of func invocations to be done
+    :param timeout: float, time expressed in seconds after which benchmarking should be stopped
+    :param warm_up: bool, whether to do a single warm-up run excluded from measurements
+
+    :return: latency in seconds
+    """
     def benchmark(function):
         start = time.time()
         function()
