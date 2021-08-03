@@ -7,6 +7,7 @@ import os
 import argparse
 from utils.misc import print_goodbye_message_and_die
 from utils.profiling import *
+from utils.benchmark import get_intra_op_parallelism_threads
 import shutil
 import csv
 
@@ -79,6 +80,7 @@ def run_tf_fp16(args, use_profiler):
 
 
 def main():
+    tf.config.threading.set_intra_op_parallelism_threads(get_intra_op_parallelism_threads())
     tf.config.threading.set_inter_op_parallelism_threads(1)
 
     try:
