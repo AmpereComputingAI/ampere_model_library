@@ -38,7 +38,6 @@ def parse_args():
 
 
 def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, profiler, fp16):
-
     return transformers.TensorFlowBenchmarkArguments(models=[model_name],
                                                      batch_sizes=[batch_size],
                                                      sequence_lengths=[sequence_length],
@@ -46,15 +45,7 @@ def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, nu
                                                      timeout=timeout,
                                                      fp16=fp16,
                                                      profiler=profiler,
-                                                     repeat=1,
-                                                     memory=False,
-                                                     inference=True,
-                                                     cuda=False,
-                                                     verbose=False,
-                                                     eager_mode=False,
-                                                     multi_process=False,
-                                                     save_to_csv=False,
-                                                     log_print=False)
+                                                     repeat=1, memory=False)
 
 
 def parse_perf_metrics(output, model_name):
@@ -94,8 +85,8 @@ def main():
         transformers.onspecta()
     except AttributeError:
         print_goodbye_message_and_die("OnSpecta's fork of Transformers repo is not installed.\n"
-                                      "please refer to the README.md in natural_language_processing directory for "
-                                      "instructions on how to set up the project")
+                                      "\nPlease refer to the README.md in natural_language_processing/huggingface "
+                                      "directory for instructions on how to set up the project.")
 
     args = parse_args()
 
@@ -117,4 +108,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
