@@ -127,4 +127,6 @@ def pre_process_inception(input_array):
     input_array /= 255.
     input_array -= 0.5
     input_array *= 2.
+
+    print(input_array.dtype)
     return input_array

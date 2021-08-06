@@ -1,17 +1,26 @@
 import argparse
+import torch
+import torchvision
+import torchvision.models as models
+# import models.pt_models as models
+import numpy as np
+
+from utils.benchmark import run_model
 from utils.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
-from utils.benchmark import run_model
+from utils.pytorch import PyTorchRunner
+
+PYTORCH_MODEL_NAME = 'resnet50'
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run ResNet-50 v2 model.")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str, required=False,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "int8"], required=True,
+                        type=str, choices=["fp32", "int8", "pytorch"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -32,7 +41,6 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
         tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
@@ -51,8 +59,28 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
+    def run_single_pass(pytorch_runner, imagenet):
+        shape = (224, 224)
+        test = imagenet.get_input_array(shape)
+        output = pytorch_runner.run(test)
+        x_np = output.detach().numpy()
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(x_np[i]),
+                imagenet.extract_top5(x_np[i])
+            )
+
+    dataset = ImageNet(batch_size, "BGR", images_path, labels_path, is1001classes=False, order='NCHW')
+    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
     def run_single_pass(tflite_runner, imagenet):
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
@@ -81,6 +109,10 @@ def main():
     elif args.precision == "int8":
         run_tflite_int8(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+        )
+    elif args.precision == "pytorch":
+        run_torch_fp32(
+            args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
     else:
         assert False

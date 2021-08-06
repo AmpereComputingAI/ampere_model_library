@@ -11,7 +11,7 @@ class ImageNet(utils_ds.ImageDataset):
     """
 
     def __init__(self, batch_size: int, color_model: str,
-                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False):
+                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False, order=None):
 
         if images_path is None:
             env_var = "IMAGENET_IMG_PATH"
@@ -33,6 +33,7 @@ class ImageNet(utils_ds.ImageDataset):
         self.__top_1_count = 0
         self.__top_5_count = 0
         self.path_to_latest_image = None
+        self.__order = order
         super().__init__()
 
     def __parse_val_file(self, labels_path, is1001classes):
@@ -92,6 +93,11 @@ class ImageNet(utils_ds.ImageDataset):
             )
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
+        if self.__order:
+            # for pytorch
+            if self.__order == 'NCHW':
+                input_array = np.transpose(input_array, (0, 3, 2, 1))
+                print(input_array.dtype)
         return input_array
 
     def extract_top1(self, output_array):
