@@ -61,11 +61,13 @@ class PyTorchRunner:
             utils.print_goodbye_message_and_die(
                 f"{model} not supported by torchvision!")
 
-        self.__model = torchvision.models.__dict__[model](pretrained=True, progress=True)
-        self.__model_script = torch.jit.script(self.__model)
+        self.__model = torchvision.models.__dict__[model](pretrained=True)
+        # self.__model.eval()
+        # self.__model_script = torch.jit.script(self.__model)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
+
 
     def run(self, input):
         """
@@ -74,11 +76,13 @@ class PyTorchRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
+        # PROBLEM MIGHT BE WITH DATA LOADING
         start = time.time()
         input_tensor = torch.from_numpy(input)
-        output_tensor = self.__model_script(input_tensor)
+        output_tensor = self.__model(input_tensor)
         finish = time.time()
+        output_tensor = output_tensor.detach().numpy()
+
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start

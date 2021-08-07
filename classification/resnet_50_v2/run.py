@@ -2,7 +2,6 @@ import argparse
 import torch
 import torchvision
 import torchvision.models as models
-# import models.pt_models as models
 import numpy as np
 
 from utils.benchmark import run_model
@@ -63,18 +62,17 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        test = imagenet.get_input_array(shape)
-        output = pytorch_runner.run(test)
-        x_np = output.detach().numpy()
+        output = pytorch_runner.run(imagenet.get_input_array(shape))
+        output = output.detach().numpy()
 
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(x_np[i]),
-                imagenet.extract_top5(x_np[i])
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
             )
 
-    dataset = ImageNet(batch_size, "BGR", images_path, labels_path, is1001classes=False, order='NCHW')
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path, is1001classes=False, order='NCHW')
     runner = PyTorchRunner(PYTORCH_MODEL_NAME)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)

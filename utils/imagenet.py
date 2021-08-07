@@ -85,19 +85,21 @@ class ImageNet(utils_ds.ImageDataset):
         :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
         initialization
         """
-        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+        if self.__order == 'NCHW':
+            input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
+        else:
+            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
+
+            input_array = input_array.astype("float32")
             self.path_to_latest_image = self.__get_path_to_img()
             input_array[i], _ = self._ImageDataset__load_image(
-                self.path_to_latest_image, target_shape, self.__color_model
+                self.path_to_latest_image, target_shape, self.__color_model, self.__order
             )
+            print(self.path_to_latest_image)
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
-        if self.__order:
-            # for pytorch
-            if self.__order == 'NCHW':
-                input_array = np.transpose(input_array, (0, 3, 2, 1))
-                print(input_array.dtype)
+
         return input_array
 
     def extract_top1(self, output_array):
@@ -107,7 +109,10 @@ class ImageNet(utils_ds.ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: int, index of highest value in the supplied array
         """
+        # print(output_array)
+        # print(output_array.shape)
         top_1_index = np.argmax(output_array)
+        print(top_1_index)
         return top_1_index
 
     def extract_top5(self, output_array):
@@ -132,6 +137,8 @@ class ImageNet(utils_ds.ImageDataset):
         ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
+        print('GT')
+        print(ground_truth)
 
     def summarize_accuracy(self):
         """
