@@ -96,7 +96,7 @@ class ImageNet(utils_ds.ImageDataset):
             input_array[i], _ = self._ImageDataset__load_image(
                 self.path_to_latest_image, target_shape, self.__color_model, self.__order
             )
-            print(self.path_to_latest_image)
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
 
@@ -109,10 +109,7 @@ class ImageNet(utils_ds.ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: int, index of highest value in the supplied array
         """
-        # print(output_array)
-        # print(output_array.shape)
         top_1_index = np.argmax(output_array)
-        print(top_1_index)
         return top_1_index
 
     def extract_top5(self, output_array):
@@ -137,8 +134,6 @@ class ImageNet(utils_ds.ImageDataset):
         ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
-        print('GT')
-        print(ground_truth)
 
     def summarize_accuracy(self):
         """

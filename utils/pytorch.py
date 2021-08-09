@@ -3,6 +3,9 @@ import torch
 import utils.misc as utils
 import time
 import utils.benchmark as bench_utils
+import numpy as np
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 
 class TFSavedModelRunner:
@@ -62,8 +65,6 @@ class PyTorchRunner:
                 f"{model} not supported by torchvision!")
 
         self.__model = torchvision.models.__dict__[model](pretrained=True)
-        # self.__model.eval()
-        # self.__model_script = torch.jit.script(self.__model)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
@@ -76,8 +77,7 @@ class PyTorchRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
-        # PROBLEM MIGHT BE WITH DATA LOADING
-        start = time.time()
+
         input_tensor = torch.from_numpy(input)
         output_tensor = self.__model(input_tensor)
         finish = time.time()
