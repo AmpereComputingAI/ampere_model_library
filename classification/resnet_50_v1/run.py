@@ -11,11 +11,8 @@ PYTORCH_MODEL_NAME = 'resnet50'
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run ResNet-50 v1 model.")
-    parser.add_argument("-m", "--model_path",
-                        type=str, required=False,
-                        help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "int8", "pytorch"], required=True,
+                        type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -48,7 +45,8 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
                 imagenet.extract_top5(output[i])
             )
 
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path, is1001classes=False, order='NCHW')
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing='Inception', is1001classes=False, order='NCHW')
     runner = PyTorchRunner(PYTORCH_MODEL_NAME)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
