@@ -58,6 +58,8 @@ def main():
         run_torch_fp32(
             args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
         )
+    else:
+        assert False, f"Behaviour undefined for precision {args.precision}"
 
 
 if __name__ == "__main__":

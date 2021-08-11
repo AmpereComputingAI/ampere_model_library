@@ -29,7 +29,7 @@ class ImageDataset:
         horizontal_ratio = target_shape[1] / image_array.shape[1]
         return cv2.resize(image_array, target_shape), (vertical_ratio, horizontal_ratio)
 
-    def __load_image(self, image_path, target_shape, color_model: str, order: str):
+    def __load_image(self, image_path, target_shape, color_model: str, order=None):
         """
         A function loading image available under the supplied path and then applying proper rescaling/resizing.
 
