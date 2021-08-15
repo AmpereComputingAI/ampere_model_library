@@ -5,7 +5,6 @@ import time
 import utils.benchmark as bench_utils
 import numpy as np
 import sys
-np.set_printoptions(threshold=sys.maxsize)
 
 
 class PyTorchRunner:

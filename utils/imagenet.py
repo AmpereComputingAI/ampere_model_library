@@ -11,7 +11,7 @@ class ImageNet(utils_ds.ImageDataset):
     """
 
     def __init__(self, batch_size: int, color_model: str,
-                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False, order=None):
+                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False, order="NHWC"):
 
         if images_path is None:
             env_var = "IMAGENET_IMG_PATH"
