@@ -2,7 +2,7 @@ Please run the following command to make modules from this repository available 
 ```
 export PYTHONPATH=/path/to/model_zoo
 ```
-
+# Prerequisites
 In order to use the script in the following directory for easy benchmarking of NLP models, you need to have 
 OnSpecta's fork of Transformers repository.
 
@@ -17,13 +17,13 @@ git submodule update --init --recursive
 cd huggingface/transformers
 pip install -e .
 ```
-
+# Run
 Now you can run the benchmarking script. You can run it in the following manner
 ```
 python3 huggingface/run.py -m bert-base-uncased -p fp32 -b 8 --sequence_length 8
 ```
 
-Common issues
+# Common issues
 ## Missing utils.misc
 ```
 ModuleNotFoundError: No module named 'utils.misc'
