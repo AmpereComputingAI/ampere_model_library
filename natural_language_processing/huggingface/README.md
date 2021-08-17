@@ -8,6 +8,11 @@ OnSpecta's fork of Transformers repository.
 
 Please run the following commands
 ```
+# Install rust compiler
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Make rust compiler available 
+source $HOME/.cargo/env
+
 git submodule update --init --recursive
 cd huggingface/transformers
 pip install -e .
