@@ -20,7 +20,7 @@ pip install -e .
 
 Now you can run the benchmarking script. You can run it in the following manner
 ```
-python3 huggingface/run.py -m bert-base-uncased -p fp32 -b 8 -sequence_length 8
+python3 huggingface/run.py -m bert-base-uncased -p fp32 -b 8 --sequence_length 8
 ```
 
 Common issues
