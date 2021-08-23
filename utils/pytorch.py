@@ -14,6 +14,8 @@ class PyTorchRunner:
 
     def __init__(self, model: str):
 
+        torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
+
         if model not in torchvision.models.__dict__:
             utils.print_goodbye_message_and_die(
                 f"{model} not supported by torchvision!")
