@@ -24,6 +24,8 @@ class TFLiteRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        print("\nRunning with TensorFlow Lite\n")
+
     def set_input_tensor(self, input_index: int, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input index.

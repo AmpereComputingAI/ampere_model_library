@@ -49,7 +49,7 @@ def get_intra_op_parallelism_threads():
             utils.print_goodbye_message_and_die("Number of intra threads to use is not set!"
                                                 "\nUse DLS_NUM_THREADS or OMP_NUM_THREADS flags.")
 
-        print(f"\nRunning with {intra_op_parallelism_threads} threads\n")
+        print(f"\nIntraop parallelism set to {intra_op_parallelism_threads} threads\n")
 
     return intra_op_parallelism_threads
 
