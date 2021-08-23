@@ -29,13 +29,14 @@ class ImageDataset:
         horizontal_ratio = target_shape[1] / image_array.shape[1]
         return cv2.resize(image_array, target_shape), (vertical_ratio, horizontal_ratio)
 
-    def __load_image(self, image_path, target_shape, color_model: str):
+    def __load_image(self, image_path, target_shape, color_model: str, order="NHWC"):
         """
         A function loading image available under the supplied path and then applying proper rescaling/resizing.
 
         :param image_path: PathLib.PurePath or str, path to the image
         :param target_shape: tuple of intended image shape (height, width)
         :param color_model: str, color model of image data, possible values: ["RGB", "BGR"]
+        :param order: str, the order of image data, possible values: ["NCHW", "NHWC"]
         :return: numpy array with resized image data in NHWC/NCHW format
         """
         if color_model not in ["RGB", "BGR"]:
@@ -47,4 +48,9 @@ class ImageDataset:
         if color_model == "RGB":
             image_array = image_array[:, :, [2, 1, 0]]  # cv2 loads images in BGR order
         image_array, resize_ratios = self.__resize_image(image_array, target_shape)
-        return np.expand_dims(image_array, axis=0), resize_ratios
+        image = np.expand_dims(image_array, axis=0)
+
+        if order == 'NCHW':
+            image = np.transpose(image, (0, 3, 1, 2))
+
+        return image, resize_ratios

@@ -11,7 +11,7 @@ class ImageNet(utils_ds.ImageDataset):
     """
 
     def __init__(self, batch_size: int, color_model: str,
-                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False):
+                 images_path=None, labels_path=None, pre_processing=None, is1001classes=False, order="NHWC"):
 
         if images_path is None:
             env_var = "IMAGENET_IMG_PATH"
@@ -33,6 +33,7 @@ class ImageNet(utils_ds.ImageDataset):
         self.__top_1_count = 0
         self.__top_5_count = 0
         self.path_to_latest_image = None
+        self.__order = order
         super().__init__()
 
     def __parse_val_file(self, labels_path, is1001classes):
@@ -84,14 +85,19 @@ class ImageNet(utils_ds.ImageDataset):
         :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
         initialization
         """
-        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+        if self.__order == 'NCHW':
+            input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
+        else:
+            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             self.path_to_latest_image = self.__get_path_to_img()
             input_array[i], _ = self._ImageDataset__load_image(
-                self.path_to_latest_image, target_shape, self.__color_model
+                self.path_to_latest_image, target_shape, self.__color_model, self.__order
             )
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
+
         return input_array
 
     def extract_top1(self, output_array):
