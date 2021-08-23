@@ -26,6 +26,8 @@ class PyTorchRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        print("\nRunning with PyTorch\n")
+
     def run(self, input):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed

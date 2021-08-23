@@ -28,6 +28,8 @@ class TFFrozenModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        print("\nRunning with TensorFlow\n")
+
     def __create_config(self, intra_threads: int, inter_threads=1):
         """
         A function creating TF config for given num of threads.
