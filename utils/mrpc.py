@@ -1,0 +1,60 @@
+from transformers import AutoTokenizer
+import tensorflow as tf
+import pandas as pd
+import numpy as np
+
+
+class MRPC:
+
+    def __init__(self, model_name: str, batch_size: int, mrpc_dataset_path: None):
+
+        self.__batch_size = batch_size
+        self.__mrpc_dataset_path = mrpc_dataset_path
+        self.__mrpc_dataset = pd.read_csv(self.__mrpc_dataset_path, sep=r'\t', engine='python').to_numpy()
+        self.__tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        self.__current_sentence = 0
+        self.available_instances = len(self.__mrpc_dataset)
+        self.__label = None
+        self.__correct = 0
+        self.__incorrect = 0
+        self.__count = 0
+        # super().__init__()
+
+    def __get_sentence_index(self):
+
+        self.__current_sentence += 1
+        return self.__current_sentence
+
+    def get_input_array(self):
+
+        sequence_0_b = []
+        sequence_1_b = []
+        index = self.__get_sentence_index()
+        for i in range(self.__batch_size):
+            sequence_0_b.append(self.__mrpc_dataset[index, 3])
+            sequence_1_b.append(self.__mrpc_dataset[index, 4])
+
+        self.__label = int(self.__mrpc_dataset[index, 0])
+
+        input = self.__tokenizer(sequence_0_b, sequence_1_b, return_tensors="tf")
+
+        return input
+
+    def submit_predictions(self, output):
+
+        prediction = np.argmax(output, axis=0)
+        if self.__label == prediction:
+            self.__correct += 1
+        else:
+            self.__incorrect += 1
+        self.__count += 1
+
+    def summarize_accuracy(self):
+
+        correct = self.__correct / self.__current_sentence
+        print("\n Correct = {:.3f}".format(correct))
+
+        print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
+        return {"Correct": correct}
+

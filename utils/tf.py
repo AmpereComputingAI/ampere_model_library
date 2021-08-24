@@ -3,6 +3,39 @@ import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from tensorflow.python.saved_model import tag_constants
+from transformers import TFAutoModelForSequenceClassification
+
+
+class NLPModelRunner:
+    """
+    A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
+    """
+    def __init__(self, model_name: str):
+
+        self.__model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
+        self.__warm_up_run_latency = 0.0
+        self.__total_inference_time = 0.0
+        self.__times_invoked = 0
+
+    def run(self, input):
+
+        paraphrase_classification_logits = self.__model(input)[0]
+        start = time.time()
+        output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()[0]
+        finish = time.time()
+
+        self.__total_inference_time += finish - start
+        if self.__times_invoked == 0:
+            self.__warm_up_run_latency += finish - start
+        self.__times_invoked += 1
+
+        return output
+
+    def print_performance_metrics(self, batch_size):
+
+        perf = bench_utils.print_performance_metrics(
+            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+        return perf
 
 
 class TFFrozenModelRunner:
