@@ -4,6 +4,7 @@ import tensorflow as tf
 import utils.benchmark as bench_utils
 from tensorflow.python.saved_model import tag_constants
 from transformers import TFAutoModelForSequenceClassification
+from utils.profiling import get_profile_path
 
 
 class NLPModelRunner:
@@ -12,17 +13,38 @@ class NLPModelRunner:
     """
     def __init__(self, model_name: str):
 
+        tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
+        tf.config.threading.set_inter_op_parallelism_threads(1)
         self.__model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        options = tf.profiler.experimental.ProfilerOptions(
+            host_tracer_level=3,
+            python_tracer_level=0,
+            device_tracer_level=0
+        )
+        test = '/onspecta/dev/mz/natural_language_processing'
+        tf.profiler.experimental.start(get_profile_path(), options=options)
+
     def run(self, input):
 
-        paraphrase_classification_logits = self.__model(input)[0]
+        # options = tf.profiler.experimental.ProfilerOptions(
+        #     host_tracer_level=3,
+        #     python_tracer_level=0,
+        #     device_tracer_level=0
+        # )
+        # test = '/onspecta/dev/mz/natural_language_processing'
+        # tf.profiler.experimental.start(get_profile_path(), options=options)
+
         start = time.time()
-        output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()[0]
+        paraphrase_classification_logits = self.__model(input)[0]
         finish = time.time()
+
+        # tf.profiler.experimental.stop()
+
+        output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:

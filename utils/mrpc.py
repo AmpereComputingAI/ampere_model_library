@@ -19,6 +19,7 @@ class MRPC:
         self.__correct = 0
         self.__incorrect = 0
         self.__count = 0
+        self.latest_index = None
         # super().__init__()
 
     def __get_sentence_index(self):
@@ -28,23 +29,26 @@ class MRPC:
 
     def get_input_array(self):
 
-        sequence_0_b = []
-        sequence_1_b = []
-        index = self.__get_sentence_index()
+        sequence_0 = [None] * self.__batch_size
+        sequence_1 = [None] * self.__batch_size
+        labels = [None] * self.__batch_size
         for i in range(self.__batch_size):
-            sequence_0_b.append(self.__mrpc_dataset[index, 3])
-            sequence_1_b.append(self.__mrpc_dataset[index, 4])
+            self.latest_index = self.__get_sentence_index()
+            sequence_0[i] = self.__mrpc_dataset[self.latest_index, 3]
+            sequence_1[i] = self.__mrpc_dataset[self.latest_index, 4]
+            labels[i] = int(self.__mrpc_dataset[self.latest_index, 0])
 
-        self.__label = int(self.__mrpc_dataset[index, 0])
+        input = self.__tokenizer(sequence_0, sequence_1, padding=True, truncation=True, return_tensors="tf")
 
-        input = self.__tokenizer(sequence_0_b, sequence_1_b, return_tensors="tf")
+        return input, labels
 
-        return input
+    def extract_prediction(self, output):
+        predictions = np.argmax(output, axis=1)
+        return predictions
 
-    def submit_predictions(self, output):
+    def submit_predictions(self, prediction, label):
 
-        prediction = np.argmax(output, axis=0)
-        if self.__label == prediction:
+        if label == prediction:
             self.__correct += 1
         else:
             self.__incorrect += 1
