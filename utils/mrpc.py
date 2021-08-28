@@ -20,7 +20,6 @@ class MRPC:
         self.__incorrect = 0
         self.__count = 0
         self.latest_index = None
-        # super().__init__()
 
     def __get_sentence_index(self):
 

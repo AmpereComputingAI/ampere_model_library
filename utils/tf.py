@@ -20,29 +20,11 @@ class NLPModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
-        options = tf.profiler.experimental.ProfilerOptions(
-            host_tracer_level=3,
-            python_tracer_level=0,
-            device_tracer_level=0
-        )
-        test = '/onspecta/dev/mz/natural_language_processing'
-        tf.profiler.experimental.start(get_profile_path(), options=options)
-
     def run(self, input):
-
-        # options = tf.profiler.experimental.ProfilerOptions(
-        #     host_tracer_level=3,
-        #     python_tracer_level=0,
-        #     device_tracer_level=0
-        # )
-        # test = '/onspecta/dev/mz/natural_language_processing'
-        # tf.profiler.experimental.start(get_profile_path(), options=options)
 
         start = time.time()
         paraphrase_classification_logits = self.__model(input)[0]
         finish = time.time()
-
-        # tf.profiler.experimental.stop()
 
         output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()
 

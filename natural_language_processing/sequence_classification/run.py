@@ -49,19 +49,7 @@ def run(batch_size, num_runs, timeout, dataset_path):
 
 def main():
     args = parse_args()
-    set_profile_path(MODEL_NAME)
-
-    # options = tf.profiler.experimental.ProfilerOptions(
-    #     host_tracer_level=3,
-    #     python_tracer_level=0,
-    #     device_tracer_level=0
-    # )
-    # test = '/onspecta/dev/mz/natural_language_processing'
-    # tf.profiler.experimental.start(get_profile_path(), options=options)
-
     run(args.batch_size, args.num_runs, args.timeout, args.dataset_path)
-
-    tf.profiler.experimental.stop()
 
 
 if __name__ == "__main__":
