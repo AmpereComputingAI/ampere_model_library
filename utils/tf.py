@@ -6,6 +6,34 @@ from tensorflow.python.saved_model import tag_constants
 from transformers import TFAutoModelForSequenceClassification
 from utils.profiling import get_profile_path
 
+from transformers import AutoConfig
+from functools import wraps
+tf.config.run_functions_eagerly(False)
+import timeit
+import random
+
+
+def run_with_tf_optimizations(do_eager_mode: bool, use_xla: bool):
+    def run_func(func):
+        @wraps(func)
+        def run_in_eager_mode(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        @wraps(func)
+        @tf.function()
+        def run_in_graph_mode(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        if do_eager_mode is True:
+            assert (
+                use_xla is False
+            ), "Cannot run model in XLA, if `args.eager_mode` is set to `True`. Please set `args.eager_mode=False`."
+            return run_in_eager_mode
+        else:
+            return run_in_graph_mode
+
+    return run_func
+
 
 class NLPModelRunner:
     """
@@ -20,15 +48,127 @@ class NLPModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        self.__model_name = model_name
+        self.__config_dict = {
+            model_name: AutoConfig.from_pretrained(model_name)
+        }
+        self.__model_class = "TF" + 'BertForSequenceClassification'
+        self.__config = self.__config_dict[self.__model_name]
+        self.__config.architectures[0] = self.__model_class
+        self.__transformers_module = __import__("transformers", fromlist=[self.__model_class])
+        self.__model_cls = getattr(self.__transformers_module, self.__model_class)
+        self.__model1 = self.__model_cls(self.__config)
+
     def run(self, input):
+        # ====================APPROACH 2=========================
+        # model_class = "TF" + 'BertForSequenceClassification'
+        # config = self.__config_dict[self.__model_name]
+        # transformers_module = __import__("transformers", fromlist=[model_class])
+        # model_cls = getattr(transformers_module, model_class)
+        # print(config)
+        # model1 = model_cls(config)
+        # print(model1)
+        # print(type(model1))
+        #
+        # print('PRINTING MODEL')
+        # print(type(model))
+        # print(model)
+        #
+        #
+        # @run_with_tf_optimizations(False, False)
+        # def test():
+        #     print('here 3')
+        #     return model(input, training=False)
+        #
+        #
+        #
+        # model = test
+        # print('here 2')
+        # start = time.time()
+        # paraphrase_classification_logits = model()
+        # print('here 4')
+        # finish = time.time()
+        # print('here 4')
+        # ====================APPROACH 2=========================
+
+
+        # writer = tf.summary.create_file_writer("/onspecta/dev/mz/natural_language_processing/test")
+
+        1
+        25
+        28996
+
+        def random_input_ids(batch_size: int, sequence_length: int, vocab_size: int) -> ["tf.Tensor"]:
+            rng = random.Random()
+            values = [rng.randint(0, vocab_size - 1) for i in range(batch_size * sequence_length)]
+            return tf.constant(values, shape=(batch_size, sequence_length), dtype=tf.int32)
+
+        inputs_ids = random_input_ids(1, 25, 28996)
+
+        print('COMPARING MODELS')
+
+        print(self.__model1)
+        print(type(self.__model1))
+
+        print(self.__model)
+        print(type(self.__model))
+
+        print(self.__model_class)
+        # print(self.__config)
+        print(self.__transformers_module)
+        print(self.__model_cls)
+
+        print(self.__config)
+
+        @tf.function(experimental_compile=False)
+        def test():
+            paraphrase_classification_logits = self.__model1(input, training=False)[0]
+            # with writer.as_default():
+            #     tf.summary.scalar()
+            return paraphrase_classification_logits
+
+        def test1():
+            paraphrase_classification_logits = self.__model(input)[0]
+            # with writer.as_default():
+            #     tf.summary.scalar()
+            return paraphrase_classification_logits
+
+
+        def test2():
+            paraphrase_classification_logits = self.__model1(inputs_ids, training=False)[0]
+            # with writer.as_default():
+            #     tf.summary.scalar()
+            return paraphrase_classification_logits
+
+        # options = tf.profiler.experimental.ProfilerOptions(
+        #     host_tracer_level=3,
+        #     python_tracer_level=1,
+        #     device_tracer_level=1
+        # )
+        # tf.profiler.experimental.start('/onspecta/dev/mz/natural_language_processing/test', options=options)
+
+        # _ = model1(input)[0]
+        # _ = self.__model(input)[0]
+        _ = test2()
+
+        # start = time.time()
+        # paraphrase_classification_logits = self.__model(input)[0]
+        # finish = time.time()
+
+        runtimes = timeit.repeat(
+            test,
+            repeat=10,
+            number=10,
+        )
+
+        yoooo = min(runtimes) / 10.0
 
         start = time.time()
-        paraphrase_classification_logits = self.__model(input)[0]
+        output = tf.nn.softmax(test(), axis=1).numpy()
         finish = time.time()
+        # tf.profiler.experimental.stop()
 
-        output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()
-
-        self.__total_inference_time += finish - start
+        self.__total_inference_time += yoooo
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
         self.__times_invoked += 1
