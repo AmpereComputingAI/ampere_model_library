@@ -6,7 +6,7 @@ the bert model paper can be found here \
 https://arxiv.org/abs/1810.04805
 
 ### Accuracy:
-(note: this accuracy is measured for model bert-base-cased-finetuned-mrpc on 1725 sentences)
+(note: this accuracy is measured for model bert-base-cased-finetuned-mrpc on 1725 sentences from MRPC test dataset)
 
 |       | Accuracy     |
 |:---:|:---:|

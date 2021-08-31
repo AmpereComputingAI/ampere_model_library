@@ -38,7 +38,7 @@ def run(model_name, batch_size, num_runs, timeout, dataset_path):
         predictions = mrpc.extract_prediction(output)
         for i in range(batch_size):
             mrpc.submit_predictions(
-                predictions[i],
+                int(predictions[i]),
                 labels[i]
             )
 

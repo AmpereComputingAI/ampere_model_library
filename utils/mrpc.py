@@ -5,8 +5,10 @@ import pandas as pd
 import numpy as np
 
 
-
 class MRPC:
+    """
+    A class providing facilities for preprocessing and postprocessing of MRPC test dataset.
+    """
 
     def __init__(self, model_name: str, batch_size: int, mrpc_dataset_path: None):
 
@@ -24,11 +26,23 @@ class MRPC:
         self.latest_index = None
 
     def __get_sentence_index(self):
+        """
+        A function providing index to the pair of sentences in mrpc dataset.
+
+        :return: int, index of the current pair of sentences
+        """
 
         self.__current_sentence += 1
         return self.__current_sentence
 
     def get_input_array(self):
+        """
+        A function returning a tokenized input for the NLP model.
+
+        :return: transformers.tokenization_utils_base.BatchEncoding, an object containing tokenized inputs
+        :return: list, list containing labels to the sentences
+        initialization
+        """
 
         sequence_0 = [None] * self.__batch_size
         sequence_1 = [None] * self.__batch_size
@@ -48,10 +62,21 @@ class MRPC:
         return input, labels
 
     def extract_prediction(self, output):
+        """
+        A function extracting the predictions of the NLP model
+
+        :return: a NumPy array containing the predictions (a 1 or 0 value)
+        """
         predictions = np.argmax(output, axis=1)
         return predictions
 
     def submit_predictions(self, prediction, label):
+        """
+       A function meant for submitting predictions for a given pair of sentences.
+
+       :param prediction: int, a prediction number (0 or 1)
+       :param label: int, a prediction number (0 or 1)
+       """
 
         if label == prediction:
             self.__correct += 1
@@ -60,6 +85,13 @@ class MRPC:
         self.__count += 1
 
     def summarize_accuracy(self):
+        """
+        A function summarizing the obtained accuracy for the model
+
+        A function summarizing the accuracy achieved on the pair of sentences obtained with get_input_array() calls on
+        which predictions done where supplied with submit_predictions() function.
+        :return: dict, a dictionary containing the accuracy
+        """
 
         correct = self.__correct / self.__current_sentence
         print("\n Correct = {:.3f}".format(correct))

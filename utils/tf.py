@@ -8,7 +8,7 @@ from transformers import TFAutoModelForSequenceClassification
 
 class NLPModelRunner:
     """
-    A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
+    A class providing facilities to run NLP transformer models
     """
     def __init__(self, model_name: str):
 
@@ -20,6 +20,11 @@ class NLPModelRunner:
         self.__times_invoked = 0
 
     def run(self, input):
+        """
+        A function executing single pass over the network, measuring the time needed and returning the output.
+
+        :return: NumPy array, output array with predictions
+        """
 
         start = time.time()
         paraphrase_classification_logits = self.__model(input)[0]
@@ -35,6 +40,11 @@ class NLPModelRunner:
         return output
 
     def print_performance_metrics(self, batch_size):
+        """
+        A function printing performance metrics on runs executed by the runner so far
+
+        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
+        """
 
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
