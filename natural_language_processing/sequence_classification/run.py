@@ -2,23 +2,24 @@ import argparse
 from utils.mrpc import MRPC
 from utils.tf import NLPModelRunner
 from utils.benchmark import run_model
-from utils.profiling import set_profile_path
-import tensorflow as tf
-from utils.profiling import get_profile_path
-
-MODEL_NAME = "bert-base-cased-finetuned-mrpc"
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluate the Hugging Face models for GLUE tasks dataset")
+    parser = argparse.ArgumentParser(description="Evaluate the Hugging Face models "
+                                                 "for Sequence Classification task on MRPC dataset")
+    parser.add_argument("-m", "--model_name",
+                        type=str, default="bert-base-cased-finetuned-mrpc",
+                        help="name of the transformers model to run. "
+                             "list of all available models is available at "
+                             "https://huggingface.co/models")
     parser.add_argument("-b", "--batch_size",
-                        type=int, default=1,
+                        type=int,
                         help="batch size to feed the model with")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
-                        type=int, default=1,
+                        type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
                         type=str, required=True,
@@ -27,7 +28,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run(batch_size, num_runs, timeout, dataset_path):
+def run(model_name, batch_size, num_runs, timeout, dataset_path):
 
     def run_single_pass(nlp_runner, mrpc):
 
@@ -41,15 +42,15 @@ def run(batch_size, num_runs, timeout, dataset_path):
                 labels[i]
             )
 
-    dataset = MRPC(MODEL_NAME, batch_size, dataset_path)
-    runner = NLPModelRunner(MODEL_NAME)
+    dataset = MRPC(model_name, batch_size, dataset_path)
+    runner = NLPModelRunner(model_name)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
-    run(args.batch_size, args.num_runs, args.timeout, args.dataset_path)
+    run(args.model_name, args.batch_size, args.num_runs, args.timeout, args.dataset_path)
 
 
 if __name__ == "__main__":
