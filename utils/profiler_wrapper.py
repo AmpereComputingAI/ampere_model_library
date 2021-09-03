@@ -14,9 +14,7 @@ class TBTracer:
     self.should_trace = os.getenv("TRACE", 0)
     if self.should_trace: 
       # Set up logging.
-      options = tf.profiler.experimental.ProfilerOptions(host_tracer_level = 3,
-                                                   python_tracer_level = 1,
-                                                   device_tracer_level = 1)
+      options = tf.profiler.experimental.ProfilerOptions()
       stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
       self.logdir = 'logs/func/%s' % stamp
       tf.profiler.experimental.start(self.logdir, options = options)
@@ -24,4 +22,3 @@ class TBTracer:
   def write(self):
     if self.should_trace:
       tf.profiler.experimental.stop()
-        
