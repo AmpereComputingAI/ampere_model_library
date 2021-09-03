@@ -2,6 +2,7 @@ import os
 import time
 import utils.misc as utils
 from tqdm.auto import tqdm
+from utils.profiler_wrapper import TBTracer
 
 intra_op_parallelism_threads = None
 
@@ -112,7 +113,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
             utils.print_goodbye_message_and_die(
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
-
+                tracer = TBTracer()
     try:
         if num_of_runs is None:
             single_pass_func(runner, dataset)
@@ -124,7 +125,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
         pass
-
+    tracer.write()
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
 
