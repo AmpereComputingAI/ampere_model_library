@@ -4,7 +4,6 @@ import argparse
 from utils.audioset import AudioSet
 from utils.benchmark import run_model
 from audio.yamnet.runner import YamnetRunner
-from utils.profiler_wrapper import TBTracer, print_prof
 
 import tensorflow_hub as hub
 
@@ -40,7 +39,6 @@ def run_yamnet(num_of_runs, timeout, sound_path, labels_path):
 
 
 if __name__ == "__main__":
-
     args = parse_args()
     if args.precision == "fp32":
         run_yamnet(args.num_runs, args.timeout, args.sound_path, args.labels_path)

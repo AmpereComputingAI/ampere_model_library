@@ -22,3 +22,4 @@ class TBTracer:
   def write(self):
     if self.should_trace:
       tf.profiler.experimental.stop()
+    print_prof()
