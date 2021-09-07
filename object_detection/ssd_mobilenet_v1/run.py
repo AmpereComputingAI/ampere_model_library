@@ -6,6 +6,7 @@ from utils.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
+from utils.profiling import set_profile_path
 
 
 def parse_args():
@@ -47,6 +48,8 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
                     output["detection_scores:0"][i][d],
                     int(output["detection_classes:0"][i][d])
                 )
+
+    set_profile_path('ssd_mobilenet_v1')
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
     runner = TFFrozenModelRunner(

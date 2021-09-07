@@ -3,6 +3,7 @@ import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from tensorflow.python.saved_model import tag_constants
+from utils.profiling import get_profile_path
 
 
 class TFFrozenModelRunner:
@@ -75,9 +76,20 @@ class TFFrozenModelRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
+
+        # first warm up run
+        _ = self.__sess.run(self.__output_dict, self.__feed_dict)
+
+        # profiler start
+        tf.profiler.experimental.start(get_profile_path())
+
         start = time.time()
         output = self.__sess.run(self.__output_dict, self.__feed_dict)
         finish = time.time()
+
+        # profiler stop
+        tf.profiler.experimental.stop()
+
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
