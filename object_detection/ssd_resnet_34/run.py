@@ -39,16 +39,34 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_pa
         shape = (1200, 1200)
         tf_runner.set_input_tensor("image:0", coco.get_input_array(shape))
         output = tf_runner.run()
-        print(output)
-        d
+        # for bind in range(cur_batch_size):
+        #
+        #     for ind_bb in range(num_detections):
+        #         record = {}
+        #         height, width = image_shape_batch[bind]
+        #         ymin = output_dict['detection_bboxes'][bind][ind_bb][0] * height
+        #         xmin = output_dict['detection_bboxes'][bind][ind_bb][1] * width
+        #         ymax = output_dict['detection_bboxes'][bind][ind_bb][2] * height
+        #         xmax = output_dict['detection_bboxes'][bind][ind_bb][3] * width
+        #         score = output_dict['detection_scores'][bind][ind_bb]
+        #         class_id = int(output_dict['detection_classes'][bind][ind_bb])
+        #         record['image_id'] = int(image_name_batch[bind])
+        #         record['category_id'] = labelmap[class_id]
+        #         record['score'] = score
+        #         record['bbox'] = [xmin, ymin, xmax - xmin + 1, ymax - ymin + 1]
+        #         if score < coco_constants.SCORE_THRESHOLD:
+        #             break
         for i in range(batch_size):
-            for d in range(int(output["num_detections:0"][i])):
+            num_detections = int(output["detection_bboxes:0"][i].shape[0])
+            for d in range(num_detections):
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output["detection_boxes:0"][i][d] * shape[0], 1, 0, 3, 2),
+                    coco.convert_bbox_to_coco_order(output["detection_bboxes:0"][i][d] * shape[0], 1, 2, 3, 0),
                     output["detection_scores:0"][i][d],
                     int(output["detection_classes:0"][i][d])
                 )
+                if output["detection_scores:0"][i][d] < 0.05:
+                    break
 
     dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
     runner = TFFrozenModelRunner(
