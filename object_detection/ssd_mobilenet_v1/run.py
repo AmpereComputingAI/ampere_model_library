@@ -7,6 +7,7 @@ from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 from utils.profiling import set_profile_path
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -32,10 +33,34 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str,
                         help="path to file with validation annotations")
+    parser.add_argument("--profiler",
+                        action="store_true",
+                        help="enables TF profiler tracing")
     return parser.parse_args()
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    def run_single_pass(tf_runner, coco):
+        shape = (300, 300)
+        tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
+        output = tf_runner.run()
+        for i in range(batch_size):
+            for d in range(int(output["num_detections:0"][i])):
+                coco.submit_bbox_prediction(
+                    i,
+                    coco.convert_bbox_to_coco_order(output["detection_boxes:0"][i][d] * shape[0], 1, 0, 3, 2),
+                    output["detection_scores:0"][i][d],
+                    int(output["detection_classes:0"][i][d])
+                )
+
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
+    runner = TFFrozenModelRunner(
+        model_path, ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
@@ -60,8 +85,19 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def main():
     args = parse_args()
+
+    if args.profiler:
+        set_profile_path('ssd_mobilenet_v1')
+        os.environ["PROFILER"] = "1"
+        if args.num_runs > 1:
+            print_goodbye_message_and_die("YOU CAN RUN PROFILER ONLY ON A SINGLE RUN, PLEASE SET --num_runs 1")
+
     if args.precision == "fp32":
         run_tf_fp32(
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+        )
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
     else:
