@@ -52,7 +52,7 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_pa
 
     dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
     runner = TFFrozenModelRunner(
-        model_path, ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
+        model_path, ["detection_classes:0", "detection_bboxes:0", "detection_scores:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
