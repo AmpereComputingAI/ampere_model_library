@@ -56,7 +56,6 @@ wget -O classification/resnet_50_v15/resnet_50_v15_tflite_int8.tflite https://ww
 # resnet_101_v2
 wget -O classification/resnet_101_v2/resnet_101_v2_tf_fp32.pb https://www.dropbox.com/s/ckojofwnj30ouhn/resnet_101_v2_tf_fp32.pb
 wget -O classification/resnet_101_v2/resnet_101_v2_tf_fp16.pb https://www.dropbox.com/s/sq1qz2d39x6vtr8/resnet_101_v2_tf_fp16.pb
-wget -O classification/resnet_101_v2/resnet_101_v2_tflite_int8.tflite https://www.dropbox.com/s/n5sw2povn7cmdio/resnet_101_v2_tflite_int8.tflite
 
 # squeezenet
 wget -O classification/squeezenet/squeezenet_tf_fp32.pb https://www.dropbox.com/s/h6y4wazwod6qvnm/squeezenet_tf_fp32.pb
