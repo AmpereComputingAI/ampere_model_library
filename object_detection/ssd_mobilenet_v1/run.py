@@ -6,6 +6,7 @@ from utils.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
+from utils.errors import UnsupportedPrecisionValueError
 
 
 def parse_args():
@@ -14,7 +15,7 @@ def parse_args():
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
