@@ -77,20 +77,9 @@ class TFFrozenModelRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        if "PROFILER" in os.environ:
-            # first warm up run
-            _ = self.__sess.run(self.__output_dict, self.__feed_dict)
-
-            # profiler start
-            tf.profiler.experimental.start(get_profile_path())
-
         start = time.time()
         output = self.__sess.run(self.__output_dict, self.__feed_dict)
         finish = time.time()
-
-        if "PROFILER" in os.environ:
-            # profiler stop
-            tf.profiler.experimental.stop()
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
