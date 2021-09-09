@@ -3,7 +3,6 @@ import time
 import argparse
 import utils.misc as utils
 from utils.coco import COCODataset
-from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 
