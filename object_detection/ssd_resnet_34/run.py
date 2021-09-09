@@ -68,7 +68,8 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_pa
                 if output["detection_scores:0"][i][d] < 0.05:
                     break
 
-    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
+    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
+                          pre_processing="SSD_2", sort_ascending=True)
     runner = TFFrozenModelRunner(
         model_path, ["detection_classes:0", "detection_bboxes:0", "detection_scores:0"])
 
