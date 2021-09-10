@@ -13,7 +13,6 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 |:---:|:---:|:---:|
 | FP32  | 74.0%  | 92.9 %  |
 | FP16  | 73.7%  | 93.1 %  |
-| INT8  | 74.0%  | 92.9 %  |
 
 
 ### Dataset and models
