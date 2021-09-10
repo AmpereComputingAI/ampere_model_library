@@ -3,7 +3,6 @@ import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from tensorflow.python.saved_model import tag_constants
-from utils.profiling import get_profile_path
 
 
 class TFFrozenModelRunner:

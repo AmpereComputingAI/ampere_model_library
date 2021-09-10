@@ -75,7 +75,7 @@ def main():
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
     else:
-        raise PrecisionValueError(args.precision)
+        raise UnsupportedPrecisionValueError(args.precision)
 
 
 if __name__ == "__main__":
