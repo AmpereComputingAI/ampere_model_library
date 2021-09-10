@@ -21,6 +21,7 @@ questions = [
 
 for question in questions:
     inputs = tokenizer(question, text, add_special_tokens=True, return_tensors="tf")
+    print(inputs)
     input_ids = inputs["input_ids"].numpy()[0]
     outputs = model(inputs)
     answer_start_scores = outputs.start_logits

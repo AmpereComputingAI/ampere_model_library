@@ -3,6 +3,7 @@ import json
 import pathlib
 import utils.misc as utils
 import utils.pre_processing as pp
+from utils.nlp.inference.language.bert.squad_QSL import SQuAD_v1_QSL
 
 
 class OutOfInstances(Exception):
@@ -27,7 +28,7 @@ class Squad_v1_1:
 
         self.__batch_size = batch_size
         self.__seq_size = sequence_size
-        self.__dataset = self.__load_and_verify_dataset(dataset_path)
+        self.__QSL = self.__verify_dataset_and_init_qsl(dataset_path)
         self.__current_img = 0
 
         self.available_instances = len(self.__file_names)
@@ -36,7 +37,7 @@ class Squad_v1_1:
         self.path_to_latest_image = None
         self.__order = order
 
-    def __load_and_verify_dataset(self, dataset_path, expected_version="1.1"):
+    def __verify_dataset_and_init_qsl(self, dataset_path, expected_version="1.1"):
         """
         A function parsing validation file for ImageNet 2012 validation dataset.
 
@@ -54,8 +55,8 @@ class Squad_v1_1:
             if encountered_version != expected_version:
                 print_goodbye_message_and_die(
                     f"Expected SQUAD version {expected_version} but encountered version {encountered_version}")
-            dataset = dataset_json["data"]
-        return dataset
+            qsl = SQuAD_v1_QSL()
+        return qsl
 
     def __get_path_to_img(self):
         """

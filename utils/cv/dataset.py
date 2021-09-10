@@ -3,13 +3,6 @@ import numpy as np
 import utils.misc as utils
 
 
-class OutOfInstances(Exception):
-    """
-    An exception class being raised as an error in case of lack of further images to process by the pipeline.
-    """
-    pass
-
-
 class ImageDataset:
     """
     A class providing facilities shared by image-related datasets' pipelines like ImageNet and COCO.
