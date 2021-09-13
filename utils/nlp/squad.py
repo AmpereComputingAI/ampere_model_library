@@ -2,8 +2,6 @@ import numpy as np
 import json
 import pathlib
 import utils.misc as utils
-import utils.pre_processing as pp
-from utils.nlp.inference.language.bert.squad_QSL import SQuAD_v1_QSL
 
 
 class OutOfInstances(Exception):
@@ -18,7 +16,7 @@ class Squad_v1_1:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int, sequence_size: int,
+    def __init__(self, batch_size: int, sequence_size: int, tokenizer, target_seq_size,
                  dataset_path=None, labels_path=None):
 
         if dataset_path is None:
@@ -28,16 +26,24 @@ class Squad_v1_1:
 
         self.__batch_size = batch_size
         self.__seq_size = sequence_size
-        self.__QSL = self.__verify_dataset_and_init_qsl(dataset_path)
-        self.__current_img = 0
+        self.__tokenizer = tokenizer
+        self.__target_seq_size = target_seq_size
+        self.__dataset = self.__verify_and_load(dataset_path)
+        self.__example_iterator = self.__examples()
 
-        self.available_instances = len(self.__file_names)
-        self.__top_1_count = 0
-        self.__top_5_count = 0
-        self.path_to_latest_image = None
-        self.__order = order
+        self.__current_question = 0
+        self.available_instances = self.__get_num_questions()
+        self.__current_inputs = None
+        self.__answers_submitted = False
 
-    def __verify_dataset_and_init_qsl(self, dataset_path, expected_version="1.1"):
+    def __get_num_questions(self):
+        total_questions = 0
+        for section in self.__dataset:
+            for paragraph in section["paragraphs"]:
+                total_questions += len(paragraph["qas"])
+        return total_questions
+
+    def __verify_and_load(self, dataset_path, expected_version="1.1"):
         """
         A function parsing validation file for ImageNet 2012 validation dataset.
 
@@ -55,8 +61,8 @@ class Squad_v1_1:
             if encountered_version != expected_version:
                 print_goodbye_message_and_die(
                     f"Expected SQUAD version {expected_version} but encountered version {encountered_version}")
-            qsl = SQuAD_v1_QSL()
-        return qsl
+            dataset = dataset_json["data"]
+        return dataset
 
     def __get_path_to_img(self):
         """
@@ -71,28 +77,49 @@ class Squad_v1_1:
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
 
-    def get_input_array(self, target_shape):
-        """
-        A function returning an array containing pre-processed rescaled image's or multiple images' data.
+    def __examples(self):
+        for section in self.__dataset:
+            for paragraph in section["paragraphs"]:
+                for qas in paragraph["qas"]:
+                    print("$$$$$$$$$$$$$$$$$$$$4")
+                    print(paragraph["context"], qas["question"], qas["answers"])
+                    yield paragraph["context"], qas["question"], qas["answers"]
 
-        :param target_shape: tuple of intended image shape (height, width)
-        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
-        initialization
-        """
-        if self.__order == 'NCHW':
-            input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
-        else:
-            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+
+    def __load_next_inputs_maybe(self):
+        if self.__answers_submitted or self.__current_question == 0:
+            contextes = list()
+            questions = list()
+            self.__valid_answers = list()
+            for _ in range(self.__batch_size):
+                print("a")
+                context, question, correct_answers = next(self.__example_iterator)
+                print("b")
+                contextes.append(context)
+                questions.append(question)
+                self.__valid_answers.append(correct_answers)
+            self.__current_inputs = self.__tokenizer(questions, contextes)
+
+    def __get_input_array(self, input_name):
+        self.__load_next_inputs_maybe()
+
+        input_ids = self.__current_inputs[input_name]
+        input_ids_padded = np.empty([self.__batch_size, self.__target_seq_size])
+
         for i in range(self.__batch_size):
-            self.path_to_latest_image = self.__get_path_to_img()
-            input_array[i], _ = self._ImageDataset__load_image(
-                self.path_to_latest_image, target_shape, self.__color_model, self.__order
-            )
+            space_to_pad = self.__target_seq_size - input_ids[i].shape[0]
+            input_ids_padded[i] = np.pad(input_ids[i], (0, space_to_pad), "constant", constant_values=0)
 
-        if self.__pre_processing:
-            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
+        return input_ids_padded
 
-        return input_array
+    def get_input_ids_array(self):
+        return self.__get_input_array("input_ids")
+
+    def get_attention_mask_array(self):
+        return self.__get_input_array("attention_mask")
+
+    def get_token_type_ids_array(self):
+        return self.__get_input_array("token_type_ids")
 
     def extract_top1(self, output_array):
         """
