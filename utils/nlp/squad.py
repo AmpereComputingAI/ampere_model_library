@@ -1,5 +1,8 @@
 import numpy as np
 import json
+import re
+import string
+from collections import Counter
 import pathlib
 import utils.misc as utils
 
@@ -16,7 +19,7 @@ class Squad_v1_1:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int, sequence_size: int, tokenizer, target_seq_size,
+    def __init__(self, batch_size: int, sequence_size: int, tokenize_func, detokenize_func, target_seq_size,
                  dataset_path=None, labels_path=None):
 
         if dataset_path is None:
@@ -26,15 +29,18 @@ class Squad_v1_1:
 
         self.__batch_size = batch_size
         self.__seq_size = sequence_size
-        self.__tokenizer = tokenizer
+        self.__tokenize_func = tokenize_func
+        self.__detokenize_func = detokenize_func
         self.__target_seq_size = target_seq_size
         self.__dataset = self.__verify_and_load(dataset_path)
         self.__example_iterator = self.__examples()
 
-        self.__current_question = 0
+        self.__questions_count = 0
+        self.__unanswered_questions_count = 0
         self.available_instances = self.__get_num_questions()
         self.__current_inputs = None
-        self.__answers_submitted = False
+        self.__exact_match_count = 0
+        self.__f1_count = 0
 
     def __get_num_questions(self):
         total_questions = 0
@@ -64,19 +70,6 @@ class Squad_v1_1:
             dataset = dataset_json["data"]
         return dataset
 
-    def __get_path_to_img(self):
-        """
-        A function providing path to the ImageNet image.
-
-        :return: pathlib.PurePath object containing path to the image
-        """
-        try:
-            file_name = self.__file_names[self.__current_img]
-        except IndexError:
-            raise utils_ds.OutOfInstances("No more ImageNet images to process in the directory provided")
-        self.__current_img += 1
-        return pathlib.PurePath(self.__images_path, file_name)
-
     def __examples(self):
         for section in self.__dataset:
             for paragraph in section["paragraphs"]:
@@ -85,9 +78,8 @@ class Squad_v1_1:
                     print(paragraph["context"], qas["question"], qas["answers"])
                     yield paragraph["context"], qas["question"], qas["answers"]
 
-
     def __load_next_inputs_maybe(self):
-        if self.__answers_submitted or self.__current_question == 0:
+        if self.__unanswered_questions_count == 0:
             contextes = list()
             questions = list()
             self.__valid_answers = list()
@@ -97,20 +89,22 @@ class Squad_v1_1:
                 print("b")
                 contextes.append(context)
                 questions.append(question)
+                self.__questions_count += 1
+                self.__unanswered_questions_count += 1
                 self.__valid_answers.append(correct_answers)
-            self.__current_inputs = self.__tokenizer(questions, contextes)
+            self.__current_inputs = self.__tokenize_func(questions, contextes)
 
     def __get_input_array(self, input_name):
         self.__load_next_inputs_maybe()
 
-        input_ids = self.__current_inputs[input_name]
-        input_ids_padded = np.empty([self.__batch_size, self.__target_seq_size])
+        input = self.__current_inputs[input_name]
+        input_padded = np.empty([self.__batch_size, self.__target_seq_size])
 
         for i in range(self.__batch_size):
-            space_to_pad = self.__target_seq_size - input_ids[i].shape[0]
-            input_ids_padded[i] = np.pad(input_ids[i], (0, space_to_pad), "constant", constant_values=0)
+            space_to_pad = self.__target_seq_size - input[i].shape[0]
+            input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
 
-        return input_ids_padded
+        return input_padded
 
     def get_input_ids_array(self):
         return self.__get_input_array("input_ids")
@@ -121,49 +115,72 @@ class Squad_v1_1:
     def get_token_type_ids_array(self):
         return self.__get_input_array("token_type_ids")
 
-    def extract_top1(self, output_array):
-        """
-        A helper function for extracting top-1 prediction from an output array holding soft-maxed data on 1 image.
+    def extract_answer(self, id_in_batch: int, answer_start_id, answer_end_id):
+        answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id+1]
+        return self.__detokenize_func(answer)
 
-        :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
-        :return: int, index of highest value in the supplied array
-        """
-        top_1_index = np.argmax(output_array)
-        return top_1_index
+    def submit_prediction(self, id_in_batch: int, answer):
 
-    def extract_top5(self, output_array):
-        """
-        A helper function for extracting top-5 predictions from an output array holding soft-maxed data on 1 image.
+        def normalize(answer_string):
 
-        :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
-        :return: list of ints, list containing indices of 5 highest values in the supplied array
-        """
-        top_5_indices = np.argpartition(output_array, -5)[-5:]
-        return top_5_indices
+            def remove_articles(text):
+                return re.sub(r'\b(a|an|the)\b', ' ', text)
 
-    def submit_predictions(self, id_in_batch: int, top_1_index: int, top_5_indices: list):
-        """
-        A function meant for submitting a class predictions for a given image.
+            def white_space_fix(text):
+                return ' '.join(text.split())
 
-        :param id_in_batch: int, id of an image in the currently processed batch that the provided predictions relate to
-        :param top_1_index: int, index of a prediction with highest confidence
-        :param top_5_indices: list of ints, indices of 5 predictions with highest confidence
-        :return:
-        """
-        ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
-        self.__top_1_count += int(ground_truth == top_1_index)
-        self.__top_5_count += int(ground_truth in top_5_indices)
+            def remove_punc(text):
+                exclude = set(string.punctuation)
+                return ''.join(ch for ch in text if ch not in exclude)
+
+            def lower(text):
+                return text.lower()
+
+            return white_space_fix(remove_articles(remove_punc(lower(answer_string))))
+
+        def f1_score(normalized_prediction, normalized_ground_truth):
+            prediction_tokens = normalized_prediction.split()
+            ground_truth_tokens = normalized_ground_truth.split()
+            common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
+            num_same = sum(common.values())
+            if num_same == 0:
+                return 0
+            precision = 1.0 * num_same / len(prediction_tokens)
+            recall = 1.0 * num_same / len(ground_truth_tokens)
+            f1 = (2 * precision * recall) / (precision + recall)
+            return f1
+
+        def exact_match_score(normalized_prediction, normalized_ground_truth):
+            print(normalized_prediction)
+            print(normalized_ground_truth)
+            return normalized_prediction == normalized_ground_truth
+
+        def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
+            scores_for_ground_truths = []
+            for ground_truth in ground_truths:
+                score = metric_fn(normalize(prediction), normalize(ground_truth["text"]))
+                scores_for_ground_truths.append(score)
+            return max(scores_for_ground_truths)
+
+        ground_truths = self.__valid_answers[id_in_batch]
+        self.__exact_match_count += metric_max_over_ground_truths(exact_match_score, answer, ground_truths)
+        self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
+        self.__unanswered_questions_count -= 1
 
     def summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_predictions() function.
         """
-        top_1_accuracy = self.__top_1_count / self.__current_img
-        print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
+        if self.__unanswered_questions_count != 0:
+            utils.print_goodbye_message_and_die(
+                "Answers for some of the issued questions have not been submitted.")
 
-        top_5_accuracy = self.__top_5_count / self.__current_img
-        print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
+        exact_match = self.__exact_match_count / self.__questions_count
+        print("\n Exact match = {:.3f}".format(exact_match))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
-        return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
+        f1 = self.__f1_count / self.__questions_count
+        print(" F1 = {:.3f}".format(f1))
+
+        print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
+        return {"exact_match": exact_match, "f1": f1}

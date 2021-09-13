@@ -31,7 +31,6 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
-
     def run_single_pass(tf_runner, squad):
         # tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
         # text = r"""
@@ -57,27 +56,26 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
         tf_runner.set_input_tensor("input_ids:0", squad.get_input_ids_array())
         tf_runner.set_input_tensor("input_mask:0", squad.get_attention_mask_array())
         tf_runner.set_input_tensor("segment_ids:0", squad.get_token_type_ids_array())
+
         output = tf_runner.run()
-        print(output['logits:0'][0])
-        start_end = np.argmax(output['logits:0'][0], axis=0)
-        answer_start = start_end[0]
-        answer_end = start_end[1] + 1
-        print(answer_start)
-        answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids_raw[0][answer_start:answer_end]))
-        print(f"Question: {question}")
-        print(f"Answer: {answer}")
+
         for i in range(batch_size):
-            imagenet.submit_predictions(
+            answer_start_id, answer_end_id = np.argmax(output["logits:0"][i], axis=0)
+            squad.submit_prediction(
                 i,
-                imagenet.extract_top1(output["MobilenetV2/Predictions/Reshape_1:0"][i]),
-                imagenet.extract_top5(output["MobilenetV2/Predictions/Reshape_1:0"][i])
+                squad.extract_answer(i, answer_start_id, answer_end_id)
             )
 
     seq_size = 384
     tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
-    def tokenizer_wrapper(question, text):
+
+    def tokenize(question, text):
         return tokenizer(question, text, add_special_tokens=True, return_tensors="np")
-    dataset = Squad_v1_1(batch_size, seq_size, tokenizer_wrapper, seq_size, squad_path)
+
+    def detokenize(answer):
+        return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
+
+    dataset = Squad_v1_1(batch_size, seq_size, tokenize, detokenize, seq_size, squad_path)
     runner = TFFrozenModelRunner(model_path, ["logits:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
