@@ -74,8 +74,6 @@ class Squad_v1_1:
         for section in self.__dataset:
             for paragraph in section["paragraphs"]:
                 for qas in paragraph["qas"]:
-                    print("$$$$$$$$$$$$$$$$$$$$4")
-                    print(paragraph["context"], qas["question"], qas["answers"])
                     yield paragraph["context"], qas["question"], qas["answers"]
 
     def __load_next_inputs_maybe(self):
@@ -84,9 +82,7 @@ class Squad_v1_1:
             questions = list()
             self.__valid_answers = list()
             for _ in range(self.__batch_size):
-                print("a")
                 context, question, correct_answers = next(self.__example_iterator)
-                print("b")
                 contextes.append(context)
                 questions.append(question)
                 self.__questions_count += 1
@@ -101,7 +97,7 @@ class Squad_v1_1:
         input_padded = np.empty([self.__batch_size, self.__target_seq_size])
 
         for i in range(self.__batch_size):
-            space_to_pad = self.__target_seq_size - input[i].shape[0]
+            space_to_pad = self.__target_seq_size - len(input[i])
             input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
 
         return input_padded
@@ -151,8 +147,6 @@ class Squad_v1_1:
             return f1
 
         def exact_match_score(normalized_prediction, normalized_ground_truth):
-            print(normalized_prediction)
-            print(normalized_ground_truth)
             return normalized_prediction == normalized_ground_truth
 
         def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):

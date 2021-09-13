@@ -70,7 +70,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
     tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
 
     def tokenize(question, text):
-        return tokenizer(question, text, add_special_tokens=True, return_tensors="np")
+        return tokenizer(question, text, add_special_tokens=True)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
