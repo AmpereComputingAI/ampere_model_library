@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 
 from utils.benchmark import run_model
-from utils.imagenet import ImageNet
+from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 
 PYTORCH_MODEL_NAME = 'resnet50'

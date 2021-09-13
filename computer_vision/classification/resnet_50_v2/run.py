@@ -1,7 +1,7 @@
 import argparse
 
 from utils.benchmark import run_model
-from utils.imagenet import ImageNet
+from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 

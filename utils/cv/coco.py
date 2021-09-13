@@ -2,8 +2,8 @@ import cv2
 import pathlib
 import numpy as np
 import utils.misc as utils
-import utils.dataset as utils_ds
-import utils.pre_processing as pp
+import utils.cv.dataset as utils_ds
+import utils.cv.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 

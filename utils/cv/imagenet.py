@@ -1,8 +1,8 @@
 import numpy as np
 import pathlib
 import utils.misc as utils
-import utils.pre_processing as pp
-import utils.dataset as utils_ds
+import utils.cv.pre_processing as pp
+import utils.cv.dataset as utils_ds
 
 
 class ImageNet(utils_ds.ImageDataset):

@@ -19,8 +19,7 @@ class Squad_v1_1:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int, sequence_size: int, tokenize_func, detokenize_func, target_seq_size,
-                 dataset_path=None, labels_path=None):
+    def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None):
 
         if dataset_path is None:
             env_var = "SQUAD_V1.1_PATH"
@@ -28,10 +27,9 @@ class Squad_v1_1:
                 env_var, f"Path to Squad v1.1 .json file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
-        self.__seq_size = sequence_size
+        self.__target_seq_size = target_seq_size
         self.__tokenize_func = tokenize_func
         self.__detokenize_func = detokenize_func
-        self.__target_seq_size = target_seq_size
         self.__dataset = self.__verify_and_load(dataset_path)
         self.__example_iterator = self.__examples()
 
@@ -94,10 +92,18 @@ class Squad_v1_1:
         self.__load_next_inputs_maybe()
 
         input = self.__current_inputs[input_name]
-        input_padded = np.empty([self.__batch_size, self.__target_seq_size])
+
+        if self.__target_seq_size is None:
+            target_seq_size = 0
+            for i in range(self.__batch_size):
+                target_seq_size = max(len(input[i]), target_seq_size)
+        else:
+            target_seq_size = self.__target_seq_size
+
+        input_padded = np.empty([self.__batch_size, target_seq_size])
 
         for i in range(self.__batch_size):
-            space_to_pad = self.__target_seq_size - len(input[i])
+            space_to_pad = target_seq_size - len(input[i])
             input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
 
         return input_padded

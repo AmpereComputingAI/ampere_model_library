@@ -1,6 +1,6 @@
 import argparse
 
-from utils.imagenet import ImageNet
+from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
@@ -32,7 +32,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
@@ -50,26 +50,14 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
     runner = TFFrozenModelRunner(model_path, ["InceptionV2/Predictions/Reshape_1:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path)
 
 
 def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-
-    def run_single_pass(tf_runner, imagenet):
-        shape = (224, 224)
-        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
-        output = tf_runner.run()
-        for i in range(batch_size):
-            imagenet.submit_predictions(
-                i,
-                imagenet.extract_top1(output["InceptionV2/Predictions/Reshape_1:0"][i]),
-                imagenet.extract_top5(output["InceptionV2/Predictions/Reshape_1:0"][i])
-            )
-
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=True)
-    runner = TFFrozenModelRunner(model_path, ["InceptionV2/Predictions/Reshape_1:0"])
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path)
 
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):

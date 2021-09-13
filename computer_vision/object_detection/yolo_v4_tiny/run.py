@@ -2,7 +2,7 @@ import os
 import time
 import argparse
 import utils.misc as utils
-from utils.coco import COCODataset
+from utils.cv.coco import COCODataset
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 import tensorflow as tf
@@ -60,7 +60,12 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="YOLO", sort_ascending=True)
-    runner = TFSavedModelRunner(model_path)
+
+    def load_model():
+        saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+        return saved_model_loaded.signatures['serving_default']
+
+    runner = TFSavedModelRunner(load_model)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 

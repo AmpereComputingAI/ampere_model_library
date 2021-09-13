@@ -100,16 +100,16 @@ class TFSavedModelRunner:
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
-    def __init__(self, path_to_model: str):
+    def __init__(self, load_model_func):
         """
         A function initializing runner by providing path to model directory.
 
-        :param path_to_model: str, eg. "./ugabuga/yolo_saved_model/"
+        :param model: function to load TF2 model
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
-        self.__saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
-        self.__model = self.__saved_model_loaded.signatures['serving_default']
+
+        self.__model = load_model_func()
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0

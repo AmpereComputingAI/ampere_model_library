@@ -1,9 +1,8 @@
 import argparse
 from utils.tf import TFFrozenModelRunner
-from utils.tflite import TFLiteRunner
 import numpy as np
 from utils.benchmark import run_model
-from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
+from transformers import AutoTokenizer
 from utils.nlp.squad import Squad_v1_1
 
 
@@ -75,7 +74,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
 
-    dataset = Squad_v1_1(batch_size, seq_size, tokenize, detokenize, seq_size, squad_path)
+    dataset = Squad_v1_1(batch_size, tokenize, detokenize, seq_size, squad_path)
     runner = TFFrozenModelRunner(model_path, ["logits:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
