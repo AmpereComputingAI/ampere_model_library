@@ -103,8 +103,12 @@ class Squad_v1_1:
         input_padded = np.empty([self.__batch_size, target_seq_size])
 
         for i in range(self.__batch_size):
-            space_to_pad = target_seq_size - len(input[i])
-            input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
+            length_of_seq = len(input[i])
+            if target_seq_size >= length_of_seq:
+                space_to_pad = target_seq_size - length_of_seq
+                input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
+            else:
+                input_padded[i] = input[i][0:target_seq_size]
 
         return input_padded
 
