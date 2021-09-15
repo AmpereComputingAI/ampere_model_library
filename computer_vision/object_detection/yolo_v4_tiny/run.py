@@ -2,6 +2,7 @@ import os
 import time
 import argparse
 import tensorflow as tf
+from tensorflow.python.saved_model import tag_constants
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tf import TFSavedModelRunner
@@ -60,13 +61,6 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="YOLO", sort_ascending=True)
-
-    def load_model(loaded_tf):
-        from tensorflow.python.saved_model import tag_constants
-        saved_model_loaded = loaded_tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
-        return saved_model_loaded.signatures['serving_default']
-
-    from tensorflow.python.saved_model import tag_constants
     runner = TFSavedModelRunner()
     saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
     runner.model = saved_model_loaded.signatures['serving_default']
