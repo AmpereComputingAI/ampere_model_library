@@ -6,6 +6,7 @@ from utils.cv.coco import COCODataset
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 import tensorflow as tf
+from tensorflow.python.saved_model import tag_constants
 
 
 def parse_args():
