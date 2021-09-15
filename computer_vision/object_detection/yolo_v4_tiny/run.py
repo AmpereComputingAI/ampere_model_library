@@ -5,8 +5,6 @@ import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
-import tensorflow as tf
-from tensorflow.python.saved_model import tag_constants
 
 
 def parse_args():
@@ -63,7 +61,8 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
                           pre_processing="YOLO", sort_ascending=True)
 
     def load_model():
-        saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+        import tensorflow as tf
+        saved_model_loaded = tf.saved_model.load(model_path, tags=[tf.python.saved_model.tag_constants.SERVING])
         return saved_model_loaded.signatures['serving_default']
 
     runner = TFSavedModelRunner(load_model)
