@@ -61,10 +61,9 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="YOLO", sort_ascending=True)
 
-    def load_model():
-        import tensorflow as tf
+    def load_model(loaded_tf):
         from tensorflow.python.saved_model import tag_constants
-        saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+        saved_model_loaded = loaded_tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
         return saved_model_loaded.signatures['serving_default']
 
     runner = TFSavedModelRunner(load_model)

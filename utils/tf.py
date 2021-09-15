@@ -108,7 +108,7 @@ class TFSavedModelRunner:
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
 
-        self.__model = load_model_func()
+        self.__model = load_model_func(tf)
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
