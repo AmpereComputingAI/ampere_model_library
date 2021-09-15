@@ -121,7 +121,7 @@ class TFSavedModelRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
         start = time.time()
-        output = self.__model(input)
+        output = self.model(input)
         finish = time.time()
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
