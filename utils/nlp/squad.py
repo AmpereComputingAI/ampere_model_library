@@ -15,8 +15,8 @@ class Squad_v1_1:
     def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None):
 
         if dataset_path is None:
-            env_var = "SQUAD_V1.1_PATH"
-            images_path = utils.get_env_variable(
+            env_var = "SQUAD_V1_1_PATH"
+            dataset_path = utils.get_env_variable(
                 env_var, f"Path to Squad v1.1 .json file has not been specified with {env_var} flag")
 
         self.__batch_size = batch_size
