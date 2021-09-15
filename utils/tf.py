@@ -101,9 +101,7 @@ class TFSavedModelRunner:
     """
     def __init__(self):
         """
-        A function initializing runner by providing path to model directory.
-
-        :param model: function to load TF2 model
+        A function initializing runner.
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)

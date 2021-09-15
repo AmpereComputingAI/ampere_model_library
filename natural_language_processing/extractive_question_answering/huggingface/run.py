@@ -10,7 +10,7 @@ from utils.nlp.squad import Squad_v1_1
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, required=True, default="bert-large-uncased-whole-word-masking-finetuned-squad",
+                        type=str, default="bert-large-uncased-whole-word-masking-finetuned-squad",
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
