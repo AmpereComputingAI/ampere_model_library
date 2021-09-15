@@ -66,7 +66,10 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
         saved_model_loaded = loaded_tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
         return saved_model_loaded.signatures['serving_default']
 
-    runner = TFSavedModelRunner(load_model)
+    from tensorflow.python.saved_model import tag_constants
+    runner = TFSavedModelRunner()
+    saved_model_loaded = loaded_tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+    runner.model = saved_model_loaded.signatures['serving_default']
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 

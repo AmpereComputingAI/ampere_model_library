@@ -48,11 +48,9 @@ def run_tf(model_name, batch_size, num_of_runs, timeout, squad_path):
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
 
-    def load_model(loaded_tf):
-        return TFAutoModelForQuestionAnswering.from_pretrained(model_name)
-
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
-    runner = TFSavedModelRunner(load_model)
+    runner = TFSavedModelRunner()
+    runner.model = TFAutoModelForQuestionAnswering.from_pretrained(model_name)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
