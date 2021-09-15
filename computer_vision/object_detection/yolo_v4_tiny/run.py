@@ -1,6 +1,7 @@
 import os
 import time
 import argparse
+import tensorflow as tf
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tf import TFSavedModelRunner
