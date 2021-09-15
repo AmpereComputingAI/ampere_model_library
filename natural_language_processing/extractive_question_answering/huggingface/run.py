@@ -8,13 +8,10 @@ from utils.nlp.squad import Squad_v1_1
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run MobileNet v2 model.")
+    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, required=True,
+                        type=str, required=True, default="bert-large-uncased-whole-word-masking-finetuned-squad",
                         help="name of the model")
-    parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
-                        help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
@@ -30,7 +27,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_name, batch_size, num_of_runs, timeout, squad_path):
+def run_tf(model_name, batch_size, num_of_runs, timeout, squad_path):
     def run_single_pass(tf_runner, squad):
 
         output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
@@ -62,12 +59,9 @@ def run_tf_fp32(model_name, batch_size, num_of_runs, timeout, squad_path):
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(
+    run_tf(
             args.model_name, args.batch_size, args.num_runs, args.timeout, args.squad_path
         )
-    else:
-        assert False, f"Behaviour undefined for precision {args.precision}"
 
 
 if __name__ == "__main__":

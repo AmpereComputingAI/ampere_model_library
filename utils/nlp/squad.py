@@ -7,16 +7,9 @@ import pathlib
 import utils.misc as utils
 
 
-class OutOfInstances(Exception):
-    """
-    An exception class being raised as an error in case of lack of further images to process by the pipeline.
-    """
-    pass
-
-
 class Squad_v1_1:
     """
-    A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
+    A class providing facilities for preprocessing and postprocessing of Squad v1.1 validation dataset.
     """
 
     def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None):
@@ -41,6 +34,11 @@ class Squad_v1_1:
         self.__f1_count = 0
 
     def __get_num_questions(self):
+        """
+        A function calculating number of available examples (questions) in dataset file provided.
+
+        :return: int, number of questions available
+        """
         total_questions = 0
         for section in self.__dataset:
             for paragraph in section["paragraphs"]:
@@ -49,15 +47,11 @@ class Squad_v1_1:
 
     def __verify_and_load(self, dataset_path, expected_version="1.1"):
         """
-        A function parsing validation file for ImageNet 2012 validation dataset.
+        A function loading .json file of Squad v1.1 validation dataset and verifying its version.
 
-        .txt file consists of 50000 lines each holding data on a single image: its file name and 1 label with class best
-        describing image's content
-
-        :param labels_path: str, path to file containing image file names and labels
-        :param is1001classes: bool, parameter setting whether the tested model has 1001 classes (+ background) or
-        original 1000 classes
-        :return: list of strings, list of ints
+        :param dataset_path: str, path to file containing validation data (contextes, questions, possible answers)
+        :param expected_version: str, version of Squad dataset expected
+        :return: dictionary with nested dictionaries / lists, dataset
         """
         with open(dataset_path) as dataset_file:
             dataset_json = json.load(dataset_file)
@@ -69,18 +63,30 @@ class Squad_v1_1:
         return dataset
 
     def __examples(self):
+        """
+        A generator of examples iterating over the dataset with per question stepping.
+
+        :yield: str, str, list: context, questions, list of possible (correct) answers
+        """
         for section in self.__dataset:
             for paragraph in section["paragraphs"]:
                 for qas in paragraph["qas"]:
                     yield paragraph["context"], qas["question"], qas["answers"]
 
     def __load_next_inputs_maybe(self):
+        """
+        A function that loads new examples in the quantity equal to the requested batch size under the condition that
+        previously issued questions have already been answered.
+        """
         if self.__unanswered_questions_count == 0:
             contextes = list()
             questions = list()
             self.__valid_answers = list()
             for _ in range(self.__batch_size):
-                context, question, correct_answers = next(self.__example_iterator)
+                try:
+                    context, question, correct_answers = next(self.__example_iterator)
+                except StopIteration:
+                    raise utils.OutOfInstances("No more examples to process in the Squad file provided.")
                 contextes.append(context)
                 questions.append(question)
                 self.__questions_count += 1
@@ -88,11 +94,19 @@ class Squad_v1_1:
                 self.__valid_answers.append(correct_answers)
             self.__current_inputs = self.__tokenize_func(questions, contextes)
 
-    def __get_input_array(self, input_name):
-        self.__load_next_inputs_maybe()
+    def __get_input_array(self, input_name: string):
+        """
+        A function filling numpy arrays of proper batch size with examples.
+        Padding is applied if requested / necessary.
+        Cropping is applied when necessary.
 
+        :param input_name: str, input name as used by tokenization function
+        :return: numpy array with raw/padded/cropped input
+        """
+        self.__load_next_inputs_maybe()
         input = self.__current_inputs[input_name]
 
+        # if seq size has not been specified the target one will be set to the size of the longest sequence in a batch
         if self.__target_seq_size is None:
             target_seq_size = 0
             for i in range(self.__batch_size):
@@ -105,9 +119,12 @@ class Squad_v1_1:
         for i in range(self.__batch_size):
             length_of_seq = len(input[i])
             if target_seq_size >= length_of_seq:
+                # padding is applied when target seq size is longer than or equal to encountered size
                 space_to_pad = target_seq_size - length_of_seq
                 input_padded[i] = np.pad(input[i], (0, space_to_pad), "constant", constant_values=0)
             else:
+                # cropping is applied if otherwise
+                # TODO: this should actually be caused by exceeding max_seq_size, not target_seq_size
                 input_padded[i] = input[i][0:target_seq_size]
 
         return input_padded
@@ -121,13 +138,33 @@ class Squad_v1_1:
     def get_token_type_ids_array(self):
         return self.__get_input_array("token_type_ids")
 
-    def extract_answer(self, id_in_batch: int, answer_start_id, answer_end_id):
+    def extract_answer(self, id_in_batch: int, answer_start_id: int, answer_end_id: int):
+        """
+        A function extracting the answering part of context and applying the provided detokenization function on it.
+
+        :param id_in_batch: int, index in input batch that answer relates to
+        :param answer_start_id: int, index of answer start in context text
+        :param answer_end_id: int, index of answer end in context text
+        :return: string, detokenized answer
+        """
         answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id+1]
         return self.__detokenize_func(answer)
 
-    def submit_prediction(self, id_in_batch: int, answer):
+    def submit_prediction(self, id_in_batch: int, answer: string):
+        """
+        A function allowing for a submission of obtained results of NLP inference.
+
+        :param id_in_batch: int, index in input batch that answer relates to
+        :param answer: string, detokenized answer
+        """
 
         def normalize(answer_string):
+            """
+            A function normalizing the answer to mitigate the effect of formatting.
+
+            :param answer_string: str, answer
+            :return: str, normalized answer
+            """
 
             def remove_articles(text):
                 return re.sub(r'\b(a|an|the)\b', ' ', text)
@@ -145,6 +182,13 @@ class Squad_v1_1:
             return white_space_fix(remove_articles(remove_punc(lower(answer_string))))
 
         def f1_score(normalized_prediction, normalized_ground_truth):
+            """
+            A function calculating the F1 score betweed normalized prediction and normalized ground truth.
+
+            :param normalized_prediction: str, normalized answer (prediction)
+            :param normalized_ground_truth: str, normalized correct answer (gt)
+            :return: float, f1 score
+            """
             prediction_tokens = normalized_prediction.split()
             ground_truth_tokens = normalized_ground_truth.split()
             common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
@@ -157,9 +201,25 @@ class Squad_v1_1:
             return f1
 
         def exact_match_score(normalized_prediction, normalized_ground_truth):
+            """
+            A function comparing normalized strings.
+
+            :param normalized_prediction: str, normalized answer (prediction)
+            :param normalized_ground_truth: str, normalized correct answer (gt)
+            :return: bool, True if strings equal
+            """
             return normalized_prediction == normalized_ground_truth
 
         def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
+            """
+            A function applying given metric function over provided acceptable answers (ground_truths).
+
+            :param metric_fn: function calculating a metric
+            :param prediction: str with predicted answer
+            :param ground_truths: list of strings, list of acceptable answers
+
+            :return: float, max score obtained
+            """
             scores_for_ground_truths = []
             for ground_truth in ground_truths:
                 score = metric_fn(normalize(prediction), normalize(ground_truth["text"]))
@@ -173,8 +233,11 @@ class Squad_v1_1:
 
     def summarize_accuracy(self):
         """
-        A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
-        predictions done where supplied with submit_predictions() function.
+        A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
+        predicted answers were supplied with submit_predictions() function.
+
+        :return: dict, dictionary containing two metrics produced: exact_match signifying the ratio of perfect answers
+        and f1 metric
         """
         if self.__unanswered_questions_count != 0:
             utils.print_goodbye_message_and_die(

@@ -7,12 +7,12 @@ from utils.nlp.squad import Squad_v1_1
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run MobileNet v2 model.")
+    parser = argparse.ArgumentParser(description="Run BERT Large model (from mlcommons:inference repo).")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -29,28 +29,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
+def run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path):
     def run_single_pass(tf_runner, squad):
-        # tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
-        # text = r"""
-        # 🤗 Transformers (formerly known as pytorch-transformers and pytorch-pretrained-bert) provides general-purpose
-        # architectures (BERT, GPT-2, RoBERTa, XLM, DistilBert, XLNet…) for Natural Language Understanding (NLU) and Natural
-        # Language Generation (NLG) with over 32+ pretrained models in 100+ languages and deep interoperability between
-        # TensorFlow 2.0 and PyTorch.
-        # """
-        # question = "How many pretrained models are available in 🤗 Transformers?"
-        # inputs = tokenizer(question, text, add_special_tokens=True, return_tensors="np")
-        # print(inputs)
-        # ds
-        # input_ids_raw = inputs['input_ids']
-        # input_ids = np.pad(input_ids_raw, ((0, 0), (0, 384-input_ids_raw.shape[1])), 'constant', constant_values=0)
-        # print(input_ids)
-        # print(input_ids.shape)
-        # input_mask = inputs['attention_mask']
-        # input_mask = np.pad(input_mask, ((0, 0), (0, 384 - input_mask.shape[1])), 'constant', constant_values=0)
-        # segment_ids = inputs['token_type_ids']
-        # segment_ids = np.pad(segment_ids, ((0, 0), (0, 384 - segment_ids.shape[1])), 'constant', constant_values=0)
-        # print(input_mask.shape)
 
         tf_runner.set_input_tensor("input_ids:0", squad.get_input_ids_array())
         tf_runner.set_input_tensor("input_mask:0", squad.get_attention_mask_array())
@@ -80,10 +60,22 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path)
+
+
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, squad_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path)
+
+
 def main():
     args = parse_args()
     if args.precision == "fp32":
         run_tf_fp32(
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.squad_path
+        )
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.squad_path
         )
     else:
