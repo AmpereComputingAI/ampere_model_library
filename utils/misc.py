@@ -3,6 +3,13 @@ import sys
 import hashlib
 
 
+class OutOfInstances(Exception):
+    """
+    An exception class being raised as an error in case of lack of further images to process by the pipeline.
+    """
+    pass
+
+
 def get_hash_of_a_file(path_to_file):
     """
     A function calculating md5 hash for a file under the supplied path.
