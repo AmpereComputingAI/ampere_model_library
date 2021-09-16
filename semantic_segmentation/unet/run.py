@@ -118,6 +118,13 @@ def finalize(image, norm_map):
 
     return image
 
+def apply_norm_map(image, norm_map):
+    """
+    Applies normal map norm_map to image and return the outcome
+    """
+    image /= norm_map
+    return image
+
 
 def prepare_arrays(image, roi_shape=ROI_SHAPE):
     """
