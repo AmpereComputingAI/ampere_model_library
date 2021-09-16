@@ -10,6 +10,11 @@ from scipy import signal
 DATASET = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/preprocessed_files.pkl'
 DATASET_DIR = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed'
 MODEL_PATH = '/onspecta/dev/mz/temp/models/unet'
+
+DATASET_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/preprocessed_files.pkl'
+DATASET_DIR_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed'
+MODEL_PATH_GRAVITON = '/onspecta/mz/temp/models/unet'
+
 SAMPLE_LIST = [14, 32, 33, 23, 25, 31, 0, 5, 39, 21, 9, 19, 29, 38, 20, 30]
 ROI_SHAPE = [128, 128, 128]
 SLIDE_OVERLAP_FACTOR = 0.5
@@ -40,10 +45,10 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
     loaded_files = {}
 
     print('loading a model...')
-    loaded_model = tf.saved_model.load(MODEL_PATH)
+    loaded_model = tf.saved_model.load(MODEL_PATH_GRAVITON)
     model = loaded_model.signatures["serving_default"]
 
-    with open(Path(DATASET), "rb") as f:
+    with open(Path(DATASET_GRAVITON), "rb") as f:
         preprocess_files = pickle.load(f)['file_list']
 
     count = len(preprocess_files)
@@ -51,7 +56,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
     file_name = preprocess_files[14]
     print("Loading file {:}".format(file_name))
-    with open(Path(DATASET_DIR, "{:}.pkl".format(file_name)), "rb") as f:
+    with open(Path(DATASET_DIR_GRAVITON, "{:}.pkl".format(file_name)), "rb") as f:
         loaded_files[14] = pickle.load(f)[0]
 
     im = loaded_files[14]
