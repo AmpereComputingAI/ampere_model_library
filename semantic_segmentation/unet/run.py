@@ -3,6 +3,7 @@ import argparse
 from utils.tf import TFSavedModelRunner
 from pathlib import Path
 import pickle
+import tensorflow as tf
 
 DATASET = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/preprocessed_files.pkl'
 
@@ -30,7 +31,7 @@ def parse_args():
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     print('loading a model...')
-    loaded_model = TFSavedModelRunner(model_path)
+    loaded_model = tf.saved_model.load(model_path)
     model = loaded_model.signatures["serving_default"]
 
     with open(Path(DATASET), "rb") as f:
