@@ -1,18 +1,17 @@
 import os
+import argparse
 from utils.tf import TFSavedModelRunner
+from pathlib import Path
+import pickle
+
+DATASET = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/preprocessed_files.pkl'
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run ResNet-50 v1.5 model.")
+    parser = argparse.ArgumentParser(description="Run Unet model.")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str, required=False,
                         help="path to the model")
-    parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "fp16", "int8"], required=True,
-                        help="precision of the model provided")
-    parser.add_argument("-b", "--batch_size",
-                        type=int, default=1,
-                        help="batch size to feed the model with")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -30,24 +29,43 @@ def parse_args():
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
-    def run_single_pass(tf_runner, imagenet):
-       pass
+    print('loading a model...')
+    loaded_model = TFSavedModelRunner(model_path)
+    model = loaded_model.signatures["serving_default"]
 
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=False)
-    runner = TFSavedModelRunner(model_path, ["densenet169/predictions/Reshape_1:0"])
+    with open(Path(DATASET), "rb") as f:
+        preprocess_files = pickle.load(f)['file_list']
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    count = len(preprocess_files)
+    print(count)
+    print(type(preprocess_files))
+    print(preprocess_files)
+
+    def do_infer(self, input_tensor):
+        """
+        Perform inference upon input_tensor with TensorFlow
+        """
+        test = model(input_tensor)
+        return test
+
+
+
+    def load_query_samples(self, sample_list):
+        """
+        Opens preprocessed files (or query samples) and loads them into memory
+        """
+        for sample_id in sample_list:
+            file_name = self.preprocess_files[sample_id]
+            print("Loading file {:}".format(file_name))
+            with open(Path(self.preprocessed_data_dir, "{:}.pkl".format(file_name)), "rb") as f:
+                self.loaded_files[sample_id] = pickle.load(f)[0]
 
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
-    else:
-        assert False
+    run_tf_fp32(
+        args.model_path, 1, args.num_runs, args.timeout, args.images_path, args.labels_path
+    )
 
 
 if __name__ == "__main__":
