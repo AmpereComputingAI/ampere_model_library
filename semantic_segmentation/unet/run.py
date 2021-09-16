@@ -118,11 +118,25 @@ def finalize(image, norm_map):
 
     return image
 
+
 def apply_norm_map(image, norm_map):
     """
     Applies normal map norm_map to image and return the outcome
     """
     image /= norm_map
+    return image
+
+
+def apply_argmax(image):
+    """
+    Returns indices of the maximum values along the channel axis
+    Input shape is (bs=1, channel=3, (ROI_SHAPE)), float -- sub-volume inference result
+    Output shape is (bs=1, channel=1, (ROI_SHAPE)), integer -- segmentation result
+    """
+    channel_axis = 1
+    image = np.argmax(image, axis=channel_axis).astype(np.uint8)
+    image = np.expand_dims(image, axis=0)
+
     return image
 
 
