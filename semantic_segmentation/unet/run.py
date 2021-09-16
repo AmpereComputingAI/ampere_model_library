@@ -102,6 +102,8 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
 
     final_result = finalize(result, norm_map)
 
+    print('done')
+
 
 def finalize(image, norm_map):
     """
@@ -145,7 +147,7 @@ def to_tensor(my_array):
     return my_array
 
 
-def from_tensor(self, my_tensor):
+def from_tensor(my_tensor):
     """
     Transforms my_tensor backend worked on into numpy friendly array
     Implementation may differ as backend's need
