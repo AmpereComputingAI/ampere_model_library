@@ -2,10 +2,10 @@ import numpy as np
 import pathlib
 import utils.misc as utils
 import utils.cv.pre_processing as pp
-import utils.cv.dataset as utils_ds
+from utils.cv.dataset import ImageDataset
 
 
-class ImageNet(utils_ds.ImageDataset):
+class ImageNet(ImageDataset):
     """
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
@@ -73,7 +73,7 @@ class ImageNet(utils_ds.ImageDataset):
         try:
             file_name = self.__file_names[self.__current_img]
         except IndexError:
-            raise utils_ds.OutOfInstances("No more ImageNet images to process in the directory provided")
+            raise utils.OutOfInstances("No more ImageNet images to process in the directory provided")
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
 
