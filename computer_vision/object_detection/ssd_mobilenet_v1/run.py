@@ -1,9 +1,7 @@
 import os
 import time
 import argparse
-import utils.misc as utils
-from utils.coco import COCODataset
-from utils.tflite import TFLiteRunner
+from utils.cv.coco import COCODataset
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 from utils.misc import UnsupportedPrecisionValueError
