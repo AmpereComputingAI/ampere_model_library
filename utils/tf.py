@@ -74,9 +74,11 @@ class TFFrozenModelRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
+
         start = time.time()
         output = self.__sess.run(self.__output_dict, self.__feed_dict)
         finish = time.time()
+
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
@@ -118,9 +120,11 @@ class TFSavedModelRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
+
         start = time.time()
         output = self.model(input)
         finish = time.time()
+        
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start

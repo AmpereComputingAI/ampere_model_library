@@ -75,6 +75,10 @@ wget -O classification/vgg_19/vgg_19_tflite_int8.tflite https://www.dropbox.com/
 # object detection models
 ########################################################################################################################
 
+# ssd_mobilenet_v1
+wget -O object_detection/ssd_mobilenet_v1/ssd_mobilenet_v1_tf_fp32.pb https://www.dropbox.com/s/lvg89rzxqy88tte/ssd_mobilenet_v1_tf_fp32.pb
+wget -O object_detection/ssd_mobilenet_v1/ssd_mobilenet_v1_tf_fp16.pb https://www.dropbox.com/s/9uqjcstdjmwd9b3/ssd_mobilenet_v1_tf_fp16.pb
+
 # ssd_mobilenet_v2
 wget -O object_detection/ssd_mobilenet_v2/ssd_mobilenet_v2_tf_fp32.pb https://www.dropbox.com/s/lnaqscsqydzlt1e/ssd_mobilenet_v2_tf_fp32.pb
 wget -O object_detection/ssd_mobilenet_v2/ssd_mobilenet_v2_tflite_int8.tflite https://www.dropbox.com/s/hdi9a72uawshp2q/ssd_mobilenet_v2_tflite_int8.tflite

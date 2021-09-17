@@ -3,6 +3,13 @@ import sys
 import hashlib
 
 
+class UnsupportedPrecisionValueError(ValueError):
+    """
+    An error being raised when requested precision is not available.
+    """
+    pass
+
+
 class OutOfInstances(Exception):
     """
     An exception class being raised as an error in case of lack of further images to process by the pipeline.
