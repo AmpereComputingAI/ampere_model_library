@@ -3,6 +3,20 @@ import sys
 import hashlib
 
 
+class UnsupportedPrecisionValueError(ValueError):
+    """
+    An error being raised when requested precision is not available.
+    """
+    pass
+
+
+class OutOfInstances(Exception):
+    """
+    An exception class being raised as an error in case of lack of further images to process by the pipeline.
+    """
+    pass
+
+
 def get_hash_of_a_file(path_to_file):
     """
     A function calculating md5 hash for a file under the supplied path.
