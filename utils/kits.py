@@ -114,3 +114,10 @@ class Kits(utils_ds.ImageDataset):
             roi_shape[0], 0.125 * roi_shape[0]).astype(norm_map.dtype)
 
         return result, norm_map, norm_patch
+
+    def summarize_accuracy(self):
+        """
+        A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
+        predictions done where supplied with submit_predictions() function.
+        """
+        print('to be implemented')
