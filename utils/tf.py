@@ -112,6 +112,7 @@ class TFSavedModelRunner:
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
+        self.output_name = list(self.__model.structured_outputs)[0]
 
     def run(self, input):
         """
@@ -140,3 +141,4 @@ class TFSavedModelRunner:
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         return perf
+
