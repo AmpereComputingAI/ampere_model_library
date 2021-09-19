@@ -153,11 +153,7 @@ def pre_process_inception(input_array):
 
 
 def gaussian_kernel(n, std):
-    """
-    Returns gaussian kernel; std is standard deviation and n is number of points
-    Gaussian blur
-    return: a numpy array,
-    """
+
     gaussian1d = signal.gaussian(n, std)
     gaussian2d = np.outer(gaussian1d, gaussian1d)
     gaussian3d = np.outer(gaussian2d, gaussian1d)

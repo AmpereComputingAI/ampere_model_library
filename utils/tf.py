@@ -108,12 +108,11 @@ class TFSavedModelRunner:
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
-        self.__saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
-        self.__model = self.__saved_model_loaded.signatures['serving_default']
+        self.saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
+        self.model = self.saved_model_loaded.signatures['serving_default']
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
-        self.output_name = list(self.__model.structured_outputs)[0]
 
     def run(self, input):
         """
@@ -123,7 +122,7 @@ class TFSavedModelRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
         start = time.time()
-        output = self.__model(input)
+        output = self.model(input)
         finish = time.time()
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
@@ -140,4 +139,3 @@ class TFSavedModelRunner:
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         return perf
-

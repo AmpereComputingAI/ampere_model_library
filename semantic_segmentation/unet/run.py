@@ -1,6 +1,6 @@
 import argparse
-from utils.kits import Kits
-from utils.tf import TFSavedModelRunner
+from utils.kits import KiTS19
+from utils.runners import UnetRunner
 from utils.benchmark import run_model
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 import tensorflow as tf
@@ -28,9 +28,6 @@ def parse_args():
     parser.add_argument("--images_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
-    parser.add_argument("--labels_path",
-                        type=str,
-                        help="path to file with validation labels")
     return parser.parse_args()
 
 
@@ -62,12 +59,11 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path):
                              k:(ROI_SHAPE[2] + k)]
 
             output = unet_runner.run(tf.constant(input_slice))
-            print('here')
             result_slice += output[unet_runner.output_name].numpy() * norm_patch
             norm_map_slice += norm_patch
 
-    dataset = Kits(images_path=DATASET_DIR_GRAVITON, images_anno=DATASET_GRAVITON)
-    runner = TFSavedModelRunner(MODEL_PATH_GRAVITON)
+    dataset = KiTS19(images_path=DATASET_DIR_GRAVITON, images_anno=DATASET_GRAVITON)
+    runner = UnetRunner(MODEL_PATH_GRAVITON)
 
     return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
 
