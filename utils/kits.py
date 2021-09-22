@@ -54,7 +54,15 @@ class KiTS19(utils_ds.ImageDataset):
         return pathlib.PurePath(self.__images_path, file_name, '.pkl')
 
     def get_input_array(self):
+        """
+        A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
 
+        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
+        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
+        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
+        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
+        initialization
+        """
         file_name = self.__file_names[self.__current_img]
         with open(Path(self.__images_path, "{:}.pkl".format(file_name)), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
