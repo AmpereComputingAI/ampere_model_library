@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str, required=True,
                         help="path to pickle file containing KiTS19 dataset case names."
-                             "It's default name is preprocessed_files.pkl")
+                             "its default name is preprocessed_files.pkl")
     return parser.parse_args()
 
 
@@ -32,10 +32,17 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(unet_runner, kits_dataset):
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
+        print(result.shape)
 
-        subvol_cnt = 0
+        # subvol_cnt = 0
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
-            subvol_cnt += 1
+            # subvol_cnt += 1
+
+            # roi = ..., slice(i, ROI_SHAPE[0] + i), ...
+            # result_slice = result[[roi]
+            # input_slice = image[[roi]
+            #     ...
+            #
             result_slice = result[
                            ...,
                            i:(ROI_SHAPE[0] + i),

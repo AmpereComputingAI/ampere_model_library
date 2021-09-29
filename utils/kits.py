@@ -74,18 +74,25 @@ class KiTS19(utils_ds.ImageDataset):
 
     def get_slice_for_sliding_window(self, image, roi_shape=ROI_SHAPE, overlap=SLIDE_OVERLAP_FACTOR):
 
-        assert isinstance(roi_shape, list) and len(roi_shape) == 3 and any(roi_shape), \
-            f"Need proper ROI shape: {roi_shape}"
-        assert isinstance(overlap, float) and overlap > 0 and overlap < 1, \
-            f"Need sliding window overlap factor in (0,1): {overlap}"
+        assert len(roi_shape) == 3 and any(roi_shape) and all(dim > 0 for dim in roi_shape), \
+            f"Need proper ROI shape! The current ROI shape is: {roi_shape}"
 
-        image_shape = list(image.shape[2:])
+        assert 0 < overlap < 1, \
+            f"Need sliding window overlap factor in (0,1)! The current overlap factor is: {overlap}"
+
+        image_shape = image.shape[2:]
         dim = len(image_shape)
         strides = [int(roi_shape[i] * (1 - overlap)) for i in range(dim)]
 
-        size = [(image_shape[i] - roi_shape[i]) //
-                strides[i] + 1 for i in range(dim)]
+        size = [(image_shape[i] - roi_shape[i]) // strides[i] + 1 for i in range(dim)]
 
+        # print((image_shape[i] - roi_shape[i]))
+
+        print(image_shape)
+        print(strides)
+        print(size)
+
+        # range(0, image_shape[0] - roi_shape[0] + 1, strides[0])
         for i in range(0, strides[0] * size[0], strides[0]):
             for j in range(0, strides[1] * size[1], strides[1]):
                 for k in range(0, strides[2] * size[2], strides[2]):
