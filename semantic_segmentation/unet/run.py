@@ -32,17 +32,9 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
     def run_single_pass(unet_runner, kits_dataset):
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
-        print(result.shape)
 
-        # subvol_cnt = 0
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
-            # subvol_cnt += 1
 
-            # roi = ..., slice(i, ROI_SHAPE[0] + i), ...
-            # result_slice = result[[roi]
-            # input_slice = image[[roi]
-            #     ...
-            #
             result_slice = result[
                            ...,
                            i:(ROI_SHAPE[0] + i),

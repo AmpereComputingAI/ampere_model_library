@@ -1,9 +1,10 @@
-import utils.dataset as utils_ds
-import pickle
-from pathlib import Path
-import numpy as np
-import utils.pre_processing as pre_p
+import utils.cv.dataset as utils_ds
+import utils.cv.pre_processing as pre_p
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+
+import pickle
+import numpy as np
+from pathlib import Path
 
 
 class KiTS19(utils_ds.ImageDataset):
@@ -83,16 +84,8 @@ class KiTS19(utils_ds.ImageDataset):
         image_shape = image.shape[2:]
         dim = len(image_shape)
         strides = [int(roi_shape[i] * (1 - overlap)) for i in range(dim)]
-
         size = [(image_shape[i] - roi_shape[i]) // strides[i] + 1 for i in range(dim)]
 
-        # print((image_shape[i] - roi_shape[i]))
-
-        print(image_shape)
-        print(strides)
-        print(size)
-
-        # range(0, image_shape[0] - roi_shape[0] + 1, strides[0])
         for i in range(0, strides[0] * size[0], strides[0]):
             for j in range(0, strides[1] * size[1], strides[1]):
                 for k in range(0, strides[2] * size[2], strides[2]):
