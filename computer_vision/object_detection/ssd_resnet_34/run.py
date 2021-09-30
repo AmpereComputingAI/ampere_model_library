@@ -63,10 +63,18 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
 
 
+def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
+
+
 def main():
     args = parse_args()
     if args.precision == "fp32":
         run_tf_fp32(
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+        )
+    elif args.precision == "fp16":
+        run_tf_fp16(
             args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
         )
     else:
