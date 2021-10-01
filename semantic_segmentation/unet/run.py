@@ -33,7 +33,10 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
 
+        subvol_cnt = 0
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
+
+            subvol_cnt += 1
 
             result_slice = result[
                            ...,
@@ -56,6 +59,12 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
             output = unet_runner.run(tf.constant(input_slice))
             result_slice += output[unet_runner.output_name].numpy() * norm_patch
             norm_map_slice += norm_patch
+            print(subvol_cnt)
+
+        kits_dataset.submit_predictions(result)
+        # print('here')
+        # print(result)
+        # print(result.shape)
 
     dataset = KiTS19(images_path=images_path, images_anno=anno_path)
     runner = UnetRunner(model_path)
