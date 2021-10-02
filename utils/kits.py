@@ -158,17 +158,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
 
-        print('groundtruth')
-        print(type(groundtruth))
-        print(groundtruth.shape)
-
-        print('prediction')
-        print(type(prediction))
-        print(prediction.shape)
-
-        print('case:')
-        print(type(CASE))
-
         groundtruth = np.expand_dims(groundtruth, 0)
         prediction = np.expand_dims(prediction, 0)
 
@@ -177,24 +166,6 @@ class KiTS19(utils_ds.ImageDataset):
                 CASE, groundtruth.shape, prediction.shape)
 
         bundle.append((CASE, groundtruth, prediction))
-
-        # for case in target_files:
-        #     groundtruth_path = Path(preprocessed_data_dir,
-        #                             "nifti", case, "segmentation.nii.gz").absolute()
-        #     prediction_path = Path(postprocessed_data_dir,
-        #                            case, "prediction.nii.gz").absolute()
-        #
-        #     groundtruth = nib.load(groundtruth_path).get_fdata().astype(np.uint8)
-        #     prediction = nib.load(prediction_path).get_fdata().astype(np.uint8)
-        #
-        #     groundtruth = np.expand_dims(groundtruth, 0)
-        #     prediction = np.expand_dims(prediction, 0)
-        #
-        #     assert groundtruth.shape == prediction.shape, \
-        #         "{} -- groundtruth: {} and prediction: {} have different shapes".format(
-        #             case, groundtruth.shape, prediction.shape)
-        #
-        #     bundle.append((case, groundtruth, prediction))
 
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
