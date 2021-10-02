@@ -8,9 +8,11 @@ import numpy as np
 from pathlib import Path
 from multiprocessing import Pool
 import nibabel as nib
+import pandas as pd
 
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
+PREPROCESSED_DIR = 'onspecta/mz/unet_results'
 CASE = 'case_000000'
 
 
@@ -195,7 +197,33 @@ class KiTS19(utils_ds.ImageDataset):
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
 
-        save_evaluation_summary(postprocessed_data_dir, dice_scores)
+        self.save_evaluation_summary(postprocessed_data_dir, dice_scores)
+
+    def save_evaluation_summary(self, PREPROCESSED_DIR, dice_scores):
+        """
+        Stores collected DICE scores in CSV format: $(POSTPROCESSED_DATA_DIR)/summary.csv
+        """
+        sum_path = Path(PREPROCESSED_DIR, "summary.csv").absolute()
+        df = pd.DataFrame()
+
+        for _s in dice_scores:
+            case, arr = _s
+            kidney = arr[0]
+            tumor = arr[1]
+            composite = np.mean(arr)
+            df = df.append(
+                {
+                    "case": case,
+                    "kidney": kidney,
+                    "tumor": tumor,
+                    "composite": composite
+                }, ignore_index=True)
+
+        df.set_index("case", inplace=True)
+        # consider NaN as a crash hence zero
+        df.loc["mean"] = df.fillna(0).mean()
+
+        df.to_csv(sum_path)
 
     def summarize_accuracy(self):
         # TODO: implement this
