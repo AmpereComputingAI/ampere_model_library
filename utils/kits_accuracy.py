@@ -1,3 +1,5 @@
+import numpy as np
+
 def prepare_one_hot(my_array, num_classes):
     """
     Reinterprets my_array into one-hot encoded, for classes as many as num_classes
