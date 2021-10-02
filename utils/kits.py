@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import nibabel as nib
 
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
-GROUNDTRUTH_PATH_GRAVITON = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
+GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 CASE = 'case_000000'
 
 class KiTS19(utils_ds.ImageDataset):
