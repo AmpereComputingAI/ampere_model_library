@@ -154,7 +154,13 @@ class KiTS19(utils_ds.ImageDataset):
 
         groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
 
+        print('groundtruth')
         print(type(groundtruth))
+
+        print('prediction')
+        print(type(prediction))
+
+        print('case:')
         print(type(CASE))
 
         bundle.append((CASE, groundtruth, prediction))
