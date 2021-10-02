@@ -13,6 +13,7 @@ GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/cas
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 CASE = 'case_000000'
 
+
 class KiTS19(utils_ds.ImageDataset):
     """
     A class providing facilities for preprocessing of KiTS19 dataset.
@@ -152,6 +153,9 @@ class KiTS19(utils_ds.ImageDataset):
         bundle = list()
 
         groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
+
+        print(type(groundtruth))
+        print(type(CASE))
 
         bundle.append((CASE, groundtruth, prediction))
 
