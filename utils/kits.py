@@ -208,6 +208,8 @@ class KiTS19(utils_ds.ImageDataset):
         sum_path = Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv").absolute()
         df = pd.DataFrame()
 
+        print(sum_path)
+
         for _s in dice_scores:
             case, arr = _s
             kidney = arr[0]
@@ -224,6 +226,8 @@ class KiTS19(utils_ds.ImageDataset):
         df.set_index("case", inplace=True)
         # consider NaN as a crash hence zero
         df.loc["mean"] = df.fillna(0).mean()
+
+        print(df)
 
         df.to_csv(sum_path)
 
