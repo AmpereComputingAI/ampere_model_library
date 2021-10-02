@@ -170,7 +170,7 @@ class KiTS19(utils_ds.ImageDataset):
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
 
-        self.summarize_accuracy(dice_scores)
+        self.summarize_accuracy_test(dice_scores)
 
     #     self.save_evaluation_summary(POSTPROCESSED_DIR_GRAVITON, dice_scores)
     #
@@ -204,7 +204,10 @@ class KiTS19(utils_ds.ImageDataset):
     #
     #     df.to_csv(sum_path)
 
-    def summarize_accuracy(self, dice_scores):
+    def summarize_accuracy_test(self, dice_scores):
+        print(type(dice_scores))
+
+    def summarize_accuracy(self):
         # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
         #     for line in f:
         #         if not line.startswith("mean"):
@@ -217,8 +220,6 @@ class KiTS19(utils_ds.ImageDataset):
         #             print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
         #                 composite, kidney, tumor))
         #             break
-
-        print(type(dice_scores))
 
         # TODO: implement this
         pass
