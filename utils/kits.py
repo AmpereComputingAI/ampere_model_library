@@ -9,6 +9,7 @@ from multiprocessing import Pool
 import nibabel as nib
 
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
+GROUNDTRUTH_PATH_GRAVITON = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 CASE = 'case_000000'
 
 class KiTS19(utils_ds.ImageDataset):
@@ -110,7 +111,39 @@ class KiTS19(utils_ds.ImageDataset):
 
         return result, norm_map, norm_patch
 
-    def prepare_one_hot(my_array, num_classes):
+    def finalize(self, image, norm_map):
+        """
+        Finalizes results obtained from sliding window inference
+        """
+        # NOTE: layout is assumed to be linear (NCDHW) always
+        # apply norm_map
+        image = self.apply_norm_map(image, norm_map)
+
+        # argmax
+        image = apply_argmax(image)
+
+        return image
+
+    def apply_norm_map(self, image, norm_map):
+        """
+        Applies normal map norm_map to image and return the outcome
+        """
+        image /= norm_map
+        return image
+
+    def apply_argmax(self, image):
+        """
+        Returns indices of the maximum values along the channel axis
+        Input shape is (bs=1, channel=3, (ROI_SHAPE)), float -- sub-volume inference result
+        Output shape is (bs=1, channel=1, (ROI_SHAPE)), integer -- segmentation result
+        """
+        channel_axis = 1
+        image = np.argmax(image, axis=channel_axis).astype(np.uint8)
+        image = np.expand_dims(image, axis=0)
+
+        return image
+
+    def prepare_one_hot(self, my_array, num_classes):
         """
         Reinterprets my_array into one-hot encoded, for classes as many as num_classes
         """
@@ -173,7 +206,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         bundle = list()
 
-        groundtruth = nib.load(GROUNDTRUTH_PATH).get_fdata().astype(np.uint8)
+        groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
 
         bundle.append((CASE, groundtruth, prediction))
 
