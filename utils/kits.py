@@ -13,8 +13,8 @@ import pandas as pd
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 
-PREPROCESSED_DIR = '/onspecta/dev/mz/unet_results'
-PREPROCESSED_DIR_GRAVITON = '/onspecta/mz/unet_results'
+POSTPROCESSED_DIR = '/onspecta/dev/mz/unet_results'
+POSTPROCESSED_DIR_GRAVITON = '/onspecta/mz/unet_results'
 CASE = 'case_000000'
 
 
@@ -199,13 +199,13 @@ class KiTS19(utils_ds.ImageDataset):
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
 
-        self.save_evaluation_summary(PREPROCESSED_DIR, dice_scores)
+        self.save_evaluation_summary(POSTPROCESSED_DIR_GRAVITON, dice_scores)
 
-    def save_evaluation_summary(self, PREPROCESSED_DIR, dice_scores):
+    def save_evaluation_summary(self, POSTPROCESSED_DIR_GRAVITON, dice_scores):
         """
         Stores collected DICE scores in CSV format: $(POSTPROCESSED_DATA_DIR)/summary.csv
         """
-        sum_path = Path(PREPROCESSED_DIR, "summary.csv").absolute()
+        sum_path = Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv").absolute()
         df = pd.DataFrame()
 
         for _s in dice_scores:
@@ -228,5 +228,17 @@ class KiTS19(utils_ds.ImageDataset):
         df.to_csv(sum_path)
 
     def summarize_accuracy(self):
+        with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
+            for line in f:
+                if not line.startswith("mean"):
+                    continue
+                words = line.split(",")
+                if words[0] == "mean":
+                    composite = float(words[1])
+                    kidney = float(words[2])
+                    tumor = float(words[3])
+                    print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
+                        composite, kidney, tumor))
+                    break
         # TODO: implement this
         pass
