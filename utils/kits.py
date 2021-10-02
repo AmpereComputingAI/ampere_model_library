@@ -12,7 +12,9 @@ import pandas as pd
 
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
-PREPROCESSED_DIR = 'onspecta/mz/unet_results'
+
+PREPROCESSED_DIR = '/onspecta/dev/mz/unet_results'
+PREPROCESSED_DIR_GRAVITON = '/onspecta/mz/unet_results'
 CASE = 'case_000000'
 
 
@@ -197,7 +199,7 @@ class KiTS19(utils_ds.ImageDataset):
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
 
-        self.save_evaluation_summary(postprocessed_data_dir, dice_scores)
+        self.save_evaluation_summary(PREPROCESSED_DIR, dice_scores)
 
     def save_evaluation_summary(self, PREPROCESSED_DIR, dice_scores):
         """
