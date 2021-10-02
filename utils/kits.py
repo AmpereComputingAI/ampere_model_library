@@ -1,7 +1,7 @@
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
-from kits_accuracy import get_dice_score
+from utils.kits_accuracy import get_dice_score
 
 import pickle
 import numpy as np
