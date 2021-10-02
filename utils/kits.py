@@ -156,9 +156,11 @@ class KiTS19(utils_ds.ImageDataset):
 
         print('groundtruth')
         print(type(groundtruth))
+        print(groundtruth.shape)
 
         print('prediction')
         print(type(prediction))
+        print(prediction.shape)
 
         print('case:')
         print(type(CASE))
