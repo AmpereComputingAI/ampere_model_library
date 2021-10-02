@@ -70,6 +70,8 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
             print(subvol_cnt)
 
         final_result = kits_dataset.finalize(result, norm_map)
+        print(type(final_result))
+        print(final_result.shape)
         kits_dataset.submit_predictions(final_result)
         # print('here')
         # print(result)
