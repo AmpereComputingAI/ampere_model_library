@@ -4,6 +4,9 @@ from utils.runners import UnetRunner
 from utils.benchmark import run_model
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 import tensorflow as tf
+import nibabel as nib
+
+GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 
 
 def parse_args():
@@ -28,6 +31,10 @@ def parse_args():
 
 
 def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
+
+    groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
+    print(type(groundtruth))
+    print(groundtruth.shape)
 
     def run_single_pass(unet_runner, kits_dataset):
 
