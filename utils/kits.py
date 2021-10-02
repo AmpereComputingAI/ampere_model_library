@@ -174,7 +174,7 @@ class KiTS19(utils_ds.ImageDataset):
 
         assert groundtruth.shape == prediction.shape, \
             "{} -- groundtruth: {} and prediction: {} have different shapes".format(
-                case, groundtruth.shape, prediction.shape)
+                CASE, groundtruth.shape, prediction.shape)
 
         bundle.append((CASE, groundtruth, prediction))
 
