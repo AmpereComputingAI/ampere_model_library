@@ -165,6 +165,13 @@ class KiTS19(utils_ds.ImageDataset):
         print('case:')
         print(type(CASE))
 
+        groundtruth = np.expand_dims(groundtruth, 0)
+        prediction = np.expand_dims(prediction, 0)
+
+        assert groundtruth.shape == prediction.shape, \
+            "{} -- groundtruth: {} and prediction: {} have different shapes".format(
+                case, groundtruth.shape, prediction.shape)
+
         bundle.append((CASE, groundtruth, prediction))
 
         # for case in target_files:
