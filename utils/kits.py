@@ -111,19 +111,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         return result, norm_map, norm_patch
 
-    def finalize(self, image, norm_map):
-        """
-        Finalizes results obtained from sliding window inference
-        """
-        # NOTE: layout is assumed to be linear (NCDHW) always
-        # apply norm_map
-        image = self.apply_norm_map(image, norm_map)
-
-        # argmax
-        image = apply_argmax(image)
-
-        return image
-
     def apply_norm_map(self, image, norm_map):
         """
         Applies normal map norm_map to image and return the outcome
@@ -140,6 +127,19 @@ class KiTS19(utils_ds.ImageDataset):
         channel_axis = 1
         image = np.argmax(image, axis=channel_axis).astype(np.uint8)
         image = np.expand_dims(image, axis=0)
+
+        return image
+
+    def finalize(self, image, norm_map):
+        """
+        Finalizes results obtained from sliding window inference
+        """
+        # NOTE: layout is assumed to be linear (NCDHW) always
+        # apply norm_map
+        image = self.apply_norm_map(image, norm_map)
+
+        # argmax
+        image = self.apply_argmax(image)
 
         return image
 
