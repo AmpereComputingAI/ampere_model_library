@@ -1,7 +1,7 @@
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
-from utils.kits_accuracy import get_dice_score
+from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
 import pickle
 import numpy as np
@@ -117,43 +117,24 @@ class KiTS19(utils_ds.ImageDataset):
 
         return result, norm_map, norm_patch
 
-    def apply_norm_map(self, image, norm_map):
-        """
-        Applies normal map norm_map to image and return the outcome
-        """
-        image /= norm_map
-        return image
-
-    def apply_argmax(self, image):
-        """
-        Returns indices of the maximum values along the channel axis
-        Input shape is (bs=1, channel=3, (ROI_SHAPE)), float -- sub-volume inference result
-        Output shape is (bs=1, channel=1, (ROI_SHAPE)), integer -- segmentation result
-        """
-        channel_axis = 1
-        image = np.argmax(image, axis=channel_axis).astype(np.uint8)
-        image = np.expand_dims(image, axis=0)
-
-        return image
-
     def finalize(self, image, norm_map):
         """
         Finalizes results obtained from sliding window inference
         """
         # NOTE: layout is assumed to be linear (NCDHW) always
         # apply norm_map
-        image = self.apply_norm_map(image, norm_map)
+        image = apply_norm_map(image, norm_map)
 
         # argmax
-        image = self.apply_argmax(image)
+        image = apply_argmax(image)
 
         return image
-
 
     def submit_predictions(self, prediction):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
+
         bundle = list()
 
         groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
@@ -206,6 +187,7 @@ class KiTS19(utils_ds.ImageDataset):
 
     def summarize_accuracy_test(self, dice_scores):
         print(type(dice_scores))
+        print(dice_scores)
 
     def summarize_accuracy(self):
         # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
