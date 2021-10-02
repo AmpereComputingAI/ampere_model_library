@@ -170,50 +170,55 @@ class KiTS19(utils_ds.ImageDataset):
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)
 
-        self.save_evaluation_summary(POSTPROCESSED_DIR_GRAVITON, dice_scores)
+        self.summarize_accuracy(dice_scores)
 
-    def save_evaluation_summary(self, POSTPROCESSED_DIR_GRAVITON, dice_scores):
-        """
-        Stores collected DICE scores in CSV format: $(POSTPROCESSED_DATA_DIR)/summary.csv
-        """
-        sum_path = Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv").absolute()
-        df = pd.DataFrame()
+    #     self.save_evaluation_summary(POSTPROCESSED_DIR_GRAVITON, dice_scores)
+    #
+    # def save_evaluation_summary(self, POSTPROCESSED_DIR_GRAVITON, dice_scores):
+    #     """
+    #     Stores collected DICE scores in CSV format: $(POSTPROCESSED_DATA_DIR)/summary.csv
+    #     """
+    #     sum_path = Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv").absolute()
+    #     df = pd.DataFrame()
+    #
+    #     print(sum_path)
+    #
+    #     for _s in dice_scores:
+    #         case, arr = _s
+    #         kidney = arr[0]
+    #         tumor = arr[1]
+    #         composite = np.mean(arr)
+    #         df = df.append(
+    #             {
+    #                 "case": case,
+    #                 "kidney": kidney,
+    #                 "tumor": tumor,
+    #                 "composite": composite
+    #             }, ignore_index=True)
+    #
+    #     df.set_index("case", inplace=True)
+    #     # consider NaN as a crash hence zero
+    #     df.loc["mean"] = df.fillna(0).mean()
+    #
+    #     print(df)
+    #
+    #     df.to_csv(sum_path)
 
-        print(sum_path)
+    def summarize_accuracy(self, dice_scores):
+        # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
+        #     for line in f:
+        #         if not line.startswith("mean"):
+        #             continue
+        #         words = line.split(",")
+        #         if words[0] == "mean":
+        #             composite = float(words[1])
+        #             kidney = float(words[2])
+        #             tumor = float(words[3])
+        #             print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
+        #                 composite, kidney, tumor))
+        #             break
 
-        for _s in dice_scores:
-            case, arr = _s
-            kidney = arr[0]
-            tumor = arr[1]
-            composite = np.mean(arr)
-            df = df.append(
-                {
-                    "case": case,
-                    "kidney": kidney,
-                    "tumor": tumor,
-                    "composite": composite
-                }, ignore_index=True)
+        print(type(dice_scores))
 
-        df.set_index("case", inplace=True)
-        # consider NaN as a crash hence zero
-        df.loc["mean"] = df.fillna(0).mean()
-
-        print(df)
-
-        df.to_csv(sum_path)
-
-    def summarize_accuracy(self):
-        with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
-            for line in f:
-                if not line.startswith("mean"):
-                    continue
-                words = line.split(",")
-                if words[0] == "mean":
-                    composite = float(words[1])
-                    kidney = float(words[2])
-                    tumor = float(words[3])
-                    print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
-                        composite, kidney, tumor))
-                    break
         # TODO: implement this
         pass
