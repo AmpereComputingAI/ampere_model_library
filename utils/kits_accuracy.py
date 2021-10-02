@@ -56,5 +56,4 @@ def get_dice_score(case, prediction, target):
                (target_sum + prediction_sum + smooth_dr)
 
     # return after removing batch dim
-    print(case, dice_val[0])
     return (case, dice_val[0])

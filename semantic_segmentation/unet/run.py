@@ -33,15 +33,13 @@ def parse_args():
 
 def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
 
-    groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
-    print(type(groundtruth))
-    print(groundtruth.shape)
-
     def run_single_pass(unet_runner, kits_dataset):
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
 
+        # temp
         subvol_cnt = 0
+        # temp
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
 
             subvol_cnt += 1
@@ -67,16 +65,13 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
             output = unet_runner.run(tf.constant(input_slice))
             result_slice += output[unet_runner.output_name].numpy() * norm_patch
             norm_map_slice += norm_patch
+            # temp
             print(subvol_cnt)
+            # temp
 
-        final_result = kits_dataset.finalize(result, norm_map)
-        print(type(final_result))
-        print(final_result.shape)
-        test = final_result[0, 0, :, :, :]
-        kits_dataset.submit_predictions(test)
-        # print('here')
-        # print(result)
-        # print(result.shape)
+        final_result = kits_dataset.finalize(result, norm_map)[0, 0, :, :, :]
+        # final_result_reduced = final_result[0, 0, :, :, :]
+        kits_dataset.submit_predictions(final_result)
 
     dataset = KiTS19(images_path=images_path, images_anno=anno_path)
     runner = UnetRunner(model_path)
