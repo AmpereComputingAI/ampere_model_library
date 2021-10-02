@@ -30,8 +30,8 @@ def get_dice_score(case, prediction, target):
     smooth_dr = 1e-6
 
     # apply one-hot
-    prediction = self.to_one_hot(prediction, channel_axis)
-    target = self.to_one_hot(target, channel_axis)
+    prediction = to_one_hot(prediction, channel_axis)
+    target = to_one_hot(target, channel_axis)
 
     # remove background
     target = target[:, 1:]
