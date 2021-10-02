@@ -5,6 +5,7 @@ from utils.benchmark import run_model
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 import tensorflow as tf
 import nibabel as nib
+import numpy as np
 
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 
