@@ -73,7 +73,7 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
         print(type(final_result))
         print(final_result.shape)
         test = final_result[0, 0, :, :, :]
-        kits_dataset.submit_predictions(final_result)
+        kits_dataset.submit_predictions(test)
         # print('here')
         # print(result)
         # print(result.shape)
