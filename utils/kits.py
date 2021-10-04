@@ -88,6 +88,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         # file_name = self.__file_names[self.__current_img]
         file_name = self.__get_path_to_img()
+        print(file_name)
         with open(Path(file_name), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
@@ -148,6 +149,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         path_to_groundtruth = Path(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
 
+        print(path_to_groundtruth)
         groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
 
         groundtruth = np.expand_dims(groundtruth, 0)
