@@ -73,6 +73,7 @@ class KiTS19(utils_ds.ImageDataset):
         except IndexError:
             raise utils_ds.OutOfInstances("No more images to process in the directory provided")
         self.__current_img += 1
+
         return pathlib.PurePath(self.__images_path, file_name + '.pkl')
 
     def get_input_array(self):
@@ -87,7 +88,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         # file_name = self.__file_names[self.__current_img]
         file_name = self.__get_path_to_img()
-        with open(file_name) as f:
+        with open(Path(file_name), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
         image = self.__loaded_files[self.__current_img][np.newaxis, ...]
