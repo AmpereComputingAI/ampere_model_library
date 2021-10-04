@@ -1,8 +1,3 @@
-import utils.cv.dataset as utils_ds
-import utils.cv.pre_processing as pre_p
-from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
-from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
-
 import pickle
 import pathlib
 import numpy as np
@@ -10,6 +5,11 @@ import pandas as pd
 import nibabel as nib
 from pathlib import Path
 from multiprocessing import Pool
+
+import utils.cv.dataset as utils_ds
+import utils.cv.pre_processing as pre_p
+from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
 
 class KiTS19(utils_ds.ImageDataset):
