@@ -147,7 +147,13 @@ class KiTS19(utils_ds.ImageDataset):
         print(self.__current_img)
         print(self.__file_names)
 
-        test = pathlib.PurePath(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
+        # test = pathlib.PurePath(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
+
+        test = Path(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
+
+        file_name = self.__file_names[self.__current_img]
+        with open(Path(self.__images_path, "{:}.pkl".format(file_name)), "rb") as f:
+            self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
         print(test)
 
