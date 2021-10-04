@@ -47,7 +47,9 @@ class KiTS19(utils_ds.ImageDataset):
         self.__current_img = 0
         self.__file_names = self.__deserialize_file()
         self.__bundle = list()
+        self.__dice_scores = None
         self.available_instances = len(self.__file_names)
+
         super().__init__()
 
     def __deserialize_file(self):
@@ -155,9 +157,9 @@ class KiTS19(utils_ds.ImageDataset):
         self.__bundle.append((CASE, groundtruth, prediction))
 
         with Pool(1) as p:
-            dice_scores = p.starmap(get_dice_score, self.__bundle)
+            self.__dice_scores = p.starmap(get_dice_score, self.__bundle)
 
-        self.summarize_accuracy_test(dice_scores)
+        # self.summarize_accuracy_test(dice_scores)
 
     #     self.save_evaluation_summary(POSTPROCESSED_DIR_GRAVITON, dice_scores)
     #
@@ -191,14 +193,14 @@ class KiTS19(utils_ds.ImageDataset):
     #
     #     df.to_csv(sum_path)
 
-    def summarize_accuracy_test(self, dice_scores):
+    def summarize_accuracy(self, dice_scores):
         print(len(self.__bundle))
         print(self.__bundle[0][0])
         print(self.__bundle[1][0])
         print(type(dice_scores))
         print(dice_scores)
 
-    def summarize_accuracy(self):
+    # def summarize_accuracy(self):
         # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
         #     for line in f:
         #         if not line.startswith("mean"):
@@ -212,5 +214,5 @@ class KiTS19(utils_ds.ImageDataset):
         #                 composite, kidney, tumor))
         #             break
 
-        # TODO: implement this
-        pass
+        #
+        # pass
