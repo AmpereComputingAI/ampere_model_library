@@ -73,7 +73,7 @@ class KiTS19(utils_ds.ImageDataset):
         except IndexError:
             raise utils_ds.OutOfInstances("No more images to process in the directory provided")
         self.__current_img += 1
-        return pathlib.PurePath(self.__images_path, file_name, '.pkl')
+        return pathlib.PurePath(self.__images_path, file_name + '.pkl')
 
     def get_input_array(self):
         """
