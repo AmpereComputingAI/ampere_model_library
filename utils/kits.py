@@ -9,6 +9,7 @@ from pathlib import Path
 from multiprocessing import Pool
 import nibabel as nib
 import pandas as pd
+import pathlib
 
 GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
@@ -193,12 +194,12 @@ class KiTS19(utils_ds.ImageDataset):
     #
     #     df.to_csv(sum_path)
 
-    def summarize_accuracy(self, dice_scores):
+    def summarize_accuracy(self):
         print(len(self.__bundle))
         print(self.__bundle[0][0])
         print(self.__bundle[1][0])
-        print(type(dice_scores))
-        print(dice_scores)
+        print(type(self.__dice_scores))
+        print(self.__dice_scores)
 
     # def summarize_accuracy(self):
         # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
