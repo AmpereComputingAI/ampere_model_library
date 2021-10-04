@@ -155,7 +155,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__bundle.append((CASE, groundtruth, prediction))
 
         with Pool(1) as p:
-            dice_scores = p.starmap(get_dice_score, bundle)
+            dice_scores = p.starmap(get_dice_score, self.__bundle)
 
         self.summarize_accuracy_test(dice_scores)
 
