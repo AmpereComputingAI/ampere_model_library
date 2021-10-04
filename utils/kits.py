@@ -147,6 +147,12 @@ class KiTS19(utils_ds.ImageDataset):
         print(self.__current_img)
         print(self.__file_names)
 
+        test = pathlib.PurePath(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
+
+        print(test)
+
+        quit()
+
         groundtruth = nib.load(self.__groundtruth_path).get_fdata().astype(np.uint8)
 
         groundtruth = np.expand_dims(groundtruth, 0)
