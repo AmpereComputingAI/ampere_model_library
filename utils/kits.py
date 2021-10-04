@@ -89,7 +89,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         # file_name = self.__file_names[self.__current_img]
         self.__current_file_name = self.__get_path_to_img()
-        print(file_name)
+        print(self.__current_file_name)
         with open(Path(self.__current_file_name), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
