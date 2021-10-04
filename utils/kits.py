@@ -47,6 +47,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__loaded_files = {}
         self.__current_img = 0
         self.__file_names = self.__deserialize_file()
+        self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
         self.__current_file_name = None
@@ -70,12 +71,13 @@ class KiTS19(utils_ds.ImageDataset):
         :return: pathlib.PurePath object containing path to the image
         """
         try:
-            file_name = self.__file_names[self.__current_img]
+            self.__file_name = self.__file_names[self.__current_img]
+
         except IndexError:
             raise utils_ds.OutOfInstances("No more images to process in the directory provided")
         self.__current_img += 1
 
-        return pathlib.PurePath(self.__images_path, file_name + '.pkl')
+        return pathlib.PurePath(self.__images_path, self.__file_name + '.pkl')
 
     def get_input_array(self):
         """
@@ -148,7 +150,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
-        path_to_groundtruth = Path(self.__groundtruth_path, self.__current_file_name, 'segmentation.nii.gz')
+        path_to_groundtruth = Path(self.__groundtruth_path, self.__file_name, 'segmentation.nii.gz')
 
         print(path_to_groundtruth)
         groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
