@@ -23,7 +23,7 @@ class KiTS19(utils_ds.ImageDataset):
     A class providing facilities for preprocessing of KiTS19 dataset.
     """
 
-    def __init__(self, images_path=None, images_anno=None):
+    def __init__(self, images_path=None, images_anno=None, groundtruth_path=None):
 
         if images_path is None:
             env_var = "KITS19_IMAGES_DIR"
@@ -35,11 +35,18 @@ class KiTS19(utils_ds.ImageDataset):
             images_anno = utils.get_env_variable(
                 env_var, f"Path to KiTS19 preprocessed_file.pkl has not been specified with {env_var} flag")
 
+        if groundtruth_path is None:
+            env_var = "KITS19_GROUNDTRUTH_PATH"
+            images_anno = utils.get_env_variable(
+                env_var, f"Path to KiTS19 nifti folder has not been specified with {env_var} flag")
+
         self.__images_path = images_path
         self.__images_anno = images_anno
+        self.__groundtruth_path = groundtruth_path
         self.__loaded_files = {}
         self.__current_img = 0
         self.__file_names = self.__deserialize_file()
+        self.__bundle = list()
         self.available_instances = len(self.__file_names)
         super().__init__()
 
@@ -135,7 +142,7 @@ class KiTS19(utils_ds.ImageDataset):
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
 
-        bundle = list()
+        # bundle = list()
 
         groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
 
@@ -146,7 +153,7 @@ class KiTS19(utils_ds.ImageDataset):
             "{} -- groundtruth: {} and prediction: {} have different shapes".format(
                 CASE, groundtruth.shape, prediction.shape)
 
-        bundle.append((CASE, groundtruth, prediction))
+        self.__bundle.append((CASE, groundtruth, prediction))
 
         with Pool(1) as p:
             dice_scores = p.starmap(get_dice_score, bundle)

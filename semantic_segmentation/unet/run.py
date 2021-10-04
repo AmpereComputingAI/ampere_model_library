@@ -28,10 +28,13 @@ def parse_args():
                         type=str, required=True,
                         help="path to pickle file containing KiTS19 dataset case names."
                              "its default name is preprocessed_files.pkl")
+    parser.add_argument("--groundtruth_path",
+                        type=str, required=True,
+                        help="path to nifti folder in preprocessed kits directory")
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
+def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
 
     def run_single_pass(unet_runner, kits_dataset):
 
@@ -73,7 +76,7 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
         # final_result_reduced = final_result[0, 0, :, :, :]
         kits_dataset.submit_predictions(final_result)
 
-    dataset = KiTS19(images_path=images_path, images_anno=anno_path)
+    dataset = KiTS19(images_path=images_path, images_anno=anno_path, groundtruth_path=groundtruth_path)
     runner = UnetRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
@@ -82,7 +85,7 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path):
 def main():
     args = parse_args()
     run_tf_fp32(
-        args.model_path, args.num_runs, args.timeout, args.images_path, args.anno_path
+        args.model_path, args.num_runs, args.timeout, args.images_path, args.anno_path, args.groundtruth_path
     )
 
 
