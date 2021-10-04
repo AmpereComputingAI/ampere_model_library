@@ -1,13 +1,10 @@
 import argparse
+import tensorflow as tf
+
 from utils.kits import KiTS19
 from utils.runners import UnetRunner
 from utils.benchmark import run_model
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
-import tensorflow as tf
-import nibabel as nib
-import numpy as np
-
-GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
 
 
 def parse_args():
@@ -73,7 +70,6 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
             # temp
 
         final_result = kits_dataset.finalize(result, norm_map)[0, 0, :, :, :]
-        # final_result_reduced = final_result[0, 0, :, :, :]
         kits_dataset.submit_predictions(final_result)
 
     dataset = KiTS19(images_path=images_path, images_anno=anno_path, groundtruth_path=groundtruth_path)

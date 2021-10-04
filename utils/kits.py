@@ -1,22 +1,15 @@
+import pickle
+import pathlib
+import numpy as np
+import pandas as pd
+import nibabel as nib
+from pathlib import Path
+from multiprocessing import Pool
+
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
-
-import pickle
-import numpy as np
-from pathlib import Path
-from multiprocessing import Pool
-import nibabel as nib
-import pandas as pd
-import pathlib
-
-GROUNDTRUTH_PATH = '/onspecta/dev/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
-GROUNDTRUTH_PATH_GRAVITON = '/onspecta/mz/temp/datasets/kits19_preprocessed/nifti/case_00000/segmentation.nii.gz'
-
-POSTPROCESSED_DIR = '/onspecta/dev/mz/unet_results'
-POSTPROCESSED_DIR_GRAVITON = '/onspecta/mz/unet_results'
-CASE = 'case_000000'
 
 
 class KiTS19(utils_ds.ImageDataset):
@@ -82,14 +75,7 @@ class KiTS19(utils_ds.ImageDataset):
     def get_input_array(self):
         """
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
-
-        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
-        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
-        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
-        :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
-        initialization
         """
-        # file_name = self.__file_names[self.__current_img]
         self.__current_file_name = self.__get_path_to_img()
         with open(Path(self.__current_file_name), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
@@ -136,11 +122,8 @@ class KiTS19(utils_ds.ImageDataset):
         """
         Finalizes results obtained from sliding window inference
         """
-        # NOTE: layout is assumed to be linear (NCDHW) always
-        # apply norm_map
+        # note: layout is assumed to be linear (NCDHW) always
         image = apply_norm_map(image, norm_map)
-
-        # argmax
         image = apply_argmax(image)
 
         return image
@@ -160,9 +143,6 @@ class KiTS19(utils_ds.ImageDataset):
                 self.__file_name, groundtruth.shape, prediction.shape)
 
         self.__bundle.append((self.__file_name, groundtruth, prediction))
-
-        # with Pool(1) as p:
-        #     self.__dice_scores = p.starmap(get_dice_score, self.__bundle)
 
     def summarize_accuracy(self):
         with Pool(1) as p:
@@ -187,6 +167,17 @@ class KiTS19(utils_ds.ImageDataset):
         # consider NaN as a crash hence zero
         df.loc["mean"] = df.fillna(0).mean()
 
+        mean_composite = df.loc['mean', 'composite']
+        mean_kidney = df.loc['mean', 'kidney']
+        mean_tumor = df.loc['mean', 'tumor']
+
         print(df)
+
+        print(mean_composite)
+        print(mean_kidney)
+        print(mean_tumor)
+
+
+        # return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
 
 
