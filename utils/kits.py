@@ -141,25 +141,9 @@ class KiTS19(utils_ds.ImageDataset):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
+        path_to_groundtruth = Path(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
 
-        # bundle = list()
-
-        print(self.__current_img)
-        print(self.__file_names)
-
-        # test = pathlib.PurePath(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
-
-        test = Path(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
-
-        file_name = self.__file_names[self.__current_img]
-        with open(Path(self.__images_path, "{:}.pkl".format(file_name)), "rb") as f:
-            self.__loaded_files[self.__current_img] = pickle.load(f)[0]
-
-        print(test)
-
-        quit()
-
-        groundtruth = nib.load(self.__groundtruth_path).get_fdata().astype(np.uint8)
+        groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
 
         groundtruth = np.expand_dims(groundtruth, 0)
         prediction = np.expand_dims(prediction, 0)
@@ -208,6 +192,9 @@ class KiTS19(utils_ds.ImageDataset):
     #     df.to_csv(sum_path)
 
     def summarize_accuracy_test(self, dice_scores):
+        print(len(self.__bundle))
+        print(self.__bundle[0][0])
+        print(self.__bundle[1][0])
         print(type(dice_scores))
         print(dice_scores)
 
