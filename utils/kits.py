@@ -85,8 +85,9 @@ class KiTS19(utils_ds.ImageDataset):
         :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
         initialization
         """
-        file_name = self.__file_names[self.__current_img]
-        with open(Path(self.__images_path, "{:}.pkl".format(file_name)), "rb") as f:
+        # file_name = self.__file_names[self.__current_img]
+        file_name = self.__get_path_to_img()
+        with open(file_name) as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
         image = self.__loaded_files[self.__current_img][np.newaxis, ...]
