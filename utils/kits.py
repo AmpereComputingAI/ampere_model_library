@@ -210,7 +210,7 @@ class KiTS19(utils_ds.ImageDataset):
 
         print(sum_path)
 
-        for _s in dice_scores:
+        for _s in self.__dice_scores:
             case, arr = _s
             kidney = arr[0]
             tumor = arr[1]
@@ -229,20 +229,20 @@ class KiTS19(utils_ds.ImageDataset):
 
         print(df)
 
-        df.to_csv(sum_path)
-
-        with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
-            for line in f:
-                if not line.startswith("mean"):
-                    continue
-                words = line.split(",")
-                if words[0] == "mean":
-                    composite = float(words[1])
-                    kidney = float(words[2])
-                    tumor = float(words[3])
-                    print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
-                        composite, kidney, tumor))
-                    break
+        # df.to_csv(sum_path)
+        #
+        # with open(Path(POSTPROCESSED_DIR_GRAVITON, "summary.csv")) as f:
+        #     for line in f:
+        #         if not line.startswith("mean"):
+        #             continue
+        #         words = line.split(",")
+        #         if words[0] == "mean":
+        #             composite = float(words[1])
+        #             kidney = float(words[2])
+        #             tumor = float(words[3])
+        #             print("Accuracy: mean = {:.5f}, kidney = {:.4f}, tumor = {:.4f}".format(
+        #                 composite, kidney, tumor))
+        #             break
 
         print(len(self.__bundle))
         print(self.__bundle[0][0])
