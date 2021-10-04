@@ -144,7 +144,10 @@ class KiTS19(utils_ds.ImageDataset):
 
         # bundle = list()
 
-        groundtruth = nib.load(GROUNDTRUTH_PATH_GRAVITON).get_fdata().astype(np.uint8)
+        print(self.__current_img)
+        print(self.__file_names)
+
+        groundtruth = nib.load(self.__groundtruth_path).get_fdata().astype(np.uint8)
 
         groundtruth = np.expand_dims(groundtruth, 0)
         prediction = np.expand_dims(prediction, 0)
