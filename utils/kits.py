@@ -164,20 +164,14 @@ class KiTS19(utils_ds.ImageDataset):
                 }, ignore_index=True)
 
         df.set_index("case", inplace=True)
-        # consider NaN as a crash hence zero
         df.loc["mean"] = df.fillna(0).mean()
 
         mean_composite = df.loc['mean', 'composite']
         mean_kidney = df.loc['mean', 'kidney']
         mean_tumor = df.loc['mean', 'tumor']
 
-        print(df)
+        print(f" mean composite {mean_composite}")
+        print(f" mean kidney {mean_kidney}")
+        print(f" mean composite {mean_tumor}")
 
-        print(mean_composite)
-        print(mean_kidney)
-        print(mean_tumor)
-
-
-        # return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
-
-
+        return {"mean_composite": mean_composite, "mean_kidney": mean_kidney, "mean_tumor": mean_tumor}
