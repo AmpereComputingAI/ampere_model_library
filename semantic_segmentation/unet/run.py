@@ -1,10 +1,11 @@
 import argparse
-import tensorflow as tf
 
 from utils.kits import KiTS19
 from utils.runners import UnetRunner
 from utils.benchmark import run_model
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+
+import tensorflow as tf
 
 
 def parse_args():
