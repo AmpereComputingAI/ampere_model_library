@@ -49,6 +49,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__file_names = self.__deserialize_file()
         self.__bundle = list()
         self.__dice_scores = None
+        self.__current_file_name = None
         self.available_instances = len(self.__file_names)
 
         super().__init__()
@@ -87,9 +88,9 @@ class KiTS19(utils_ds.ImageDataset):
         initialization
         """
         # file_name = self.__file_names[self.__current_img]
-        file_name = self.__get_path_to_img()
+        self.__current_file_name = self.__get_path_to_img()
         print(file_name)
-        with open(Path(file_name), "rb") as f:
+        with open(Path(self.__current_file_name), "rb") as f:
             self.__loaded_files[self.__current_img] = pickle.load(f)[0]
 
         image = self.__loaded_files[self.__current_img][np.newaxis, ...]
@@ -147,7 +148,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
-        path_to_groundtruth = Path(self.__groundtruth_path, self.__file_names[self.__current_img], 'segmentation.nii.gz')
+        path_to_groundtruth = Path(self.__groundtruth_path, self.__current_file_name, 'segmentation.nii.gz')
 
         print(path_to_groundtruth)
         groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
