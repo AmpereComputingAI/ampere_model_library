@@ -13,6 +13,12 @@ def parse_args():
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
+    parser.add_argument("-p", "--precision",
+                        type=str, choices=["fp32"], required=True,
+                        help="precision of the model provided")
+    parser.add_argument("-b", "--batch_size",
+                        type=int, default=1,
+                        help="batch size to feed the model with")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
