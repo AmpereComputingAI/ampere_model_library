@@ -50,6 +50,7 @@ class KiTS19(utils_ds.ImageDataset):
         super().__init__()
 
     def __preprocess_maybe(self):
+        pass
 
     def __deserialize_file(self):
         """

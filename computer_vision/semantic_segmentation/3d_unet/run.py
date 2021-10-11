@@ -101,7 +101,7 @@ def run_tf_fp32_org(model_path, num_of_runs, timeout, images_path, anno_path, gr
         final_result = kits_dataset.finalize(result, norm_map)[0, 0, :, :, :]
         kits_dataset.submit_predictions(final_result)
 
-    dataset = KiTS19(images_path=images_path, images_anno=anno_path, groundtruth_path=groundtruth_path)
+    dataset = KiTS19(dataset_dir_path=images_path)
     runner = UnetRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
