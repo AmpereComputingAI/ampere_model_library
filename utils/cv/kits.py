@@ -18,26 +18,15 @@ class KiTS19(utils_ds.ImageDataset):
     A class providing facilities for preprocessing of KiTS19 dataset.
     """
 
-    def __init__(self, images_path=None, images_anno=None, groundtruth_path=None):
+    def __init__(self, dataset_dir_path=None):
 
-        if images_path is None:
-            env_var = "KITS19_IMAGES_DIR"
-            images_path = utils.get_env_variable(
-                env_var, f"Path to KiTS19 images directory has not been specified with {env_var} flag")
+        if dataset_dir_path is None:
+            env_var = "KITS19_DATASET_PATH"
+            dataset_dir_path = utils.get_env_variable(
+                env_var, f"Path to KiTS19 dataset directory has not been specified with {env_var} flag")
 
-        if images_anno is None:
-            env_var = "KITS19_PREPROCESSED_FILE_PATH"
-            images_anno = utils.get_env_variable(
-                env_var, f"Path to KiTS19 preprocessed_file.pkl has not been specified with {env_var} flag")
-
-        if groundtruth_path is None:
-            env_var = "KITS19_GROUNDTRUTH_PATH"
-            images_anno = utils.get_env_variable(
-                env_var, f"Path to KiTS19 nifti folder has not been specified with {env_var} flag")
-
-        self.__images_path = images_path
-        self.__images_anno = images_anno
-        self.__groundtruth_path = groundtruth_path
+        self.__dataset_dir_path = dataset_dir_path
+        self.__preprocessed_files_pkl_path = Path(self.__dataset_dir_path, "preprocessed_files.pkl")
         self.__loaded_files = {}
         self.__current_img = 0
         class args:
@@ -47,7 +36,11 @@ class KiTS19(utils_ds.ImageDataset):
                 self.calibration = False
                 self.num_proc = num_proc
 
-        self.__file_names = preprocess_with_multiproc(args(groundtruth_path, groundtruth_path, 4))
+        if not self.__preprocessed_files_pkl_path.isfile():
+            preprocess_with_multiproc(args(groundtruth_path, groundtruth_path, 4))
+        self.__file_names = pickle.load(open(self.__preprocessed_files_pkl_path, "rb"))["file_list"]
+        print(self.__file_names)
+        dsf
         self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
@@ -55,6 +48,8 @@ class KiTS19(utils_ds.ImageDataset):
         self.available_instances = len(self.__file_names)
 
         super().__init__()
+
+    def __preprocess_maybe(self):
 
     def __deserialize_file(self):
         """
