@@ -67,9 +67,6 @@ class KiTS19(utils_ds.ImageDataset):
         self.__current_img_id += 1
         return pathlib.PurePath(self.__dataset_dir_path, f"{file_name}.pkl")
 
-    def __load_next_image(self):
-        self.__current_image =
-
     class __Image:
 
         def __init__(self):
@@ -93,9 +90,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         def get_next_slice(self):
             assert self.completed is False and self.empty is False
-
-
-
 
 
     def get_input_array(self):
