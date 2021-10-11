@@ -44,6 +44,7 @@ class KiTS19(utils_ds.ImageDataset):
             def __init__(self, raw_data_dir, results_dir, num_proc):
                 self.data_dir = raw_data_dir
                 self.results_dir = results_dir
+                self.calibration = False
                 self.num_proc = num_proc
 
         self.__file_names = preprocess_with_multiproc(args(groundtruth_path, groundtruth_path, 4))
