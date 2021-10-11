@@ -32,7 +32,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
     def run_single_pass(tf_runner, kits):
         #shape = (416, 416)
         kits.submit_result(tf_runner.run(tf.constant(kits.get_input_array())))
