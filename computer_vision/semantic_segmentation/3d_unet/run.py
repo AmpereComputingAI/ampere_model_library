@@ -9,7 +9,7 @@ import tensorflow as tf
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run Unet model.")
+    parser = argparse.ArgumentParser(description="Run 3D Unet model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
@@ -32,7 +32,22 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+    def run_single_pass(tf_runner, kits):
+        #shape = (416, 416)
+        kits.submit_result(tf_runner.run(tf.constant(kits.get_input_array())))
+
+    # dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
+    #                       pre_processing="YOLO", sort_ascending=True)
+    dataset = KiTS19(images_path=images_path, images_anno=anno_path, groundtruth_path=groundtruth_path)
+    runner = TFSavedModelRunner()
+    saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+    runner.model = saved_model_loaded.signatures['serving_default']
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_tf_fp32_org(model_path, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
 
     def run_single_pass(unet_runner, kits_dataset):
 
