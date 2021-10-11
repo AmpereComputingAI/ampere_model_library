@@ -42,7 +42,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__current_img = 0
         class args:
             def __init__(self, raw_data_dir, results_dir, num_proc):
-                self.raw_data_dir = raw_data_dir
+                self.data_dir = raw_data_dir
                 self.results_dir = results_dir
                 self.num_proc = num_proc
 
