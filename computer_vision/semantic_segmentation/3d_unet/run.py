@@ -1,6 +1,6 @@
 import argparse
 
-from utils.kits import KiTS19
+from utils.cv.kits import KiTS19
 from utils.runners import UnetRunner
 from tensorflow.python.saved_model import tag_constants
 from utils.tf import TFSavedModelRunner
