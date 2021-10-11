@@ -43,6 +43,7 @@ def parse_args():
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
     def run_single_pass(tf_runner, kits):
         #shape = (416, 416)
+        print(kits.get_input_array())
         kits.submit_predictions(tf_runner.run(tf.constant(kits.get_input_array())))
 
     # dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
