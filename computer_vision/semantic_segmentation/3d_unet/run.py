@@ -45,7 +45,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     def run_single_pass(tf_runner, kits):
         #shape = (416, 416)
         image, result, norm_map, norm_patch = kits.get_input_array()
-        image = np.random.rand(1, 1, 128, 128, 128)
+        image = np.random.rand(1, 1, 128, 128, 128).astype("float32")
         z = tf.constant(image)
         start = time.time()
         x = tf_runner.run(z)
