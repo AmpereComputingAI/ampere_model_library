@@ -37,6 +37,8 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
     def run_single_pass(unet_runner, kits_dataset):
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
+        print(image.shape)
+        fs
 
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
 
