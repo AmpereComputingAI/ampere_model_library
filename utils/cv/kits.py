@@ -40,7 +40,13 @@ class KiTS19(utils_ds.ImageDataset):
         self.__groundtruth_path = groundtruth_path
         self.__loaded_files = {}
         self.__current_img = 0
-        self.__file_names = preprocess_with_multiproc()
+        class args:
+            def __init__(self, raw_data_dir, results_dir, num_proc):
+                self.raw_data_dir = raw_data_dir
+                self.results_dir = results_dir
+                self.num_proc = num_proc
+
+        self.__file_names = preprocess_with_multiproc(args(groundtruth_path, groundtruth_path, 4))
         self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
