@@ -14,6 +14,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+MEAN_VAL = 101.0
+STDDEV_VAL = 76.9
+MIN_CLIP_VAL = -79.0
+MAX_CLIP_VAL = 304.0
+PADDING_VAL = -2.2
+TARGET_SPACING = [1.6, 1.2, 1.2]
+ROI_SHAPE = [128, 128, 128]
+SLIDE_OVERLAP_FACTOR = 0.5
+
 TARGET_CASES = [
     "case_00000",
     "case_00003",
@@ -71,8 +81,6 @@ import numpy as np
 
 from scipy.ndimage.interpolation import zoom
 from pathlib import Path
-
-from utils.global_vars import *
 
 
 __doc__ = """
