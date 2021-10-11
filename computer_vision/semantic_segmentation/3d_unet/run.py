@@ -56,7 +56,6 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
             print(ROI_SHAPE)
             print(i, j, k)
             print(input_slice.shape)
-            sd
 
             norm_map_slice = norm_map[
                              ...,
@@ -66,7 +65,7 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
 
             output = unet_runner.run(tf.constant(input_slice))
             result_slice += output[unet_runner.output_name].numpy() * norm_patch
-            norm_map_slice += norm_patch
+            #norm_map_slice += norm_patch
 
         final_result = kits_dataset.finalize(result, norm_map)[0, 0, :, :, :]
         kits_dataset.submit_predictions(final_result)
