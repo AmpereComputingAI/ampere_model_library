@@ -76,7 +76,7 @@ class KiTS19(utils_ds.ImageDataset):
 
         def assign(self, image):
             self.__full_image = image
-            image_shape = image.shape[2:]
+            image_shape = image.shape[1:]
             dim = len(image_shape)
             strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dim)]
             size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dim)]
