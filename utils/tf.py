@@ -102,16 +102,15 @@ class TFSavedModelRunner:
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
-    def __init__(self, path_to_model: str):
-        """
-        A function initializing runner by providing path to model directory.
 
-        :param path_to_model: str, eg. "./ugabuga/yolo_saved_model/"
+    def __init__(self):
+        """
+        A function initializing runner.
         """
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
-        self.saved_model_loaded = tf.saved_model.load(path_to_model, tags=[tag_constants.SERVING])
-        self.model = self.saved_model_loaded.signatures['serving_default']
+
+        self.model = None
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
@@ -120,7 +119,6 @@ class TFSavedModelRunner:
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
-
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
@@ -137,7 +135,6 @@ class TFSavedModelRunner:
     def print_performance_metrics(self, batch_size):
         """
         A function printing performance metrics on runs executed by the runner so far.
-
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
