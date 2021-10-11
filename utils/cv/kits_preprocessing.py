@@ -29,7 +29,7 @@ import numpy as np
 from scipy.ndimage.interpolation import zoom
 from pathlib import Path
 
-from global_vars import *
+from utils.global_vars import *
 
 
 __doc__ = """
