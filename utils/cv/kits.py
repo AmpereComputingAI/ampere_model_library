@@ -36,7 +36,7 @@ class KiTS19(utils_ds.ImageDataset):
                 self.calibration = False
                 self.num_proc = num_proc
 
-        if not self.__preprocessed_files_pkl_path.isfile():
+        if not self.__preprocessed_files_pkl_path.exists():
             preprocess_with_multiproc(args(groundtruth_path, groundtruth_path, 4))
         self.__file_names = pickle.load(open(self.__preprocessed_files_pkl_path, "rb"))["file_list"]
         print(self.__file_names)
