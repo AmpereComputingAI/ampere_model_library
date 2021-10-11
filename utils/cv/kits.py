@@ -95,8 +95,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         def get_next_slice(self):
             assert self.all_issued is False and self.empty is False
-            print(*self.__slice_indices[self.__current_slice_id])
-            dsf
             i, j, k = self.__slice_indices[self.__current_slice_id]
             slice = self.__full_image[
                     ...,
