@@ -8,6 +8,7 @@ from multiprocessing import Pool
 
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
+from utils.cv.kits_preprocessing import preprocess_with_multiproc
 from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
@@ -39,7 +40,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__groundtruth_path = groundtruth_path
         self.__loaded_files = {}
         self.__current_img = 0
-        self.__file_names = self.__deserialize_file()
+        self.__file_names = preprocess_with_multiproc()
         self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
@@ -64,13 +65,11 @@ class KiTS19(utils_ds.ImageDataset):
         :return: pathlib.PurePath object containing path to the image
         """
         try:
-            self.__file_name = self.__file_names[self.__current_img]
-
+            file_name = self.__file_names[self.__current_img]
         except IndexError:
-            raise utils_ds.OutOfInstances("No more images to process in the directory provided")
+            raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
         self.__current_img += 1
-
-        return pathlib.PurePath(self.__images_path, self.__file_name + '.pkl')
+        return pathlib.PurePath(self.__images_path, file_name)
 
     def get_input_array(self):
         """
