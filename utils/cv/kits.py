@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.cv.kits_preprocessing import preprocess_with_multiproc
-from utils.global_vars import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+from utils.cv.kits_preprocessing import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
 
@@ -28,7 +28,8 @@ class KiTS19(utils_ds.ImageDataset):
         self.__dataset_dir_path = dataset_dir_path
         self.__preprocessed_files_pkl_path = Path(self.__dataset_dir_path, "preprocessed_files.pkl")
         self.__loaded_files = {}
-        self.__current_img = 0
+        self.__current_img_id = 0
+        self.__current_image = self.__Image()
 
         if not self.__preprocessed_files_pkl_path.exists():
             self.__preprocess()
@@ -60,22 +61,61 @@ class KiTS19(utils_ds.ImageDataset):
         :return: pathlib.PurePath object containing path to the image
         """
         try:
-            file_name = self.__file_names[self.__current_img]
+            file_name = self.__file_names[self.__current_img_id]
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
-        self.__current_img += 1
+        self.__current_img_id += 1
         return pathlib.PurePath(self.__dataset_dir_path, f"{file_name}.pkl")
+
+    def __load_next_image(self):
+        self.__current_image =
+
+    class __Image:
+
+        def __init__(self):
+            self.__full_image = None
+            self.completed = False
+            self.empty = True
+
+        def assign(self, image):
+            self.__full_image = image
+            image_shape = image.shape[2:]
+            dim = len(image_shape)
+            strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dim)]
+            size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dim)]
+
+            for i in range(0, strides[0] * size[0], strides[0]):
+                for j in range(0, strides[1] * size[1], strides[1]):
+                    for k in range(0, strides[2] * size[2], strides[2]):
+                        print(i, j, k)
+            self.completed = False
+            self.empty = False
+
+        def get_next_slice(self):
+            assert self.completed is False and self.empty is False
+
+
+
+
 
     def get_input_array(self):
         """
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
         """
-        img = pickle.load(open(self.__get_path_to_img(), "rb"))[0]
-        #result, norm_map, norm_patch = self.prepare_arrays(image)
+        if self.__current_image.completed or self.__current_image.empty:
+            self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
 
-        return img
+        return self.__current_image.get_next_slice()
 
-    def get_slice_for_sliding_window(self, image, roi_shape=ROI_SHAPE, overlap=SLIDE_OVERLAP_FACTOR):
+
+        # for i, j, k in self.__get_slice_for_sliding_window(img, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
+        #     input_slice = image[
+        #                   ...,
+        #                   i:(ROI_SHAPE[0] + i),
+        #                   j:(ROI_SHAPE[1] + j),
+        #                   k:(ROI_SHAPE[2] + k)]
+
+    def __get_slice_for_sliding_window(self, image, roi_shape=ROI_SHAPE, overlap=SLIDE_OVERLAP_FACTOR):
 
         assert len(roi_shape) == 3 and any(roi_shape) and all(dim > 0 for dim in roi_shape), \
             f"Need proper ROI shape! The current ROI shape is: {roi_shape}"
