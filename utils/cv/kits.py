@@ -29,18 +29,13 @@ class KiTS19(utils_ds.ImageDataset):
         self.__preprocessed_files_pkl_path = Path(self.__dataset_dir_path, "preprocessed_files.pkl")
         self.__loaded_files = {}
         self.__current_img = 0
-        class args:
-            def __init__(self, raw_data_dir, results_dir, num_proc):
-                self.data_dir = raw_data_dir
-                self.results_dir = results_dir
-                self.calibration = False
-                self.num_proc = num_proc
 
         if not self.__preprocessed_files_pkl_path.exists():
-            preprocess_with_multiproc(args(self.__dataset_dir_path, self.__dataset_dir_path, 4))
+            self.__preprocess()
+        print(pickle.load(open(self.__preprocessed_files_pkl_path, "rb")))
         self.__file_names = pickle.load(open(self.__preprocessed_files_pkl_path, "rb"))["file_list"]
+
         print(self.__file_names)
-        dsf
         self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
@@ -49,17 +44,14 @@ class KiTS19(utils_ds.ImageDataset):
 
         super().__init__()
 
-    def __preprocess_maybe(self):
-        pass
-
-    def __deserialize_file(self):
-        """
-        A function deserializing pickle file containing name of the images in KiTS19 dataset.
-
-        :return: list of strings
-        """
-        with open(Path(self.__images_anno), "rb") as f:
-            return pickle.load(f)['file_list']
+    def __preprocess(self):
+        class args_substitute:
+            def __init__(self, raw_data_dir, results_dir, num_proc=4):
+                self.data_dir = raw_data_dir
+                self.results_dir = results_dir
+                self.calibration = False
+                self.num_proc = num_proc
+        preprocess_with_multiproc(args_substitute(self.__dataset_dir_path, self.__dataset_dir_path))
 
     def __get_path_to_img(self):
         """
@@ -72,15 +64,15 @@ class KiTS19(utils_ds.ImageDataset):
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
         self.__current_img += 1
-        return pathlib.PurePath(self.__images_path, file_name)
+        return pathlib.PurePath(self.__dataset_dir_path, f"{file_name}.pkl")
 
     def get_input_array(self):
         """
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
         """
-        self.__current_file_name = self.__get_path_to_img()
-        with open(Path(self.__current_file_name), "rb") as f:
-            self.__loaded_files[self.__current_img] = pickle.load(f)[0]
+        print(pickle.load(open(self.__get_path_to_img(), "rb")))
+
+            #self.__loaded_files[self.__current_img] =
 
         image = self.__loaded_files[self.__current_img][np.newaxis, ...]
         result, norm_map, norm_patch = self.prepare_arrays(image)
