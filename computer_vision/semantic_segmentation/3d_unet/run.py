@@ -94,7 +94,7 @@ def run_tf_fp32_org(model_path, num_of_runs, timeout, images_path, anno_path, gr
 def main():
     args = parse_args()
     run_tf_fp32(
-        args.model_path, args.num_runs, args.timeout, args.images_path, args.anno_path, args.groundtruth_path
+        args.model_path, args.num_runs, args.timeout, args.batch_size, args.images_path, args.anno_path, args.groundtruth_path
     )
 
 
