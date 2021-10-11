@@ -53,7 +53,9 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
                           i:(ROI_SHAPE[0] + i),
                           j:(ROI_SHAPE[1] + j),
                           k:(ROI_SHAPE[2] + k)]
-            print(input_slice)
+            print(ROI_SHAPE)
+            print(i, j, k)
+            print(input_slice.shape)
             sd
 
             norm_map_slice = norm_map[
