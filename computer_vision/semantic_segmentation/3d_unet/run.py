@@ -38,7 +38,7 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
 
         image, result, norm_map, norm_patch = kits_dataset.get_input_array()
         print(image.shape)
-        fs
+
 
         for i, j, k in kits_dataset.get_slice_for_sliding_window(image, ROI_SHAPE, SLIDE_OVERLAP_FACTOR):
 
@@ -53,6 +53,8 @@ def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, ground
                           i:(ROI_SHAPE[0] + i),
                           j:(ROI_SHAPE[1] + j),
                           k:(ROI_SHAPE[2] + k)]
+            print(input_slice)
+            sd
 
             norm_map_slice = norm_map[
                              ...,
