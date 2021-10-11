@@ -70,9 +70,12 @@ class KiTS19(utils_ds.ImageDataset):
         """
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
         """
-        print(pickle.load(open(self.__get_path_to_img(), "rb")))
+        img = pickle.load(open(self.__get_path_to_img(), "rb"))[0]
+        print(img)
+        print(img[np.newaxis, ...])
+        df
 
-            #self.__loaded_files[self.__current_img] =
+            #self.__loaded_files[] =
 
         image = self.__loaded_files[self.__current_img][np.newaxis, ...]
         result, norm_map, norm_patch = self.prepare_arrays(image)
