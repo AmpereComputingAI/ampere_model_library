@@ -51,7 +51,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
         x = tf_runner.run(z)
         ende = time.time()
         print(ende - start)
-        kits.submit_predictions(tf_runner.run(tf.constant(image)))
+        #kits.submit_predictions(tf_runner.run(tf.constant(image)))
 
     # dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
     #                       pre_processing="YOLO", sort_ascending=True)
