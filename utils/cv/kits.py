@@ -71,34 +71,43 @@ class KiTS19(utils_ds.ImageDataset):
 
         def __init__(self):
             self.__full_image = None
-            self.completed = False
+            self.all_issued = False
             self.empty = True
+            self.__slice_indices = None
+            self.__current_slice_id = None
 
         def assign(self, image):
             self.__full_image = image
+            self.all_issued = False
+            self.empty = False
+            self.__slice_indices = list()
+            self.__current_slice_id = 0
+
             image_shape = image.shape[1:]
-            dim = len(image_shape)
-            strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dim)]
-            size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dim)]
+            dims = len(image_shape)
+            strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dims)]
+            size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dims)]
 
             for i in range(0, strides[0] * size[0], strides[0]):
                 for j in range(0, strides[1] * size[1], strides[1]):
                     for k in range(0, strides[2] * size[2], strides[2]):
-                        print(i, j, k)
-            self.completed = False
-            self.empty = False
+                        self.__slice_indices.append((ROI_SHAPE[0] + i, ROI_SHAPE[1] + j, ROI_SHAPE[2] + k))
 
         def get_next_slice(self):
-            assert self.completed is False and self.empty is False
+            assert self.all_issued is False and self.empty is False
+            slice = self.__full_image[..., *self.__slice_indices[self.__current_slice_id]]
+            self.__current_slice_id += 1
+            if self.__current_slice_id == len(self.__slice_indices):
+                self.all_issued = True
+            return slice
 
 
     def get_input_array(self):
         """
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
         """
-        if self.__current_image.completed or self.__current_image.empty:
+        if self.__current_image.all_issued or self.__current_image.empty:
             self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
-
         return self.__current_image.get_next_slice()
 
 
