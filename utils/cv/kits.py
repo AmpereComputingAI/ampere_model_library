@@ -91,13 +91,19 @@ class KiTS19(utils_ds.ImageDataset):
             for i in range(0, strides[0] * size[0], strides[0]):
                 for j in range(0, strides[1] * size[1], strides[1]):
                     for k in range(0, strides[2] * size[2], strides[2]):
-                        self.__slice_indices.append((ROI_SHAPE[0] + i, ROI_SHAPE[1] + j, ROI_SHAPE[2] + k))
+                        self.__slice_indices.append((i, j, k))
 
         def get_next_slice(self):
             assert self.all_issued is False and self.empty is False
             print(*self.__slice_indices[self.__current_slice_id])
             dsf
-            #slice = self.__full_image[-1, *self.__slice_indices[self.__current_slice_id]]
+            i, j, k = self.__slice_indices[self.__current_slice_id]
+            slice = self.__full_image[
+                    ...,
+                    i:(ROI_SHAPE[0] + i),
+                    j:(ROI_SHAPE[1] + j),
+                    k:(ROI_SHAPE[2] + k)
+                    ]
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
