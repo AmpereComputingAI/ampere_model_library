@@ -43,7 +43,9 @@ def parse_args():
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
     def run_single_pass(tf_runner, kits):
-        kits.submit_predictions(tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0))))
+        output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
+        output = output["output_0"]
+        kits.submit_predictions(output)
         #kits.submit_predictions(tf_runner.run(tf.constant(image)))
 
     # dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
@@ -51,9 +53,6 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     dataset = KiTS19(dataset_dir_path=images_path)
     runner = TFSavedModelRunner()
     saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
-    print(saved_model_loaded)
-    print(saved_model_loaded.structured_outputs)
-    fd
     runner.model = saved_model_loaded.signatures['serving_default']
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
