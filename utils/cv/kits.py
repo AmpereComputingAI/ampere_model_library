@@ -194,8 +194,6 @@ class KiTS19(utils_ds.ImageDataset):
             self.__current_img_id += 1
             print(full_prediction)
             print(ground_truth)
-            full_prediction = np.expand_dims(full_prediction, axis=0)
-            ground_truth = np.expand_dims(ground_truth, axis=0)
             print(get_dice_score("0000", full_prediction, ground_truth))
             ds
 
