@@ -36,7 +36,9 @@ def to_one_hot(my_array, channel_axis):
     Number of classes in KiTS19 is 3: background, kidney segmentation, tumor segmentation
     As a result, 1 channel of class info turns into 3 channels of one-hot info
     """
+    print(my_array)
     my_array = prepare_one_hot(my_array, num_classes=3)
+    print(my_array)
     my_array = np.transpose(my_array, (0, 4, 1, 2, 3)).astype(np.float64)
     return my_array
 
