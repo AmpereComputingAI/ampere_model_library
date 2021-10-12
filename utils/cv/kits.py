@@ -192,16 +192,14 @@ class KiTS19(utils_ds.ImageDataset):
             self.__current_img_id += 1
             print(ground_truth)
 
-        SDF
+            groundtruth = np.expand_dims(groundtruth, 0)
+            prediction = np.expand_dims(prediction, 0)
 
-        groundtruth = np.expand_dims(groundtruth, 0)
-        prediction = np.expand_dims(prediction, 0)
+            assert groundtruth.shape == prediction.shape, \
+                "{} -- groundtruth: {} and prediction: {} have different shapes".format(
+                    self.__file_name, groundtruth.shape, prediction.shape)
 
-        assert groundtruth.shape == prediction.shape, \
-            "{} -- groundtruth: {} and prediction: {} have different shapes".format(
-                self.__file_name, groundtruth.shape, prediction.shape)
-
-        self.__bundle.append((self.__file_name, groundtruth, prediction))
+            self.__bundle.append((self.__file_name, groundtruth, prediction))
 
     def summarize_accuracy(self):
         with Pool(1) as p:
