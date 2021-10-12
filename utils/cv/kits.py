@@ -89,7 +89,7 @@ class KiTS19(utils_ds.ImageDataset):
             self.__slice_indices = None
             self.__current_slice_id = None
             self.__current_result_slice = None
-            self.__result = None
+            self.result = None
 
         def assign(self, image):
             self.__full_image = image
@@ -115,7 +115,7 @@ class KiTS19(utils_ds.ImageDataset):
                         self.__slice_indices.append((i, j, k))
 
             print(image_shape)
-            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
+            self.result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
             self.__norm_map = np.zeros_like(self.__result)
 
         def get_next_input_slice(self):
@@ -130,7 +130,7 @@ class KiTS19(utils_ds.ImageDataset):
 
         def accumulate_result_slice(self, output):
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            result_slice = self.__result[
+            result_slice = self.result[
                            ...,
                            i:(ROI_SHAPE[0] + i),
                            j:(ROI_SHAPE[1] + j),
@@ -187,13 +187,18 @@ class KiTS19(utils_ds.ImageDataset):
         """
         print(prediction)
         self.__current_image.accumulate_result_slice(prediction * self.__norm_patch)
-        if self.__current_image.all_issued:
+        #if self.__current_image.all_issued:
+        if True:
+            full_prediction = np.argmax(self.__current_image.result, axis=1).astype(np.uint8)
             ground_truth = nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8)
             self.__current_img_id += 1
+            print(full_prediction)
             print(ground_truth)
+            print(get_dice_score("0000", full_prediction, ground_truth))
+            ds
 
-            groundtruth = np.expand_dims(groundtruth, 0)
-            prediction = np.expand_dims(prediction, 0)
+            #groundtruth = np.expand_dims(groundtruth, 0)
+
 
             assert groundtruth.shape == prediction.shape, \
                 "{} -- groundtruth: {} and prediction: {} have different shapes".format(
