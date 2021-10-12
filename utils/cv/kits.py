@@ -116,7 +116,7 @@ class KiTS19(utils_ds.ImageDataset):
 
             print(image_shape)
             self.result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
-            self.__norm_map = np.zeros_like(self.__result)
+            self.__norm_map = np.zeros_like(self.result)
 
         def get_next_input_slice(self):
             assert self.all_issued is False and self.empty is False
