@@ -85,7 +85,7 @@ class KiTS19(utils_ds.ImageDataset):
             gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
             gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
             gaussian3d = np.outer(gaussian2d, gaussian1d_2)
-            gaussian3d = gaussian3d.reshape(n, n, n)
+            gaussian3d = gaussian3d.reshape(*ROI_SHAPE)
             gaussian3d = np.cbrt(gaussian3d)
             gaussian3d /= gaussian3d.max()
             print(gaussian3d.shape)
