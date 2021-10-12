@@ -31,6 +31,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__loaded_files = {}
         self.__current_img_id = 0
         self.__current_image = self.__Image()
+        self.__norm_patch = self.__gen_norm_patch()
 
         if not self.__preprocessed_files_pkl_path.exists():
             self.__preprocess()
@@ -46,6 +47,17 @@ class KiTS19(utils_ds.ImageDataset):
 
         super().__init__()
 
+    def __gen_norm_patch(self, std_factor=0.125):
+        gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
+        gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
+        gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
+        gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
+        gaussian3d = np.outer(gaussian2d, gaussian1d_2)
+        gaussian3d = gaussian3d.reshape(*ROI_SHAPE)
+        gaussian3d = np.cbrt(gaussian3d)
+        gaussian3d /= gaussian3d.max()
+        return gaussian3d
+
     def __preprocess(self):
         class args_substitute:
             def __init__(self, raw_data_dir, results_dir, num_proc=4):
@@ -53,6 +65,7 @@ class KiTS19(utils_ds.ImageDataset):
                 self.results_dir = results_dir
                 self.calibration = False
                 self.num_proc = num_proc
+
         preprocess_with_multiproc(args_substitute(self.__dataset_dir_path, self.__dataset_dir_path))
 
     def __get_path_to_img(self):
@@ -65,7 +78,6 @@ class KiTS19(utils_ds.ImageDataset):
             file_name = self.__file_names[self.__current_img_id]
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
-        self.__current_img_id += 1
         return pathlib.PurePath(self.__dataset_dir_path, f"{file_name}.pkl")
 
     class __Image:
@@ -76,21 +88,8 @@ class KiTS19(utils_ds.ImageDataset):
             self.empty = True
             self.__slice_indices = None
             self.__current_slice_id = None
-            self.norm_patch = self.__gen_norm_patch()
-            self.result = None
-
-        def __gen_norm_patch(self, std_factor=0.125):
-            gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
-            gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
-            gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
-            gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
-            gaussian3d = np.outer(gaussian2d, gaussian1d_2)
-            gaussian3d = gaussian3d.reshape(*ROI_SHAPE)
-            gaussian3d = np.cbrt(gaussian3d)
-            gaussian3d /= gaussian3d.max()
-            print(gaussian3d.shape)
-            sd
-            return gaussian3d
+            self.__current_result_slice = None
+            self.__result = None
 
         def assign(self, image):
             self.__full_image = image
@@ -116,24 +115,30 @@ class KiTS19(utils_ds.ImageDataset):
                         self.__slice_indices.append((i, j, k))
 
             print(image_shape)
-            self.result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
-            norm_map = np.zeros_like(self.result)
-            fd
+            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
+            self.__norm_map = np.zeros_like(self.__result)
 
-        def get_next_slice(self):
+        def get_next_input_slice(self):
             assert self.all_issued is False and self.empty is False
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            slice = self.__full_image[
-                    ...,
-                    i:(ROI_SHAPE[0] + i),
-                    j:(ROI_SHAPE[1] + j),
-                    k:(ROI_SHAPE[2] + k)
-                    ]
+            return self.__full_image[
+                          ...,
+                          i:(ROI_SHAPE[0] + i),
+                          j:(ROI_SHAPE[1] + j),
+                          k:(ROI_SHAPE[2] + k)
+                          ]
+
+        def accumulate_result_slice(self, output):
+            result_slice = self.__result[
+                           ...,
+                           i:(ROI_SHAPE[0] + i),
+                           j:(ROI_SHAPE[1] + j),
+                           k:(ROI_SHAPE[2] + k)
+                           ]
+            result_slice += output
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
-            return slice
-
 
     def get_input_array(self):
         """
@@ -141,7 +146,7 @@ class KiTS19(utils_ds.ImageDataset):
         """
         if self.__current_image.all_issued or self.__current_image.empty:
             self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
-        return self.__current_image.get_next_slice()
+        return self.__current_image.get_next_input_slice()
 
     def prepare_arrays(self, image, roi_shape=ROI_SHAPE):
 
@@ -168,15 +173,25 @@ class KiTS19(utils_ds.ImageDataset):
 
         return image
 
+    def __get_gt_path(self):
+        try:
+            file_name = self.__file_names[self.__current_img_id]
+        except IndexError:
+            raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
+        return pathlib.PurePath(self.__dataset_dir_path, file_name, "segmentation.nii.gz")
+
     def submit_predictions(self, prediction):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
         print(prediction)
-        prediction *= self.__current_image.norm_patch
-        sd
-        path_to_groundtruth = Path(self.__groundtruth_path, self.__file_name, 'segmentation.nii.gz')
-        groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
+        self.__current_image.accumulate_result_slice(prediction * self.__norm_patch)
+        if self.__current_image.all_issued:
+            ground_truth = nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8)
+            self.__current_img_id += 1
+            print(ground_truth)
+
+        SDF
 
         groundtruth = np.expand_dims(groundtruth, 0)
         prediction = np.expand_dims(prediction, 0)
