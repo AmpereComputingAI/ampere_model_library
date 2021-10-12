@@ -76,16 +76,20 @@ class KiTS19(utils_ds.ImageDataset):
             self.empty = True
             self.__slice_indices = None
             self.__current_slice_id = None
-            self.norm_patch = self.__gen_norm_patch(ROI_SHAPE[0], 0.125 * ROI_SHAPE[0])
+            self.norm_patch = self.__gen_norm_patch()
             self.result = None
 
-        def __gen_norm_patch(self, n, std):
-            gaussian1d = signal.gaussian(n, std)
-            gaussian2d = np.outer(gaussian1d, gaussian1d)
-            gaussian3d = np.outer(gaussian2d, gaussian1d)
+        def __gen_norm_patch(self, std_factor=0.125):
+            gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
+            gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
+            gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
+            gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
+            gaussian3d = np.outer(gaussian2d, gaussian1d_2)
             gaussian3d = gaussian3d.reshape(n, n, n)
             gaussian3d = np.cbrt(gaussian3d)
             gaussian3d /= gaussian3d.max()
+            print(gaussian3d.shape)
+            sd
             return gaussian3d
 
         def assign(self, image):
