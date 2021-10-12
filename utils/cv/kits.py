@@ -190,10 +190,12 @@ class KiTS19(utils_ds.ImageDataset):
         #if self.__current_image.all_issued:
         if True:
             full_prediction = np.argmax(self.__current_image.result, axis=1).astype(np.uint8)
-            ground_truth = nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8)
+            ground_truth = np.expand_dims(nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8), axis=0)
             self.__current_img_id += 1
             print(full_prediction)
             print(ground_truth)
+            full_prediction = np.expand_dims(full_prediction, axis=0)
+            ground_truth = np.expand_dims(ground_truth, axis=0)
             print(get_dice_score("0000", full_prediction, ground_truth))
             ds
 
