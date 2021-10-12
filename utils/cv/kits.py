@@ -187,8 +187,8 @@ class KiTS19(utils_ds.ImageDataset):
         """
         print(prediction)
         self.__current_image.accumulate_result_slice(prediction * self.__norm_patch)
-        #if self.__current_image.all_issued:
-        if True:
+        if self.__current_image.all_issued:
+        #if True:
             full_prediction = np.argmax(self.__current_image.result, axis=1).astype(np.uint8)
             ground_truth = np.expand_dims(nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8), axis=0)
             self.__current_img_id += 1
