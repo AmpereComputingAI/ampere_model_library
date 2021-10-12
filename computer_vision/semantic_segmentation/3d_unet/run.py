@@ -51,6 +51,9 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     dataset = KiTS19(dataset_dir_path=images_path)
     runner = TFSavedModelRunner()
     saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+    print(saved_model_loaded)
+    print(saved_model_loaded.structured_outputs)
+    fd
     runner.model = saved_model_loaded.signatures['serving_default']
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
