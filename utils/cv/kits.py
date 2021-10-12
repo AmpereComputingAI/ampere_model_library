@@ -5,6 +5,7 @@ import pandas as pd
 import nibabel as nib
 from pathlib import Path
 from multiprocessing import Pool
+from scipy import signal
 
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
@@ -75,6 +76,17 @@ class KiTS19(utils_ds.ImageDataset):
             self.empty = True
             self.__slice_indices = None
             self.__current_slice_id = None
+            self.norm_patch = self.__gen_norm_patch(ROI_SHAPE[0], 0.125 * ROI_SHAPE[0])
+            self.result = None
+
+        def __gen_norm_patch(self, n, std):
+            gaussian1d = signal.gaussian(n, std)
+            gaussian2d = np.outer(gaussian1d, gaussian1d)
+            gaussian3d = np.outer(gaussian2d, gaussian1d)
+            gaussian3d = gaussian3d.reshape(n, n, n)
+            gaussian3d = np.cbrt(gaussian3d)
+            gaussian3d /= gaussian3d.max()
+            return gaussian3d
 
         def assign(self, image):
             self.__full_image = image
@@ -98,6 +110,11 @@ class KiTS19(utils_ds.ImageDataset):
                 for j in range(0, strides[1] * size[1], strides[1]):
                     for k in range(0, strides[2] * size[2], strides[2]):
                         self.__slice_indices.append((i, j, k))
+
+            print(image_shape)
+            self.result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
+            norm_map = np.zeros_like(self.result)
+            fd
 
         def get_next_slice(self):
             assert self.all_issued is False and self.empty is False
@@ -152,6 +169,7 @@ class KiTS19(utils_ds.ImageDataset):
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
         print(prediction)
+        prediction *= self.__current_image.norm_patch
         sd
         path_to_groundtruth = Path(self.__groundtruth_path, self.__file_name, 'segmentation.nii.gz')
         groundtruth = nib.load(path_to_groundtruth).get_fdata().astype(np.uint8)
