@@ -31,7 +31,6 @@ class KiTS19(utils_ds.ImageDataset):
         self.__loaded_files = {}
         self.__current_img_id = 0
         self.__current_image = self.__Image()
-        self.__norm_patch = self.__gen_norm_patch()
 
         if not self.__preprocessed_files_pkl_path.exists():
             self.__preprocess()
@@ -46,17 +45,6 @@ class KiTS19(utils_ds.ImageDataset):
         self.available_instances = len(self.__file_names)
 
         super().__init__()
-
-    def __gen_norm_patch(self, std_factor=0.125):
-        gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
-        gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
-        gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
-        gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
-        gaussian3d = np.outer(gaussian2d, gaussian1d_2)
-        gaussian3d = gaussian3d.reshape(*ROI_SHAPE)
-        gaussian3d = np.cbrt(gaussian3d)
-        gaussian3d /= gaussian3d.max()
-        return gaussian3d
 
     def __preprocess(self):
         class args_substitute:
@@ -83,13 +71,36 @@ class KiTS19(utils_ds.ImageDataset):
     class __Image:
 
         def __init__(self):
-            self.__full_image = None
+            # self.__full_image = None
             self.all_issued = False
             self.empty = True
-            self.__slice_indices = None
-            self.__current_slice_id = None
-            self.__current_result_slice = None
-            self.result = None
+            self.__norm_patch = self.__gen_norm_patch()
+            # self.__slice_indices = None
+            # self.__current_slice_id = None
+            # self.__current_result_slice = None
+            # self.result = None
+
+        def __gen_norm_patch(self, std_factor=0.125):
+            gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
+            gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
+            gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
+            gaussian2d = np.outer(gaussian1d_0, gaussian1d_1)
+            gaussian3d = np.outer(gaussian2d, gaussian1d_2)
+            gaussian3d = gaussian3d.reshape(*ROI_SHAPE)
+            gaussian3d = np.cbrt(gaussian3d)
+            gaussian3d /= gaussian3d.max()
+            return gaussian3d
+
+        def __populate_norm_map(self, norm_map_array):
+            for i, j, k in self.__slice_indices:
+                norm_map_slice = norm_map_array[
+                                 ...,
+                                 i:(ROI_SHAPE[0] + i),
+                                 j:(ROI_SHAPE[1] + j),
+                                 k:(ROI_SHAPE[2] + k)
+                                 ]
+                norm_map_slice += self.__norm_patch
+            return norm_map_array
 
         def assign(self, image):
             self.__full_image = image
@@ -115,8 +126,8 @@ class KiTS19(utils_ds.ImageDataset):
                         self.__slice_indices.append((i, j, k))
 
             print(image_shape)
-            self.result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
-            self.__norm_map = np.zeros_like(self.result)
+            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
+            self.__norm_map = self.__populate_norm_map(np.zeros_like(self.__result))
 
         def get_next_input_slice(self):
             assert self.all_issued is False and self.empty is False
@@ -130,16 +141,20 @@ class KiTS19(utils_ds.ImageDataset):
 
         def accumulate_result_slice(self, output):
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            result_slice = self.result[
+            result_slice = self.__result[
                            ...,
                            i:(ROI_SHAPE[0] + i),
                            j:(ROI_SHAPE[1] + j),
                            k:(ROI_SHAPE[2] + k)
                            ]
-            result_slice += output
+            result_slice += output * self.__norm_patch
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
+
+        def get_final_result(self):
+            self.__result /= self.__norm_map
+            return np.argmax(self.__result, axis=1).astype(np.uint8)
 
     def get_input_array(self):
         """
@@ -148,31 +163,6 @@ class KiTS19(utils_ds.ImageDataset):
         if self.__current_image.all_issued or self.__current_image.empty:
             self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
         return self.__current_image.get_next_input_slice()
-
-    def prepare_arrays(self, image, roi_shape=ROI_SHAPE):
-
-        assert isinstance(roi_shape, list) and len(roi_shape) == 3 and any(roi_shape), \
-            f"Need proper ROI shape: {roi_shape}"
-
-        image_shape = list(image.shape[2:])
-        result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
-
-        norm_map = np.zeros_like(result)
-
-        norm_patch = pre_p.gaussian_kernel(
-            roi_shape[0], 0.125 * roi_shape[0]).astype(norm_map.dtype)
-
-        return result, norm_map, norm_patch
-
-    def finalize(self, image, norm_map):
-        """
-        Finalizes results obtained from sliding window inference
-        """
-        # note: layout is assumed to be linear (NCDHW) always
-        image = apply_norm_map(image, norm_map)
-        image = apply_argmax(image)
-
-        return image
 
     def __get_gt_path(self):
         try:
@@ -186,10 +176,10 @@ class KiTS19(utils_ds.ImageDataset):
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
         print(prediction)
-        self.__current_image.accumulate_result_slice(prediction * self.__norm_patch)
+        self.__current_image.accumulate_result_slice(prediction)
         if self.__current_image.all_issued:
         #if True:
-            full_prediction = np.argmax(self.__current_image.result, axis=1).astype(np.uint8)
+            full_prediction = self.__current_image.get_final_result()
             ground_truth = np.expand_dims(nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8), axis=0)
             self.__current_img_id += 1
             print(full_prediction)
