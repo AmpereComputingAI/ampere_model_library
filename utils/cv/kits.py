@@ -129,6 +129,7 @@ class KiTS19(utils_ds.ImageDataset):
                           ]
 
         def accumulate_result_slice(self, output):
+            i, j, k = self.__slice_indices[self.__current_slice_id]
             result_slice = self.__result[
                            ...,
                            i:(ROI_SHAPE[0] + i),
