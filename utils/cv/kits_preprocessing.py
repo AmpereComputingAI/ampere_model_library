@@ -451,11 +451,13 @@ def save_preprocessed_info(preproc_dir, aux, targets):
         return len(range(0, strides[0] * size[0], strides[0])) * len(range(0, strides[1] * size[1], strides[1])) \
                * len(range(0, strides[2] * size[2], strides[2]))
 
-    cases_info = dict()
+    cases_info = {"cases": list(), "inferences_needed": 0}
     for case in aux["cases"].keys():
-        cases_info[case] = calc_inferences(aux["cases"][case]["image_shape"][1:])
+        ca
+        cases_info["cases"].append(case)
+        cases_info["inferences_needed"] += calc_inferences(aux["cases"][case]["image_shape"][1:])
     print(cases_info)
-    fdfdf
+    json.dump(cases_info, open(Path(self.results_dir, "cases.json"), "w"))
 
 def preprocess_with_multiproc(args):
     """
