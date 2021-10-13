@@ -163,7 +163,6 @@ class KiTS19(utils_ds.ImageDataset):
         if self.__current_image.all_issued or self.__current_image.empty:
             print(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
             print(self.__get_path_to_img())
-            df
             self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
         return self.__current_image.get_next_input_slice()
 
