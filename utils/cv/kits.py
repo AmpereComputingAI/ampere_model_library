@@ -30,7 +30,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__current_img_id = 0
         self.__current_image = self.__Image()
 
-        if not self.__preprocessed_files_dir_path.isdir():
+        if not self.__preprocessed_files_dir_path.is_dir():
             self.__preprocess()
         self.__case_ids = TARGET_CASES
         self.__case_ids.sort()
