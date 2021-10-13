@@ -39,7 +39,7 @@ class KiTS19(utils_ds.ImageDataset):
         self.__bundle = list()
         self.__dice_scores = None
         self.__current_file_name = None
-        self.available_instances = len(self.__file_names)
+        self.available_instances = len(self.__case_ids)
 
         super().__init__()
 
