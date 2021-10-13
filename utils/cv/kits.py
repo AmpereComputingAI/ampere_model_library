@@ -9,7 +9,7 @@ from scipy import signal
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR, TARGET_CASES
-from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
+from utils.unet_preprocessing import get_dice_score
 
 
 class KiTS19(utils_ds.ImageDataset):
