@@ -456,7 +456,7 @@ def save_preprocessed_info(preproc_dir, aux, targets):
         cases_info["cases"].append(case)
         cases_info["inferences_needed"] += calc_inferences(aux["cases"][case]["image_shape"][1:])
     print(cases_info)
-    json.dump(cases_info, open(Path(preproc_dir, "cases.json"), "w"))
+    json.dump(cases_info, open(Path(preproc_dir, "preprocessed", "cases.json"), "w"))
 
 def preprocess_with_multiproc(args):
     """
