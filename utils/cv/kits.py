@@ -148,7 +148,7 @@ class KiTS19(utils_ds.ImageDataset):
             result_slice += output * self.__norm_patch
             a = output * self.__norm_patch
             import hashlib
-            print(hashlib.md5(a.tostring()).hexdigest())
+            print(hashlib.md5(output.numpy().tostring()).hexdigest())
             fddf
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
