@@ -49,7 +49,7 @@ class KiTS19(utils_ds.ImageDataset):
             def __init__(self, raw_data_dir, results_dir, num_proc=4):
                 self.data_dir = raw_data_dir
                 self.results_dir = results_dir
-                args.mode = "preprocess"
+                self.mode = "preprocess"
                 self.calibration = False
                 self.num_proc = num_proc
 
