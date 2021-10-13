@@ -9,7 +9,6 @@ from scipy import signal
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR, TARGET_CASES
-from utils.unet_preprocessing import get_dice_score
 
 
 class KiTS19(utils_ds.ImageDataset):
@@ -124,7 +123,7 @@ class KiTS19(utils_ds.ImageDataset):
                     for k in range(0, strides[2] * size[2], strides[2]):
                         self.__slice_indices.append((i, j, k))
 
-            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=self.__full_image.dtype)
+            self.__result = np.zeros(shape=(3, *image_shape), dtype=self.__full_image.dtype)
             self.__norm_map = self.__populate_norm_map(np.zeros_like(self.__result))
 
         def get_next_input_slice(self):
@@ -175,29 +174,65 @@ class KiTS19(utils_ds.ImageDataset):
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
         return pathlib.PurePath(self.__preprocessed_files_dir_path, case_id, "segmentation.nii.gz")
 
+    def __calc_dice_score(self, prediction, target):
+        """
+        Calculates DICE score of prediction against target, for classes as many as case
+        One-hot encoded form of case/prediction used for easier handling
+        Background case is not important and hence removed
+        """
+
+        def to_one_hot(array, channel_axis, num_classes=3):
+            """
+            Changes class information into one-hot encoded information
+            Number of classes in KiTS19 is 3: background, kidney segmentation, tumor segmentation
+            As a result, 1 channel of class info turns into 3 channels of one-hot info
+            """
+            res = np.eye(num_classes)[np.array(array).reshape(-1)]
+            array = res.reshape(list(array.shape) + [num_classes])
+            return np.transpose(array, (3, 0, 1, 2)).astype(np.float64)
+
+        # constants
+        channel_axis = 0
+        reduce_axis = (1, 2, 3)
+        smooth_nr = 1e-6
+        smooth_dr = 1e-6
+
+        # apply one-hot
+        prediction = to_one_hot(prediction, channel_axis)
+        target = to_one_hot(target, channel_axis)
+
+        # remove background
+        target = target[1:]
+        prediction = prediction[1:]
+
+        # calculate dice score
+        assert target.shape == prediction.shape, \
+            f"Different shape -- target: {target.shape}, prediction: {prediction.shape}"
+        assert target.dtype == np.float64 and prediction.dtype == np.float64, \
+            f"Unexpected dtype -- target: {target.dtype}, prediction: {prediction.dtype}"
+
+        # intersection for numerator; target/prediction sum for denominator
+        # easy b/c one-hot encoded format
+        intersection = np.sum(target * prediction, axis=reduce_axis)
+        target_sum = np.sum(target, axis=reduce_axis)
+        prediction_sum = np.sum(prediction, axis=reduce_axis)
+
+        # get DICE score for each class
+        dice_val = (2.0 * intersection + smooth_nr) / \
+                   (target_sum + prediction_sum + smooth_dr)
+        print(dice_val)
+        fd
+
     def submit_predictions(self, prediction):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
         self.__current_image.accumulate_result_slice(prediction)
         if self.__current_image.all_issued:
-        #if True:
             full_prediction = self.__current_image.get_final_result()
-            ground_truth = np.expand_dims(nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8), axis=0)
+            ground_truth = nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8)
+            self.__calc_dice_score(full_prediction, ground_truth)
             self.__current_img_id += 1
-            print(full_prediction.shape)
-            print(ground_truth.shape)
-            print(get_dice_score("0000", full_prediction, ground_truth))
-            ds
-
-            #groundtruth = np.expand_dims(groundtruth, 0)
-
-
-            assert groundtruth.shape == prediction.shape, \
-                "{} -- groundtruth: {} and prediction: {} have different shapes".format(
-                    self.__file_name, groundtruth.shape, prediction.shape)
-
-            self.__bundle.append((self.__file_name, groundtruth, prediction))
 
     def summarize_accuracy(self):
         with Pool(1) as p:
