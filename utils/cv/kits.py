@@ -1,9 +1,7 @@
 import pathlib
 import numpy as np
-import pandas as pd
 import nibabel as nib
 from pathlib import Path
-from multiprocessing import Pool
 from scipy import signal
 
 from utils.misc import print_warning_message
