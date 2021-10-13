@@ -9,7 +9,7 @@ from scipy import signal
 
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
-from utils.cv.kits_preprocessing import preprocess_with_multiproc
+from utils.cv.kits_preprocessing import preprocess_with_multiproc, verify_dataset
 from utils.cv.kits_preprocessing import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
@@ -53,7 +53,9 @@ class KiTS19(utils_ds.ImageDataset):
                 self.calibration = False
                 self.num_proc = num_proc
 
-        preprocess_with_multiproc(args_substitute(self.__dataset_dir_path, self.__dataset_dir_path))
+        args = args_substitute(self.__dataset_dir_path, self.__dataset_dir_path)
+        preprocess_with_multiproc(args)
+        verify_dataset(args)
 
     def __get_path_to_img(self):
         """
