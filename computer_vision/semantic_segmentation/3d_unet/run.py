@@ -6,7 +6,6 @@ from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 import numpy as np
 import time
-import json
 import tensorflow as tf
 
 
