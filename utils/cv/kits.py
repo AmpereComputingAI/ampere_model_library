@@ -102,7 +102,7 @@ class KiTS19(utils_ds.ImageDataset):
             return norm_map_array
 
         def assign(self, image):
-            self.__full_image = np.expand_dims(image, axis=0)
+            self.__full_image = np.expand_dims(image, axis=0).astype("float32")
             self.all_issued = False
             self.empty = False
             self.__slice_indices = list()
@@ -114,7 +114,7 @@ class KiTS19(utils_ds.ImageDataset):
             assert 0 < SLIDE_OVERLAP_FACTOR < 1, \
                 f"Need sliding window overlap factor in (0,1)! The current overlap factor is: {SLIDE_OVERLAP_FACTOR}"
 
-            image_shape = image.shape[1:]
+            image_shape = self.__full_image.shape[1:]
             dims = len(image_shape)
             strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dims)]
             size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dims)]
@@ -124,7 +124,7 @@ class KiTS19(utils_ds.ImageDataset):
                     for k in range(0, strides[2] * size[2], strides[2]):
                         self.__slice_indices.append((i, j, k))
 
-            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
+            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=self.__full_image.dtype)
             self.__norm_map = self.__populate_norm_map(np.zeros_like(self.__result))
 
         def get_next_input_slice(self):
