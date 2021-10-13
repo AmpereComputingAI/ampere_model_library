@@ -146,6 +146,10 @@ class KiTS19(utils_ds.ImageDataset):
                            k:(ROI_SHAPE[2] + k)
                            ]
             result_slice += output * self.__norm_patch
+            a = output * self.__norm_patch
+            import hashlib
+            print(hashlib.md5(a.tostring()).hexdigest())
+            fddf
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
