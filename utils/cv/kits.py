@@ -148,8 +148,9 @@ class KiTS19(utils_ds.ImageDataset):
             result_slice += output * self.__norm_patch
             a = output * self.__norm_patch
             import hashlib
+            print("ASS")
             print(hashlib.md5(a.numpy().tostring()).hexdigest())
-            fddf
+            print(hashlib.md5(self.__result.tostring()).hexdigest())
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
