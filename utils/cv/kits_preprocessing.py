@@ -118,7 +118,6 @@ import os
 import argparse
 import hashlib
 import json
-import pickle
 from multiprocessing import Process, Pool
 
 import nibabel
@@ -563,7 +562,7 @@ def preprocess_with_multiproc(args):
 
     for _d in pool_out:
         aux['cases'][_d['case']] = _d
-    save_preprocessed_info(preproc.results_dir, aux, preproc.target_cases)
+    #save_preprocessed_info(preproc.results_dir, aux, preproc.target_cases)
     p.join()
     p.close()
 
