@@ -36,9 +36,11 @@ class KiTS19(utils_ds.ImageDataset):
 
         self.__file_name = None
         self.__bundle = list()
-        self.__dice_scores = None
         self.__current_file_name = None
         self.available_instances = len(self.__case_ids)
+
+        self.__kidney_score = 0.
+        self.__tumor_score = 0.
 
         super().__init__()
 
@@ -123,7 +125,7 @@ class KiTS19(utils_ds.ImageDataset):
                     for k in range(0, strides[2] * size[2], strides[2]):
                         self.__slice_indices.append((i, j, k))
 
-            self.__result = np.zeros(shape=(3, *image_shape), dtype=self.__full_image.dtype)
+            self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=self.__full_image.dtype)
             self.__norm_map = self.__populate_norm_map(np.zeros_like(self.__result))
 
         def get_next_input_slice(self):
@@ -189,11 +191,11 @@ class KiTS19(utils_ds.ImageDataset):
             """
             res = np.eye(num_classes)[np.array(array).reshape(-1)]
             array = res.reshape(list(array.shape) + [num_classes])
-            return np.transpose(array, (3, 0, 1, 2)).astype(np.float64)
+            return np.transpose(array, (0, 4, 1, 2, 3)).astype(np.float64)
 
         # constants
-        channel_axis = 0
-        reduce_axis = (1, 2, 3)
+        channel_axis = 1
+        reduce_axis = (2, 3, 4)
         smooth_nr = 1e-6
         smooth_dr = 1e-6
 
@@ -202,8 +204,8 @@ class KiTS19(utils_ds.ImageDataset):
         target = to_one_hot(target, channel_axis)
 
         # remove background
-        target = target[1:]
-        prediction = prediction[1:]
+        target = target[:, 1:]
+        prediction = prediction[:, 1:]
 
         # calculate dice score
         assert target.shape == prediction.shape, \
@@ -218,10 +220,9 @@ class KiTS19(utils_ds.ImageDataset):
         prediction_sum = np.sum(prediction, axis=reduce_axis)
 
         # get DICE score for each class
-        dice_val = (2.0 * intersection + smooth_nr) / \
-                   (target_sum + prediction_sum + smooth_dr)
-        print(dice_val)
-        fd
+        dice_val = (2.0 * intersection + smooth_nr) / (target_sum + prediction_sum + smooth_dr)
+        self.__kidney_score += dice_val[0][0]
+        self.__tumor_score += dice_val[0][1]
 
     def submit_predictions(self, prediction):
         """
@@ -230,38 +231,25 @@ class KiTS19(utils_ds.ImageDataset):
         self.__current_image.accumulate_result_slice(prediction)
         if self.__current_image.all_issued:
             full_prediction = self.__current_image.get_final_result()
-            ground_truth = nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8)
+            ground_truth = np.expand_dims(nib.load(self.__get_gt_path()).get_fdata().astype(np.uint8), axis=0)
             self.__calc_dice_score(full_prediction, ground_truth)
             self.__current_img_id += 1
 
     def summarize_accuracy(self):
-        with Pool(1) as p:
-            self.__dice_scores = p.starmap(get_dice_score, self.__bundle)
+        if self.__current_img_id < 1:
+            print_warning_message("Not a single image has been completed - cannot calculate accuracy. Note that images "
+                                  "of KiTS dataset are processed in slices due to their size. That means that full "
+                                  "processing of one image can engage multiple passes through the network.")
+            return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}
 
-        df = pd.DataFrame()
+        mean_kidney = self.__kidney_score / self.__current_img_id
+        print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
 
-        for _s in self.__dice_scores:
-            case, arr = _s
-            kidney = arr[0]
-            tumor = arr[1]
-            composite = np.mean(arr)
-            df = df.append(
-                {
-                    "case": case,
-                    "kidney": kidney,
-                    "tumor": tumor,
-                    "composite": composite
-                }, ignore_index=True)
+        mean_tumor = self.__tumor_score / self.__current_img_id
+        print(" Mean tumor segmentation accuracy = {:.3f}".format(mean_tumor))
 
-        df.set_index("case", inplace=True)
-        df.loc["mean"] = df.fillna(0).mean()
+        mean_composite = (mean_kidney + mean_tumor) / 2
+        print(" Mean composite accuracy = {:.3f}".format(mean_composite))
 
-        mean_composite = df.loc['mean', 'composite']
-        mean_kidney = df.loc['mean', 'kidney']
-        mean_tumor = df.loc['mean', 'tumor']
-
-        print(f" mean composite {mean_composite}")
-        print(f" mean kidney {mean_kidney}")
-        print(f" mean composite {mean_tumor}")
-
-        return {"mean_composite": mean_composite, "mean_kidney": mean_kidney, "mean_tumor": mean_tumor}
+        print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
+        return {"mean_kidney_acc": mean_kidney, "mean_tumor_acc": mean_tumor, "mean_composite_acc": mean_composite}
