@@ -443,15 +443,19 @@ def save_preprocessed_info(preproc_dir, aux, targets):
     """
     Saves list of preprocessed files and the associated aux info into preprocessed_files.pkl
     """
-    print(aux)
-    sfds
-    assert len(targets) == len(aux['cases']),\
-        "Error in number of preprocessed files:\nExpected:{}\nProcessed:{}".format(
-            targets, list(aux['cases'].keys()))
-    with open(os.path.join(preproc_dir, 'preprocessed_files.pkl'), 'wb') as f:
-        pickle.dump(aux, f)
-    f.close()
+    def calc_inferences(image_shape):
+        dims = len(image_shape)
+        strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dims)]
+        size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dims)]
 
+        return len(range(0, strides[0] * size[0], strides[0])) * len(range(0, strides[1] * size[1], strides[1])) \
+               * len(range(0, strides[2] * size[2], strides[2]))
+
+    cases_info = dict()
+    for case in aux["cases"].keys():
+        cases_info[case] = calc_inferences(aux["cases"][case]["image_shape"][1:])
+    print(cases_info)
+    fdfdf
 
 def preprocess_with_multiproc(args):
     """
