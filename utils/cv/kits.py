@@ -9,8 +9,8 @@ from scipy import signal
 
 import utils.cv.dataset as utils_ds
 import utils.cv.pre_processing as pre_p
-from utils.cv.kits_preprocessing import preprocess_with_multiproc, verify_dataset
-from utils.cv.kits_preprocessing import ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR, TARGET_CASES
+from utils.cv.kits_preprocessing import
 from utils.unet_preprocessing import get_dice_score, apply_norm_map, apply_argmax
 
 
@@ -27,14 +27,15 @@ class KiTS19(utils_ds.ImageDataset):
                 env_var, f"Path to KiTS19 dataset directory has not been specified with {env_var} flag")
 
         self.__dataset_dir_path = dataset_dir_path
-        self.__preprocessed_files_pkl_path = Path(self.__dataset_dir_path, "preprocessed_files.pkl")
+        self.__preprocessed_files_dir_path = Path(self.__dataset_dir_path, "preprocessed")
         self.__loaded_files = {}
         self.__current_img_id = 0
         self.__current_image = self.__Image()
 
-        if not self.__preprocessed_files_pkl_path.exists():
+        if not self.__preprocessed_files_list_path.exists():
             self.__preprocess()
-        self.__file_names = pickle.load(open(self.__preprocessed_files_pkl_path, "rb"))["file_list"]
+        self.__case_ids = TARGET_CASES
+        self.__case_ids.sort()
 
         self.__file_name = None
         self.__bundle = list()
@@ -55,7 +56,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         args = args_substitute(self.__dataset_dir_path, self.__dataset_dir_path)
         preprocess_with_multiproc(args)
-        verify_dataset(args)
 
     def __get_path_to_img(self):
         """
@@ -64,10 +64,10 @@ class KiTS19(utils_ds.ImageDataset):
         :return: pathlib.PurePath object containing path to the image
         """
         try:
-            file_name = self.__file_names[self.__current_img_id]
+            case_id = self.__case_ids[self.__current_img_id]
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
-        return pathlib.PurePath(self.__dataset_dir_path, f"{file_name}.pkl")
+        return pathlib.PurePath(self.__preprocessed_files_dir_path, case_id, "imaging.nii.gz")
 
     class __Image:
 
@@ -171,7 +171,7 @@ class KiTS19(utils_ds.ImageDataset):
             file_name = self.__file_names[self.__current_img_id]
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
-        return pathlib.PurePath(self.__dataset_dir_path, file_name, "segmentation.nii.gz")
+        return pathlib.PurePath(self.__preprocessed_files_dir_path, case_id, "segmentation.nii.gz")
 
     def submit_predictions(self, prediction):
         """
