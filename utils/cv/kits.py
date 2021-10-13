@@ -139,13 +139,12 @@ class KiTS19(utils_ds.ImageDataset):
 
         def accumulate_result_slice(self, output):
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            result_slice = self.__result[
-                           ...,
-                           i:(ROI_SHAPE[0] + i),
-                           j:(ROI_SHAPE[1] + j),
-                           k:(ROI_SHAPE[2] + k)
-                           ]
-            result_slice += output * self.__norm_patch
+            self.__result[
+            ...,
+            i:(ROI_SHAPE[0] + i),
+            j:(ROI_SHAPE[1] + j),
+            k:(ROI_SHAPE[2] + k)
+            ] += output * self.__norm_patch
             a = output * self.__norm_patch
             import hashlib
             print("ASS")
