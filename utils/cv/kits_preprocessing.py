@@ -505,15 +505,13 @@ class Preprocessor:
             np.std(image, (1, 2, 3)), 2)
         self.stats.append(
             mean, std, image.shape[1], image.shape[2], image.shape[3])
-        pickle_file_path = Path(self.results_dir, f"{case}.pkl").absolute()
-        with open(pickle_file_path, "wb") as f:
-            pickle.dump([image, label], f)
-        f.close()
-        print(
-            f"Saved {str(pickle_file_path)} -- shape {image.shape} mean {mean} std {std}")
+        # pickle_file_path = Path(self.results_dir, f"{case}.pkl").absolute()
+        # with open(pickle_file_path, "wb") as f:
+        #     pickle.dump([image, label], f)
+        # f.close()
         if not self.calibration:
             path_to_nifti_dir = Path(
-                self.results_dir, "nifti", case).absolute()
+                self.results_dir, "preprocessed", case).absolute()
             path_to_nifti_dir.mkdir(parents=True, exist_ok=True)
             nifti_image = nibabel.Nifti1Image(
                 np.squeeze(image, 0), affine=reshaped_affine)
@@ -526,6 +524,7 @@ class Preprocessor:
             assert nifti_image.shape == nifti_label.shape, \
                 "While saving NIfTI files to {}, image: {} and label: {} have different shape".format(
                     path_to_nifti_dir, nifti_image.shape, nifti_label.shape)
+            print(f"Saved under {str(path_to_nifti_dir)} -- shape {image.shape} mean {mean} std {std}")
 
 
 def preprocess_multiproc_helper(preproc, case):

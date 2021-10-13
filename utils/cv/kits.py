@@ -161,9 +161,9 @@ class KiTS19(utils_ds.ImageDataset):
         A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
         """
         if self.__current_image.all_issued or self.__current_image.empty:
-            print(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
+            print(nib.load(self.__get_path_to_img()).get_fdata())
             print(self.__get_path_to_img())
-            self.__current_image.assign(pickle.load(open(self.__get_path_to_img(), "rb"))[0])
+            self.__current_image.assign(nib.load(self.__get_path_to_img()).get_fdata())
         return self.__current_image.get_next_input_slice()
 
     def __get_gt_path(self):
