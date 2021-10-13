@@ -43,7 +43,12 @@ def parse_args():
 
 def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
     def run_single_pass(tf_runner, kits):
-        output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
+        x = tf.constant(np.expand_dims(kits.get_input_array(), axis=0))
+        a = x.numpy()
+        a.flags.writeable = False
+        print(hash(a.data))
+        fddf
+        output = tf_runner.run(x)
         output = output["output_0"]
         kits.submit_predictions(output)
         #kits.submit_predictions(tf_runner.run(tf.constant(image)))
