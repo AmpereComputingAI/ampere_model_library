@@ -46,7 +46,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
         x = tf.constant(np.expand_dims(kits.get_input_array(), axis=0))
         a = x.numpy().tostring()
         import hashlib
-        print(hashlib.md5(a.encode('utf-8')).hexdigest())
+        print(hashlib.md5(a).hexdigest())
         fddf
         output = tf_runner.run(x)
         output = output["output_0"]
