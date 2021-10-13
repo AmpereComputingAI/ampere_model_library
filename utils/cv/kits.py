@@ -166,7 +166,7 @@ class KiTS19(utils_ds.ImageDataset):
 
     def __get_gt_path(self):
         try:
-            file_name = self.__case_ids[self.__current_img_id]
+            case_id = self.__case_ids[self.__current_img_id]
         except IndexError:
             raise utils.OutOfInstances("No more KiTS19 images to process in the directory provided")
         return pathlib.PurePath(self.__preprocessed_files_dir_path, case_id, "segmentation.nii.gz")
