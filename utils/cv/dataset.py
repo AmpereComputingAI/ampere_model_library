@@ -47,5 +47,3 @@ class ImageDataset:
             image = np.transpose(image, (0, 3, 1, 2))
 
         return image, resize_ratios
-
-
