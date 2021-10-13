@@ -2,7 +2,6 @@ import os
 import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
-from tensorflow.python.saved_model import tag_constants
 
 
 class TFFrozenModelRunner:
@@ -102,7 +101,6 @@ class TFSavedModelRunner:
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
-
     def __init__(self):
         """
         A function initializing runner.
@@ -119,6 +117,7 @@ class TFSavedModelRunner:
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
+
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
@@ -135,9 +134,9 @@ class TFSavedModelRunner:
     def print_performance_metrics(self, batch_size):
         """
         A function printing performance metrics on runs executed by the runner so far.
+
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         return perf
-
