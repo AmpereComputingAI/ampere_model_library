@@ -1,12 +1,11 @@
 import argparse
+import numpy as np
+import tensorflow as tf
 
 from utils.cv.kits import KiTS19
 from tensorflow.python.saved_model import tag_constants
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
-import numpy as np
-import time
-import tensorflow as tf
 
 
 def parse_args():
@@ -46,9 +45,10 @@ def run_tf_fp32(model_path, num_of_runs, timeout, dataset_path):
 
 def main():
     args = parse_args()
-    run_tf_fp32(
-        args.model_path, args.num_runs, args.timeout, args.dataset_path
-    )
+    if args.precision == "fp32":
+        run_tf_fp32(args.model_path, args.num_runs, args.timeout, args.dataset_path)
+    else:
+        assert False
 
 
 if __name__ == "__main__":

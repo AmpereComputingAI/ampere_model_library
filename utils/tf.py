@@ -124,7 +124,7 @@ class TFSavedModelRunner:
         start = time.time()
         output = self.model(input)
         finish = time.time()
-        
+
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
