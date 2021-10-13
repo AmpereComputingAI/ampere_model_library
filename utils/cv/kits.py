@@ -239,8 +239,8 @@ class KiTS19(utils_ds.ImageDataset):
     def summarize_accuracy(self):
         if self.__current_img_id < 1:
             print_warning_message("Not a single image has been completed - cannot calculate accuracy. Note that images "
-                                  "of KiTS dataset are processed in slices due to their size. That means that full "
-                                  "processing of one image can engage multiple passes through the network.")
+                                  "of KiTS dataset are processed in slices due to their size. That implies that "
+                                  "complete processing of one image can involve many passes through the network.")
             return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}
 
         mean_kidney = self.__kidney_score / self.__current_img_id
