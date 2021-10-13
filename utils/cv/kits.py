@@ -10,7 +10,7 @@ import utils.cv.dataset as utils_ds
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 
 
-class KiTS19(utils_ds.ImageDataset):
+class KiTS19:
     """
     A class providing facilities for preprocessing and postprocessing of KiTS19 dataset.
     """
@@ -38,8 +38,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         self.__kidney_score = 0.
         self.__tumor_score = 0.
-
-        super().__init__()
 
     def __preprocess(self):
         """
