@@ -45,8 +45,7 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     def run_single_pass(tf_runner, kits):
         x = tf.constant(np.expand_dims(kits.get_input_array(), axis=0))
         a = x.numpy()
-        a.flags.writeable = False
-        print(hash(a.data))
+        print(hash(a.tostring()))
         fddf
         output = tf_runner.run(x)
         output = output["output_0"]
