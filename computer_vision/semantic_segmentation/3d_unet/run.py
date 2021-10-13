@@ -29,14 +29,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, num_of_runs, timeout, images_path, anno_path, groundtruth_path):
+def run_tf_fp32(model_path, num_of_runs, timeout, dataset_path):
 
     def run_single_pass(tf_runner, kits):
         output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
         output = output["output_0"]
         kits.submit_predictions(output)
 
-    dataset = KiTS19(dataset_dir_path=images_path)
+    dataset = KiTS19(dataset_dir_path=dataset_path)
     runner = TFSavedModelRunner()
     saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
     runner.model = saved_model_loaded.signatures['serving_default']
