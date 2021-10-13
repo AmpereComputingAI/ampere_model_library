@@ -34,10 +34,8 @@ class KiTS19(utils_ds.ImageDataset):
 
         if not self.__preprocessed_files_pkl_path.exists():
             self.__preprocess()
-        print(pickle.load(open(self.__preprocessed_files_pkl_path, "rb")))
         self.__file_names = pickle.load(open(self.__preprocessed_files_pkl_path, "rb"))["file_list"]
 
-        print(self.__file_names)
         self.__file_name = None
         self.__bundle = list()
         self.__dice_scores = None
@@ -125,7 +123,6 @@ class KiTS19(utils_ds.ImageDataset):
                     for k in range(0, strides[2] * size[2], strides[2]):
                         self.__slice_indices.append((i, j, k))
 
-            print(image_shape)
             self.__result = np.zeros(shape=(1, 3, *image_shape), dtype=image.dtype)
             self.__norm_map = self.__populate_norm_map(np.zeros_like(self.__result))
 
@@ -175,7 +172,6 @@ class KiTS19(utils_ds.ImageDataset):
         """
         Collects and summarizes DICE scores of all the predicted files using multi-processes
         """
-        print(prediction)
         self.__current_image.accumulate_result_slice(prediction)
         if self.__current_image.all_issued:
         #if True:
