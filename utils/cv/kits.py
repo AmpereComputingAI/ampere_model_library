@@ -30,13 +30,15 @@ class KiTS19(utils_ds.ImageDataset):
 
         if not self.__preprocessed_files_dir_path.is_dir():
             self.__preprocess()
-        self.__case_ids = TARGET_CASES
+
+        cases_info = json.load(open(Path(self.__preprocessed_files_dir_path, "cases.json")))
+        self.__case_ids = cases_info["cases"]
         self.__case_ids.sort()
 
         self.__file_name = None
         self.__bundle = list()
         self.__current_file_name = None
-        self.available_instances = len(self.__case_ids)
+        self.available_instances = cases_info["inferences_needed"]
 
         self.__kidney_score = 0.
         self.__tumor_score = 0.
