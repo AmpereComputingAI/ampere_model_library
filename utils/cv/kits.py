@@ -5,15 +5,14 @@ import nibabel as nib
 from pathlib import Path
 from scipy import signal
 
-from utils.misc import print_warning_message
+import utils.misc as utils
 import utils.cv.dataset as utils_ds
-import utils.cv.pre_processing as pre_p
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 
 
 class KiTS19(utils_ds.ImageDataset):
     """
-    A class providing facilities for preprocessing of KiTS19 dataset.
+    A class providing facilities for preprocessing and postprocessing of KiTS19 dataset.
     """
 
     def __init__(self, dataset_dir_path=None):
@@ -25,9 +24,6 @@ class KiTS19(utils_ds.ImageDataset):
 
         self.__dataset_dir_path = dataset_dir_path
         self.__preprocessed_files_dir_path = Path(self.__dataset_dir_path, "preprocessed")
-        self.__loaded_files = {}
-        self.__current_img_id = 0
-        self.__current_image = self.__Image()
 
         if not self.__preprocessed_files_dir_path.is_dir():
             self.__preprocess()
@@ -35,11 +31,10 @@ class KiTS19(utils_ds.ImageDataset):
         cases_info = json.load(open(Path(self.__preprocessed_files_dir_path, "cases.json")))
         self.__case_ids = cases_info["cases"]
         self.__case_ids.sort()
-
-        self.__file_name = None
-        self.__bundle = list()
-        self.__current_file_name = None
         self.available_instances = cases_info["inferences_needed"]
+
+        self.__current_img_id = 0
+        self.__current_image = self.__Image()
 
         self.__kidney_score = 0.
         self.__tumor_score = 0.
@@ -47,7 +42,10 @@ class KiTS19(utils_ds.ImageDataset):
         super().__init__()
 
     def __preprocess(self):
-        class args_substitute:
+        """
+        Function delegating the offline pre-processing work to slightly modified MLCommons script.
+        """
+        class ArgsSubstitute:
             def __init__(self, raw_data_dir, results_dir, num_proc=4):
                 self.data_dir = raw_data_dir
                 self.results_dir = results_dir
@@ -55,8 +53,7 @@ class KiTS19(utils_ds.ImageDataset):
                 self.calibration = False
                 self.num_proc = num_proc
 
-        args = args_substitute(self.__dataset_dir_path, self.__dataset_dir_path)
-        preprocess_with_multiproc(args)
+        preprocess_with_multiproc(ArgsSubstitute(self.__dataset_dir_path, self.__dataset_dir_path))
 
     def __get_path_to_img(self):
         """
@@ -71,18 +68,19 @@ class KiTS19(utils_ds.ImageDataset):
         return pathlib.PurePath(self.__preprocessed_files_dir_path, case_id, "imaging.nii.gz")
 
     class __Image:
+        """
+        Class providing facilities for processing of currently considered image - such as splitting it into parts.
+        """
 
         def __init__(self):
-            # self.__full_image = None
             self.all_issued = False
             self.empty = True
             self.__norm_patch = self.__gen_norm_patch()
-            # self.__slice_indices = None
-            # self.__current_slice_id = None
-            # self.__current_result_slice = None
-            # self.result = None
 
         def __gen_norm_patch(self, std_factor=0.125):
+            """
+            Function calculating 3D gaussian kernel for normalization.
+            """
             gaussian1d_0 = signal.gaussian(ROI_SHAPE[0], std_factor * ROI_SHAPE[0])
             gaussian1d_1 = signal.gaussian(ROI_SHAPE[1], std_factor * ROI_SHAPE[1])
             gaussian1d_2 = signal.gaussian(ROI_SHAPE[2], std_factor * ROI_SHAPE[2])
@@ -148,11 +146,6 @@ class KiTS19(utils_ds.ImageDataset):
             j:(ROI_SHAPE[1] + j),
             k:(ROI_SHAPE[2] + k)
             ] += output * self.__norm_patch
-            a = output * self.__norm_patch
-            import hashlib
-            print("ASS")
-            print(hashlib.md5(a.numpy().tostring()).hexdigest())
-            print(hashlib.md5(self.__result.tostring()).hexdigest())
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
@@ -163,11 +156,9 @@ class KiTS19(utils_ds.ImageDataset):
 
     def get_input_array(self):
         """
-        A function returning an array containing pre-processed image, a result array, a norm_map and norm_patch.
+        A function returning an array containing slice of pre-processed image.
         """
         if self.__current_image.all_issued or self.__current_image.empty:
-            print(nib.load(self.__get_path_to_img()).get_fdata())
-            print(self.__get_path_to_img())
             self.__current_image.assign(nib.load(self.__get_path_to_img()).get_fdata())
         return self.__current_image.get_next_input_slice()
 
@@ -227,9 +218,6 @@ class KiTS19(utils_ds.ImageDataset):
         self.__tumor_score += dice_val[0][1]
 
     def submit_predictions(self, prediction):
-        """
-        Collects and summarizes DICE scores of all the predicted files using multi-processes
-        """
         self.__current_image.accumulate_result_slice(prediction)
         if self.__current_image.all_issued:
             full_prediction = self.__current_image.get_final_result()
@@ -239,7 +227,7 @@ class KiTS19(utils_ds.ImageDataset):
 
     def summarize_accuracy(self):
         if self.__current_img_id < 1:
-            print_warning_message("Not a single image has been completed - cannot calculate accuracy. Note that images "
+            utils.print_warning_message("Not a single image has been completed - cannot calculate accuracy. Note that images "
                                   "of KiTS dataset are processed in slices due to their size. That implies that "
                                   "complete processing of one image can involve many passes through the network.")
             return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}

@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: clean-up
+
 MEAN_VAL = 101.0
 STDDEV_VAL = 76.9
 MIN_CLIP_VAL = -79.0
@@ -455,7 +457,6 @@ def save_preprocessed_info(preproc_dir, aux, targets):
     for case in aux["cases"].keys():
         cases_info["cases"].append(case)
         cases_info["inferences_needed"] += calc_inferences(aux["cases"][case]["image_shape"][1:])
-    print(cases_info)
     json.dump(cases_info, open(Path(preproc_dir, "preprocessed", "cases.json"), "w"))
 
 def preprocess_with_multiproc(args):
