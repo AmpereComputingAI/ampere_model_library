@@ -1,25 +1,6 @@
 import numpy as np
 
 
-def apply_norm_map(image, norm_map):
-    """
-    Applies normal map norm_map to image and return the outcome
-    """
-    image /= norm_map
-    return image
-
-
-def apply_argmax(image):
-    """
-    Returns indices of the maximum values along the channel axis
-    Input shape is (bs=1, channel=3, (ROI_SHAPE)), float -- sub-volume inference result
-    Output shape is (bs=1, channel=1, (ROI_SHAPE)), integer -- segmentation result
-    """
-    channel_axis = 1
-    image = np.argmax(image, axis=channel_axis).astype(np.uint8)
-    image = np.expand_dims(image, axis=0)
-
-    return image
 
 
 def prepare_one_hot(my_array, num_classes):
@@ -78,6 +59,8 @@ def get_dice_score(case, prediction, target):
     # get DICE score for each class
     dice_val = (2.0 * intersection + smooth_nr) / \
                (target_sum + prediction_sum + smooth_dr)
+
+    print(dice_val)
 
     # return after removing batch dim
     return (case, dice_val[0])
