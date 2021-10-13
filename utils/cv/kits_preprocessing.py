@@ -453,7 +453,6 @@ def save_preprocessed_info(preproc_dir, aux, targets):
 
     cases_info = {"cases": list(), "inferences_needed": 0}
     for case in aux["cases"].keys():
-        ca
         cases_info["cases"].append(case)
         cases_info["inferences_needed"] += calc_inferences(aux["cases"][case]["image_shape"][1:])
     print(cases_info)
