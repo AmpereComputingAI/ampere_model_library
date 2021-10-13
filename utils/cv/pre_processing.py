@@ -1,6 +1,5 @@
 import numpy as np
 import utils.misc as utils
-from scipy import signal
 
 
 def pre_process(input_array, pre_processing_approach: str, color_model=None):
@@ -150,15 +149,3 @@ def pre_process_inception(input_array):
     input_array *= 2.
 
     return input_array
-
-
-def gaussian_kernel(n, std):
-
-    gaussian1d = signal.gaussian(n, std)
-    gaussian2d = np.outer(gaussian1d, gaussian1d)
-    gaussian3d = np.outer(gaussian2d, gaussian1d)
-    gaussian3d = gaussian3d.reshape(n, n, n)
-    gaussian3d = np.cbrt(gaussian3d)
-    gaussian3d /= gaussian3d.max()
-
-    return gaussian3d
