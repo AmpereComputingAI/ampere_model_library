@@ -1,3 +1,6 @@
 [submodule "natural_language_processing/huggingface/transformers"]
 	path = natural_language_processing/huggingface/transformers
 	url = git@github.com:OnSpecta/transformers.git
+[submodule "utils/cv/nnUNet"]
+	path = utils/cv/nnUNet
+	url = git@github.com:MIC-DKFZ/nnUNet.git
