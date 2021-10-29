@@ -1,15 +1,14 @@
 import argparse
-import numpy as np
-import tensorflow as tf
 
-from utils.cv.kits import KiTS19
-from tensorflow.python.saved_model import tag_constants
-from utils.tf import TFSavedModelRunner
+import numpy as np
+
+from utils.cv.brats import BraTS19
+from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run 3D Unet model.")
+    parser = argparse.ArgumentParser(description="Run 3D Unet BraTS 2019 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
@@ -24,22 +23,21 @@ def parse_args():
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
                         type=str, required=True,
-                        help="path to directory with KiTS19 dataset")
+                        help="path to directory with BraTS19 dataset")
     return parser.parse_args()
 
 
 def run_tf_fp32(model_path, num_of_runs, timeout, dataset_path):
 
-    def run_single_pass(tf_runner, kits):
-        output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
-        output = output["output_0"]
-        kits.submit_predictions(output)
+    def run_single_pass(tf_runner, brats):
+        tf_runner.set_input_tensor("input:0", np.expand_dims(brats.get_input_array(), axis=0))
+        output = tf_runner.run()
+        brats.submit_predictions(
+            output["output:0"]
+        )
 
-    dataset = KiTS19(dataset_dir_path=dataset_path)
-    runner = TFSavedModelRunner()
-    saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
-    runner.model = saved_model_loaded.signatures['serving_default']
-
+    dataset = BraTS19(dataset_dir_path=dataset_path)
+    runner = TFFrozenModelRunner(model_path, ["output:0"])
     return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
 
 
