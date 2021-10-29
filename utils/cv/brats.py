@@ -1,12 +1,11 @@
+import os
 import sys
 import json
 import pathlib
 import shutil
 import numpy as np
-import nibabel as nib
 import SimpleITK as sitk
 from pathlib import Path
-from scipy import signal
 from collections import OrderedDict
 from batchgenerators.utilities.file_and_folder_operations import *
 from batchgenerators.augmentations.utils import pad_nd_image
@@ -78,14 +77,14 @@ class BraTS19:
         for tpe in ["HGG", "LGG"]:
             cur = Path(self.__dataset_dir_path, "MICCAI_BraTS_2019_Data_Training", tpe)
             for p in subdirs(cur, join=False):
-                patdir = Path(cur, p)
+                patient_dir = Path(cur, p)
                 patient_name = f"{tpe}__{p}"
                 patient_names.append(patient_name)
-                t1 = Path(patdir, f"{p}_t1.nii.gz")
-                t1c = Path(patdir, f"{p}_t1ce.nii.gz")
-                t2 = Path(patdir, f"{p}_t2.nii.gz")
-                flair = Path(patdir, f"{p}_flair.nii.gz")
-                seg = Path(patdir, f"{p}_seg.nii.gz")
+                t1 = Path(patient_dir, f"{p}_t1.nii.gz")
+                t1c = Path(patient_dir, f"{p}_t1ce.nii.gz")
+                t2 = Path(patient_dir, f"{p}_t2.nii.gz")
+                flair = Path(patient_dir, f"{p}_flair.nii.gz")
+                seg = Path(patient_dir, f"{p}_seg.nii.gz")
 
                 assert all([
                     isfile(t1),
