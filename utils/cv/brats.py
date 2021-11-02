@@ -11,6 +11,8 @@ from batchgenerators.utilities.file_and_folder_operations import *
 from batchgenerators.augmentations.utils import pad_nd_image
 
 import utils.misc as utils
+utils_cv_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "nnUNet")
+sys.path.append(utils_cv_path)
 
 
 class BraTS19:
