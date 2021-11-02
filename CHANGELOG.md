@@ -6,3 +6,4 @@
 - BraTS 2019 dataset pipeline
 - CHANGELOG.md
 - README.md
+- requirements.txt
