@@ -1,8 +1,11 @@
 numpy==1.21.3
 scikit-build==0.12.0
 SimpleITK==2.1.0
-batchgenerators==0.23
+batchgenerators==0.21
 tqdm==4.62.3
 opencv-python==4.5.4.58
 pycocotools==2.0.2
 nibabel==3.2.1
+torch==1.10.0
+pandas==1.3.4
+medpy==0.4.0
