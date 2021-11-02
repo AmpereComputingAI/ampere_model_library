@@ -1,17 +1,18 @@
+import os
 import sys
 import json
 import pathlib
 import shutil
 import numpy as np
-import nibabel as nib
 import SimpleITK as sitk
 from pathlib import Path
-from scipy import signal
 from collections import OrderedDict
 from batchgenerators.utilities.file_and_folder_operations import *
 from batchgenerators.augmentations.utils import pad_nd_image
 
 import utils.misc as utils
+utils_cv_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "nnUNet")
+sys.path.append(utils_cv_path)
 
 
 class BraTS19:
@@ -78,14 +79,14 @@ class BraTS19:
         for tpe in ["HGG", "LGG"]:
             cur = Path(self.__dataset_dir_path, "MICCAI_BraTS_2019_Data_Training", tpe)
             for p in subdirs(cur, join=False):
-                patdir = Path(cur, p)
+                patient_dir = Path(cur, p)
                 patient_name = f"{tpe}__{p}"
                 patient_names.append(patient_name)
-                t1 = Path(patdir, f"{p}_t1.nii.gz")
-                t1c = Path(patdir, f"{p}_t1ce.nii.gz")
-                t2 = Path(patdir, f"{p}_t2.nii.gz")
-                flair = Path(patdir, f"{p}_flair.nii.gz")
-                seg = Path(patdir, f"{p}_seg.nii.gz")
+                t1 = Path(patient_dir, f"{p}_t1.nii.gz")
+                t1c = Path(patient_dir, f"{p}_t1ce.nii.gz")
+                t2 = Path(patient_dir, f"{p}_t2.nii.gz")
+                flair = Path(patient_dir, f"{p}_flair.nii.gz")
+                seg = Path(patient_dir, f"{p}_seg.nii.gz")
 
                 assert all([
                     isfile(t1),
@@ -213,7 +214,7 @@ class BraTS19:
     def summarize_accuracy(self):
         from utils.cv.nnUNet.nnunet.evaluation.region_based_evaluation import evaluate_regions, get_brats_regions
         evaluate_regions(
-            self.__processed_predictions_dir_path, "raw_data/Task043_BraTS2019/labelsTr", get_brats_regions()
+            self.__processed_predictions_dir_path, Path(self.__preprocessed_dir_path, "labelsTr"), get_brats_regions()
         )
         with open(Path(self.__processed_predictions_dir_path, "summary.csv")) as f:
             for line in f:

@@ -23,7 +23,7 @@ def parse_args():
                         type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to directory with KiTS19 dataset")
     return parser.parse_args()
 
