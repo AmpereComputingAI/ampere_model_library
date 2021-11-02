@@ -214,7 +214,7 @@ class BraTS19:
     def summarize_accuracy(self):
         from utils.cv.nnUNet.nnunet.evaluation.region_based_evaluation import evaluate_regions, get_brats_regions
         evaluate_regions(
-            self.__processed_predictions_dir_path, "raw_data/Task043_BraTS2019/labelsTr", get_brats_regions()
+            self.__processed_predictions_dir_path, Path(self.__preprocessed_dir_path, "labelsTr"), get_brats_regions()
         )
         with open(Path(self.__processed_predictions_dir_path, "summary.csv")) as f:
             for line in f:
