@@ -1,10 +1,13 @@
 import argparse
+import torch
+import torchvision
+import warnings
+
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
-
-PYTORCH_MODEL_NAME = 'googlenet'
+warnings.filterwarnings("ignore")
 
 
 def parse_args():
@@ -31,14 +34,18 @@ def parse_args():
                         type=str,
                         choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
+    parser.add_argument("--jit_freeze", action='store_true',
+                        help="specify if model should be run with torch.jit.freeze model")
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(imagenet.get_input_array(shape))
+        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
+        if jit_freeze:
+            output = output[0]
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -49,13 +56,13 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+    runner = PyTorchRunner(torchvision.models.__dict__["googlenet"](pretrained=True), jit_freeze=jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
-    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path)
+def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
+    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze)
 
 
 def main():
@@ -63,7 +70,7 @@ def main():
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+                args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path, args.jit_freeze
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
