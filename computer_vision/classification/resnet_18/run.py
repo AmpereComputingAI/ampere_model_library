@@ -1,10 +1,9 @@
 import argparse
 
-import numpy as np
-
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
+from utils.misc import FrameworkUnsupportedError
 
 PYTORCH_MODEL_NAME = 'resnet18'
 
@@ -29,6 +28,10 @@ def parse_args():
     parser.add_argument("--labels_path",
                         type=str,
                         help="path to file with validation labels")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["pytorch"], default="tf",
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
@@ -46,7 +49,7 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing='Inception', is1001classes=False, order='NCHW')
+                       pre_processing='PyTorch', is1001classes=False, order='NCHW')
     runner = PyTorchRunner(PYTORCH_MODEL_NAME)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -54,12 +57,16 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_torch_fp32(
-            args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
-    else:
-        assert False, f"Behaviour undefined for precision {args.precision}"
+    if args.framework == "tf":
+        raise FrameworkUnsupportedError(args.framework)
+
+    elif args.framework == "pytorch":
+        if args.precision == "fp32":
+            run_torch_fp32(
+                args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
 
 
 if __name__ == "__main__":

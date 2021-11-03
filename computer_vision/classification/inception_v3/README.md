@@ -1,28 +1,37 @@
 # Inception V3
 
 
-This folder contains the script to run Inception v3 on ImageNet classification task.\
+This folder contains the script to run Inception v3 on ImageNet classification task 
+in TensorFlow and PyTorch framework.
+
 Variant supplied below in two different precisions accepts input of shape 299x299.
+
+Variant supplied below for PyTorch framework in fp32 precision accepts input of shape 299x299
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1801.04381
 
 
 ### Accuracy:
 
-based on 1000 images from ImageNet Validation Dataset
+based on 1000 images from ImageNet Validation Dataset for TensorFlow framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 75.7%  | 93.2 %  |
 | INT8  | 75.7%  | 93.2 %  |
 
+based on 1000 images from ImageNet Validation Dataset for PyTorch framework
+
+|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 76.5 %  | 93.2 %  |
 
 
 ### Dataset and models
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
+TensorFlow models can be downloaded here: https://www.tensorflow.org/lite/guide/hosted_models
 
 ### Running instructions
 
@@ -45,12 +54,20 @@ Now you are able to run the run.py script.
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
 
-The path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.\
-Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
+For Tensorflow implementation the path to model (with a flag "-m") as well as its precision (with a flag "-p") \ 
+have to be specified. Please note that the default batch size is 1 and if not specified otherwise the script will \ 
+run for 1 minute.
 
+For PyTorch implementation the precision (with a flag "-p") as well as framework (with a fla "--framework") have to be specified.\
 
-Example command: 
+Example command for TensorFlow: 
 
 ```
 python3 run.py -m /path/to/model.pb -p fp32
+```
+
+Example command for PyTorch:
+
+```
+python3 run.py -p fp32 --framework pytorch
 ```

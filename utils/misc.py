@@ -10,7 +10,7 @@ class UnsupportedPrecisionValueError(ValueError):
     pass
 
 
-class ModelNameUnspecified(Exception):
+class ModelPathUnspecified(Exception):
     """
     An Exception class being raised when model name is unspecified.
     """
@@ -20,6 +20,13 @@ class ModelNameUnspecified(Exception):
 class OutOfInstances(Exception):
     """
     An exception class being raised as an error in case of lack of further images to process by the pipeline.
+    """
+    pass
+
+
+class FrameworkUnsupportedError(Exception):
+    """
+    An exception class being raised as an error in case of lack of implemented framework pipeline.
     """
     pass
 
