@@ -2,13 +2,17 @@ import argparse
 from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
+from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
+from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified
+
+PYTORCH_MODEL_NAME = 'squeezenet1_0'
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Squeezenet model.")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32", "int8"], required=True,
@@ -28,10 +32,14 @@ def parse_args():
     parser.add_argument("--labels_path",
                         type=str,
                         help="path to file with validation labels")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["pytorch", "tf"], default="tf",
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
@@ -49,6 +57,34 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, label
     runner = TFFrozenModelRunner(model_path, ["softmax_tensor:0"])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
+
+    def run_single_pass(pytorch_runner, imagenet):
+        shape = (299, 299)
+        output = pytorch_runner.run(imagenet.get_input_array(shape))
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing='PyTorch', is1001classes=False, order='NCHW')
+    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
+def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path)
+
+
+def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path)
 
 
 def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
@@ -74,16 +110,28 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
-    elif args.precision == "int8":
-        run_tflite_int8(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
-    else:
-        assert False
+
+    if args.framework == "tf":
+        if args.model_path is None:
+            raise ModelPathUnspecified(args.model_path)
+        elif args.precision == "fp32":
+            run_tf_fp32(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        elif args.precision == "int8":
+            run_tflite_int8(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
+
+    elif args.framework == "pytorch":
+        if args.precision == "fp32":
+            run_pytorch_fp32(
+                args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
 
 
 if __name__ == "__main__":

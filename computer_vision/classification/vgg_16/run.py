@@ -5,7 +5,7 @@ from utils.tflite import TFLiteRunner
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import UnsupportedPrecisionValueError
-from utils.misc import ModelNameUnspecified
+from utils.misc import ModelPathUnspecified
 
 PYTORCH_MODEL_NAME = 'vgg16'
 
@@ -61,6 +61,7 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_
 
 
 def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
+
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
         output = pytorch_runner.run(imagenet.get_input_array(shape))
@@ -73,7 +74,7 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing='Inception', is1001classes=False, order='NCHW')
+                       pre_processing='PyTorch', is1001classes=False, order='NCHW')
     runner = PyTorchRunner(PYTORCH_MODEL_NAME)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
@@ -116,7 +117,7 @@ def main():
     args = parse_args()
     if args.framework == "tf":
         if args.model_path is None:
-            raise ModelNameUnspecified(args.model_path)
+            raise ModelPathUnspecified(args.model_path)
         if args.precision == "fp32":
             run_tf_fp32(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path

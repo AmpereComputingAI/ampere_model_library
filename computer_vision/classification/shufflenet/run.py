@@ -1,15 +1,14 @@
 import argparse
-
-from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
-from utils.misc import FrameworkUnsupportedError
+from utils.benchmark import run_model
+from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
 
-PYTORCH_MODEL_NAME = 'resnet18'
+PYTORCH_MODEL_NAME = 'shufflenet_v2_x1_0'
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run ResNet-18 model.")
+    parser = argparse.ArgumentParser(description="Run ShuffleNet model.")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
@@ -35,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -55,6 +54,10 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
+def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path)
+
+
 def main():
     args = parse_args()
     if args.framework == "tf":
@@ -62,7 +65,7 @@ def main():
 
     elif args.framework == "pytorch":
         if args.precision == "fp32":
-            run_torch_fp32(
+            run_pytorch_fp32(
                 args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
             )
         else:
