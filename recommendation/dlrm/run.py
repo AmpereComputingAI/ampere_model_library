@@ -7,6 +7,7 @@ import numpy as np
 dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
 sys.path.append(dlrm_path)
 from dlrm.dlrm_s_pytorch import DLRM_Net
+from dlrm.dlrm_data_pytorch import CriteoDataset
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
@@ -50,6 +51,17 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, la
 
     # dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
     #                    pre_processing="Inception", is1001classes=True)
+    test_data = CriteoDataset(
+        dataset="terabyte",
+        max_ind_range=-1,
+        sub_sample_rate=0.0,
+        randomize="total",
+        split="test",
+        raw_path=images_path,
+        pro_data=labels_path,
+        memory_map=True
+    )
+    print(test_data)
     ln_top = np.array([479, 1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(
         m_spa=128,
