@@ -37,11 +37,9 @@ def parse_args():
 
 
 def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-
-    def run_single_pass(tf_runner, imagenet):
-        shape = (299, 299)
-        tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
-        output = tf_runner.run()
+    def run_single_pass(torch_runner, criteo):
+        a, b, c = criteo.get_input()
+        output = torch_runner.run(dense_x=a, lS_o=b, lS_i=c)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -51,10 +49,25 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, la
 
     # dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
     #                    pre_processing="Inception", is1001classes=True)
-    dlrm = DLRM_Net()
+    ln_top = np.array([479, 1024, 1024, 512, 256, 1])
+    dlrm = DLRM_Net(
+        m_spa=128,
+        ln_emb=np.array(
+            [39884406, 39043, 17289, 7420, 20263, 3, 7120, 1543, 63, 38532951, 2953546, 403346, 10, 2208, 11938, 155, 4,
+             976, 14, 39979771, 25641295, 39664984, 585935, 12972, 108, 36]
+        ),
+        ln_bot=np.array([13, 512, 256, 128]),
+        ln_top=ln_top,
+        arch_interaction_op="dot",
+        sigmoid_top=ln_top.size-2,
+        # ndevices=self.ndevices,
+        qr_operation=None,
+        qr_collisions=None,
+        qr_threshold=None,
+        md_threshold=None,
+    )
     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
     runner = PyTorchRunner(dlrm)
-    fsd
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
