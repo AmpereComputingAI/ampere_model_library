@@ -1,6 +1,9 @@
+import sys
 import torch
 import argparse
 
+dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
+sys.path.append(dlrm_path)
 from dlrm.dlrm_s_pytorch import DLRM_Net
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
