@@ -1,5 +1,7 @@
 import torch
 import argparse
+
+from dlrm.dlrm_s_pytorch import DLRM_Net
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
@@ -45,7 +47,9 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, la
 
     # dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
     #                    pre_processing="Inception", is1001classes=True)
-    runner = PyTorchRunner(torch.load(model_path))
+    dlrm = DLRM_Net()
+    dlrm.load_state_dict(torch.load(model_path)["state_dict"])
+    runner = PyTorchRunner(dlrm)
     fsd
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)

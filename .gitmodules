@@ -4,3 +4,6 @@
 [submodule "utils/cv/nnUNet"]
 	path = utils/cv/nnUNet
 	url = git@github.com:MIC-DKFZ/nnUNet.git
+[submodule "recommendation/dlrm/dlrm"]
+	path = recommendation/dlrm/dlrm
+	url = git@github.com:facebookresearch/dlrm.git
