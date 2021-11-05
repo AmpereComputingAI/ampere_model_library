@@ -1,5 +1,5 @@
 import argparse
-
+import torchvision
 import numpy as np
 
 from utils.benchmark import run_model
