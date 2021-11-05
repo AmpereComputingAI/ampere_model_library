@@ -1,3 +1,4 @@
+import torch
 import argparse
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
