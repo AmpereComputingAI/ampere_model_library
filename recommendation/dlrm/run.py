@@ -2,6 +2,7 @@ import os
 import sys
 import torch
 import argparse
+import numpy as np
 
 dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
 sys.path.append(dlrm_path)
