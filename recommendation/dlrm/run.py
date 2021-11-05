@@ -52,7 +52,8 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, la
     # dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
     #                    pre_processing="Inception", is1001classes=True)
     test_data = CriteoDataset(
-        dataset="terabyte",
+        #dataset="terabyte",
+        dataset="kaggle",
         max_ind_range=-1,
         sub_sample_rate=0.0,
         randomize="total",
