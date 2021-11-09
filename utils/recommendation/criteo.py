@@ -55,13 +55,8 @@ class Criteo:
         A function returning input arrays for DLRM network.
         """
         try:
-            print(self.__data[0])
-            print(self.__data[0].shape)
-            dsdff
-            x = self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)])
+            x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)])]
             ls_t = list(zip(*x))
-            print(ls_t)
-            sdffd
 
             X = torch.cat(ls_t[0])
             (num_s, len_ls) = torch.cat(ls_t[1], dim=1).size()
