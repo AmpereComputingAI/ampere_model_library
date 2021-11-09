@@ -29,7 +29,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
+def run_torch_fp32(model_path, num_of_runs, timeout, dataset_path):
     def run_single_pass(torch_runner, criteo):
         a, b, c = criteo.get_inputs()
         output = torch_runner.run(dense_x=a, lS_o=b, lS_i=c)
@@ -75,7 +75,7 @@ def main():
     args = parse_args()
     if args.precision == "fp32":
         run_torch_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
+            args.model_path, args.num_runs, args.timeout, args.dataset_path
         )
     else:
         assert False, f"Behaviour undefined for precision {args.precision}"
