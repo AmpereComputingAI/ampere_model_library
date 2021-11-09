@@ -1,12 +1,10 @@
 import argparse
-
+import torchvision
 import numpy as np
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
-
-PYTORCH_MODEL_NAME = 'resnet50'
 
 
 def parse_args():
@@ -46,8 +44,8 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing='Inception', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+                       pre_processing="Inception", is1001classes=False, order="NCHW")
+    runner = PyTorchRunner(torchvision.models.__dict__["resnet50"](pretrained=True))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
