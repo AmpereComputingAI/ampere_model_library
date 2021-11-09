@@ -55,7 +55,7 @@ class Criteo:
         A function returning input arrays for DLRM network.
         """
         try:
-            print([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)])
+            print(self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)]))
             sdsd
         except IndexError:
             raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
