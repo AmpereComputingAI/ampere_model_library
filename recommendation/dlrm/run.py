@@ -59,10 +59,12 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, images_path, la
         randomize="total",
         split="test",
         raw_path=images_path,
-        pro_data=labels_path,
         memory_map=True
     )
-    print(test_data)
+    num_individual_samples = len(test_data)
+    print(num_individual_samples)
+    sdff
+
     ln_top = np.array([479, 1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(
         m_spa=128,
