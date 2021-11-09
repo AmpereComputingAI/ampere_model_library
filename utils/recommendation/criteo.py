@@ -59,8 +59,15 @@ class Criteo:
             ls_t = list(zip(*x))
 
             X = torch.cat(ls_t[0])
+            (num_s, len_ls) = torch.cat(ls_t[1], dim=1).size()
+            lS_o = torch.stack([torch.tensor(range(len_ls)) for _ in range(num_s)])
+            lS_i = torch.cat(ls_t[2], dim=1)
             print(X)
             print(X.shape)
+            print(lS_o)
+            print(lS_o.shape)
+            print(lS_i)
+            print(lS_i.shape)
             fsdfsd
         except IndexError:
             raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
