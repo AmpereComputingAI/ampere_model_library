@@ -55,6 +55,9 @@ class Criteo:
         A function returning input arrays for DLRM network.
         """
         try:
+            print(self.__data[0])
+            print(self.__data[0].shape)
+            dsdff
             x = self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)])
             ls_t = list(zip(*x))
             print(ls_t)
