@@ -25,7 +25,7 @@ class Criteo:
         self.__max_batch_size = max_batch_size
 
         append_dlrm_to_pypath()
-        from dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
+        from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
 
         self.__data = CriteoDataset(
             dataset="kaggle",
