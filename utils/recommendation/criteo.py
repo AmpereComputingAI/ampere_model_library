@@ -4,8 +4,10 @@ import torch
 import argparse
 import numpy as np
 
-dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
-sys.path.append(dlrm_path)
+
+def append_dlrm_to_pypath():
+    dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
+    sys.path.append(dlrm_path)
 
 
 class Criteo:
@@ -22,6 +24,7 @@ class Criteo:
 
         self.__max_batch_size = max_batch_size
 
+        append_dlrm_to_pypath()
         from dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
 
         self.__data = CriteoDataset(

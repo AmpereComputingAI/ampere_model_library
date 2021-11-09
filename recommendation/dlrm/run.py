@@ -4,8 +4,7 @@ import torch
 import argparse
 import numpy as np
 
-from utils.recommendation.criteo import Criteo
-from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
+from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
@@ -41,6 +40,9 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
         #         imagenet.extract_top1(output["InceptionV3/Predictions/Reshape_1:0"][i]),
         #         imagenet.extract_top5(output["InceptionV3/Predictions/Reshape_1:0"][i])
         #     )
+
+    append_dlrm_to_pypath()
+    from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
 
     dataset = Criteo(dataset_path=dataset_path)
     dataset.get_inputs()
