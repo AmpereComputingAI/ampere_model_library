@@ -47,6 +47,7 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
 
     dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path)
+    dataset.get_inputs()
 
     ln_top = np.array([479, 1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(

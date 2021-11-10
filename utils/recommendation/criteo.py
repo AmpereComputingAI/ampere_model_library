@@ -31,10 +31,10 @@ class Criteo:
 
         self.__data = CriteoDataset(
             dataset="kaggle",
-            # max_ind_range=-1,
-            # sub_sample_rate=0.0,
-            max_ind_range=10000000,
-            sub_sample_rate=0.875,
+            max_ind_range=-1,
+            sub_sample_rate=0.0,
+            # max_ind_range=10000000,
+            # sub_sample_rate=0.875,
             randomize="total",
             split="test",
             raw_path=dataset_path,
@@ -60,6 +60,8 @@ class Criteo:
         A function returning input arrays for DLRM network.
         """
         try:
+            print(self.__test_loader[self.__current_id])
+            dsffsd
             x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__current_id+self.__max_batch_size)])]
             ls_t = list(zip(*x))
 
