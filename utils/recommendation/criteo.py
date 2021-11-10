@@ -61,7 +61,7 @@ class Criteo:
         """
         try:
             for i, val in enumerate(self.__test_loader):
-                print(i, val)
+                print(val[0].shape, val[1].shape, val[2].shape)
                 sdf
             dsffsd
             x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__current_id+self.__max_batch_size)])]
