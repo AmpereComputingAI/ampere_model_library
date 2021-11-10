@@ -38,7 +38,6 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
         input = tuple(dense_x=a, lS_o=b, lS_i=c)
         output = torch_runner.run(input)
         print(output)
-        dfs
         # for i in range(batch_size):
         #     imagenet.submit_predictions(
         #         i,

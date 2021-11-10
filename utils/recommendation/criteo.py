@@ -76,3 +76,6 @@ class Criteo:
             return X, lS_o, lS_i
         except IndexError:
             raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
+
+    def summarize_accuracy(self):
+        pass
