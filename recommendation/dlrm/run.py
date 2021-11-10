@@ -34,9 +34,7 @@ def parse_args():
 
 def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     def run_single_pass(torch_runner, criteo):
-        a, b, c = criteo.get_inputs()
-        input = tuple(dense_x=a, lS_o=b, lS_i=c)
-        output = torch_runner.run(input)
+        output = torch_runner.run(tuple(criteo.get_inputs()))
         print(output)
         # for i in range(batch_size):
         #     imagenet.submit_predictions(
