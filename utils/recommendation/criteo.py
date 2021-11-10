@@ -47,7 +47,7 @@ class Criteo:
             self.__data,
             batch_size=self.__max_batch_size,
             shuffle=False,
-            num_workers=16, # 0
+            num_workers=0, #16, # 0
             collate_fn=collate_wrapper_criteo_offset,
             pin_memory=False,
             drop_last=False
