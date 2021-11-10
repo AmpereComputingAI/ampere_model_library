@@ -35,7 +35,8 @@ def parse_args():
 def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     def run_single_pass(torch_runner, criteo):
         a, b, c = criteo.get_inputs()
-        output = torch_runner.run(dense_x=a, lS_o=b, lS_i=c)
+        input = tuple(dense_x=a, lS_o=b, lS_i=c)
+        output = torch_runner.run(input)
         print(output)
         dfs
         # for i in range(batch_size):

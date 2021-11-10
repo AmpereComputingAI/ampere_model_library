@@ -36,7 +36,8 @@ class Criteo:
             randomize="total",
             split="test",
             raw_path=dataset_path,
-            memory_map=True
+            memory_map=True,
+            dataset_multiprocessing=True
         )
 
         self.__test_loader = torch.utils.data.DataLoader(
