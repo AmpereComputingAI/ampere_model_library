@@ -38,6 +38,7 @@ class Criteo:
             randomize="total",
             split="test",
             raw_path=dataset_path,
+            pro_data="/".join(dataset_path.split("/")[0:-1]) + "/kaggleAdDisplayChallenge_processed.npz",
             #memory_map=True,
             memory_map=False,
             dataset_multiprocessing=True
