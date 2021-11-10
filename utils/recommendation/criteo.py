@@ -4,6 +4,8 @@ import torch
 import argparse
 import numpy as np
 
+import utils.misc as utils
+
 
 def append_dlrm_to_pypath():
     dlrm_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dlrm")
