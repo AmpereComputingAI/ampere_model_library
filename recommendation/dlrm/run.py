@@ -17,6 +17,9 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
+    parser.add_argument("-b", "--batch_size",
+                        type=int, default=2048,
+                        help="batch size to feed the model with")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -29,11 +32,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_torch_fp32(model_path, num_of_runs, timeout, dataset_path):
+def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     def run_single_pass(torch_runner, criteo):
         a, b, c = criteo.get_inputs()
         output = torch_runner.run(dense_x=a, lS_o=b, lS_i=c)
         print(output)
+        dfs
         # for i in range(batch_size):
         #     imagenet.submit_predictions(
         #         i,
@@ -44,8 +48,7 @@ def run_torch_fp32(model_path, num_of_runs, timeout, dataset_path):
     append_dlrm_to_pypath()
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
 
-    dataset = Criteo(dataset_path=dataset_path)
-    dataset.get_inputs()
+    dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path)
 
     ln_top = np.array([479, 1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(
@@ -68,14 +71,14 @@ def run_torch_fp32(model_path, num_of_runs, timeout, dataset_path):
 
     runner = PyTorchRunner(dlrm)
 
-    return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def main():
     args = parse_args()
     if args.precision == "fp32":
         run_torch_fp32(
-            args.model_path, args.num_runs, args.timeout, args.dataset_path
+            args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
         )
     else:
         assert False, f"Behaviour undefined for precision {args.precision}"

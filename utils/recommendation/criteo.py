@@ -55,21 +55,21 @@ class Criteo:
         A function returning input arrays for DLRM network.
         """
         try:
-            x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__max_batch_size)])]
+            x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__current_id+self.__max_batch_size)])]
             ls_t = list(zip(*x))
 
             X = torch.cat(ls_t[0])
             (num_s, len_ls) = torch.cat(ls_t[1], dim=1).size()
             lS_o = torch.stack([torch.tensor(range(len_ls)) for _ in range(num_s)])
             lS_i = torch.cat(ls_t[2], dim=1)
-            print(X)
-            print(X.shape)
-            print(lS_o)
-            print(lS_o.shape)
-            print(lS_i)
-            print(lS_i.shape)
-            fsdfsd
+            # print(X)
+            # print(X.shape)
+            # print(lS_o)
+            # print(lS_o.shape)
+            # print(lS_i)
+            # print(lS_i.shape)
+            # fsdfsd
+            self.__current_id += self.__max_batch_size
+            return X, lS_o, lS_i
         except IndexError:
             raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
-        self.__input_details.append(data[1])
-        return data[0]
