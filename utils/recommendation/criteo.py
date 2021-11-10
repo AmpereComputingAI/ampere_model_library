@@ -31,7 +31,7 @@ class Criteo:
 
         self.__data = CriteoDataset(
             dataset="kaggle",
-            max_ind_range=-1,
+            max_ind_range=40000000,
             sub_sample_rate=0.0,
             randomize="total",
             split="test",
