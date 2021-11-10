@@ -38,7 +38,8 @@ class Criteo:
             randomize="total",
             split="test",
             raw_path=dataset_path,
-            memory_map=True,
+            #memory_map=True,
+            memory_map=False,
             dataset_multiprocessing=True
         )
 
@@ -46,7 +47,7 @@ class Criteo:
             self.__data,
             batch_size=self.__max_batch_size,
             shuffle=False,
-            num_workers=0,
+            num_workers=16, # 0
             collate_fn=collate_wrapper_criteo_offset,
             pin_memory=False,
             drop_last=False
@@ -61,25 +62,8 @@ class Criteo:
         """
         try:
             for i, val in enumerate(self.__test_loader):
-                print(val[0].shape, val[1].shape, val[2].shape)
-                sdf
-            dsffsd
-            x = [self.__test_loader.collate_fn([self.__data[i] for i in range(self.__current_id, self.__current_id+self.__max_batch_size)])]
-            ls_t = list(zip(*x))
-
-            X = torch.cat(ls_t[0])
-            (num_s, len_ls) = torch.cat(ls_t[1], dim=1).size()
-            lS_o = torch.stack([torch.tensor(range(len_ls)) for _ in range(num_s)])
-            lS_i = torch.cat(ls_t[2], dim=1)
-            # print(X)
-            # print(X.shape)
-            # print(lS_o)
-            # print(lS_o.shape)
-            # print(lS_i)
-            # print(lS_i.shape)
-            # fsdfsd
-            self.__current_id += self.__max_batch_size
-            return X, lS_o, lS_i
+                self.__current_id = i
+                yield val[0], val[1], val[2]
         except IndexError:
             raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
 
