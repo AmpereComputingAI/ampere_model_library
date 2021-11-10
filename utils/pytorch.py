@@ -31,7 +31,7 @@ class PyTorchRunner:
 
         with torch.no_grad():
             start = time.time()
-            output_tensor = self.__model(input)
+            output_tensor = self.__model(*input)
             finish = time.time()
             output_tensor = output_tensor.detach().numpy()
 
