@@ -57,16 +57,18 @@ class Criteo:
         self.__current_id = 0
         self.available_instances = len(self.__data)
 
+    def __input_batch(self):
+        try:
+            for val in self.__test_loader:
+                yield val[0], val[1], val[2]
+        except IndexError:
+            raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
+
     def get_inputs(self):
         """
         A function returning input arrays for DLRM network.
         """
-        try:
-            for i, val in enumerate(self.__test_loader):
-                self.__current_id = i
-                yield val[0], val[1], val[2]
-        except IndexError:
-            raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
+        return next(self.__input_batch())
 
     def summarize_accuracy(self):
         pass
