@@ -29,6 +29,21 @@ class Criteo:
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
 
+        self.ln_emb = np.array(CriteoDataset(
+            dataset="kaggle",
+            max_ind_range=-1,
+            sub_sample_rate=0.0,
+            # max_ind_range=10000000,
+            # sub_sample_rate=0.875,
+            randomize="total",
+            split="train",
+            raw_path=dataset_path,
+            pro_data="/".join(dataset_path.split("/")[0:-1]) + "/kaggleAdDisplayChallenge_processed.npz",
+            # memory_map=True,
+            memory_map=False,
+            dataset_multiprocessing=True
+        ).counts)
+
         self.__data = CriteoDataset(
             dataset="kaggle",
             max_ind_range=-1,

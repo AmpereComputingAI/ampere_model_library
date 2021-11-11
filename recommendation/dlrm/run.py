@@ -48,22 +48,19 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
 
     dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path)
 
-    ln_top = np.array([479, 1024, 1024, 512, 256, 1])
+    ln_top = np.array([1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(
         m_spa=128,
-        ln_emb=np.array(
-            [39884406, 39043, 17289, 7420, 20263, 3, 7120, 1543, 63, 38532951, 2953546, 403346, 10, 2208, 11938, 155, 4,
-             976, 14, 39979771, 25641295, 39664984, 585935, 12972, 108, 36]
-        ),
+        ln_emb=dataset.ln_emb,
         ln_bot=np.array([13, 512, 256, 128]),
         ln_top=ln_top,
         arch_interaction_op="dot",
         sigmoid_top=ln_top.size-2,
         # ndevices=self.ndevices,
-        qr_operation=None,
-        qr_collisions=None,
-        qr_threshold=None,
-        md_threshold=None,
+        qr_operation="mult",
+        qr_collisions=4,
+        qr_threshold=200,
+        md_threshold=200,
     )
     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
 
