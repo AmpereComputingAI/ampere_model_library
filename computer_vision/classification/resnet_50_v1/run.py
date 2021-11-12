@@ -1,13 +1,12 @@
 import argparse
-
+import torch
+import torchvision
 import numpy as np
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
-from utils.misc import FrameworkUnsupportedError
-
-PYTORCH_MODEL_NAME = 'resnet50'
+from utils.misc import FrameworkUnsupportedError, UnsupportedPrecisionValueError
 
 
 def parse_args():
@@ -41,7 +40,7 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(imagenet.get_input_array(shape))
+        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -52,16 +51,13 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+    runner = PyTorchRunner(torchvision.models.__dict__["resnet50"](pretrained=True))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def main():
     args = parse_args()
-    if args.framework == "tf":
-        raise FrameworkUnsupportedError(args.framework)
-
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_torch_fp32(
@@ -69,6 +65,8 @@ def main():
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
