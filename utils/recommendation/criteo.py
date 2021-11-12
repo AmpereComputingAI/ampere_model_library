@@ -60,18 +60,18 @@ class Criteo:
         self.__current_id = 0
         self.available_instances = len(self.__data)
 
-    def __input_batch(self):
-        try:
-            for val in self.__test_loader:
-                yield val[0], val[1], val[2]
-        except StopIteration:
-            raise utils.OutOfInstances("No more inputs to process in the directory provided")
+    def __input_batch_gen(self):
+        for val in self.__test_loader:
+            yield val[0], val[1], val[2]
 
     def get_inputs(self):
         """
         A function returning input arrays for DLRM network.
         """
-        return next(self.__input_batch())
+        try:
+            return next(self.__input_batch_gen())
+        except StopIteration:
+            raise utils.OutOfInstances("No more inputs to process in the directory provided")
 
     def summarize_accuracy(self):
         pass
