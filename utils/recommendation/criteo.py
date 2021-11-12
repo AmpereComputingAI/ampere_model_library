@@ -57,23 +57,16 @@ class Criteo:
             drop_last=False
         )
 
-        self.__input_gen = self.__input_batch_gen()
-
-        self.__current_id = 0
-        self.available_instances = 1
-
-    def __input_batch_gen(self):
         for val in self.__test_loader:
-            yield val[0], val[1], val[2]
+            self.__single_input = val[0], val[1], val[2]
+
+        self.available_instances = 1
 
     def get_inputs(self):
         """
         A function returning input arrays for DLRM network.
         """
-        try:
-            return next(self.__input_gen)
-        except StopIteration:
-            raise utils.OutOfInstances("No more inputs to process in the directory provided")
+        return self.__single_input
 
     def summarize_accuracy(self):
         pass
