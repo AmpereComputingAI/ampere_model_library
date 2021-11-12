@@ -43,8 +43,8 @@ class Criteo:
             # sub_sample_rate=0.875,
             randomize="total",
             split="test",
-            raw_path=Path(dataset_path, "day"),
-            pro_data=Path(dataset_path, "terabyte_processed.npz"),
+            raw_path=str(Path(dataset_path, "day")),
+            pro_data=str(Path(dataset_path, "terabyte_processed.npz")),
             # memory_map=True,
             memory_map=True,
             dataset_multiprocessing=True
