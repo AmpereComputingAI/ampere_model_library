@@ -34,14 +34,7 @@ def parse_args():
 
 def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     def run_single_pass(torch_runner, criteo):
-        output = torch_runner.run(criteo.get_inputs())
-        print(output)
-        # for i in range(batch_size):
-        #     imagenet.submit_predictions(
-        #         i,
-        #         imagenet.extract_top1(output["InceptionV3/Predictions/Reshape_1:0"][i]),
-        #         imagenet.extract_top5(output["InceptionV3/Predictions/Reshape_1:0"][i])
-        #     )
+        _ = torch_runner.run(criteo.get_inputs())
 
     append_dlrm_to_pypath()
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
@@ -56,7 +49,6 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
         ln_top=ln_top,
         arch_interaction_op="dot",
         sigmoid_top=ln_top.size-2,
-        # ndevices=self.ndevices,
         qr_operation="mult",
         qr_collisions=4,
         qr_threshold=200,

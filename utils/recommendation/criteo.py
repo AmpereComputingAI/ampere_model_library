@@ -15,15 +15,15 @@ def append_dlrm_to_pypath():
 
 class Criteo:
     """
-    A class providing facilities for preprocessing and postprocessing of Criteo Kaggle competition dataset.
+    A class providing facilities for preprocessing of Criteo dataset.
     """
 
-    def __init__(self, max_batch_size=2048, dataset_path=None):
+    def __init__(self, max_batch_size, dataset_path=None):
 
         if dataset_path is None:
             env_var = "CRITEO_DATASET_PATH"
             dataset_path = utils.get_env_variable(
-                env_var, f"Path to Criteo Kaggle dataset directory has not been specified with {env_var} flag")
+                env_var, f"Path to Criteo dataset directory has not been specified with {env_var} flag")
 
         self.__max_batch_size = max_batch_size
 
@@ -39,13 +39,10 @@ class Criteo:
             dataset="terabyte",
             max_ind_range=40000000,
             sub_sample_rate=0.0,
-            # max_ind_range=10000000,
-            # sub_sample_rate=0.875,
             randomize="total",
             split="test",
             raw_path=str(Path(dataset_path, "day")),
             pro_data=str(Path(dataset_path, "terabyte_processed.npz")),
-            # memory_map=True,
             memory_map=True,
             dataset_multiprocessing=True
         )
@@ -54,7 +51,7 @@ class Criteo:
             self.__data,
             batch_size=self.__max_batch_size,
             shuffle=False,
-            num_workers=0,  # 16, # 0
+            num_workers=0,
             collate_fn=collate_wrapper_criteo_offset,
             pin_memory=False,
             drop_last=False
@@ -68,7 +65,7 @@ class Criteo:
             for val in self.__test_loader:
                 yield val[0], val[1], val[2]
         except IndexError:
-            raise utils.OutOfInstances("No more BraTS19 images to process in the directory provided")
+            raise utils.OutOfInstances("No more inputs to process in the directory provided")
 
     def get_inputs(self):
         """
