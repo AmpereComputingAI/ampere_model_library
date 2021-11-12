@@ -48,7 +48,7 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
 
     dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path)
 
-    ln_top = np.array([1024, 1024, 512, 256, 1])
+    ln_top = np.array([479, 1024, 1024, 512, 256, 1])
     dlrm = DLRM_Net(
         m_spa=128,
         ln_emb=dataset.ln_emb,
