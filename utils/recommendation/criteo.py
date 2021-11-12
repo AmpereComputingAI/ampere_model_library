@@ -29,20 +29,10 @@ class Criteo:
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
 
-        self.ln_emb = np.array(CriteoDataset(
-            dataset="kaggle",
-            max_ind_range=-1,
-            sub_sample_rate=0.0,
-            # max_ind_range=10000000,
-            # sub_sample_rate=0.875,
-            randomize="total",
-            split="train",
-            raw_path=dataset_path,
-            pro_data="/".join(dataset_path.split("/")[0:-1]) + "/kaggleAdDisplayChallenge_processed.npz",
-            # memory_map=True,
-            memory_map=False,
-            dataset_multiprocessing=True
-        ).counts)
+        self.ln_emb = np.array(
+            [39884406, 39043, 17289, 7420, 20263, 3, 7120, 1543, 63, 38532951, 2953546, 403346, 10, 2208, 11938, 155, 4,
+             976, 14, 39979771, 25641295, 39664984, 585935, 12972, 108, 36]
+        )
 
         self.__data = CriteoDataset(
             dataset="kaggle",
@@ -54,7 +44,7 @@ class Criteo:
             split="test",
             raw_path=dataset_path,
             pro_data="/".join(dataset_path.split("/")[0:-1]) + "/kaggleAdDisplayChallenge_processed.npz",
-            #memory_map=True,
+            # memory_map=True,
             memory_map=False,
             dataset_multiprocessing=True
         )
@@ -63,7 +53,7 @@ class Criteo:
             self.__data,
             batch_size=self.__max_batch_size,
             shuffle=False,
-            num_workers=0, #16, # 0
+            num_workers=0,  # 16, # 0
             collate_fn=collate_wrapper_criteo_offset,
             pin_memory=False,
             drop_last=False
