@@ -1,4 +1,5 @@
 import argparse
+import torch
 import torchvision
 import numpy as np
 
@@ -34,7 +35,7 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(imagenet.get_input_array(shape))
+        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
