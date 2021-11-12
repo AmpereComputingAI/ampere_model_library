@@ -30,9 +30,14 @@ class PyTorchRunner:
         """
 
         with torch.no_grad():
-            start = time.time()
-            output_tensor = self.__model(*input)
-            finish = time.time()
+            if type(input) == tuple:
+                start = time.time()
+                output_tensor = self.__model(*input)
+                finish = time.time()
+            else:
+                start = time.time()
+                output_tensor = self.__model(input)
+                finish = time.time()
             output_tensor = output_tensor.detach().numpy()
 
         self.__total_inference_time += finish - start
