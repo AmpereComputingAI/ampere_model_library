@@ -64,7 +64,7 @@ class Criteo:
         try:
             for val in self.__test_loader:
                 yield val[0], val[1], val[2]
-        except IndexError:
+        except StopIteration:
             raise utils.OutOfInstances("No more inputs to process in the directory provided")
 
     def get_inputs(self):
