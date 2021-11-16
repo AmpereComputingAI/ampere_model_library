@@ -32,7 +32,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch"], default="tf",
+                        choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
