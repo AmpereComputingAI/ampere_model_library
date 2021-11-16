@@ -1,4 +1,3 @@
-import torchvision
 import torch
 import utils.misc as utils
 import time
@@ -12,15 +11,9 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model: str):
-
+    def __init__(self, model):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
-
-        if model not in torchvision.models.__dict__:
-            utils.print_goodbye_message_and_die(
-                f"{model} not supported by torchvision!")
-
-        self.__model = torchvision.models.__dict__[model](pretrained=True)
+        self.__model = model
         self.__model.eval()
         self.__model_script = torch.jit.script(self.__model)
         self.__frozen_script = torch.jit.freeze(self.__model_script)
@@ -38,14 +31,15 @@ class PyTorchRunner:
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
-        input_tensor = torch.from_numpy(input)
-
         with torch.no_grad():
-
-            start = time.time()
-            output_tensor = self.__frozen_script(input_tensor)
-            finish = time.time()
+            if type(input) == tuple:
+                start = time.time()
+                output_tensor = self.__frozen_script(*input)
+                finish = time.time()
+            else:
+                start = time.time()
+                output_tensor = self.__frozen_script(input)
+                finish = time.time()
             output_tensor = output_tensor.detach().numpy()
 
         self.__total_inference_time += finish - start

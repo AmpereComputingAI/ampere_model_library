@@ -9,7 +9,7 @@ from utils.benchmark import run_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run 3D Unet model.")
+    parser = argparse.ArgumentParser(description="Run 3D Unet KiTS 2019 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
@@ -23,7 +23,7 @@ def parse_args():
                         type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to directory with KiTS19 dataset")
     return parser.parse_args()
 
