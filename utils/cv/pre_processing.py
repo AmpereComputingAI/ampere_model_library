@@ -164,11 +164,13 @@ def pre_process_py(input_array):
     :return:
     """
 
-    per_channel_means = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    # per_channel_means = np.array([0.485, 0.456, 0.406])
+
+    per_channel_means = np.array([0.485, 0.456, 0.406]).reshape(1, 3, 1, 1)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 3, 1, 1)
 
     input_array /= 255.0
-    input_array = (input_array - per_channel_means[None, :, None, None]) / std[None, :, None, None]
+    input_array = (input_array - per_channel_means) / std
 
     input_array = input_array.astype("float32")
 
