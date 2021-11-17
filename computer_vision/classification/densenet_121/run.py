@@ -60,9 +60,6 @@ def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path)
 
 def main():
     args = parse_args()
-    if args.framework == "tf":
-        raise FrameworkUnsupportedError(args.framework)
-
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(
@@ -70,6 +67,8 @@ def main():
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
