@@ -8,6 +8,8 @@ from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
+from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run DLRM model.")
@@ -29,6 +31,10 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to Criteo dataset .txt file")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["pytorch"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
@@ -63,12 +69,15 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_torch_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
-        )
+    if args.framework == "pytorch":
+        if args.precision == "fp32":
+            run_torch_fp32(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
     else:
-        assert False, f"Behaviour undefined for precision {args.precision}"
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":

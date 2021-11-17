@@ -5,7 +5,7 @@ from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
 from utils.pytorch import PyTorchRunner
-from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified
+from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified, FrameworkUnsupportedError
 
 PYTORCH_MODEL_NAME = 'mnasnet1_0'
 
@@ -140,6 +140,8 @@ def main():
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":

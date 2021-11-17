@@ -3,7 +3,7 @@ import argparse
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
-from utils.misc import FrameworkUnsupportedError
+from utils.misc import FrameworkUnsupportedError, UnsupportedPrecisionValueError
 
 PYTORCH_MODEL_NAME = 'resnet18'
 
@@ -57,16 +57,15 @@ def run_torch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path):
 
 def main():
     args = parse_args()
-    if args.framework == "tf":
-        raise FrameworkUnsupportedError(args.framework)
-
-    elif args.framework == "pytorch":
+    if args.framework == "pytorch":
         if args.precision == "fp32":
             run_torch_fp32(
                 args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":

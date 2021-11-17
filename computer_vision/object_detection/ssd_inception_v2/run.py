@@ -7,6 +7,8 @@ from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 
+from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run SSD Inception v2 model.")
@@ -31,6 +33,10 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str,
                         help="path to file with validation annotations")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["tf"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
@@ -65,16 +71,19 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-        )
-    elif args.precision == "fp16":
-        run_tf_fp16(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-        )
+    if args.framework == "tf":
+        if args.precision == "fp32":
+            run_tf_fp32(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+            )
+        elif args.precision == "fp16":
+            run_tf_fp16(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
     else:
-        assert False
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":

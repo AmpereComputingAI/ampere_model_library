@@ -4,8 +4,7 @@ from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError
-from utils.misc import ModelPathUnspecified
+from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified, FrameworkUnsupportedError
 
 PYTORCH_MODEL_NAME = 'vgg16'
 
@@ -35,7 +34,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch", "tf"], default="tf",
+                        choices=["pytorch", "tf"], required=True,
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
@@ -140,6 +139,8 @@ def main():
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
