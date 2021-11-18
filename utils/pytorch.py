@@ -17,7 +17,7 @@ class PyTorchRunner:
         self.__model.eval()
         self.__model_script = torch.jit.script(self.__model)
         self.__frozen_script = torch.jit.freeze(self.__model_script)
-        
+
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
