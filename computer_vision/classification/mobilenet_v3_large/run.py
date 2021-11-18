@@ -1,4 +1,6 @@
 import argparse
+import torch
+import torchvision
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
@@ -41,7 +43,7 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(imagenet.get_input_array(shape))
+        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -52,7 +54,7 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(PYTORCH_MODEL_NAME)
+    runner = PyTorchRunner(torchvision.models.__dict__["mobilenet_v3_large"](pretrained=True))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
