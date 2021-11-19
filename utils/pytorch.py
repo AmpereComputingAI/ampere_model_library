@@ -37,7 +37,6 @@ class PyTorchRunner:
                 start = time.time()
                 output_tensor = self.__frozen_script(input)
                 finish = time.time()
-                # output_tensor = output_tensor.detach().numpy()
             else:
                 if type(input) == tuple:
                     start = time.time()

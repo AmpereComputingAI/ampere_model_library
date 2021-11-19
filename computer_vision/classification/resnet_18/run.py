@@ -50,7 +50,7 @@ def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path)
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["resnet18"](pretrained=True))
+    runner = PyTorchRunner(torchvision.models.__dict__["resnet18"](pretrained=True), classification_model=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 

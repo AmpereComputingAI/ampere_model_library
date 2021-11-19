@@ -52,7 +52,8 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path):
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["mobilenet_v3_small"](pretrained=True))
+    runner = PyTorchRunner(torchvision.models.__dict__["mobilenet_v3_small"](pretrained=True),
+                           classification_model=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
