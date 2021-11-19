@@ -4,13 +4,13 @@ from datetime import datetime
 profile_path = None
 
 
-def dls_profiler_enabled():
+def aio_profiler_enabled():
     """
-    The function checks if DLS profiler is enabled.
+    The function checks if AIO profiler is enabled.
 
     :return: boolean
     """
-    if "DLS_PROFILER" in os.environ and os.environ["DLS_PROFILER"] == "1":
+    if "AIO_PROFILER" in os.environ and os.environ["AIO_PROFILER"] == "1":
         return True
     else:
         return False
