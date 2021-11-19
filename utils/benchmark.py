@@ -35,18 +35,18 @@ def get_intra_op_parallelism_threads():
             omp_num_threads = None
 
         try:
-            dls_num_threads = int(os.environ["DLS_NUM_THREADS"])
+            aio_num_threads = int(os.environ["AIO_NUM_THREADS"])
             if omp_num_threads is not None:
-                if omp_num_threads != dls_num_threads:
+                if omp_num_threads != aio_num_threads:
                     utils.print_goodbye_message_and_die(
-                        f"DLS_NUM_THREADS={dls_num_threads} inconsistent with OMP_NUM_THREADS={omp_num_threads}!")
-            intra_op_parallelism_threads = dls_num_threads
+                        f"AIO_NUM_THREADS={aio_num_threads} inconsistent with OMP_NUM_THREADS={omp_num_threads}!")
+            intra_op_parallelism_threads = aio_num_threads
         except KeyError:
             pass
 
         if intra_op_parallelism_threads is None:
             utils.print_goodbye_message_and_die("Number of intra threads to use is not set!"
-                                                "\nUse DLS_NUM_THREADS or OMP_NUM_THREADS flags.")
+                                                "\nUse AIO_NUM_THREADS or OMP_NUM_THREADS flags.")
 
         print(f"\nIntraop parallelism set to {intra_op_parallelism_threads} threads\n")
 

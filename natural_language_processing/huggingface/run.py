@@ -92,7 +92,7 @@ def main():
 
     args = parse_args()
 
-    use_profiler = dls_profiler_enabled() or args.profiler
+    use_profiler = aio_profiler_enabled() or args.profiler
 
     if use_profiler:
         set_profile_path(args.model_name)
