@@ -11,8 +11,10 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model):
+    def __init__(self, model, classification_model=False):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
+        self.__classification_model = classification_model
+
         self.__model = model
         self.__model.eval()
         self.__model_script = torch.jit.script(self.__model)
@@ -30,17 +32,22 @@ class PyTorchRunner:
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
         with torch.no_grad():
-            if type(input) == tuple:
-                start = time.time()
-                output_tensor = self.__frozen_script(*input)
-                finish = time.time()
-            else:
+            if self.__classification_model:
                 start = time.time()
                 output_tensor = self.__frozen_script(input)
                 finish = time.time()
-            output_tensor = output_tensor.detach().numpy()
+                # output_tensor = output_tensor.detach().numpy()
+            else:
+                if type(input) == tuple:
+                    start = time.time()
+                    output_tensor = self.__model(*input)
+                    finish = time.time()
+                else:
+                    start = time.time()
+                    output_tensor = self.__model(input)
+                    finish = time.time()
+        output_tensor = output_tensor.detach().numpy()
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
