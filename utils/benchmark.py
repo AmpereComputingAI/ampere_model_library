@@ -46,7 +46,7 @@ def get_intra_op_parallelism_threads():
 
         if intra_op_parallelism_threads is None:
             utils.print_goodbye_message_and_die("Number of intra threads to use is not set!"
-                                                "\nUse DLS_NUM_THREADS or OMP_NUM_THREADS flags.")
+                                                "\nUse AIO_NUM_THREADS or OMP_NUM_THREADS flags.")
 
         print(f"\nIntraop parallelism set to {intra_op_parallelism_threads} threads\n")
 
