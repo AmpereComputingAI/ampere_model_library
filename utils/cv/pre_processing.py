@@ -6,6 +6,7 @@ import utils.misc as utils
 def pre_process(input_array, pre_processing_approach: str, color_model=None):
     """
     A function delegating further pre-processing work to proper function.
+
     :param input_array: numpy array containing image data
     :param pre_processing_approach: string naming the pre-processing approach to be applied
     :param color_model: color model to be used if pre-processing depends on the order
@@ -31,7 +32,9 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
 def pre_process_ssd(input_array):
     """
     A function pre-processing an input array in the way expected by some SSD models.
+
     Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
@@ -48,7 +51,9 @@ def pre_process_ssd(input_array):
 def pre_process_ssd_2(input_array):
     """
     A function pre-processing an input array in the way expected by some other SSD models.
+
     Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
@@ -64,7 +69,9 @@ def pre_process_ssd_2(input_array):
 def pre_process_yolo(input_array):
     """
     A function pre-processing an input array in the way expected by some YOLO models.
+
     Values are converted from int 0 <-> 255 range to float range of 0.0 <-> 1.0. (IN RATHER DIRECT WAY)
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
@@ -77,8 +84,10 @@ def pre_process_yolo(input_array):
 def pre_process_squeezenet(input_array):
     """
     A function pre-processing an input array in the way expected by SqueezeNet model.
+
     Values are converted from int 0 <-> 255 range to float range of 0.0 <-> 1.0
     and normalized using mean = [0.485, 0.456, 0.406].
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
@@ -100,7 +109,9 @@ def pre_process_squeezenet(input_array):
 def pre_process_vgg(input_array, color_model: str):
     """
     A function pre-processing an input array in the way described in the original VGG paper.
+
     Values are converted from int 0 <-> 255 range to asymmetrical float ranges different for every color channel.
+
     Pre-processing is used by various classification models other than VGG, for example ResNet.
     :param input_array: numpy array containing image data
     :param color_model: str, color model of image data, possible values: ["RGB", "BGR"]
@@ -126,8 +137,10 @@ def pre_process_vgg(input_array, color_model: str):
 def pre_process_inception(input_array):
     """
     A function pre-processing an input array in the way described in the original Inception paper.
+
     Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
     Pre-processing is used by various classification models other than Inception, for example MobileNet.
+
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
@@ -144,9 +157,11 @@ def pre_process_inception(input_array):
 def pre_process_py(input_array):
     """
     Preprocessing approach for pytorch classification models
+
     All pre-trained classification models expect input images normalized in the same way, i.e. mini-batches of 3-channel
     RGB images of shape (3 x H x W), where H and W are expected to be at least 224. The images have to be loaded in to a
     range of [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
+
     :param input_array:
     :return:
     """
