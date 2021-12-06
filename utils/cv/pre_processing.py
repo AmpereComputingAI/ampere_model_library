@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import utils.misc as utils
 
 
@@ -25,6 +26,8 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
         return pre_process_inception(input_array)
     if pre_processing_approach == "PyTorch":
         return pre_process_py(input_array)
+    if pre_processing_approach == "PyTorch_objdet":
+        return pre_process_py_objdet(input_array)
     utils.print_goodbye_message_and_die(f"Pre-processing approach \"{pre_processing_approach}\" undefined.")
 
 
@@ -154,17 +157,16 @@ def pre_process_inception(input_array):
 
 
 def pre_process_py(input_array):
-
     """
-    All pre-trained models expect input images normalized in the same way, i.e. mini-batches of 3-channel RGB images of
-    shape (3 x H x W), where H and W are expected to be at least 224. The images have to be loaded in to a range of
-    [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
+    Preprocessing approach for pytorch classification models
+
+    All pre-trained classification models expect input images normalized in the same way, i.e. mini-batches of 3-channel
+    RGB images of shape (3 x H x W), where H and W are expected to be at least 224. The images have to be loaded in to a
+    range of [0, 1] and then normalized using mean = [0.485, 0.456, 0.406] and std = [0.229, 0.224, 0.225].
 
     :param input_array:
     :return:
     """
-
-    # per_channel_means = np.array([0.485, 0.456, 0.406])
 
     per_channel_means = np.array([0.485, 0.456, 0.406]).reshape(1, 3, 1, 1)
     std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 3, 1, 1)
@@ -175,3 +177,25 @@ def pre_process_py(input_array):
     input_array = input_array.astype("float32")
 
     return input_array
+
+
+def pre_process_py_objdet(input_array):
+    """
+    Preprocessing approach for pytorch torchvision object detection models
+
+    The input to the model is expected to be a list of tensors, each of shape [C, H, W], one for each image, and should
+    be in 0-1 range. Different images can have different sizes but they will be resized to a fixed size before passing
+    it to the backbone
+    :param input_array:
+    :return:
+    """
+
+    # print(input_array)
+
+    preprocessed_input_array = []
+    for x in input_array:
+        x_casted = x.astype("float32")
+        x_casted /= 255.0
+        preprocessed_input_array.append(torch.from_numpy(x_casted))
+
+    return preprocessed_input_array

@@ -19,6 +19,7 @@ class PyTorchRunner:
         self.__model.eval()
         self.__model_script = torch.jit.script(self.__model)
         self.__frozen_script = torch.jit.freeze(self.__model_script)
+        self.__dlrm = False
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
@@ -33,11 +34,7 @@ class PyTorchRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
         with torch.no_grad():
-            if self.__classification_model:
-                start = time.time()
-                output_tensor = self.__frozen_script(input)
-                finish = time.time()
-            else:
+            if self.__dlrm:
                 if type(input) == tuple:
                     start = time.time()
                     output_tensor = self.__model(*input)
@@ -46,7 +43,13 @@ class PyTorchRunner:
                     start = time.time()
                     output_tensor = self.__model(input)
                     finish = time.time()
-        output_tensor = output_tensor.detach().numpy()
+            else:
+                start = time.time()
+                output_tensor = self.__frozen_script(input)
+                finish = time.time()
+
+        # TODO: handle this:
+        # output_tensor = output_tensor.detach().numpy()
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:

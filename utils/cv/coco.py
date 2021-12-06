@@ -6,7 +6,10 @@ from utils.cv.dataset import ImageDataset
 import utils.cv.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
+import utils.cv.post_processing as post_p
+from PIL import Image
 
+PATH = ''
 
 class COCODataset(ImageDataset):
     """
@@ -15,7 +18,7 @@ class COCODataset(ImageDataset):
 
     def __init__(self,
                  batch_size: int, color_model: str, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False, order="NHWC"):
         """
         A function initializing the class.
 
@@ -50,6 +53,7 @@ class COCODataset(ImageDataset):
         self.__detections = list()
         self.__current_image_ids = list()
         self.__current_image_ratios = list()
+        self.__order = order
         self.__image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
             self.__image_ids = sorted(self.__image_ids)
@@ -70,7 +74,11 @@ class COCODataset(ImageDataset):
         self.__current_image_ids.append(image_id)
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1
-        return pathlib.PurePath(self.__images_path, image_path)
+        global PATH
+        print(self.__images_path)
+        print(image_path)
+        PATH = pathlib.PurePath(self.__images_path, 'COCO_val2014_000000000073.jpg')
+        return pathlib.PurePath(self.__images_path, 'COCO_val2014_000000000073.jpg')
 
     def __reset_containers(self):
         """
@@ -101,9 +109,20 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
-        for i in range(self.__batch_size):
-            input_array[i] = self.__load_image_and_store_ratios(target_shape)
+        if self.__order == 'CHW':
+            input_array = []  # CHW order as demanded by pytorch models
+
+            for i in range(self.__batch_size):
+                # COCO image transformed to (3, 300, 300)
+                image_squeezed = np.squeeze(self.__load_image_and_store_ratios(target_shape))
+                image_transposed = np.transpose(image_squeezed, (2, 0, 1))
+                input_array.append(image_transposed)
+
+        else:
+            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+            for i in range(self.__batch_size):
+                input_array[i] = self.__load_image_and_store_ratios(target_shape)
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array
@@ -180,6 +199,22 @@ class COCODataset(ImageDataset):
         :param category: int, index of class / category in COCO order (starting with idx = 1)
         :return:
         """
+        # print('tttetetete')
+        # global PATH
+        # print(PATH)
+        # print(type(PATH))
+        # my_path = PATH.as_posix()
+        # print(type(my_path))
+        # image = Image.open(my_path)
+        # image_resized = image.resize((300, 300))
+        # data = np.asarray(image_resized)
+        #
+        # image1 = post_p.draw_bbox(data, bbox, category)
+        #
+        # img = Image.fromarray(image1, 'RGB')
+        # img.save('/onspecta/Downloads/test.png')
+        # quit()
+
         instance = list()
         instance.append(self.__current_image_ids[id_in_batch])
         instance += self.rescale_bbox(id_in_batch, bbox)
@@ -193,6 +228,8 @@ class COCODataset(ImageDataset):
         predictions done where supplied with submit_bbox_prediction() function.
         """
         detections = self.__ground_truth.loadRes(np.array(self.__detections))
+        print('HUAHUAHUAHUAHUAHAU')
+        print(type(detections))
         coco_eval = COCOeval(self.__ground_truth, detections, "bbox")
         coco_eval.params.imgIds = self.__image_ids[0:self.__current_img]
         coco_eval.evaluate()
