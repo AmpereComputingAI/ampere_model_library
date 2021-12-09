@@ -5,6 +5,19 @@ import utils.benchmark as bench_utils
 from datetime import datetime
 
 
+class TFProfiler:
+    def __init__(self):
+        self.__do_profile = os.getenv("PROFILER", "0") == "1"
+        if self.__do_profile:
+            options = tf.profiler.experimental.ProfilerOptions()
+            time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            tf.profiler.experimental.start(f"./profiler_output/tf2/{time_stamp}", options=options)
+
+    def dump_maybe(self):
+        if self.__do_profile:
+            tf.profiler.experimental.stop()
+
+
 class TFFrozenModelRunner:
     """
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
@@ -28,11 +41,7 @@ class TFFrozenModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
-        self.__profiler = os.getenv("PROFILER", "0") == "1"
-        if self.__profiler:
-            options = tf.profiler.experimental.ProfilerOptions()
-            time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            tf.profiler.experimental.start(f"./profiler_output/tf2/{time_stamp}", options=options)
+        self.__profiler = TFProfiler()
 
         print("\nRunning with TensorFlow\n")
 
@@ -100,10 +109,9 @@ class TFFrozenModelRunner:
         """
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
-        if self.__profiler:
-            tf.profiler.experimental.stop()
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
+        self.__profiler.dump_maybe()
         self.__sess.close()
         return perf
 
@@ -124,11 +132,7 @@ class TFSavedModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
-        self.__profiler = os.getenv("PROFILER", "0") == "1"
-        if self.__profiler:
-            options = tf.profiler.experimental.ProfilerOptions()
-            time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            tf.profiler.experimental.start(f"./profiler_output/tf2/{time_stamp}", options=options)
+        self.__profiler = TFProfiler()
 
         print("\nRunning with TensorFlow\n")
 
@@ -158,8 +162,7 @@ class TFSavedModelRunner:
         """
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
-        if self.__profiler:
-            tf.profiler.experimental.stop()
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
+        self.__profiler.dump_maybe()
         return perf
