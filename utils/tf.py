@@ -2,6 +2,7 @@ import os
 import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
+from datetime import datetime
 
 
 class TFFrozenModelRunner:
