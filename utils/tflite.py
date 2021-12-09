@@ -1,6 +1,6 @@
 import os
 import time
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 import utils.benchmark as bench_utils
 
 
@@ -15,7 +15,7 @@ class TFLiteRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
-        self.__interpreter = tf.lite.Interpreter(
+        self.__interpreter = tf.compat.v1.lite.Interpreter(
             model_path=path_to_model, num_threads=bench_utils.get_intra_op_parallelism_threads())
         self.__interpreter.allocate_tensors()
         self.input_details = self.__interpreter.get_input_details()
@@ -64,5 +64,8 @@ class TFLiteRunner:
 
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        return bench_utils.print_performance_metrics(
+        perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+        if os.getenv("AIO_PROFILER", "0") == "1":
+            tf.AIO.print_profile_data()
+        return perf
