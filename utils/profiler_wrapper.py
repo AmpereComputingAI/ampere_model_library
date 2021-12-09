@@ -7,7 +7,7 @@ def print_prof():
     try:
       tf.DLS.print_profile_data()  
     except AttributeError:
-      print("Non dls tf")
+      print("Non aio tf")
 
 class TBTracer:
   def __init__(self):
