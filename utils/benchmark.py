@@ -150,5 +150,5 @@ def print_performance_metrics(
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
     print("\n Latency: {:.0f} ms".format(latency_in_ms))
-    print(" Throughput: {:.2f} ips".format(instances_per_second))
+    print(" Throughput: {:.2f} ips\n".format(instances_per_second))
     return {"lat_ms": latency_in_ms, "throughput": instances_per_second}
