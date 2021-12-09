@@ -114,6 +114,11 @@ class TFSavedModelRunner:
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
+        self.__profiler = os.getenv("PROFILER", "0") == "1"
+        if self.__profiler:
+            options = tf.profiler.experimental.ProfilerOptions()
+            time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            tf.profiler.experimental.start(f"./profiler_output/tf2/{time_stamp}", options=options)
 
         print("\nRunning with TensorFlow\n")
 
@@ -143,6 +148,8 @@ class TFSavedModelRunner:
         """
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+        if self.__profiler:
+            tf.profiler.experimental.stop()
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         return perf
