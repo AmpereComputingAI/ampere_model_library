@@ -16,6 +16,7 @@ class TFProfiler:
     def dump_maybe(self):
         if self.__do_profile:
             tf.profiler.experimental.stop()
+            print("\nTo display TF profiler data run:\n  python3 -m tensorboard.main --logdir=./profiler_output/")
 
 
 class TFFrozenModelRunner:
