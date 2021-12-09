@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 def print_prof():
-  if os.getenv("DLS_PROFILER", 0):
+  if os.getenv("AIO_PROFILER", 0):
     try:
       tf.DLS.print_profile_data()  
     except AttributeError:
