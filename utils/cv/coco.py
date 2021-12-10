@@ -8,6 +8,7 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 import utils.cv.post_processing as post_p
 from PIL import Image
+import csv
 
 PATH = ''
 
@@ -75,10 +76,8 @@ class COCODataset(ImageDataset):
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1
         global PATH
-        print(self.__images_path)
-        print(image_path)
         PATH = pathlib.PurePath(self.__images_path, 'COCO_val2014_000000000073.jpg')
-        return pathlib.PurePath(self.__images_path, 'COCO_val2014_000000000073.jpg')
+        return pathlib.PurePath(self.__images_path, image_path)
 
     def __reset_containers(self):
         """
@@ -236,4 +235,13 @@ class COCODataset(ImageDataset):
         coco_eval.accumulate()
         coco_eval.summarize()
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+
+        csv_path = '/onspecta/dev/mz/results.csv'
+        with open(csv_path, 'a') as f:
+            writer = csv.writer(f)
+
+            writer.writerow(
+                [coco_eval.stats[0]])
+
+            f.close()
         return {"coco_map": coco_eval.stats[0]}
