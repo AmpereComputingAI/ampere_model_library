@@ -11,7 +11,12 @@ from utils.cv.coco import COCODataset
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
+import csv
+
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+
+IMAGES_PATH = '/onspecta/dev/mz/temp/datasets/COCO2014_onspecta'
+ANNO_PATH = '/onspecta/dev/mz/temp/labels/COCO2014_anno_onspecta.json'
 
 
 def parse_args():
@@ -44,33 +49,32 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou_tres, score_tres):
+    print(iou_tres, score_tres)
+
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
         output = pytorch_runner.run(coco.get_input_array(shape))
 
-        # iou_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75,
-        #                  0.80, 0.85, 0.90, 0.95, 1.0]
-        # score_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70,
-        #                    0.75, 0.80, 0.85, 0.90, 0.95, 1.0]
-
         doubled_boxes_removed = torchvision.ops.batched_nms(output[1][0]['boxes'], output[1][0]['scores'],
-                                                            output[1][0]['labels'], 0.50)
+                                                            output[1][0]['labels'], iou_tres)
 
         # for d in doubled_boxes_removed:
         #     if output[1][0]['scores'][d.item()].item() > 0.30:
-        #         print(d)
+        #         print(d)https://hub.docker.com/
         #         print(output[1][0]['scores'][d.item()].item())
 
         for i in range(batch_size):
             for d in doubled_boxes_removed:
-                if output[1][i]['scores'][d.item()].item() > 0.15:
+                if output[1][i]['scores'][d.item()].item() > score_tres:
                     coco.submit_bbox_prediction(
                         i,
                         output[1][i]['boxes'][d.item()].tolist(),
                         output[1][i]['scores'][d.item()].item(),
                         output[1][i]['labels'][d.item()].item()
                     )
+
+
 
         # for i in range(batch_size):
         #     for d in range(output[1][i]['boxes'].shape[0]):
@@ -88,8 +92,8 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path):
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, anno_path):
-    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path)
+def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, anno_path, iou_tres, score_tres):
+    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou_tres, score_tres)
 
 
 def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
@@ -98,15 +102,23 @@ def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_
 
 def main():
     args = parse_args()
-    if args.framework == "pytorch":
-        if args.precision == "fp32":
-            run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-            )
-        else:
-            raise UnsupportedPrecisionValueError(args.precision)
-    else:
-        raise FrameworkUnsupportedError(args.framework)
+    iou_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75,
+                     0.80, 0.85, 0.90, 0.95, 1.0]
+    score_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70,
+                       0.75, 0.80, 0.85, 0.90, 0.95]
+
+    for i in iou_threshold:
+        for s in score_threshold:
+                run_pytorch_fp(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s)
+    # if args.framework == "pytorch":
+    #     if args.precision == "fp32":
+    #         run_pytorch_fp32(
+    #             args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s
+    #         )
+    #     else:
+    #         raise UnsupportedPrecisionValueError(args.precision)
+    # else:
+    #     raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
