@@ -58,29 +58,31 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou
 
         # ========================================================================================
         # jeden wariant \/ z ręcznym ustawianiem iou_tres, oraz score_tres
-        # doubled_boxes_removed = torchvision.ops.batched_nms(output[1][0]['boxes'], output[1][0]['scores'],
-        #                                                     output[1][0]['labels'], iou_tres)
+        doubled_boxes_removed = torchvision.ops.batched_nms(output[1][0]['boxes'], output[1][0]['scores'],
+                                                            output[1][0]['labels'], iou_tres)
 
-        # for i in range(batch_size):
-        #     for d in doubled_boxes_removed:
-        #         if output[1][i]['scores'][d.item()].item() > score_tres:
-        #             coco.submit_bbox_prediction(
-        #                 i,
-        #                 output[1][i]['boxes'][d.item()].tolist(),
-        #                 output[1][i]['scores'][d.item()].item(),
-        #                 output[1][i]['labels'][d.item()].item()
-        #             )
+        for i in range(batch_size):
+            for d in doubled_boxes_removed:
+                # if output[1][i]['scores'][d.item()].item() > score_tres:
+                coco.submit_bbox_prediction(
+                    i,
+                    output[1][i]['boxes'][d.item()].tolist(),
+                    output[1][i]['scores'][d.item()].item(),
+                    output[1][i]['labels'][d.item()].item()
+                )
 
         # ========================================================================================
         # drugi wariant
-        for i in range(batch_size):
-            for d in range(output[1][i]['boxes'].shape[0]):
-                coco.submit_bbox_prediction(
-                    i,
-                    output[1][i]['boxes'][d].tolist(),
-                    output[1][i]['scores'][d].item(),
-                    output[1][i]['labels'][d].item()
-                )
+        # print(output)
+        # quit()
+        # for i in range(batch_size):
+        #     for d in range(output[1][i]['boxes'].shape[0]):
+        #         coco.submit_bbox_prediction(
+        #             i,
+        #             output[1][i]['boxes'][d].tolist(),
+        #             output[1][i]['scores'][d].item(),
+        #             output[1][i]['labels'][d].item()
+        #         )
 
     dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="CHW")
@@ -102,26 +104,29 @@ def main():
 
     # ========================================================================================
     # jeden wariant \/ z ręcznym ustawianiem iou_tres, oraz score_tres
-    # iou_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75,
-    #                  0.80, 0.85, 0.90, 0.95, 1.0]
-    # score_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70,
-    #                    0.75, 0.80, 0.85, 0.90, 0.95]
+    iou_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75,
+                     0.80, 0.85, 0.90, 0.95, 1.0]
+    score_threshold = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70,
+                       0.75, 0.80, 0.85, 0.90, 0.95]
 
     # for i in iou_threshold:
     #     for s in score_threshold:
-    #             run_pytorch_fp(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s)
+    #             run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s)
+
+    for i in iou_threshold:
+        run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i)
 
     # ========================================================================================
     # drugi wariant
-    if args.framework == "pytorch":
-        if args.precision == "fp32":
-            run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, args.images.path, args.anno_path
-            )
-        else:
-            raise UnsupportedPrecisionValueError(args.precision)
-    else:
-        raise FrameworkUnsupportedError(args.framework)
+    # if args.framework == "pytorch":
+    #     if args.precision == "fp32":
+    #         run_pytorch_fp32(
+    #             args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH
+    #         )
+    #     else:
+    #         raise UnsupportedPrecisionValueError(args.precision)
+    # else:
+    #     raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
