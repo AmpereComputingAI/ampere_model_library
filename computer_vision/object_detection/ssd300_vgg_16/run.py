@@ -51,6 +51,7 @@ def parse_args():
 
 def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou_tres, score_tres):
     print(iou_tres, score_tres)
+    print(score_tres)
 
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
