@@ -74,28 +74,19 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou
 
         # print(output[1][0]['scores'][0].item())
 
-        for i in range(batch_size):
-            for d in range(output[1][i]['boxes'].shape[0]):
-                if output[1][i]['scores'][d].item() > score_tres:
-                    coco.submit_bbox_prediction(
-                        i,
-                        output[1][i]['boxes'][d].tolist(),
-                        output[1][i]['scores'][d].item(),
-                        output[1][i]['labels'][d].item()
-                    )
-
         # ========================================================================================
         # drugi wariant
         # print(output)
         # quit()
-        # for i in range(batch_size):
-        #     for d in range(output[1][i]['boxes'].shape[0]):
-        #         coco.submit_bbox_prediction(
-        #             i,
-        #             output[1][i]['boxes'][d].tolist(),
-        #             output[1][i]['scores'][d].item(),
-        #             output[1][i]['labels'][d].item()
-        #         )
+        for i in range(batch_size):
+            for d in range(output[1][i]['boxes'].shape[0]):
+                coco.submit_bbox_prediction(
+                    i,
+                    # output[1][i]['boxes'][d].tolist(),
+                    coco.convert_bbox_to_coco_order(output[1][i]['boxes'][d].tolist() * shape[0]),
+                    output[1][i]['scores'][d].item(),
+                    output[1][i]['labels'][d].item()
+                )
 
     dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="CHW")
@@ -126,20 +117,20 @@ def main():
     #     for s in score_threshold:
     #             run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s)
 
-    for s in score_threshold:
-        run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, score_tres=s)
+    # for s in score_threshold:
+    #     run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, score_tres=s)
 
     # ========================================================================================
     # drugi wariant
-    # if args.framework == "pytorch":
-    #     if args.precision == "fp32":
-    #         run_pytorch_fp32(
-    #             args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH
-    #         )
-    #     else:
-    #         raise UnsupportedPrecisionValueError(args.precision)
-    # else:
-    #     raise FrameworkUnsupportedError(args.framework)
+    if args.framework == "pytorch":
+        if args.precision == "fp32":
+            run_pytorch_fp32(
+                args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
+    else:
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
