@@ -58,18 +58,30 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, iou
 
         # ========================================================================================
         # jeden wariant \/ z ręcznym ustawianiem iou_tres, oraz score_tres
-        doubled_boxes_removed = torchvision.ops.batched_nms(output[1][0]['boxes'], output[1][0]['scores'],
-                                                            output[1][0]['labels'], iou_tres)
+        # doubled_boxes_removed = torchvision.ops.batched_nms(output[1][0]['boxes'], output[1][0]['scores'],
+        #                                                     output[1][0]['labels'], iou_tres)
+        #
+        # for i in range(batch_size):
+        #     for d in doubled_boxes_removed:
+        #         if output[1][i]['scores'][d.item()].item() > score_tres:
+        #             coco.submit_bbox_prediction(
+        #                 i,
+        #                 output[1][i]['boxes'][d.item()].tolist(),
+        #                 output[1][i]['scores'][d.item()].item(),
+        #                 output[1][i]['labels'][d.item()].item()
+        #             )
+
+        # print(output[1][0]['scores'][0].item())
 
         for i in range(batch_size):
-            for d in doubled_boxes_removed:
-                # if output[1][i]['scores'][d.item()].item() > score_tres:
-                coco.submit_bbox_prediction(
-                    i,
-                    output[1][i]['boxes'][d.item()].tolist(),
-                    output[1][i]['scores'][d.item()].item(),
-                    output[1][i]['labels'][d.item()].item()
-                )
+            for d in range(output[1][i]['boxes'].shape[0]):
+                if output[1][i]['scores'][d].item() > score_tres:
+                    coco.submit_bbox_prediction(
+                        i,
+                        output[1][i]['boxes'][d].tolist(),
+                        output[1][i]['scores'][d].item(),
+                        output[1][i]['labels'][d].item()
+                    )
 
         # ========================================================================================
         # drugi wariant
@@ -113,8 +125,8 @@ def main():
     #     for s in score_threshold:
     #             run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i, s)
 
-    for i in iou_threshold:
-        run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, i)
+    for s in score_threshold:
+        run_pytorch_fp32(args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, score_tres=s)
 
     # ========================================================================================
     # drugi wariant
