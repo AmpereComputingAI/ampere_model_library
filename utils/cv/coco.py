@@ -135,7 +135,6 @@ class COCODataset(ImageDataset):
         :param absolute: bool, if True right/bottom coordinates are being converted to shifts
         :return: bbox with reordered and converted data
         """
-
         left = bbox[left]
         top = bbox[top]
         right = bbox[right]
@@ -143,7 +142,6 @@ class COCODataset(ImageDataset):
         if absolute:
             right -= left
             bottom -= top
-
         return [left, top, right, bottom]
 
     def rescale_bbox(self, id_in_batch: int, bbox: list):
@@ -194,7 +192,6 @@ class COCODataset(ImageDataset):
         :param category: int, index of class / category in COCO order (starting with idx = 1)
         :return:
         """
-
         instance = list()
         instance.append(self.__current_image_ids[id_in_batch])
         instance += self.rescale_bbox(id_in_batch, bbox)
