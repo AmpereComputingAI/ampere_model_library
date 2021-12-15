@@ -15,7 +15,7 @@ class COCODataset(ImageDataset):
 
     def __init__(self,
                  batch_size: int, color_model: str, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False, order="NHWC"):
         """
         A function initializing the class.
 
@@ -47,6 +47,7 @@ class COCODataset(ImageDataset):
         self.__pre_processing = pre_processing
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
+        self.__order = order
         self.__detections = list()
         self.__current_image_ids = list()
         self.__current_image_ratios = list()
@@ -101,9 +102,20 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
-        for i in range(self.__batch_size):
-            input_array[i] = self.__load_image_and_store_ratios(target_shape)
+        if self.__order == 'CHW':
+            input_array = []  # CHW order as demanded by pytorch models
+
+            for i in range(self.__batch_size):
+                # COCO image transformed to (3, 300, 300)
+                image_squeezed = np.squeeze(self.__load_image_and_store_ratios(target_shape))
+                image_transposed = np.transpose(image_squeezed, (2, 0, 1))
+                input_array.append(image_transposed)
+
+        else:
+            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+            for i in range(self.__batch_size):
+                input_array[i] = self.__load_image_and_store_ratios(target_shape)
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array

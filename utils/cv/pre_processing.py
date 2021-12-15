@@ -23,6 +23,8 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
         return pre_process_vgg(input_array, color_model)
     if pre_processing_approach == "Inception":
         return pre_process_inception(input_array)
+    if pre_processing_approach == "PyTorch_objdet":
+        return pre_process_py_objdet(input_array)
     utils.print_goodbye_message_and_die(f"Pre-processing approach \"{pre_processing_approach}\" undefined.")
 
 
@@ -149,3 +151,22 @@ def pre_process_inception(input_array):
     input_array *= 2.
 
     return input_array
+
+
+def pre_process_py_objdet(input_array):
+    """
+    Preprocessing approach for pytorch torchvision object detection models
+
+    The input to the model is expected to be a list of tensors, each of shape [C, H, W], one for each image, and should
+    be in 0-1 range. Different images can have different sizes but they will be resized to a fixed size before passing
+    it to the backbone
+    :param input_array:
+    :return:
+    """
+    preprocessed_input_array = []
+    for x in input_array:
+        x_casted = x.astype("float32")
+        x_casted /= 255.0
+        preprocessed_input_array.append(torch.from_numpy(x_casted))
+
+    return preprocessed_input_array
