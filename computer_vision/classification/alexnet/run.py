@@ -41,7 +41,7 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, j
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape))).detach().numpy()
+        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
