@@ -1,19 +1,15 @@
 import os
 import time
 import argparse
-import utils.misc as utils
-import utils.cv.post_processing as pp
-
-import torch
+import warnings
 import torchvision
 
 from utils.cv.coco import COCODataset
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
-import csv
-
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+warnings.filterwarnings("ignore")
 
 IMAGES_PATH = '/onspecta/dev/mz/temp/datasets/COCO2014_onspecta'
 ANNO_PATH = '/onspecta/dev/mz/temp/labels/COCO2014_anno_onspecta.json'
