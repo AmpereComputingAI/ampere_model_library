@@ -6,11 +6,7 @@ from utils.cv.dataset import ImageDataset
 import utils.cv.pre_processing as pp
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-import utils.cv.post_processing as post_p
-from PIL import Image
-import csv
 
-PATH = ''
 
 class COCODataset(ImageDataset):
     """
@@ -75,8 +71,6 @@ class COCODataset(ImageDataset):
         self.__current_image_ids.append(image_id)
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext
         self.__current_img += 1
-        global PATH
-        PATH = pathlib.PurePath(self.__images_path, 'COCO_val2014_000000000073.jpg')
         return pathlib.PurePath(self.__images_path, image_path)
 
     def __reset_containers(self):
@@ -200,33 +194,12 @@ class COCODataset(ImageDataset):
         :param category: int, index of class / category in COCO order (starting with idx = 1)
         :return:
         """
-        # print('tttetetete')
-        # global PATH
-        # print(PATH)
-        # print(type(PATH))
-        # my_path = PATH.as_posix()
-        # print(type(my_path))
-        # image = Image.open(my_path)
-        # image_resized = image.resize((300, 300))
-        # data = np.asarray(image_resized)
-        #
-        # image1 = post_p.draw_bbox(data, bbox, category)
-        #
-        # img = Image.fromarray(image1, 'RGB')
-        # img.save('/onspecta/Downloads/test.png')
-        # quit()
-
-        # print('*' * 100)
 
         instance = list()
         instance.append(self.__current_image_ids[id_in_batch])
         instance += self.rescale_bbox(id_in_batch, bbox)
         instance.append(score)
         instance.append(category)
-
-        # print(instance)
-
-        # print('*' * 100)
         self.__detections.append(instance)
 
     def summarize_accuracy(self):
@@ -235,21 +208,10 @@ class COCODataset(ImageDataset):
         predictions done where supplied with submit_bbox_prediction() function.
         """
         detections = self.__ground_truth.loadRes(np.array(self.__detections))
-        print('HUAHUAHUAHUAHUAHAU')
-        print(type(detections))
         coco_eval = COCOeval(self.__ground_truth, detections, "bbox")
         coco_eval.params.imgIds = self.__image_ids[0:self.__current_img]
         coco_eval.evaluate()
         coco_eval.accumulate()
         coco_eval.summarize()
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
-
-        csv_path = '/onspecta/dev/mz/results.csv'
-        with open(csv_path, 'a') as f:
-            writer = csv.writer(f)
-
-            writer.writerow(
-                [coco_eval.stats[0]])
-
-            f.close()
         return {"coco_map": coco_eval.stats[0]}
