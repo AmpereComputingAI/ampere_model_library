@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from utils.cv.labels import imagenet_labels
-from PIL import Image
 
 
 def initialize_colors(colors_to_generate=100):
