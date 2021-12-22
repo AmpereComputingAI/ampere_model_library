@@ -46,7 +46,6 @@ class PyTorchRunner:
                     start = time.time()
                     output_tensor = self.__model(input)
                     finish = time.time()
-            output_tensor = output_tensor.detach().numpy()
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
