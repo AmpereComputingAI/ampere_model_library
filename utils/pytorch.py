@@ -12,10 +12,14 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model):
+    def __init__(self, model, jit_freeze=False):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
+        self.__frozen_script = None
+        if jit_freeze:
+            self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
@@ -26,25 +30,31 @@ class PyTorchRunner:
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
-
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        with torch.no_grad():
+        def runner_func(model):
             if type(input) == tuple:
                 start = time.time()
-                output_tensor = self.__model(*input)
+                output = model(*input)
                 finish = time.time()
             else:
                 start = time.time()
-                output_tensor = self.__model(input)
+                output = model(input)
                 finish = time.time()
-            output_tensor = output_tensor.detach().numpy()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        self.__times_invoked += 1
+            self.__total_inference_time += finish - start
+            if self.__times_invoked == 0:
+                self.__warm_up_run_latency += finish - start
+            self.__times_invoked += 1
+
+            return output
+
+        with torch.no_grad():
+            if self.__frozen_script is not None:
+                output_tensor = runner_func(self.__frozen_script)
+            else:
+                output_tensor = runner_func(self.__model)
 
         return output_tensor
 
