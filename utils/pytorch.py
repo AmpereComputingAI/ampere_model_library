@@ -16,10 +16,10 @@ class PyTorchRunner:
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
-        self.__jit_freeze = jit_freeze
-        if self.__jit_freeze:
-            self.__model_script = torch.jit.script(self.__model)
-            self.__frozen_script = torch.jit.freeze(self.__model_script)
+        self.__model_script = None
+        self.__frozen_script = None
+        if jit_freeze:
+            self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
@@ -34,25 +34,28 @@ class PyTorchRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        with torch.no_grad():
-            if self.__jit_freeze:
+        def runner_func(input_tensor, model):
+            if type(input_tensor) == tuple:
                 start = time.time()
-                output_tensor = self.__frozen_script(input)
+                output = model(*input)
                 finish = time.time()
             else:
-                if type(input) == tuple:
-                    start = time.time()
-                    output_tensor = self.__model(*input)
-                    finish = time.time()
-                else:
-                    start = time.time()
-                    output_tensor = self.__model(input)
-                    finish = time.time()
+                start = time.time()
+                output = model(input)
+                finish = time.time()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        self.__times_invoked += 1
+            self.__total_inference_time += finish - start
+            if self.__times_invoked == 0:
+                self.__warm_up_run_latency += finish - start
+            self.__times_invoked += 1
+
+            return output
+
+        with torch.no_grad():
+            if self.__frozen_script is not None:
+                output_tensor = runner_func(input, self.__frozen_script)
+            else:
+                output_tensor = runner_func(input, self.__model)
 
         return output_tensor
 
