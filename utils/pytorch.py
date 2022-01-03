@@ -16,7 +16,6 @@ class PyTorchRunner:
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
-        self.__model_script = None
         self.__frozen_script = None
         if jit_freeze:
             self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
@@ -34,8 +33,8 @@ class PyTorchRunner:
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        def runner_func(input_tensor, model):
-            if type(input_tensor) == tuple:
+        def runner_func(model):
+            if type(input) == tuple:
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
@@ -53,9 +52,9 @@ class PyTorchRunner:
 
         with torch.no_grad():
             if self.__frozen_script is not None:
-                output_tensor = runner_func(input, self.__frozen_script)
+                output_tensor = runner_func(self.__frozen_script)
             else:
-                output_tensor = runner_func(input, self.__model)
+                output_tensor = runner_func(self.__model)
 
         return output_tensor
 
