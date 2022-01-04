@@ -18,7 +18,6 @@ class COCODataset(ImageDataset):
                  images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
         """
         A function initializing the class.
-
         :param batch_size: int, size of batch intended to be processed
         :param images_filename_base: str, default name of image files in given COCO dataset,
         eg. "COCO_val2014_000000000000"
@@ -60,7 +59,6 @@ class COCODataset(ImageDataset):
     def __get_path_to_img(self):
         """
         A function providing path to the COCO image.
-
         :return: pathlib.PurePath object containing path to the image
         """
         try:
@@ -82,7 +80,6 @@ class COCODataset(ImageDataset):
     def __load_image_and_store_ratios(self, target_shape):
         """
         A function loading single image and storing rescale ratios.
-
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled image data
         """
@@ -95,7 +92,6 @@ class COCODataset(ImageDataset):
     def get_input_array(self, target_shape):
         """
         A function returning an array containing pre-processed rescaled image's or multiple images' data.
-
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled, pre-processed image data of batch size requested at class
         initialization
@@ -111,10 +107,8 @@ class COCODataset(ImageDataset):
     def convert_bbox_to_coco_order(self, bbox, left=0, top=1, right=2, bottom=3, absolute=True):
         """
         A helper function allowing for an easy switch of bbox order.
-
         Sometimes networks return order of bbox boundary values in different order than the default COCO's:
         left -> top -> right -> bottom
-
         :param bbox: list, list containing bbox coordinates
         :param left: int, index under which a left boundary is being stored
         :param top: int, index under which a top boundary is being stored
@@ -135,7 +129,6 @@ class COCODataset(ImageDataset):
     def rescale_bbox(self, id_in_batch: int, bbox: list):
         """
         A function rescaling bbox coordinates back to the original scale.
-
         :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
         :param bbox: list, a list containing coordinates of bbox already in COCO format
         :return: list, bbox in the original scale
@@ -152,7 +145,6 @@ class COCODataset(ImageDataset):
         A function allowing for an easy translation of some networks' COCO category output that is in range of [0, 79]
         or [1, 80] (corresponding with number of 80 active COCO object categories in 2014 & 2017 sets). This translation
         is needed as PyCOCO evaluation tooling expects the original indexing [1, 90] with those unpredictable gaps...
-
         :param id: int, index representing category of COCO recognized object
         :param switch_to_indexing_from_1: bool, whether to switch to indexing beginning with 1 (switch it off if done
         already)
@@ -173,7 +165,6 @@ class COCODataset(ImageDataset):
     def submit_bbox_prediction(self, id_in_batch, bbox, score, category):
         """
         A function meant for submitting a single bbox prediction for a given image.
-
         :param id_in_batch: int, id of an image in the currently processed batch that the provided bbox relates to
         :param bbox: list, list containing bbox coordinates
         :param score: float, value of the confidence in the prediction

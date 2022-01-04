@@ -7,6 +7,8 @@ from tensorflow.python.saved_model import tag_constants
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 
+from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run 3D Unet KiTS 2019 model.")
@@ -25,6 +27,10 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to directory with KiTS19 dataset")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["tf"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
@@ -45,10 +51,13 @@ def run_tf_fp32(model_path, num_of_runs, timeout, dataset_path):
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(args.model_path, args.num_runs, args.timeout, args.dataset_path)
+    if args.framework == "tf":
+        if args.precision == "fp32":
+            run_tf_fp32(args.model_path, args.num_runs, args.timeout, args.dataset_path)
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
     else:
-        assert False
+        raise FrameworkUnsupportedError(args.framework)
 
 
 if __name__ == "__main__":
