@@ -9,15 +9,11 @@ from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
-
 warnings.filterwarnings("ignore")
-
-IMAGES_PATH = '/onspecta/dev/mz/temp/datasets/COCO2014_onspecta'
-ANNO_PATH = '/onspecta/dev/mz/temp/labels/COCO2014_anno_onspecta.json'
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run SSD Inception v2 model.")
+    parser = argparse.ArgumentParser(description="Run SSD300 VGG-16 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
                         help="path to the model")
@@ -85,7 +81,7 @@ def main():
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, IMAGES_PATH, ANNO_PATH, args.jit_freeze
+                args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path, args.jit_freeze
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
