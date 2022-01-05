@@ -1,7 +1,6 @@
 import argparse
 import torch
 import torchvision
-import numpy as np
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
@@ -10,7 +9,7 @@ from utils.misc import FrameworkUnsupportedError, UnsupportedPrecisionValueError
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run ResNet-50 v1 model.")
+    parser = argparse.ArgumentParser(description="Run ResNet-18 model.")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
@@ -53,7 +52,7 @@ def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path,
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["resnet50"](pretrained=True), jit_freeze=jit_freeze)
+    runner = PyTorchRunner(torchvision.models.__dict__["resnet18"](pretrained=True), jit_freeze=jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 

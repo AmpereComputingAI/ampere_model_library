@@ -27,7 +27,6 @@ class TFFrozenModelRunner:
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
         Netron app).
-
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
@@ -49,7 +48,6 @@ class TFFrozenModelRunner:
     def __create_config(self, intra_threads: int, inter_threads=1):
         """
         A function creating TF config for given num of threads.
-
         :param intra_threads: int
         :param inter_threads: int
         :return: TensorFlow config
@@ -63,7 +61,6 @@ class TFFrozenModelRunner:
     def __initialize_graph(self, path_to_model: str):
         """
         A function initializing TF graph from frozen .pb model.
-
         :param path_to_model: str
         :return: TensorFlow graph
         """
@@ -79,7 +76,6 @@ class TFFrozenModelRunner:
     def set_input_tensor(self, input_name: str, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input name.
-
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
@@ -88,7 +84,6 @@ class TFFrozenModelRunner:
     def run(self):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
-
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
@@ -105,7 +100,6 @@ class TFFrozenModelRunner:
     def print_performance_metrics(self, batch_size):
         """
         A function printing performance metrics on runs executed by the runner so far and then closing TF session.
-
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
@@ -141,7 +135,6 @@ class TFSavedModelRunner:
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
-
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
@@ -158,7 +151,6 @@ class TFSavedModelRunner:
     def print_performance_metrics(self, batch_size):
         """
         A function printing performance metrics on runs executed by the runner so far.
-
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
