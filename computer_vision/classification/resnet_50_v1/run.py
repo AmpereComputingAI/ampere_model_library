@@ -61,7 +61,7 @@ def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path,
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
-def run_ort(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -90,9 +90,10 @@ def main():
         else:
             raise UnsupportedPrecisionValueError(args.precision)
     if args.framework == "ort":
-        run_ort(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-        )
+        if args.precision == "fp32":
+            run_ort_fp32(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
     else:
         raise FrameworkUnsupportedError(args.framework)
 
