@@ -39,7 +39,10 @@ def parse_args():
                         help="specify the framework in which a model should be run")
     parser.add_argument("--jit_freeze", action='store_true',
                         help="specify if model should be run with torch.jit.freeze model")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.framework != "pytorch" and args.model_path is None:
+        parser.error(f"You need to specify the model path when using {args.framework} framework.")
+    return args
 
 
 def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
