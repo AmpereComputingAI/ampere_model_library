@@ -11,7 +11,9 @@ class OrtRunner:
     def __init__(self, model: str):
         session_options = ort.SessionOptions()
         session_options.intra_op_num_threads = bench_utils.get_intra_op_parallelism_threads()
-        
+        if os.getenv("ORT_PROFILER", "0") == "1":
+            session_options.enable_profiling = True
+
         self.session = ort.InferenceSession(model, session_options)
 
         self.__feed_dict = dict()
