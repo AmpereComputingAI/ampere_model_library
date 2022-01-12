@@ -92,7 +92,7 @@ def main():
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
-    if args.framework == "ort":
+    elif args.framework == "ort":
         if args.precision == "fp32":
             run_ort_fp32(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
