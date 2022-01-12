@@ -1,3 +1,4 @@
+import os
 import onnxruntime as ort
 import time
 import utils.benchmark as bench_utils
@@ -45,4 +46,6 @@ class OrtRunner:
         """
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+        if os.getenv("AIO_PROFILER", "0") == "1":
+            ort.AIO.print_profile_data()
         return perf
