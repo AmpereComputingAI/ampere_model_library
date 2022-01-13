@@ -127,6 +127,8 @@ def pre_process_vgg(input_array, color_model: str):
     b_mean = 103.939
 
     per_channel_means = np.array([r_mean, g_mean, b_mean])
+    if input_array.shape[1] == 3:
+        per_channel_means = per_channel_means.reshape((1, 3, 1, 1))
     if color_model == "BGR":
         per_channel_means = np.flip(per_channel_means)
 

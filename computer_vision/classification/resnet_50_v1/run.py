@@ -78,7 +78,7 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labe
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="PyTorch", is1001classes=True, order="NCHW")
+                       pre_processing="VGG", is1001classes=True, order="NCHW")
     runner = OrtRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
