@@ -101,7 +101,7 @@ class COCODataset(ImageDataset):
         if self.__order == 'CHW':
             input_array = []  # CHW order as demanded by pytorch models
 
-            for i in range(self.__batch_size):
+            for _ in range(self.__batch_size):
                 # COCO image transformed to (3, 300, 300)
                 image_squeezed = np.squeeze(self.__load_image_and_store_ratios(target_shape))
                 image_transposed = np.transpose(image_squeezed, (2, 0, 1))

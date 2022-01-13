@@ -71,10 +71,6 @@ def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, anno_path, j
     return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, jit_freeze)
 
 
-def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
-    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, anno_path)
-
-
 def main():
     args = parse_args()
 
