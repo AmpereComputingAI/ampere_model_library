@@ -3,13 +3,14 @@ import torch
 import utils.misc as utils
 
 
-def pre_process(input_array, pre_processing_approach: str, color_model=None):
+def pre_process(input_array, pre_processing_approach: str, color_model=None, order="NHWC"):
     """
     A function delegating further pre-processing work to proper function.
 
     :param input_array: numpy array containing image data
     :param pre_processing_approach: string naming the pre-processing approach to be applied
     :param color_model: color model to be used if pre-processing depends on the order
+    :param order: str, the order of image data, possible values: ["NCHW", "NHWC"]
     :return: numpy array containing pre-processed image data
     """
     if pre_processing_approach == "SSD":
@@ -21,7 +22,7 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None):
     if pre_processing_approach == "SqueezeNet":
         return pre_process_squeezenet(input_array)
     if pre_processing_approach == "VGG":
-        return pre_process_vgg(input_array, color_model)
+        return pre_process_vgg(input_array, color_model, order)
     if pre_processing_approach == "Inception":
         return pre_process_inception(input_array)
     if pre_processing_approach == "PyTorch":
@@ -106,7 +107,7 @@ def pre_process_squeezenet(input_array):
     return input_array
 
 
-def pre_process_vgg(input_array, color_model: str):
+def pre_process_vgg(input_array, color_model: str, order: str):
     """
     A function pre-processing an input array in the way described in the original VGG paper.
 
@@ -115,6 +116,7 @@ def pre_process_vgg(input_array, color_model: str):
     Pre-processing is used by various classification models other than VGG, for example ResNet.
     :param input_array: numpy array containing image data
     :param color_model: str, color model of image data, possible values: ["RGB", "BGR"]
+    :param order: str, the order of image data, possible values: ["NCHW", "NHWC"]
     :return: numpy array, array after subtracting the mean RGB values
     """
     if color_model not in ["RGB", "BGR"]:
@@ -127,7 +129,7 @@ def pre_process_vgg(input_array, color_model: str):
     b_mean = 103.939
 
     per_channel_means = np.array([r_mean, g_mean, b_mean])
-    if input_array.shape[1] == 3:
+    if order == "NCHW":
         per_channel_means = per_channel_means.reshape((1, 3, 1, 1))
     if color_model == "BGR":
         per_channel_means = np.flip(per_channel_means)

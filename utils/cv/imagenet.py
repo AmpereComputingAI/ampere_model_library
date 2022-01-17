@@ -96,7 +96,7 @@ class ImageNet(ImageDataset):
             )
 
         if self.__pre_processing:
-            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
+            input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model, self.__order)
 
         return input_array
 
