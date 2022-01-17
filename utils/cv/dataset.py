@@ -45,5 +45,7 @@ class ImageDataset:
 
         if order == 'NCHW':
             image = np.transpose(image, (0, 3, 1, 2))
+        elif order == "NCHW_pytorch":
+            image = np.transpose(np.squeeze(image), (2, 0, 1))
 
         return image, resize_ratios

@@ -86,7 +86,7 @@ class COCODataset(ImageDataset):
         """
         self.path_to_latest_image = self.__get_path_to_img()
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.path_to_latest_image, target_shape, self.__color_model)
+            self.path_to_latest_image, target_shape, self.__color_model, self.__order)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
@@ -98,14 +98,12 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        if self.__order == 'CHW':
-            input_array = []  # CHW order as demanded by pytorch models
+        if self.__order == 'NCHW_pytorch':
+            input_array = []  # NCHW order as demanded by pytorch models in a python list
 
             for _ in range(self.__batch_size):
                 # COCO image transformed to (3, 300, 300)
-                image_squeezed = np.squeeze(self.__load_image_and_store_ratios(target_shape))
-                image_transposed = np.transpose(image_squeezed, (2, 0, 1))
-                input_array.append(image_transposed)
+                input_array.append(self.__load_image_and_store_ratios(target_shape))
 
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
