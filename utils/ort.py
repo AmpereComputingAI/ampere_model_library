@@ -50,4 +50,9 @@ class OrtRunner:
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
+        if os.getenv("ORT_PROFILER", "0") == "1":
+            prof = self.session.end_profiling()
+            if not os.path.exists("profiler_output/ort/"):
+                os.makedirs("profiler_output/ort/")
+            os.replace(prof, f"profiler_output/ort/{prof}")
         return perf
