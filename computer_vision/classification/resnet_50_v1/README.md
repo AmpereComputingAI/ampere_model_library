@@ -22,7 +22,7 @@ based on 1000 images from ImageNet Validation Dataset
 
 Dataset can be downloaded here: https://www.image-net.org/
 
-ONNX model can be downloaded here: https://zenodo.org/record/2592612
+ONNX model can be downloaded here: https://zenodo.org/record/2592612/files/resnet50_v1.onnx
 
 
 ### Running instructions
