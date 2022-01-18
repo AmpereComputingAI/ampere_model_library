@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run SSD300 VGG-16 model.")
+    parser = argparse.ArgumentParser(description="Run SSD VGG-16 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
                         help="path to the model")
