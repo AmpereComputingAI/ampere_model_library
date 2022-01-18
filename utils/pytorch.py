@@ -12,7 +12,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, jit_freeze=False):
+    def __init__(self, model, jit_freeze=True):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
