@@ -1,7 +1,7 @@
 # Resnet 50 v1
 
 
-This folder contains the script to run Resnet 18 on ImageNet classification task in pytorch framework.\
+This folder contains the script to run Resnet 50 on ImageNet classification task in pytorch and onnx runtime framework.\
 Variant supplied below in fp32 precision accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/abs/1512.03385
@@ -13,13 +13,16 @@ based on 1000 images from ImageNet Validation Dataset
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 72.2%  | 91.0 %  |
+| PyTorch FP32  | 72.2%  | 91.0 %  |
+| ONNX RT FP32  | 75.0%  | 92.4 %  |
 
 
 
 ### Dataset
 
 Dataset can be downloaded here: https://www.image-net.org/
+
+ONNX model can be downloaded here: https://zenodo.org/record/2592612/files/resnet50_v1.onnx
 
 
 ### Running instructions
@@ -47,8 +50,14 @@ The precision (with a flag "-p") as well as framework (with a flag "--framework"
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 
-Example command: 
+Example command for PyTorch: 
 
 ```
 python3 run.py -p fp32 --framework pytorch
+```
+
+Example command for ONNX RT: 
+
+```
+python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
 ```
