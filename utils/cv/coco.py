@@ -98,17 +98,13 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        if self.__order == 'NCHW_pytorch':
-            input_array = []  # NCHW order as demanded by pytorch models in a python list
 
-            for _ in range(self.__batch_size):
-                # COCO image transformed to (3, 300, 300)
-                input_array.append(self.__load_image_and_store_ratios(target_shape))
-
+        if self.__order == 'NCHW':
+            input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
-            for i in range(self.__batch_size):
-                input_array[i] = self.__load_image_and_store_ratios(target_shape)
+        for i in range(self.__batch_size):
+            input_array[i] = self.__load_image_and_store_ratios(target_shape)
 
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
