@@ -1,19 +1,28 @@
 # DenseNet 121
 
 
-This folder contains the script to run DenseNet 121 on ImageNet classification task in PyTorch framework.\
-Variant supplied below in fp32 precision accepts input of shape 224x224.
+This folder contains the script to run DenseNet 121 on ImageNet classification task in PyTorch and ONNX Runtime framework.\
+
+Variant supplied below for PyTorch framework in fp32 precision accepts input of shape 224x224.
+
+Variant supplied below for ONNX Runtime framework in fp32 precision accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/abs/1608.06993
 
 
 ### Accuracy:
 
-based on 1000 images from ImageNet Validation Dataset
+based on 1000 images from ImageNet Validation Dataset for PyTorch framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
 | FP32  | 74.8%  | 92.1 %  |
+
+based on 1000 images from ImageNet Validation Dataset for ONNX Runtime
+
+|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 54.8%  | 81.8%  |
 
 ### Dataset
 
@@ -44,9 +53,17 @@ To get detailed information on the script's recognized arguments run it with -h 
 The precision (with a flag "-p") as well as framework (with a flag "--framework") have to be specified.\
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
+For ONNX Runtime implementation the path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.
 
-Example command: 
+
+Example command for PyTorch: 
 
 ```
 python3 run.py -p fp32 --framework pytorch
+```
+
+Example command for ONNX Runtime: 
+
+```
+python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
 ```
