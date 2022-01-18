@@ -5,6 +5,7 @@ from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.pytorch import PyTorchRunner
+from utils.ort import OrtRunner
 from utils.benchmark import run_model
 
 from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified, FrameworkUnsupportedError
@@ -35,7 +36,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch", "tf"], required=True,
+                        choices=["pytorch", "tf", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--jit_freeze", action='store_true',
                         help="specify if model should be run with torch.jit.freeze model")
@@ -114,6 +115,30 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
+def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, input_name, is1001classes, precision):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor(input_name, imagenet.get_input_array(shape).astype(precision))
+        output = ort_runner.run()
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="Inception", is1001classes=is1001classes, order="NCHW")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "data", False, "float32")
+
+def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "input:0", True, "float16")
 
 def main():
     args = parse_args()
@@ -139,6 +164,19 @@ def main():
         if args.precision == "fp32":
             run_pytorch_fp32(
                 args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path, args.jit_freeze
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
+    elif args.framework == "ort":
+        if args.model_path is None:
+            raise ModelPathUnspecified(args.model_path)
+        if args.precision == "fp32":
+            run_ort_fp32(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        elif args.precision == "fp16":
+            run_ort_fp16(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
