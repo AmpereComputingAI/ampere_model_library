@@ -40,7 +40,7 @@ def parse_args():
                         type=str,
                         choices=["pytorch", "tf"], required=True,
                         help="specify the framework in which a model should be run")
-    parser.add_argument("--jit_freeze", action='store_true', default=True,
+    parser.add_argument("--jit_freeze", action='store_true',
                         help="specify if model should be run with torch.jit.freeze model")
     return parser.parse_args()
 
