@@ -2,14 +2,16 @@
 
 
 This folder contains the script to run Inception v2 on ImageNet classification task.\
-Variant supplied below in three different precisions accepts input of shape 224x224.
+Variant supplied below for TensorFlow in three different precisions accepts input of shape 224x224.
+
+Variant supplied below for ONNX Runtime in two different precisions accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/abs/1512.00567
 
 
 ### Accuracy:
 
-Based on 1000 images from ImageNet Validation Dataset
+Based on 1000 images from ImageNet Validation Dataset for TensorFlow framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
@@ -17,6 +19,12 @@ Based on 1000 images from ImageNet Validation Dataset
 | FP16  | 72.8%  | 90.9%  |
 | INT8  | 72.3%  | 90.3%  |
 
+Based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
+
+|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 0.0%  | 100.0%  |
+| FP16  | 73.0% | 100.0%  |
 
 ### Dataset
 
@@ -49,8 +57,14 @@ The path to model (with a flag "-m") as well as its precision (with a flag "-p")
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 
-Example command: 
+Example command for TensorFlow: 
 
 ```
-python3 run.py -m /path/to/model.pb -p fp32
+python3 run.py -m /path/to/model.pb -p fp32 --framework tf
+```
+
+Example command for ONNX Runtime: 
+
+```
+python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
 ```
