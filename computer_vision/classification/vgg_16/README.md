@@ -1,10 +1,13 @@
 # VGG-16
 
 
-This folder contains the script to run VGG-16 on ImageNet classification task in tensorflow and pytorch framework\
+This folder contains the script to run VGG-16 on ImageNet classification task in TensorFlow, PyTorch and ONNX Runtime framework\
+
 Variant supplied below for TensorFlow framework in three different precisions accepts input of shape 224x224
 
 Variant supplied below for PyTorch framework in fp32 different precisions accepts input of shape 224x224
+
+Variant supplied below for ONNX Runtime framework in two different precisions accepts input of shape 224x224
 
 The original paper on the architecture is available here: https://arxiv.org/pdf/1409.1556.pdf
 
@@ -25,6 +28,12 @@ based on 1000 images from ImageNet Validation Dataset for PyTorch framework
 |:---:|:---:|:---:|
 | FP32  | 70.3 %  | 89.1 %  |
 
+based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
+
+|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:---:|:---:|:---:|
+| FP32  | 59.6 %  | 100.0 %  |
+| FP16  | 65.9 %  |  87.7 %  |
 
 ### Dataset and models
 
@@ -59,6 +68,8 @@ run for 1 minute.
 
 For PyTorch implementation the precision (with a flag "-p") as well as framework (with a fla "--framework") have to be specified.\
 
+For ONNX Runtime implementation the path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.
+
 Example command for TensorFlow: 
 
 ```
@@ -69,4 +80,10 @@ Example command for PyTorch:
 
 ```
 python3 run.py -p fp32 --framework pytorch
+```
+
+Example command for ONNX Runtime: 
+
+```
+python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
 ```
