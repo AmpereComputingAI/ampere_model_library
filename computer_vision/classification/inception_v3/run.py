@@ -65,7 +65,7 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze, **kwargs):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (299, 299)
