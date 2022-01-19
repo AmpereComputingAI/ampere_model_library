@@ -46,6 +46,7 @@ class COCODataset(ImageDataset):
         self.__pre_processing = pre_processing
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
+        self.__order = order
         self.__detections = list()
         self.__current_image_ids = list()
         self.__current_image_ratios = list()
@@ -54,7 +55,6 @@ class COCODataset(ImageDataset):
             self.__image_ids = sorted(self.__image_ids)
         self.available_instances = len(self.__image_ids)
         self.path_to_latest_image = None
-        self.__order = order
         super().__init__()
 
     def __get_path_to_img(self):
@@ -98,12 +98,14 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        if self.__order == "NCHW":
+
+        if self.__order == 'NCHW':
             input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array
