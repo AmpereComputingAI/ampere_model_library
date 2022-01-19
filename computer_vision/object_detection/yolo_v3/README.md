@@ -26,9 +26,11 @@ Based on 1000 images from COCO Dataset
 | Average Recall     (AR) | 0.50:0.95 | medium | 100     | 0.344 |
 | Average Recall     (AR) | 0.50:0.95 |  large | 100     | 0.524 |
 
-### Dataset
+### Dataset and model
 
 Dataset can be downloaded from here: https://cocodataset.org/#download
+
+ONNX Runtime model in fp32 precision can be downloaded here: https://github.com/onnx/models/tree/master/vision/object_detection_segmentation/yolov3
 
 ### Running instructions
 

@@ -25,10 +25,11 @@ based on 1000 images from ImageNet Validation Dataset for PyTorch framework
 | FP32  | 39.2%  | 100.0%  |
 
 
-### Dataset
+### Dataset and model
 
 Dataset can be downloaded here: https://www.image-net.org/
 
+ONNX Runtime model in fp32 precision can be downloaded here: https://s3.amazonaws.com/download.onnx/models/opset_9/shufflenet.tar.gz
 
 ### Running instructions
 

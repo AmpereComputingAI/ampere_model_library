@@ -24,10 +24,11 @@ based on 1000 images from ImageNet Validation Dataset for ONNX Runtime
 |:---:|:---:|:---:|
 | FP32  | 54.8%  | 81.8%  |
 
-### Dataset
+### Dataset and model
 
 Dataset can be downloaded here: https://www.image-net.org/
 
+ONNX Runtime model in fp32 precision can be downloaded here: https://s3.amazonaws.com/download.onnx/models/opset_9/densenet121.tar.gz
 
 ### Running instructions
 

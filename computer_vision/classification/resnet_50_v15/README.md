@@ -25,12 +25,13 @@ Based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
 |:---:|:---:|:---:|
 | FP16  | 75.0%  | 92.4%  |
 
-### Dataset
+### Dataset and models
 
 Dataset can be acquired here https://www.image-net.org/
 
-model can be downloaded from here:
-https://www.tensorflow.org/lite/guide/hosted_models
+TensorFlow model can be downloaded from here: https://www.tensorflow.org/lite/guide/hosted_models
+
+ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/r80ndhbht7tixn5/resnet_50_v1.5_fp16.onnx
 
 ### Running instructions
 

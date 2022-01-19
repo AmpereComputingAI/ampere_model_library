@@ -26,11 +26,13 @@ Based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
 | FP32  | 0.0%  | 100.0%  |
 | FP16  | 73.0% | 100.0%  |
 
-### Dataset
+### Dataset and models
 
-dataset can be downloaded from here: https://www.image-net.org/
+Dataset can be downloaded from here: https://www.image-net.org/
 
+ONNX Runtime model in fp32 precision can be downloaded here: https://www.dropbox.com/s/gt91039l7c3nnh5/inception_v2.tar.gz
 
+ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/sh3gd4cp0mp1lut/inception_v2_fp16.onnx
 
 ### Running instructions
 

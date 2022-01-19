@@ -61,9 +61,11 @@ Based on 1000 images from COCO Dataset for ONNX Runtime framework
 | Average Recall     (AR) | 0.50:0.95 | medium | 100     | 0.206 |
 | Average Recall     (AR) | 0.50:0.95 |  large | 100     | 0.670 |
 
-### Dataset
+### Dataset and model
 
 Dataset can be downloaded from here: https://cocodataset.org/#download
+
+ONNX Runtime model in fp32 precision can be downloaded here: https://www.dropbox.com/s/7ntmv2pt7iy460y/tf2onnx_ssd_mobilenet_v2.onnx
 
 ### Running instructions
 

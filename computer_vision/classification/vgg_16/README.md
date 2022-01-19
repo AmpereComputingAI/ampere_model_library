@@ -41,6 +41,10 @@ Dataset can be downloaded here: https://www.image-net.org/
 
 TensorFlow models can be downloaded here: https://github.com/tensorflow/models/tree/master/research/slim
 
+ONNX Runtime model in fp32 precision can be downloaded here: https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz
+
+ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/fybpr5e62kk0bog/vgg_16_frozen_fp16.onnx
+
 ### Running instructions
 
 Before running any code you should first export the PYTHONPATH variable with path pointing to the model zoo directory,
