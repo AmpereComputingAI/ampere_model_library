@@ -35,7 +35,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch"], required=True,
+                        choices=["tf", "pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--jit_freeze", action='store_true',
                         help="specify if model should be run with torch.jit.freeze model")
