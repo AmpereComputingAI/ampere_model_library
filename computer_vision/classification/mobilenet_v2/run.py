@@ -115,7 +115,7 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
-def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, input_name, is1001classes, precision):
+def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, input_name, is1001classes, precision, preprocessing):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -129,16 +129,16 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=is1001classes, order="NCHW")
+                       pre_processing=preprocessing, is1001classes=is1001classes, order="NCHW")
     runner = OrtRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "data", False, "float32")
+    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "data", False, "float32", "SSD_2")
 
 def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "input:0", True, "float16")
+    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "input:0", True, "float16", "Inception")
 
 def main():
     args = parse_args()
