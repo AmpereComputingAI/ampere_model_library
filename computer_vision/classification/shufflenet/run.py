@@ -78,7 +78,7 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labe
                 imagenet.extract_top5(output[i])
             )
 
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+    dataset = ImageNet(batch_size, "BGR", images_path, labels_path,
                        pre_processing="Inception", is1001classes=False, order="NCHW")
     runner = OrtRunner(model_path)
 
