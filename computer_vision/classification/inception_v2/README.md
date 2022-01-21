@@ -4,7 +4,7 @@
 This folder contains the script to run Inception v2 on ImageNet classification task.\
 Variant supplied below for TensorFlow in three different precisions accepts input of shape 224x224.
 
-Variant supplied below for ONNX Runtime in two different precisions accepts input of shape 224x224.
+Variant supplied below for ONNX Runtime in fp16 precision accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/abs/1512.00567
 
@@ -23,14 +23,11 @@ Based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 0.0%  | 100.0%  |
 | FP16  | 73.0% | 100.0%  |
 
 ### Dataset and models
 
 Dataset can be downloaded from here: https://www.image-net.org/
-
-ONNX Runtime model in fp32 precision can be downloaded here: https://www.dropbox.com/s/gt91039l7c3nnh5/inception_v2.tar.gz
 
 ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/sh3gd4cp0mp1lut/inception_v2_fp16.onnx
 
@@ -68,5 +65,5 @@ python3 run.py -m /path/to/model.pb -p fp32 --framework tf
 Example command for ONNX Runtime: 
 
 ```
-python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
+python3 run.py -m /path/to/model.onnx -p fp16 --framework ort
 ```

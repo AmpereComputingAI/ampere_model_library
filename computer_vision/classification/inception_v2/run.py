@@ -87,11 +87,11 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
-def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, input_name, order, is1001classes, precision):
+def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
-        ort_runner.set_input_tensor(input_name, imagenet.get_input_array(shape).astype(precision))
+        ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
         output = ort_runner.run()
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -101,16 +101,10 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=is1001classes, order=order)
+                       pre_processing="Inception", is1001classes=True, order="NHWC")
     runner = OrtRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
-
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    return run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "data_0", "NCHW", False, "float32")
-
-def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
-    return run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "input:0", "NHWC", True, "float16")
 
 def main():
     args = parse_args()
@@ -130,11 +124,7 @@ def main():
         else:
             raise UnsupportedPrecisionValueError(args.precision)
     elif args.framework == "ort":
-        if args.precision == "fp32":
-            run_ort_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-            )
-        elif args.precision == "fp16":
+        if args.precision == "fp16":
             run_ort_fp16(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
             )
