@@ -44,9 +44,9 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno
         ort_runner.set_input_tensor("image_shape", np.array(shape, dtype="float32").reshape(1, 2))
         output = ort_runner.run()
 
-        boxes = np.array(output[0])
-        scores = np.array(output[1])
-        indices = np.array(output[2])
+        boxes = output[0]
+        scores = output[1]
+        indices = output[2]
 
         out_boxes, out_scores, out_classes = [], [], []
         for idx_ in indices:
