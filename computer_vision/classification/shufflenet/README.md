@@ -18,11 +18,11 @@ based on 1000 images from ImageNet Validation Dataset for PyTorch framework
 |:---:|:---:|:---:|
 | FP32  | 63.7%  | 85.1 %  |
 
-based on 1000 images from ImageNet Validation Dataset for PyTorch framework
+based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 39.2%  | 100.0%  |
+| FP32  | 59.3%  | 82.2%  |
 
 
 ### Dataset and model

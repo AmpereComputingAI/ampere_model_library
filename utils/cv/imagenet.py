@@ -107,6 +107,8 @@ class ImageNet(ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: int, index of highest value in the supplied array
         """
+        if output_array.ndim != 1:
+            raise ValueError(f"Output array should be a 1-D array, not {output_array.ndim}-D")
         top_1_index = np.argmax(output_array)
         return top_1_index
 
@@ -117,6 +119,8 @@ class ImageNet(ImageDataset):
         :param output_array: 1-D numpy array containing soft-maxed logits referring to 1 image
         :return: list of ints, list containing indices of 5 highest values in the supplied array
         """
+        if output_array.ndim != 1:
+            raise ValueError(f"Output array should be a 1-D array, not {output_array.ndim}-D")
         top_5_indices = np.argpartition(output_array, -5)[-5:]
         return top_5_indices
 

@@ -120,13 +120,13 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labe
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("data", imagenet.get_input_array(shape))
-        output = ort_runner.run()
+        output = ort_runner.run()[0]
 
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
-                imagenet.extract_top1(output),
-                imagenet.extract_top5(output)
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
             )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,

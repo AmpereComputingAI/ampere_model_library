@@ -120,7 +120,7 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor(input_name, imagenet.get_input_array(shape).astype(precision))
-        output = ort_runner.run()
+        output = ort_runner.run()[0]
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,

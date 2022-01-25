@@ -32,7 +32,7 @@ based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
 
 |   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
 |:---:|:---:|:---:|
-| FP32  | 59.6 %  | 100.0 %  |
+| FP32  | 59.6 %  |  83.7 %  |
 | FP16  | 65.9 %  |  87.7 %  |
 
 ### Dataset and models

@@ -92,7 +92,7 @@ def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labe
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
-        output = ort_runner.run()
+        output = ort_runner.run()[0]
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
