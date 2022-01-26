@@ -75,6 +75,8 @@ def main():
     args = parse_args()
     if args.framework == "ort":
         if args.precision == "fp32":
+            if args.batch_size != 1:
+                raise ValueError("Batch size must be 1 for this model.")
             run_ort_fp32(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
             )
