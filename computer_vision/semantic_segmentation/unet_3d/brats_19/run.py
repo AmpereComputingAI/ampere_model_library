@@ -75,8 +75,7 @@ def run_pytorch_fp32(model_path, num_of_runs, timeout, dataset_path):
     runner = PyTorchRunner(model.network)
     return run_model(run_single_pass, runner, dataset, 1, num_of_runs, timeout)
 
-def restore_model(folder):
-    checkpoint = os.path.join(folder, "model_best.model")
+def restore_model(checkpoint):
     pkl_file = checkpoint + ".pkl"
     with open(pkl_file, 'rb') as f:
         info = pickle.load(f)
