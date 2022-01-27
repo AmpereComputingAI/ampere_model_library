@@ -3,6 +3,7 @@ import sys
 import torch
 import argparse
 import numpy as np
+from utils.profiling import *
 
 from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
@@ -35,10 +36,15 @@ def parse_args():
                         type=str,
                         choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
+    parser.add_argument("--jit_freeze", action='store_true',
+                        help="specify if model should be run with torch.jit.freeze model")
+    parser.add_argument("--profiler",
+                        action="store_true",
+                        help="enables PT profiler tracing")
     return parser.parse_args()
 
 
-def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
+def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path, jit_freeze, use_profiler):
     def run_single_pass(torch_runner, criteo):
         _ = torch_runner.run(criteo.get_inputs())
 
@@ -62,17 +68,20 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
     )
     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
 
-    runner = PyTorchRunner(dlrm)
+    runner = PyTorchRunner(dlrm, jit_freeze, use_profiler)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
 def main():
     args = parse_args()
+    
+    use_profiler = aio_profiler_enabled() or args.profiler
+    
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_torch_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path, args.jit_freeze, use_profiler
             )
         else:
             raise UnsupportedPrecisionValueError(args.precision)
