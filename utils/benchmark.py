@@ -72,19 +72,29 @@ def benchmark_func(func, num_of_runs, timeout, warm_up=True):
     if warm_up:
         _ = benchmark(func)
 
-    total_time = 0.
+    start_times = list()
+    latencies = list()
     if num_of_runs is None:
         i = 0
         benchmarking_start = time.time()
         while time.time() - benchmarking_start < timeout:
-            total_time += benchmark(func)
+            start_times.append(time.time())
+            latencies.append(benchmark(func))
             i += 1
     else:
         i = num_of_runs
         for _ in tqdm(range(num_of_runs)):
-            total_time += benchmark(func)
+            start_times.append(time.time())
+            latencies.append(benchmark(func))
 
-    return total_time / i
+    dump_dir = os.environ.get("RESULTS_DIR")
+    if dump_dir is not None:
+        with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(start_times)
+            writer.writerow(latencies)
+
+    return sum(latencies) / i
 
 
 def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
