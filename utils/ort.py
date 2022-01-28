@@ -3,6 +3,7 @@ import onnxruntime as ort
 import time
 import utils.benchmark as bench_utils
 
+
 class OrtRunner:
     """
     A class providing facilities to run ONNX model
@@ -23,6 +24,9 @@ class OrtRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        self.__start_times = list()
+        self.__finish_times = list()
+
         print("\nRunning with ONNX Runtime\n")
 
     def run(self):
@@ -33,11 +37,14 @@ class OrtRunner:
 
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
-                self.__warm_up_run_latency += finish - start
+            self.__warm_up_run_latency += finish - start
+        else:
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
         self.__times_invoked += 1
 
         return outputs
-    
+
     def set_input_tensor(self, input_name: str, input_array):
         self.__feed_dict[input_name] = input_array
 
@@ -55,4 +62,12 @@ class OrtRunner:
             if not os.path.exists("profiler_output/ort/"):
                 os.makedirs("profiler_output/ort/")
             os.replace(prof, f"profiler_output/ort/{prof}")
+
+        dump_dir = os.environ.get("RESULTS_DIR")
+        if dump_dir is not None:
+            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(self.__start_times)
+                writer.writerow(self.__finish_times)
+
         return perf
