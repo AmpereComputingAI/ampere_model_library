@@ -63,7 +63,7 @@ class Criteo:
         self.available_instances = 1
 
     def reset(self):
-        pass
+        return False
 
     def get_inputs(self):
         """

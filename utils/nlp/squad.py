@@ -131,13 +131,12 @@ class Squad_v1_1:
 
     def reset(self):
         self.__example_iterator = self.__examples()
-
         self.__questions_count = 0
         self.__unanswered_questions_count = 0
-
         self.__current_inputs = None
         self.__exact_match_count = 0
         self.__f1_count = 0
+        return True
 
     def get_input_ids_array(self):
         return self.__get_input_array("input_ids")

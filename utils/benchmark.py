@@ -124,9 +124,9 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
         if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_of_runs is None:
-            dataset.reset()
-            return run_model(
-                single_pass_func, runner, dataset, batch_size, num_of_runs, timeout - (time.time() - start))
+            if dataset.reset():
+                return run_model(
+                    single_pass_func, runner, dataset, batch_size, num_of_runs, timeout - (time.time() - start))
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 

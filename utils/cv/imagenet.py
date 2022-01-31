@@ -81,6 +81,7 @@ class ImageNet(ImageDataset):
         self.__current_img = 0
         self.__top_1_count = 0
         self.__top_5_count = 0
+        return True
 
     def get_input_array(self, target_shape):
         """

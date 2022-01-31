@@ -93,6 +93,7 @@ class COCODataset(ImageDataset):
     def reset(self):
         self.__current_img = 0
         self.__detections = list()
+        return True
 
     def get_input_array(self, target_shape):
         """
