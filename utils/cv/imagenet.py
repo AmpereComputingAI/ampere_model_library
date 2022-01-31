@@ -77,6 +77,11 @@ class ImageNet(ImageDataset):
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
 
+    def reset(self):
+        self.__current_img = 0
+        self.__top_1_count = 0
+        self.__top_5_count = 0
+
     def get_input_array(self, target_shape):
         """
         A function returning an array containing pre-processed rescaled image's or multiple images' data.

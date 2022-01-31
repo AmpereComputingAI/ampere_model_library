@@ -62,6 +62,9 @@ class Criteo:
 
         self.available_instances = 1
 
+    def reset(self):
+        pass
+
     def get_inputs(self):
         """
         A function returning input arrays for DLRM network.
