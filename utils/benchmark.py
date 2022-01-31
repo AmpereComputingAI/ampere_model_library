@@ -72,19 +72,19 @@ def benchmark_func(func, num_of_runs, timeout, warm_up=True):
     if warm_up:
         _ = benchmark(func)
 
-    total_time = 0.
+    latencies = list()
     if num_of_runs is None:
         i = 0
         benchmarking_start = time.time()
         while time.time() - benchmarking_start < timeout:
-            total_time += benchmark(func)
+            latencies.append(benchmark(func))
             i += 1
     else:
         i = num_of_runs
         for _ in tqdm(range(num_of_runs)):
-            total_time += benchmark(func)
+            latencies.append(benchmark(func))
 
-    return total_time / i
+    return sum(latencies) / i
 
 
 def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
@@ -113,17 +113,20 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
+    start = time.time()
     try:
         if num_of_runs is None:
             single_pass_func(runner, dataset)
-            start = time.time()
             while time.time() - start < timeout:
                 single_pass_func(runner, dataset)
         else:
             for _ in tqdm(range(num_of_runs)):
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
-        pass
+        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_of_runs is None:
+            if dataset.reset():
+                return run_model(
+                    single_pass_func, runner, dataset, batch_size, num_of_runs, timeout - (time.time() - start))
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 

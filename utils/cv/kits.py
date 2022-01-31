@@ -151,6 +151,13 @@ class KiTS19:
             self.__result /= self.__norm_map
             return np.argmax(self.__result, axis=1).astype(np.uint8)
 
+    def reset(self):
+        self.__current_img_id = 0
+        self.__current_image = self.__Image()
+        self.__kidney_score = 0.
+        self.__tumor_score = 0.
+        return True
+
     def get_input_array(self):
         """
         A function returning an array containing slice of pre-processed image.
