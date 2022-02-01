@@ -5,6 +5,7 @@ import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
+from utils.ort import OrtRunner
 from utils.benchmark import run_model
 
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
@@ -35,7 +36,7 @@ def parse_args():
                         help="path to file with validation annotations")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["tf"], required=True,
+                        choices=["tf", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
@@ -86,6 +87,32 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, a
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
+def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+
+    def run_single_pass(ort_runner, coco):
+        shape = (640, 640)
+        ort_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape).astype("uint8"))
+        output = ort_runner.run()
+        num_detections = output[0]
+        detection_boxes = output[1]
+        detections_scores = output[2]
+        detection_classes = output[3]
+
+        for i in range(batch_size):
+            for d in range(int(num_detections[i])):
+                coco.submit_bbox_prediction(
+                    i,
+                    coco.convert_bbox_to_coco_order(detection_boxes[i][d] * shape[0], 1, 0, 3, 2),
+                    detections_scores[i][d],
+                    int(detection_classes[i][d])
+                )
+
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
+                          pre_processing=None)
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
 
 def main():
     args = parse_args()
@@ -96,6 +123,13 @@ def main():
             )
         elif args.precision == "int8":
             run_tflite_int8(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
+    elif args.framework == "ort":
+        if args.precision == "fp32":
+            run_ort_fp32(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
             )
         else:

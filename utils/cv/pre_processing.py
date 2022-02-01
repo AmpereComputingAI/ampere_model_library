@@ -16,7 +16,7 @@ def pre_process(input_array, pre_processing_approach: str, color_model=None, ord
     if pre_processing_approach == "SSD":
         return pre_process_ssd(input_array)
     if pre_processing_approach == "SSD_2":
-        return pre_process_ssd_2(input_array)
+        return pre_process_ssd_2(input_array, order)
     if pre_processing_approach == "YOLO":
         return pre_process_yolo(input_array)
     if pre_processing_approach == "SqueezeNet":
@@ -51,18 +51,22 @@ def pre_process_ssd(input_array):
     return input_array
 
 
-def pre_process_ssd_2(input_array):
+def pre_process_ssd_2(input_array, order: str):
     """
     A function pre-processing an input array in the way expected by some other SSD models.
 
     Values are converted from int 0 <-> 255 range to float range of -1.0 <-> 1.0.
 
     :param input_array: numpy array containing image data
+    :param order: str, the order of image data, possible values: ["NCHW", "NHWC"]
     :return: numpy array containing pre-processed image data
     """
     input_array = input_array.astype("float32")
     std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
     mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    if order == "NCHW":
+        std = std.reshape((1, 3, 1, 1))
+        mean = mean.reshape((1, 3, 1, 1))
 
     input_array /= 255.0
     input_array = (input_array - mean) / std

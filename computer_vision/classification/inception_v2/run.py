@@ -3,6 +3,7 @@ import argparse
 from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
+from utils.ort import OrtRunner
 from utils.benchmark import run_model
 
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
@@ -33,7 +34,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["tf"], required=True,
+                        choices=["tf", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
@@ -86,6 +87,24 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, l
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
+def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
+        output = ort_runner.run()[0]
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="Inception", is1001classes=True, order="NHWC")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 def main():
     args = parse_args()
@@ -100,6 +119,13 @@ def main():
             )
         elif args.precision == "int8":
             run_tflite_int8(
+                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
+            )
+        else:
+            raise UnsupportedPrecisionValueError(args.precision)
+    elif args.framework == "ort":
+        if args.precision == "fp16":
+            run_ort_fp16(
                 args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
             )
         else:
