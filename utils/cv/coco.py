@@ -15,7 +15,7 @@ class COCODataset(ImageDataset):
 
     def __init__(self,
                  batch_size: int, color_model: str, images_filename_base: str,
-                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False):
+                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False, order="NHWC"):
         """
         A function initializing the class.
         :param batch_size: int, size of batch intended to be processed
@@ -46,6 +46,7 @@ class COCODataset(ImageDataset):
         self.__pre_processing = pre_processing
         self.__ground_truth = COCO(annotations_path)
         self.__current_img = 0
+        self.__order = order
         self.__detections = list()
         self.__current_image_ids = list()
         self.__current_image_ratios = list()
@@ -85,7 +86,7 @@ class COCODataset(ImageDataset):
         """
         self.path_to_latest_image = self.__get_path_to_img()
         input_array, resize_ratios = self._ImageDataset__load_image(
-            self.path_to_latest_image, target_shape, self.__color_model)
+            self.path_to_latest_image, target_shape, self.__color_model, self.__order)
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
@@ -97,9 +98,14 @@ class COCODataset(ImageDataset):
         initialization
         """
         self.__reset_containers()
-        input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
+
+        if self.__order == 'NCHW':
+            input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
+        else:
+            input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
             input_array[i] = self.__load_image_and_store_ratios(target_shape)
+
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)
         return input_array

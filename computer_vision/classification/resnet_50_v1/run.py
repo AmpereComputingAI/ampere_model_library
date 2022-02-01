@@ -5,12 +5,16 @@ import numpy as np
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
+from utils.ort import OrtRunner
 from utils.pytorch import PyTorchRunner
 from utils.misc import FrameworkUnsupportedError, UnsupportedPrecisionValueError
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run ResNet-50 v1 model.")
+    parser.add_argument("-m", "--model_path",
+                        type=str,
+                        help="path to the model")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
@@ -31,11 +35,14 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch"], required=True,
+                        choices=["pytorch", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.framework != "pytorch" and args.model_path is None:
+        parser.error(f"You need to specify the model path when using {args.framework} framework.")
+    return args
 
 
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
@@ -59,8 +66,32 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
+def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        output = ort_runner.run()
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[1][i]),
+                imagenet.extract_top5(output[1][i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="VGG", is1001classes=True, order="NCHW")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+
 def run_pytorch_fp32(**kwargs):
     return run_pytorch_fp(**kwargs)
+
+
+def run_ort_fp32(**kwargs):
+    return run_ort_fp(**kwargs)
 
 
 def main():
@@ -68,6 +99,13 @@ def main():
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    elif args.framework == "ort":
+        if args.precision == "fp32":
+            run_ort_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
