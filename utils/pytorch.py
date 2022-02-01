@@ -5,6 +5,7 @@ import time
 import utils.benchmark as bench_utils
 import numpy as np
 import sys
+from utils.profiling import *
 from torch.autograd.profiler import profile
 
 
@@ -13,7 +14,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, jit_freeze=False, is_profiling=False):
+    def __init__(self, model, jit_freeze=False):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
@@ -24,7 +25,7 @@ class PyTorchRunner:
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
-        self.__is_profiling = is_profiling
+        self.__is_profiling = aio_profiler_enabled()
 
         self.__start_times = list()
         self.__finish_times = list()
