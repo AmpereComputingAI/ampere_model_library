@@ -5,6 +5,7 @@ import time
 import utils.benchmark as bench_utils
 import numpy as np
 import sys
+from utils.profiling import *
 from torch.autograd.profiler import profile
 
 

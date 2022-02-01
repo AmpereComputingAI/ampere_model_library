@@ -4,7 +4,6 @@ import torch
 import argparse
 
 import numpy as np
-from utils.profiling import *
 
 from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
@@ -85,9 +84,7 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, de
 
 def main():
     args = parse_args()
-    
-    use_profiler = aio_profiler_enabled() or args.profiler
-    
+     
     if args.framework == "pytorch":
         if args.model_path is None:
             print_goodbye_message_and_die(
