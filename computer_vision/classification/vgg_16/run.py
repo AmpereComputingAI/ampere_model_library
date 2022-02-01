@@ -6,6 +6,7 @@ from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.pytorch import PyTorchRunner
+from utils.ort import OrtRunner
 from utils.benchmark import run_model
 from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified, FrameworkUnsupportedError
 
@@ -35,7 +36,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["pytorch", "tf"], required=True,
+                        choices=["pytorch", "tf", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
@@ -118,6 +119,46 @@ def run_tflite_int8(**kwargs):
 def run_pytorch_fp32(**kwargs):
     return run_pytorch_fp(**kwargs)
 
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor("data", imagenet.get_input_array(shape))
+        output = ort_runner.run()[0]
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="VGG", is1001classes=False, order="NCHW")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+
+def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
+        output = ort_runner.run()
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[0][i]),
+                imagenet.extract_top5(output[0][i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="VGG", is1001classes=False, order="NCHW")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
 
 def main():
     args = parse_args()
@@ -143,6 +184,19 @@ def main():
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
 
+    elif args.framework == "ort":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+            
+        if args.precision == "fp32":
+            run_ort_fp32(**vars(args))
+        elif args.precision == "fp16":
+            run_ort_fp16(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+            
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

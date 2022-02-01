@@ -90,6 +90,11 @@ class COCODataset(ImageDataset):
         self.__current_image_ratios.append(resize_ratios)
         return input_array
 
+    def reset(self):
+        self.__current_img = 0
+        self.__detections = list()
+        return True
+
     def get_input_array(self, target_shape):
         """
         A function returning an array containing pre-processed rescaled image's or multiple images' data.

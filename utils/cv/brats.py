@@ -176,6 +176,14 @@ class BraTS19:
         with open(Path(self.__preprocessed_dir_path, "preprocessed_files.pkl"), "wb") as f:
             pickle.dump(all_output_files, f)
 
+    def reset(self):
+        self.__current_img_id = 0
+        self.__processed_predictions_dir_path = Path("/tmp/processed_predictions")
+        if self.__processed_predictions_dir_path.is_dir():
+            shutil.rmtree(self.__processed_predictions_dir_path)
+        self.__processed_predictions_dir_path.mkdir()
+        return True
+
     def get_input_array(self):
         """
         A function returning an array containing slice of pre-processed image.

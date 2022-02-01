@@ -24,6 +24,9 @@ class TFLiteRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        self.__start_times = list()
+        self.__finish_times = list()
+
         print("\nRunning with TensorFlow Lite\n")
 
     def set_input_tensor(self, input_index: int, input_array):
@@ -56,6 +59,9 @@ class TFLiteRunner:
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
+        else:
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
         self.__times_invoked += 1
 
     def print_performance_metrics(self, batch_size):
@@ -68,4 +74,12 @@ class TFLiteRunner:
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
+
+        dump_dir = os.environ.get("RESULTS_DIR")
+        if dump_dir is not None:
+            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(self.__start_times)
+                writer.writerow(self.__finish_times)
+
         return perf

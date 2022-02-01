@@ -3,6 +3,7 @@ import argparse
 from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
+from utils.ort import OrtRunner
 from utils.benchmark import run_model
 
 from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
@@ -33,7 +34,7 @@ def parse_args():
                         help="path to file with validation labels")
     parser.add_argument("--framework",
                         type=str,
-                        choices=["tf"], required=True,
+                        choices=["tf", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
@@ -77,6 +78,26 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+  
+
+def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+
+    def run_single_pass(ort_runner, imagenet):
+        shape = (224, 224)
+        ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
+        output = ort_runner.run()[0]
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="Inception", is1001classes=True, order="NHWC")
+    runner = OrtRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_tf_fp32(**kwargs):
@@ -89,6 +110,10 @@ def run_tf_fp16(**kwargs):
 
 def run_tflite_int8(**kwargs):
     return run_tflite(**kwargs)
+  
+
+def run_ort_fp16(**kwargs):
+    return run_ort_fp(**kwargs)
 
 
 def main():
@@ -104,6 +129,17 @@ def main():
             run_tf_fp16(**vars(args))
         elif args.precision == "int8":
             run_tflite_int8(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    elif args.framework == "ort":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+            
+        if args.precision == "fp16":
+            run_ort_fp16(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

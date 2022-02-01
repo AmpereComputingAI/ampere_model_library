@@ -1,4 +1,5 @@
 import os
+import csv
 import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
@@ -40,6 +41,9 @@ class TFFrozenModelRunner:
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
+
+        self.__start_times = list()
+        self.__finish_times = list()
 
         self.__profiler = TFProfiler()
 
@@ -94,6 +98,9 @@ class TFFrozenModelRunner:
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
+        else:
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
         self.__times_invoked += 1
         return output
 
@@ -108,6 +115,14 @@ class TFFrozenModelRunner:
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
         self.__sess.close()
+
+        dump_dir = os.environ.get("RESULTS_DIR")
+        if dump_dir is not None:
+            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(self.__start_times)
+                writer.writerow(self.__finish_times)
+
         return perf
 
 
@@ -127,6 +142,9 @@ class TFSavedModelRunner:
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
 
+        self.__start_times = list()
+        self.__finish_times = list()
+
         self.__profiler = TFProfiler()
 
         print("\nRunning with TensorFlow\n")
@@ -145,6 +163,9 @@ class TFSavedModelRunner:
         self.__total_inference_time += finish - start
         if self.__times_invoked == 0:
             self.__warm_up_run_latency += finish - start
+        else:
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
         self.__times_invoked += 1
         return output
 
@@ -158,4 +179,12 @@ class TFSavedModelRunner:
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
+
+        dump_dir = os.environ.get("RESULTS_DIR")
+        if dump_dir is not None:
+            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(self.__start_times)
+                writer.writerow(self.__finish_times)
+
         return perf
