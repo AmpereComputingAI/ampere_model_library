@@ -9,7 +9,7 @@ from utils.nlp.squad import Squad_v1_1
 def parse_args():
     parser = argparse.ArgumentParser(description="Run BERT Large model (from mlcommons:inference repo).")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32", "fp16"], required=True,
@@ -26,10 +26,14 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["tf"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
     def run_single_pass(tf_runner, squad):
 
         tf_runner.set_input_tensor("input_ids:0", squad.get_input_ids_array())
@@ -57,29 +61,35 @@ def run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path):
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, seq_size, squad_path)
     runner = TFFrozenModelRunner(model_path, ["logits:0"])
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, squad_path):
-    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path)
+def run_tf_fp32(**kwargs):
+    return run_tf_fp(**kwargs)
 
 
-def run_tf_fp16(model_path, batch_size, num_of_runs, timeout, squad_path):
-    return run_tf_fp(model_path, batch_size, num_of_runs, timeout, squad_path)
+def run_tf_fp16(**kwargs):
+    return run_tf_fp(**kwargs)
 
 
 def main():
     args = parse_args()
-    if args.precision == "fp32":
-        run_tf_fp32(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.squad_path
-        )
-    elif args.precision == "fp16":
-        run_tf_fp16(
-            args.model_path, args.batch_size, args.num_runs, args.timeout, args.squad_path
-        )
+    if args.framework == "tf":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
+        if args.precision == "fp32":
+            run_tf_fp32(**vars(args))
+        elif args.precision == "fp16":
+            run_tf_fp16(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        assert False, f"Behaviour undefined for precision {args.precision}"
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

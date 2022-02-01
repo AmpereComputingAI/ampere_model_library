@@ -64,6 +64,27 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
+def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+
+    def run_single_pass(tflite_runner, imagenet):
+        shape = (299, 299)
+        tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
+        tflite_runner.run()
+        output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output_tensor[i]),
+                imagenet.extract_top5(output_tensor[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing="Inception", is1001classes=True)
+    runner = TFLiteRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
 
     def run_single_pass(pytorch_runner, imagenet):
@@ -91,36 +112,21 @@ def run_tf_fp32(**kwargs):
     return run_tf_fp(**kwargs)
 
 
+def run_tflite_int8(**kwargs):
+    return run_tflite(**kwargs)
+
+
 def run_pytorch_fp32(**kwargs):
     return run_pytorch_fp(**kwargs)
-
-
-def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-
-    def run_single_pass(tflite_runner, imagenet):
-        shape = (299, 299)
-        tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
-        tflite_runner.run()
-        output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
-        for i in range(batch_size):
-            imagenet.submit_predictions(
-                i,
-                imagenet.extract_top1(output_tensor[i]),
-                imagenet.extract_top5(output_tensor[i])
-            )
-
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing="Inception", is1001classes=True)
-    runner = TFLiteRunner(model_path)
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
     if args.framework == "tf":
         if args.model_path is None:
-            raise ModelPathUnspecified(args.model_path)
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
         elif args.precision == "fp32":
             run_tf_fp32(**vars(args))
         else:
@@ -129,7 +135,8 @@ def main():
 
     if args.framework == "tflite":
         if args.model_path is None:
-            raise ModelPathUnspecified(args.model_path)
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
         elif args.precision == "int8":
             run_tflite_int8(**vars(args))
         else:
@@ -142,8 +149,10 @@ def main():
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

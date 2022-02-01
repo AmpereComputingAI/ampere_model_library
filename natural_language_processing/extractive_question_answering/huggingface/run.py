@@ -24,10 +24,15 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["tf"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_of_runs, timeout, squad_path):
+def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+
     def run_single_pass(tf_runner, squad):
 
         output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
@@ -52,14 +57,16 @@ def run_tf(model_name, batch_size, num_of_runs, timeout, squad_path):
     runner = TFSavedModelRunner()
     runner.model = TFAutoModelForQuestionAnswering.from_pretrained(model_name)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
-    run_tf(
-            args.model_name, args.batch_size, args.num_runs, args.timeout, args.squad_path
-        )
+    if args.framework == "tf":
+        run_tf(**vars(args))
+    else:
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":
