@@ -36,12 +36,12 @@ def parse_args():
                         type=str,
                         choices=["pytorch", "ort"], required=True,
                         help="specify the framework in which a model should be run")
-    parser.add_argument("--jit_freeze", action='store_true',
-                        help="specify if model should be run with torch.jit.freeze model")
+    parser.add_argument("--disable_jit_freeze", action='store_true',
+                        help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
+def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -56,15 +56,13 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, j
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["densenet121"](pretrained=True), jit_freeze=jit_freeze)
+    runner = PyTorchRunner(torchvision.models.__dict__["densenet121"](pretrained=True),
+                           disable_jit_freeze=disable_jit_freeze)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
-
-
-def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze):
-    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, labels_path, jit_freeze)
-
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+  
+  
+def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -83,29 +81,40 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labe
                        pre_processing="Inception", is1001classes=False, order="NCHW")
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
+def run_pytorch_fp32(**kwargs):
+    return run_pytorch_fp(**kwargs)
+  
+
+def run_ort_fp32(**kwargs):
+    return run_ort_fp(**kwargs)
 
 
 def main():
     args = parse_args()
     if args.framework == "pytorch":
         if args.precision == "fp32":
-            run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path, args.jit_freeze
-            )
+            run_pytorch_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+            
     elif args.framework == "ort":
         if args.model_path is None:
-            raise ModelPathUnspecified(args.model_path)
-        if args.precision == "fp32":
-            run_ort_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.labels_path
-            )
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+            
+        elif args.precision == "fp32":
+            run_ort_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

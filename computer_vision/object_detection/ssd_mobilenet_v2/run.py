@@ -14,7 +14,7 @@ from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
 def parse_args():
     parser = argparse.ArgumentParser(description="Run SSD MobileNet v2 model.")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32", "int8"], required=True,
@@ -41,7 +41,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
@@ -59,10 +60,11 @@ def run_tf_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_
     runner = TFFrozenModelRunner(
         model_path, ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+
     def run_single_pass(tflite_runner, coco):
         shape = (300, 300)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
@@ -85,9 +87,17 @@ def run_tflite_int8(model_path, batch_size, num_of_runs, timeout, images_path, a
                           pre_processing="SSD", sort_ascending=True)
     runner = TFLiteRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+
+def run_tf_fp32(**kwargs):
+    return run_tf_fp(**kwargs)
+
+
+def run_tflite_int8(**kwargs):
+    return run_tflite(**kwargs)
+
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
 
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
@@ -111,31 +121,37 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno
                           pre_processing=None)
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
     if args.framework == "tf":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
         if args.precision == "fp32":
-            run_tf_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-            )
+            run_tf_fp32(**vars(args))
         elif args.precision == "int8":
-            run_tflite_int8(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-            )
+            run_tflite_int8(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     elif args.framework == "ort":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
         if args.precision == "fp32":
-            run_ort_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-            )
+            run_ort_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

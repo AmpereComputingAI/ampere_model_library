@@ -14,7 +14,7 @@ from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
 def parse_args():
     parser = argparse.ArgumentParser(description="Run DLRM model.")
     parser.add_argument("-m", "--model_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
@@ -38,7 +38,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
+def run_torch_fp(model_path, batch_size, num_runs, timeout, dataset_path, **kwargs):
+
     def run_single_pass(torch_runner, criteo):
         _ = torch_runner.run(criteo.get_inputs())
 
@@ -64,20 +65,29 @@ def run_torch_fp32(model_path, batch_size, num_of_runs, timeout, dataset_path):
 
     runner = PyTorchRunner(dlrm)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
+def run_pytorch_fp32(**kwargs):
+    return run_pytorch_fp(**kwargs)
 
 
 def main():
     args = parse_args()
     if args.framework == "pytorch":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
         if args.precision == "fp32":
-            run_torch_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.dataset_path
-            )
+            run_torch_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":
