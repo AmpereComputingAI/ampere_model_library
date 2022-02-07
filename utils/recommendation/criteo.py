@@ -18,7 +18,7 @@ class Criteo:
     A class providing facilities for preprocessing of Criteo dataset.
     """
 
-    def __init__(self, max_batch_size, dataset_path=None):
+    def __init__(self, max_batch_size, dataset_path=None, debug=False):
 
         if dataset_path is None:
             env_var = "CRITEO_DATASET_PATH"
@@ -30,15 +30,23 @@ class Criteo:
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
 
-        self.ln_emb = np.array(
-            [39884406, 39043, 17289, 7420, 20263, 3, 7120, 1543, 63, 38532951, 2953546, 403346, 10, 2208, 11938, 155, 4,
-             976, 14, 39979771, 25641295, 39664984, 585935, 12972, 108, 36]
-        )
+        if not debug:
+            max_ind_range = 40000000
+            self.ln_emb = np.array(
+                [39884406, 39043, 17289, 7420, 20263, 3, 7120, 1543, 63, 38532951, 2953546, 403346, 10, 2208, 11938, 155, 4,
+                976, 14, 39979771, 25641295, 39664984, 585935, 12972, 108, 36])
+            sub_sample_rate = 0.0
+        else:
+            max_ind_range = 10000000
+            self.ln_emb = np.array(
+                [9980333, 36084, 17217, 7378, 20134, 3, 7112, 1442, 61, 9758201, 1333352, 313829, 10, 2208, 11156, 122, 4,
+                970, 14, 9994222, 7267859, 9946608, 415421, 12420, 101, 36])
+            sub_sample_rate = 0.875
 
         self.__data = CriteoDataset(
             dataset="terabyte",
-            max_ind_range=40000000,
-            sub_sample_rate=0.0,
+            max_ind_range=max_ind_range,
+            sub_sample_rate=sub_sample_rate,
             randomize="total",
             split="test",
             raw_path=str(Path(dataset_path, "day")),
