@@ -15,7 +15,7 @@ import csv
 def parse_args():
     parser = argparse.ArgumentParser(description="Run NLP model from Hugging Face Transformers repo.")
     parser.add_argument("-m", "--model_name",
-                        type=str, required=True,
+                        type=str,
                         help="name of the model")
     parser.add_argument("-p,", "--precision",
                         type=str, choices=["fp32", "fp16"], required=True,
@@ -35,14 +35,18 @@ def parse_args():
     parser.add_argument("--profiler",
                         action="store_true",
                         help="enables TF profiler tracing")
+    parser.add_argument("--framework",
+                        type=str,
+                        choices=["tf"], required=True,
+                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, profiler, fp16):
+def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_runs, timeout, profiler, fp16):
     return transformers.TensorFlowBenchmarkArguments(models=[model_name],
                                                      batch_sizes=[batch_size],
                                                      sequence_lengths=[sequence_length],
-                                                     num_runs=num_of_runs,
+                                                     num_runs=num_runs,
                                                      timeout=timeout,
                                                      fp16=fp16,
                                                      profiler=profiler,
@@ -97,12 +101,22 @@ def main():
     if use_profiler:
         set_profile_path(args.model_name)
 
-    if args.precision == "fp32":
-        run_tf_fp32(args, use_profiler)
-    elif args.precision == "fp16":
-        run_tf_fp16(args, use_profiler)
+    if args.framework == "tf":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
+        if args.precision == "fp32":
+            run_tf_fp32(args, use_profiler)
+        elif args.precision == "fp16":
+            run_tf_fp16(args, use_profiler)
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        assert False
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
     if use_profiler:
         summarize_tf_profiling()
