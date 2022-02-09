@@ -31,6 +31,9 @@ class TFFrozenModelRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
+        tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+
         self.__graph = self.__initialize_graph(path_to_model)
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
