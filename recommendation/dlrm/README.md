@@ -9,6 +9,18 @@ The original paper on the architecture is available here: https://arxiv.org/pdf/
 
 Dataset can be downloaded here: https://ailab.criteo.com/ressources/criteo-1tb-click-logs-dataset-for-mlperf/
 
+For development purposes, you can use fake data generator to quickly create random data: https://github.com/mlcommons/inference/tree/master/recommendation/dlrm/pytorch/tools
+
+To generate a fake dataset for the full model:
+```
+./make_fake_criteo.sh terabyte
+```
+
+To generate a fake dataset for the debug model:
+```
+./make_fake_criteo.sh terabyte0875
+```
+
 Model can be downloaded here: https://dlrm.s3-us-west-1.amazonaws.com/models/tb00_40M.pt
 
 Smaller debug model can be downloaded here: https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt
