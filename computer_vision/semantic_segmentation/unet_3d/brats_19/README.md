@@ -23,9 +23,21 @@ Based on 10 images for PyTorch framework
 
 Dataset can be downloaded here: https://www.dropbox.com/s/effs1ksevlwrpqn/brats_19.tar.gz
 
+Extract the dataset:
+```
+tar -xvf brats_19.tar.gz
+```
+
 TensorFlow model can be downloaded here: https://zenodo.org/record/3928991/files/224_224_160.pb
 
 PyTorch model can be downloaded here: https://zenodo.org/record/3904106/files/fold_1.zip
+
+Unzip the model:
+```
+unzip fold_1.zip
+```
+
+The model you need to point to when running the script can be found under fold_1/nnUNet/3d_fullres/Task043_BraTS2019/nnUNetTrainerV2__nnUNetPlansv2.mlperf.1/fold_1/model_best.model
 
 ### Running instructions
 
