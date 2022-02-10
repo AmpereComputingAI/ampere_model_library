@@ -44,7 +44,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
+def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
         output = pytorch_runner.run(coco.get_input_array(shape))
@@ -65,7 +65,7 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, dis
     runner = PyTorchRunner(torchvision.models.detection.ssd300_vgg16(pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(**kwargs):
