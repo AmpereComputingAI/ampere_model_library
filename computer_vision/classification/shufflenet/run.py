@@ -79,7 +79,7 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
                        pre_processing="Inception", is1001classes=False, order="NCHW")
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(**kwargs):
