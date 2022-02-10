@@ -1,12 +1,13 @@
 import argparse
+import warnings
+
 import torch
 import torchvision
-import warnings
 
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 warnings.filterwarnings("ignore")
 
 

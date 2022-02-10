@@ -2,13 +2,13 @@ import os
 import time
 import argparse
 import warnings
+
 import torchvision
 
 from utils.cv.coco import COCODataset
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 warnings.filterwarnings("ignore")
 
 
@@ -39,16 +39,16 @@ def parse_args():
                         type=str,
                         choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
-    parser.add_argument("--jit_freeze", action='store_true',
-                        help="specify if model should be run with torch.jit.freeze model")
+    parser.add_argument("--disable_jit_freeze", action='store_true',
+                        help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, jit_freeze):
+def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
         output = pytorch_runner.run(coco.get_input_array(shape))
-        if jit_freeze:
+        if not disable_jit_freeze:
             output = output[1]
 
         for i in range(batch_size):
@@ -62,13 +62,14 @@ def run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, jit
 
     dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
-    runner = PyTorchRunner(torchvision.models.detection.ssd300_vgg16(pretrained=True), jit_freeze=jit_freeze)
+    runner = PyTorchRunner(torchvision.models.detection.ssd300_vgg16(pretrained=True),
+                           disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_of_runs, timeout, images_path, anno_path, jit_freeze):
-    return run_pytorch_fp(batch_size, num_of_runs, timeout, images_path, anno_path, jit_freeze)
+def run_pytorch_fp32(**kwargs):
+    return run_pytorch_fp(**kwargs)
 
 
 def main():
@@ -76,13 +77,14 @@ def main():
 
     if args.framework == "pytorch":
         if args.precision == "fp32":
-            run_pytorch_fp32(
-                args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path, args.jit_freeze
-            )
+            run_pytorch_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

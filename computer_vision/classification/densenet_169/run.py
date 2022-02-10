@@ -1,9 +1,10 @@
 import argparse
+
 from utils.cv.imagenet import ImageNet
 from utils.tf import TFFrozenModelRunner
 from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():

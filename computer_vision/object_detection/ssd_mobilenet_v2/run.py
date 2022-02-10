@@ -1,14 +1,14 @@
 import os
 import time
 import argparse
+
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
-
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -96,6 +96,7 @@ def run_tf_fp32(**kwargs):
 
 def run_tflite_int8(**kwargs):
     return run_tflite(**kwargs)
+
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
 

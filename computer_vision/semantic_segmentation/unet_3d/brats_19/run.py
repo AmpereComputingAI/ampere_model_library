@@ -1,9 +1,9 @@
-import argparse
 import os
+import argparse
 
-import numpy as np
 import pickle
 import torch
+import numpy as np
 
 import utils.cv.nnUNet.nnunet as nnunet
 from utils.cv.brats import BraTS19
@@ -11,7 +11,6 @@ from utils.tf import TFFrozenModelRunner
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
-
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -60,6 +59,7 @@ def run_tf_fp32(**kwargs):
 def run_tf_fp16(**kwargs):
     return run_tf_fp(**kwargs)
 
+
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
 
     def run_single_pass(pytorch_runner, brats):
@@ -74,6 +74,7 @@ def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
 
     runner = PyTorchRunner(model.network, disable_jit_freeze=True)
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+
 
 def restore_model(checkpoint):
     pkl_file = checkpoint + ".pkl"
