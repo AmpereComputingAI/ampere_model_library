@@ -8,7 +8,7 @@ from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -35,10 +35,12 @@ def parse_args():
                         type=str,
                         choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
+    parser.add_argument("--debug", action='store_true',
+                        help="use smaller (~10GB) debug model")
     return parser.parse_args()
 
 
-def run_torch_fp(model_path, batch_size, num_runs, timeout, dataset_path, **kwargs):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
 
     def run_single_pass(torch_runner, criteo):
         _ = torch_runner.run(criteo.get_inputs())
@@ -46,13 +48,20 @@ def run_torch_fp(model_path, batch_size, num_runs, timeout, dataset_path, **kwar
     append_dlrm_to_pypath()
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
 
-    dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path)
+    dataset = Criteo(max_batch_size=batch_size, dataset_path=dataset_path, debug=debug)
 
-    ln_top = np.array([479, 1024, 1024, 512, 256, 1])
+    if not debug:
+        m_spa = 128
+        ln_bot = np.array([13, 512, 256, 128])
+        ln_top = np.array([479, 1024, 1024, 512, 256, 1])
+    else:
+        m_spa = 64
+        ln_bot = np.array([13, 512, 256, 64])
+        ln_top = np.array([415, 512, 512, 256, 1])
     dlrm = DLRM_Net(
-        m_spa=128,
+        m_spa=m_spa,
         ln_emb=dataset.ln_emb,
-        ln_bot=np.array([13, 512, 256, 128]),
+        ln_bot=ln_bot,
         ln_top=ln_top,
         arch_interaction_op="dot",
         sigmoid_top=ln_top.size-2,
@@ -80,7 +89,7 @@ def main():
                 "a path to model is unspecified!")
 
         if args.precision == "fp32":
-            run_torch_fp32(**vars(args))
+            run_pytorch_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
