@@ -8,7 +8,7 @@ from utils.tflite import TFLiteRunner
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.tf import TFFrozenModelRunner
-from utils.misc import ModelPathUnspecified, FrameworkUnsupportedError, print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die
 warnings.filterwarnings("ignore")
 
 

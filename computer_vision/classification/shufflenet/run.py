@@ -6,7 +6,7 @@ from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError, ModelPathUnspecified
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
