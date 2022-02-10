@@ -15,7 +15,7 @@ class OrtRunner:
         if os.getenv("ORT_PROFILER", "0") == "1":
             session_options.enable_profiling = True
 
-        self.session = ort.InferenceSession(model, session_options)
+        self.session = ort.InferenceSession(model, session_options, providers=ort.get_available_providers())
 
         self.__feed_dict = dict()
         self.__output_names = [output.name for output in self.session.get_outputs()]
