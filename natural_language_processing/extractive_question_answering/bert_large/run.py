@@ -36,7 +36,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
     def run_single_pass(tf_runner, squad):
 
         tf_runner.set_input_tensor("input_ids:0", squad.get_input_ids_array())
@@ -67,11 +67,11 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, squad_path):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_tf_fp16(**kwargs):
+def run_tf_fp16(kwargs):
     return run_tf_fp(**kwargs)
 
 
@@ -83,9 +83,9 @@ def main():
                 "a path to model is unspecified!")
 
         if args.precision == "fp32":
-            run_tf_fp32(**vars(args))
+            run_tf_fp32(vars(args))
         elif args.precision == "fp16":
-            run_tf_fp16(**vars(args))
+            run_tf_fp16(vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
