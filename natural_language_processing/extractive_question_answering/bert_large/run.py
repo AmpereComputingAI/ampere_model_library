@@ -71,8 +71,8 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, squad_path):
     return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_tf_fp16(kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
 def main():
@@ -83,9 +83,9 @@ def main():
                 "a path to model is unspecified!")
 
         if args.precision == "fp32":
-            run_tf_fp32(vars(args))
+            run_tf_fp32(**vars(args))
         elif args.precision == "fp16":
-            run_tf_fp16(vars(args))
+            run_tf_fp16(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

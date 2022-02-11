@@ -34,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
 
     def run_single_pass(tf_runner, squad):
 
