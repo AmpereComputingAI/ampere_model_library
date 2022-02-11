@@ -1,12 +1,12 @@
 import os
 import time
 import argparse
+
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
-
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -53,7 +53,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path,
                     coco.convert_bbox_to_coco_order(output["detection_bboxes:0"][i][d] * shape[0], 1, 0, 3, 2),
                     output["detection_scores:0"][i][d],
                     coco.translate_cat_id_to_coco(int(output["detection_classes:0"][i][d]),
-                                                      switch_to_indexing_from_1=False)
+                                                  switch_to_indexing_from_1=False)
                 )
                 if output["detection_scores:0"][i][d] < 0.05:
                     break

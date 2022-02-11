@@ -1,4 +1,5 @@
 import argparse
+
 import torch
 import torchvision
 
@@ -8,7 +9,7 @@ from utils.tflite import TFLiteRunner
 from utils.pytorch import PyTorchRunner
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError, ModelPathUnspecified, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():

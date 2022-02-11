@@ -1,11 +1,12 @@
 import argparse
+
 import torch
 import torchvision
 
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -70,6 +71,7 @@ def main():
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

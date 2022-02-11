@@ -1,9 +1,12 @@
 import argparse
-from utils.tf import TFFrozenModelRunner
+
 import numpy as np
+
+from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer
 from utils.nlp.squad import Squad_v1_1
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():

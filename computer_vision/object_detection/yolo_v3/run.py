@@ -1,10 +1,11 @@
 import argparse
+
 import numpy as np
+
 from utils.cv.coco import COCODataset
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
-
-from utils.misc import UnsupportedPrecisionValueError, FrameworkUnsupportedError
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -36,7 +37,8 @@ def parse_args():
                         help="specify the framework in which a model should be run")
     return parser.parse_args()
 
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path):
+
+def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, **kwargs):
 
     def run_single_pass(ort_runner, coco):
         shape = (416, 416)
@@ -77,13 +79,14 @@ def main():
         if args.precision == "fp32":
             if args.batch_size != 1:
                 raise ValueError("Batch size must be 1 for this model.")
-            run_ort_fp32(
-                args.model_path, args.batch_size, args.num_runs, args.timeout, args.images_path, args.anno_path
-            )
+            run_ort_fp32(**vars(args))
         else:
-            raise UnsupportedPrecisionValueError(args.precision)
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        raise FrameworkUnsupportedError(args.framework)
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":

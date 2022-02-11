@@ -2,12 +2,12 @@ import os
 import sys
 import torch
 import argparse
+
 import numpy as np
 
 from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-
 from utils.misc import print_goodbye_message_and_die
 
 

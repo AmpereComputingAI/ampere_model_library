@@ -1,15 +1,16 @@
-import transformers
+import os
+import csv
+import shutil
+import argparse
+from datetime import datetime
 
+import transformers
 import tensorflow as tf
 from tensorflow.python.profiler import model_analyzer
-from datetime import datetime
-import os
-import argparse
-from utils.misc import print_goodbye_message_and_die
+
 from utils.profiling import *
+from utils.misc import print_goodbye_message_and_die
 from utils.benchmark import get_intra_op_parallelism_threads
-import shutil
-import csv
 
 
 def parse_args():
