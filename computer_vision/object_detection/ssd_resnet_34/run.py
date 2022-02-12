@@ -20,6 +20,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -32,14 +36,10 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str,
                         help="path to file with validation annotations")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
 
     def run_single_pass(tf_runner, coco):
         shape = (1200, 1200)
@@ -66,12 +66,12 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path,
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
 
-def run_tf_fp16(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
 
 def main():

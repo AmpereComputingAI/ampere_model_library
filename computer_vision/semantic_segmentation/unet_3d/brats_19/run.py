@@ -22,6 +22,10 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
+    parser.add_argument("-f", "--framework",
+                        type=str,
+                        choices=["tf", "pytorch"], required=True,
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -31,14 +35,10 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to directory with BraTS19 dataset")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf", "pytorch"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, num_runs, timeout, dataset_path, **kwargs):
+def run_tf_fp(model_path, num_runs, timeout, dataset_path):
 
     def run_single_pass(tf_runner, brats):
         tf_runner.set_input_tensor("input:0", np.expand_dims(brats.get_input_array(), axis=0))
@@ -52,12 +52,12 @@ def run_tf_fp(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
+    return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_tf_fp16(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
+    return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):

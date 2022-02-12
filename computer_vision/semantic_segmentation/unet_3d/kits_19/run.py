@@ -17,6 +17,10 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -26,10 +30,6 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to directory with KiTS19 dataset")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
@@ -48,7 +48,7 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, num_runs, timeout, kits_path):
+def run_tf_fp32(model_path, num_runs, timeout, kits_path, **kwargs):
     return run_tf_fp(model_path, num_runs, timeout, kits_path)
 
 
