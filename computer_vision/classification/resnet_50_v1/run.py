@@ -46,7 +46,7 @@ def parse_args():
     return args
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
+def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -87,12 +87,12 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
     return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
 
 
-def run_pytorch_fp32(**kwargs):
-    return run_pytorch_fp(**kwargs)
+def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path):
+    return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_ort_fp32(**kwargs):
-    return run_ort_fp(**kwargs)
+def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+    return run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path)
 
 
 def main():
