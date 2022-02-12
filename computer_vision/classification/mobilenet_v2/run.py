@@ -106,7 +106,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
   
 
-def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, input_name, is1001classes, precision, preprocessing):
+def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, input_name, is1001classes, precision, preprocessing):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -123,7 +123,7 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
                        pre_processing=preprocessing, is1001classes=is1001classes, order="NCHW")
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
@@ -142,12 +142,12 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, di
     return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze)
 
 
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, **kwargs):
-    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "data", False, "float32", "SSD_2")
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "data", False, "float32", "SSD_2")
 
 
-def run_ort_fp16(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, **kwargs):
-    run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, "input:0", True, "float16", "Inception")
+def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "input:0", True, "float16", "Inception")
 
 
 def main():

@@ -67,7 +67,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path):
+def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -84,15 +84,15 @@ def run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels
                        pre_processing="VGG", is1001classes=True, order="NCHW")
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, labels_path, **kwargs):
-    return run_ort_fp(model_path, batch_size, num_of_runs, timeout, images_path, labels_path)
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def main():
