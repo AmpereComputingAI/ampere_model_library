@@ -56,7 +56,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
     tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
 
     def tokenize(question, text):
-        return tokenizer(question, text[:seq_size], add_special_tokens=True)
+        return tokenizer(question, text, add_special_tokens=True, max_length=seq_size)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
