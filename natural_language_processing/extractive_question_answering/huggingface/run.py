@@ -18,6 +18,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -27,10 +31,6 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 

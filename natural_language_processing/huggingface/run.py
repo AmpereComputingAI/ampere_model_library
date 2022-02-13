@@ -27,6 +27,10 @@ def parse_args():
     parser.add_argument("-s", "--sequence_length",
                         type=int, default=8,
                         help="sequence length to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=15.0,
                         help="timeout in seconds")
@@ -36,10 +40,6 @@ def parse_args():
     parser.add_argument("--profiler",
                         action="store_true",
                         help="enables TF profiler tracing")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 

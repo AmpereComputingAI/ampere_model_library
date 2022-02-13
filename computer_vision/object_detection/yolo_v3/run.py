@@ -19,6 +19,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="ort",
+                        choices=["ort"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -31,15 +35,10 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str,
                         help="path to file with validation annotations")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["ort"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno_path, **kwargs):
-
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
     def run_single_pass(ort_runner, coco):
         shape = (416, 416)
         ort_runner.set_input_tensor("input_1", coco.get_input_array(shape).astype("float32"))
@@ -57,7 +56,6 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno
             idx_1 = (idx_[0], idx_[2])
             out_boxes.append(boxes[idx_1])
 
-
         for d, box in enumerate(out_boxes):
             coco.submit_bbox_prediction(
                 0,
@@ -70,7 +68,7 @@ def run_ort_fp32(model_path, batch_size, num_of_runs, timeout, images_path, anno
                           pre_processing="YOLO", order="NCHW")
     runner = OrtRunner(model_path)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_of_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
