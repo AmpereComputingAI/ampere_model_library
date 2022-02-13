@@ -143,11 +143,11 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, di
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "data", False, "float32", "SSD_2")
+    return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "data", False, "float32", "SSD_2")
 
 
 def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "input:0", True, "float16", "Inception")
+    return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, "input:0", True, "float16", "Inception")
 
 
 def main():
