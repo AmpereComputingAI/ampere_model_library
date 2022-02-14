@@ -1,11 +1,14 @@
 import argparse
+
 import numpy as np
 import tensorflow as tf
+
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
@@ -15,6 +18,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -24,10 +31,6 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 

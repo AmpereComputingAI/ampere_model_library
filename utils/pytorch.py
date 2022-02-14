@@ -57,10 +57,10 @@ class PyTorchRunner:
             return output
 
         with torch.no_grad():
-            if self.__frozen_script is not None:
-                output_tensor = runner_func(self.__frozen_script)
-            else:
+            if self.__frozen_script is None:
                 output_tensor = runner_func(self.__model)
+            else:
+                output_tensor = runner_func(self.__frozen_script)
 
         return output_tensor
 

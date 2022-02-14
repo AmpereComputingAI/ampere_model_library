@@ -1,9 +1,9 @@
-import argparse
 import os
+import argparse
 
-import numpy as np
 import pickle
 import torch
+import numpy as np
 
 import utils.cv.nnUNet.nnunet as nnunet
 from utils.cv.brats import BraTS19
@@ -11,7 +11,6 @@ from utils.tf import TFFrozenModelRunner
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
-
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -23,6 +22,10 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
+    parser.add_argument("-f", "--framework",
+                        type=str,
+                        choices=["tf", "pytorch"], required=True,
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -32,14 +35,10 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to directory with BraTS19 dataset")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf", "pytorch"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, num_runs, timeout, dataset_path, **kwargs):
+def run_tf_fp(model_path, num_runs, timeout, dataset_path):
 
     def run_single_pass(tf_runner, brats):
         tf_runner.set_input_tensor("input:0", np.expand_dims(brats.get_input_array(), axis=0))
@@ -53,12 +52,13 @@ def run_tf_fp(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
+    return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_tf_fp16(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
+    return run_tf_fp(model_path, num_runs, timeout, dataset_path)
+
 
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
 
@@ -74,6 +74,7 @@ def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
 
     runner = PyTorchRunner(model.network, disable_jit_freeze=True)
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+
 
 def restore_model(checkpoint):
     pkl_file = checkpoint + ".pkl"

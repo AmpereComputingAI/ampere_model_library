@@ -1,7 +1,8 @@
 import argparse
+import warnings
+
 import torch
 import torchvision
-import warnings
 
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
@@ -18,6 +19,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="pytorch",
+                        choices=["pytorch"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -30,16 +35,12 @@ def parse_args():
     parser.add_argument("--labels_path",
                         type=str,
                         help="path to file with validation labels")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["pytorch"], required=True,
-                        help="specify the framework in which a model should be run")
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
+def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -62,8 +63,8 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(**kwargs):
-    return run_pytorch_fp(**kwargs)
+def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
+    return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze)
 
 
 def main():

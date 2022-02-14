@@ -1,10 +1,13 @@
 import argparse
-from utils.tf import TFFrozenModelRunner
+
 import numpy as np
+
+from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run BERT Large model (from mlcommons:inference repo).")
@@ -17,6 +20,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -26,14 +33,10 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
     def run_single_pass(tf_runner, squad):
 
         tf_runner.set_input_tensor("input_ids:0", squad.get_input_ids_array())
@@ -53,7 +56,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
 
     def tokenize(question, text):
-        return tokenizer(question, text, add_special_tokens=True)
+        return tokenizer(question, text, add_special_tokens=True, truncation=True, max_length=seq_size)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
@@ -64,12 +67,12 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_tf_fp16(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
 def main():

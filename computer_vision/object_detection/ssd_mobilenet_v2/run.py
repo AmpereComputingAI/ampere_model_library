@@ -1,13 +1,13 @@
 import os
 import time
 import argparse
+
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.tf import TFFrozenModelRunner
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
-
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -22,6 +22,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str,
+                        choices=["tf", "ort"], required=True,
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -34,14 +38,10 @@ def parse_args():
     parser.add_argument("--anno_path",
                         type=str,
                         help="path to file with validation annotations")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["tf", "ort"], required=True,
-                        help="specify the framework in which a model should be run")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
 
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
@@ -90,12 +90,13 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
 
-def run_tflite_int8(**kwargs):
-    return run_tflite(**kwargs)
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    return run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path)
+
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
 

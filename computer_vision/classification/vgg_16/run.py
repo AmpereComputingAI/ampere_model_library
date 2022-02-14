@@ -1,4 +1,5 @@
 import argparse
+
 import torch
 import torchvision
 
@@ -22,6 +23,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str,
+                        choices=["pytorch", "tf", "ort"], required=True,
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -34,17 +39,12 @@ def parse_args():
     parser.add_argument("--labels_path",
                         type=str,
                         help="path to file with validation labels")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["pytorch", "tf", "ort"], required=True,
-                        help="specify the framework in which a model should be run")
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-
+def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
         tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
@@ -63,8 +63,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-
+def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     def run_single_pass(tflite_runner, imagenet):
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
@@ -84,8 +83,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
-
+def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
         output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
@@ -104,23 +102,23 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tf_fp16(**kwargs):
-    return run_tf_fp(**kwargs)
+def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tflite_int8(**kwargs):
-    return run_tflite(**kwargs)
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_pytorch_fp32(**kwargs):
-    return run_pytorch_fp(**kwargs)
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("data", imagenet.get_input_array(shape))
@@ -139,8 +137,8 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
 
+def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))
@@ -188,7 +186,7 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
-            
+
         if args.precision == "fp32":
             run_ort_fp32(**vars(args))
         elif args.precision == "fp16":
@@ -196,7 +194,7 @@ def main():
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
-            
+
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

@@ -2,12 +2,12 @@ import os
 import sys
 import torch
 import argparse
+
 import numpy as np
 
 from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -22,6 +22,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=2048,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="pytorch",
+                        choices=["pytorch"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -31,16 +35,12 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to Criteo dataset .txt file")
-    parser.add_argument("--framework",
-                        type=str,
-                        choices=["pytorch"], required=True,
-                        help="specify the framework in which a model should be run")
     parser.add_argument("--debug", action='store_true',
                         help="use smaller (~10GB) debug model")
     return parser.parse_args()
 
 
-def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug):
 
     def run_single_pass(torch_runner, criteo):
         _ = torch_runner.run(criteo.get_inputs())
@@ -77,8 +77,8 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(**kwargs):
-    return run_pytorch_fp(**kwargs)
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
+    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug)
 
 
 def main():
