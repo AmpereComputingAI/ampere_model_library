@@ -53,12 +53,12 @@ def get_intra_op_parallelism_threads():
     return intra_op_parallelism_threads
 
 
-def benchmark_func(func, num_of_runs, timeout, warm_up=True):
+def benchmark_func(func, num_runs, timeout, warm_up=True):
     """
     A function for benchmarking functions compliant to model_zoo approach in other parts of the code.
 
     :param func: python function to be benchmarked
-    :param num_of_runs: int, number of func invocations to be done
+    :param num_runs: int, number of func invocations to be done
     :param timeout: float, time expressed in seconds after which benchmarking should be stopped
     :param warm_up: bool, whether to do a single warm-up run excluded from measurements
 
@@ -73,26 +73,26 @@ def benchmark_func(func, num_of_runs, timeout, warm_up=True):
         _ = benchmark(func)
 
     latencies = list()
-    if num_of_runs is None:
+    if num_runs is None:
         i = 0
         benchmarking_start = time.time()
         while time.time() - benchmarking_start < timeout:
             latencies.append(benchmark(func))
             i += 1
     else:
-        i = num_of_runs
-        for _ in tqdm(range(num_of_runs)):
+        i = num_runs
+        for _ in tqdm(range(num_runs)):
             latencies.append(benchmark(func))
 
     return sum(latencies) / i
 
 
-def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeout):
+def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     """
     A function running model in unified way.
 
-    If num_of_runs is specified the function will execute single_pass_func n times and then summarize accuracy and perf.
-    If num_of_runs is unspecified (None) the function will execute single_pass_func until either timeout is reached or
+    If num_runs is specified the function will execute single_pass_func n times and then summarize accuracy and perf.
+    If num_runs is unspecified (None) the function will execute single_pass_func until either timeout is reached or
     end of dataset.
 
     :param single_pass_func: python function that:
@@ -102,12 +102,12 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
     :param runner: python class providing the unified runner facilities
     :param dataset: python class providing the unified dataset facilities
     :param batch_size: int, batch size
-    :param num_of_runs: int, number of times that single_pass_func should be executed
+    :param num_runs: int, number of times that single_pass_func should be executed
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
-    if num_of_runs is not None:
-        requested_instances_num = num_of_runs * batch_size
+    if num_runs is not None:
+        requested_instances_num = num_runs * batch_size
         if dataset.available_instances < requested_instances_num:
             utils.print_goodbye_message_and_die(
                 f"Number of runs requested exceeds number of instances available in dataset! "
@@ -115,18 +115,18 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_of_runs, timeou
 
     start = time.time()
     try:
-        if num_of_runs is None:
+        if num_runs is None:
             single_pass_func(runner, dataset)
             while time.time() - start < timeout:
                 single_pass_func(runner, dataset)
         else:
-            for _ in tqdm(range(num_of_runs)):
+            for _ in tqdm(range(num_runs)):
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_of_runs is None:
+        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
             if dataset.reset():
                 return run_model(
-                    single_pass_func, runner, dataset, batch_size, num_of_runs, timeout - (time.time() - start))
+                    single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
