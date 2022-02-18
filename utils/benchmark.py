@@ -132,23 +132,23 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
 
 
 def print_performance_metrics(
-        warm_up_run_latency: float, total_inference_time: float, number_of_runs: int, batch_size: int):
+        warm_up_run_latency: float, total_inference_time: float, num_runs: int, batch_size: int):
     """
     A function printing two performance metrics: latency and throughput.
 
     :param warm_up_run_latency: float, warm up latency expressed in seconds
     :param total_inference_time: float, total inference time expressed in seconds
-    :param number_of_runs: int, number of runs completed
+    :param num_runs: int, number of runs completed
     :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
     """
-    if number_of_runs == 0:
+    if num_runs == 0:
         utils.print_goodbye_message_and_die("Cannot print performance data as not a single run has been completed!")
 
-    if number_of_runs == 1:
+    if num_runs == 1:
         utils.print_warning_message("Printing performance data based just on a single (warm-up) run!")
         latency_in_seconds = warm_up_run_latency
     else:
-        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (number_of_runs - 1)
+        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (num_runs - 1)
 
     latency_in_ms = latency_in_seconds * 1000
     instances_per_second = batch_size / latency_in_seconds
