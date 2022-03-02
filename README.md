@@ -1,4 +1,4 @@
-# ampere model library
+# Ampere Model Library
 Model Library goal is to provide facilities necessary for:
 - benchmarking various AI architectures easily with different frameworks 
 - testing accuracy of AI models on data representative of their envisioned task
