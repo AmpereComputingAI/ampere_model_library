@@ -26,6 +26,7 @@ class Criteo:
                 env_var, f"Path to Criteo dataset directory has not been specified with {env_var} flag")
 
         self.__max_batch_size = max_batch_size
+        self.__predictions = []
 
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
@@ -79,5 +80,8 @@ class Criteo:
         """
         return self.__single_input
 
+    def submit_predictions(self, prediction):
+        self.__predictions.append(prediction)
+
     def summarize_accuracy(self):
-        pass
+        return self.__predictions
