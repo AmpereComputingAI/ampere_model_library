@@ -162,9 +162,14 @@ class FilterbankFeatures(nn.Module):
                           dim=1)
 
         # do stft
-        x = torch.view_as_real(torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_length,
-                               win_length=self.win_length,
-                               center=True, window=self.window.to(dtype=torch.float), return_complex=True))
+        # x = torch.view_as_real(torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_length,
+        #                        win_length=self.win_length,
+        #                        center=True, window=self.window.to(dtype=torch.float), return_complex=True))
+
+        x = librosa.stft(x.numpy(), n_fft=self.n_fft, hop_length=self.hop_length,
+                         win_length=self.win_length,
+                         center=True, window=self.window.to(dtype=torch.float).numpy())
+        x = torch.view_as_real(torch.tensor(x, dtype=torch.cfloat))
 
         # get power spectrum
         x = x.pow(2).sum(-1)
