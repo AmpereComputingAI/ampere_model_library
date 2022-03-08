@@ -18,6 +18,19 @@ Based on 54 402 words from OpenSLR LibriSpeech Corpus for PyTorch framework
 
 Dataset can be downloaded here: https://www.openslr.org/resources/12/dev-clean.tar.gz
 
+Extract the dataset:
+```
+tar -xvf dev-clean.tar.gz
+```
+
+The dataset needs to be converted before use. You can do it using a script that can be downloaded here: https://github.com/mlcommons/inference/blob/08f5e36b74f4ec78ad738a287ae50462bb130330/speech_recognition/rnnt/pytorch/utils/convert_librispeech.py
+
+```
+python convert_librispeech.py --input_dir path/to/dev-clean --dest_dir path/to/dev-clean-wav --output_json path/to/dev-clean-wav.json
+```
+
+Alternatively, you can download preconverted dataset from here: https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/LibriSpeech.tar.gz
+
 PyTorch model in fp32 precision can be downloaded here: https://zenodo.org/record/3662521/files/DistributedDataParallel_1576581068.9962234-epoch-100.pt
 
 ### Running instructions
@@ -40,10 +53,10 @@ Now you are able to run the run.py script.
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
 
-For PyTorch implementation the precision (with a flag "-p") as well as framework (with a fla "--framework") have to be specified.\
+For PyTorch implementation the path to model (with a flag "-m"), the precision (with a flag "-p") as well as framework (with a flag "-f") have to be specified.
 
 Example command for PyTorch:
 
 ```
-python3 run.py -p fp32 --framework pytorch
+python3 run.py -m path/to/model.pt -p fp32 -f pytorch
 ```
