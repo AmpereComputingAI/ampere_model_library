@@ -37,7 +37,7 @@ class PyTorchRunner:
         """
 
         def runner_func(model):
-            if type(input) == tuple:
+            if isinstance(input, tuple):
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
