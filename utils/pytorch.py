@@ -29,21 +29,24 @@ class PyTorchRunner:
 
         print("\nRunning with PyTorch\n")
 
-    def run(self, input):
+    def run(self, input, generate=None):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        def runner_func(model):
+        def runner_func(model, generate=None):
             if type(input) == tuple:
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
             else:
                 start = time.time()
-                output = model(input)
+                if generate:
+                    output = model.generate(input)
+                else:
+                    output = model(input)
                 finish = time.time()
 
             self.__total_inference_time += finish - start
@@ -58,7 +61,7 @@ class PyTorchRunner:
 
         with torch.no_grad():
             if self.__frozen_script is None:
-                output_tensor = runner_func(self.__model)
+                output_tensor = runner_func(self.__model, generate=generate)
             else:
                 output_tensor = runner_func(self.__frozen_script)
 
