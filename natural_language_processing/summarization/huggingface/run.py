@@ -6,7 +6,7 @@ import torch
 
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from transformers import AutoTokenizer, AutoModel, BartForConditionalGeneration
+from transformers import AutoTokenizer, BartForConditionalGeneration
 from utils.nlp.cnn_dailymail import CNN_DailyMail
 from utils.misc import print_goodbye_message_and_die
 
