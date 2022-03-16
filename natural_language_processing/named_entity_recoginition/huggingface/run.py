@@ -11,7 +11,7 @@ from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for summarization task.")
+    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for named entity recognition task.")
     parser.add_argument("-m", "--model_name",
                         type=str, default="dslim/bert-large-NER",
                         help="name of the model")
@@ -30,7 +30,7 @@ def parse_args():
                         help="number of passes through network to execute")
     parser.add_argument("--conll2003_path",
                         type=str,
-                        help="path to directory with the CNN/DailyMail dataset")
+                        help="path to directory with the CoNLL-2003 dataset")
     return parser.parse_args()
 
 
