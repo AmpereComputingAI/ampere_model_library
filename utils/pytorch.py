@@ -12,13 +12,16 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
         self.__frozen_script = None
         if not disable_jit_freeze:
-            self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+            try:
+                self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+            except torch.jit.frontend.UnsupportedNodeError:
+                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs=example_inputs, strict=False))
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
@@ -29,24 +32,21 @@ class PyTorchRunner:
 
         print("\nRunning with PyTorch\n")
 
-    def run(self, input, generate=None):
+    def run(self, input):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        def runner_func(model, generate=None):
+        def runner_func(model):
             if isinstance(input, tuple):
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
             else:
                 start = time.time()
-                if generate:
-                    output = model.generate(input)
-                else:
-                    output = model(input)
+                output = model(input)
                 finish = time.time()
 
             self.__total_inference_time += finish - start
@@ -61,7 +61,7 @@ class PyTorchRunner:
 
         with torch.no_grad():
             if self.__frozen_script is None:
-                output_tensor = runner_func(self.__model, generate=generate)
+                output_tensor = runner_func(self.__model)
             else:
                 output_tensor = runner_func(self.__frozen_script)
 

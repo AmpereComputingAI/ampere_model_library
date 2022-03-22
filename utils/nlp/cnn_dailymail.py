@@ -74,21 +74,21 @@ class CNN_DailyMail:
         if self.__unsubmitted_count == 0:
             texts = list()
             self.__summaries = list()
-        examples_needed = self.__batch_size
-        while examples_needed > 0:
-            try:
-                text, summary = next(self.__example_iterator)
-            except StopIteration:
-                raise utils.OutOfInstances("No more examples to process in the CNN/DailyMail directory provided.")
-            tokenized = self.__tokenize_func(text)
-            if len(tokenized["input_ids"]) > 1024:
-                continue
-            examples_needed -= 1
-            texts.append(text)
-            self.__summaries.append(summary)
-            self.__texts_count += 1
-            self.__unsubmitted_count += 1
-        self.__current_inputs = self.__tokenize_func(texts)
+            examples_needed = self.__batch_size
+            while examples_needed > 0:
+                try:
+                    text, summary = next(self.__example_iterator)
+                except StopIteration:
+                    raise utils.OutOfInstances("No more examples to process in the CNN/DailyMail directory provided.")
+                tokenized = self.__tokenize_func(text)
+                if len(tokenized["input_ids"]) > 1024:
+                    continue
+                examples_needed -= 1
+                texts.append(text)
+                self.__summaries.append(summary)
+                self.__texts_count += 1
+                self.__unsubmitted_count += 1
+            self.__current_inputs = self.__tokenize_func(texts)
             
 
     def __get_input_array(self, input_name: string):

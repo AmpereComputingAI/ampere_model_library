@@ -1,4 +1,5 @@
 import argparse
+from collections import namedtuple
 
 import numpy as np
 import torch
@@ -31,15 +32,20 @@ def parse_args():
     parser.add_argument("--conll2003_path",
                         type=str,
                         help="path to directory with the CoNLL-2003 dataset")
+    parser.add_argument("--disable_jit_freeze", action='store_true',
+                        help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, conll2003_path, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, conll2003_path, disable_jit_freeze, **kwargs):
 
     def run_single_pass(pytorch_runner, conll2003):
         
         input = torch.tensor(np.array(conll2003.get_input_ids_array(), dtype=np.int32))
         output = pytorch_runner.run((input))
+        if type(output) == dict:
+            # After jit_freeze, the output of the model has different type
+            output = namedtuple("TokenClassifierOutput", output.keys())(*output.values())
         
         for i in range(batch_size):
             tokens = tokenizer.convert_ids_to_tokens(input[i])
@@ -68,7 +74,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, conll2003_path, **kwa
     dataset = CoNNL2003(batch_size, tokenize, detokenize, dataset_path=conll2003_path)
     model = AutoModelForTokenClassification.from_pretrained(model_name)
     id2label = model.config.id2label
-    runner = PyTorchRunner(model, disable_jit_freeze=True)
+    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
