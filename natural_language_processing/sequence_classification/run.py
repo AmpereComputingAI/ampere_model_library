@@ -1,7 +1,7 @@
 import argparse
 
 from utils.mrpc import MRPC
-from utils.tf import NLPModelRunner
+from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
