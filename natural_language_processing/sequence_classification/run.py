@@ -13,7 +13,7 @@ def parse_args():
                              "list of all available models is available at "
                              "https://huggingface.co/models")
     parser.add_argument("-b", "--batch_size",
-                        type=int,
+                        type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
