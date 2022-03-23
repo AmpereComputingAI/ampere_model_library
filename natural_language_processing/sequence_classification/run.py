@@ -52,7 +52,6 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
             )
 
     dataset = MRPC(model_name, batch_size, dataset_path)
-    # runner = NLPModelRunner(model_name)
 
     runner = TFSavedModelRunner()
     runner.model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
