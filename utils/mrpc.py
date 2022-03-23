@@ -68,13 +68,7 @@ class MRPC:
 
         :return: a NumPy array containing the predictions (a 1 or 0 value)
         """
-        # print(output)
-        # quit()
-        # predictions = np.argmax(output)
-        # print(predictions)
-        # quit()
-        predictions = np.argmax(output)
-        # predictions = np.argmax(output, axis=0)
+        predictions = int(tf.argmax(output[0], axis=1))
         return predictions
 
     def submit_predictions(self, prediction, label):
