@@ -55,7 +55,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     # runner = NLPModelRunner(model_name)
 
     runner = TFSavedModelRunner()
-    runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
+    runner.model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
