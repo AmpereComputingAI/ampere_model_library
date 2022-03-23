@@ -1,7 +1,9 @@
 import argparse
+
 from utils.mrpc import MRPC
 from utils.tf import NLPModelRunner
 from utils.benchmark import run_model
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -15,6 +17,10 @@ def parse_args():
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -28,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run(model_name, batch_size, num_runs, timeout, dataset_path):
+def run_tf(model_name, batch_size, num_runs, timeout, dataset_path):
 
     def run_single_pass(nlp_runner, mrpc):
 
@@ -43,14 +49,21 @@ def run(model_name, batch_size, num_runs, timeout, dataset_path):
             )
 
     dataset = MRPC(model_name, batch_size, dataset_path)
-    runner = NLPModelRunner(model_name)
+    # runner = NLPModelRunner(model_name)
+
+    runner = TFSavedModelRunner()
+    runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
-    run(args.model_name, args.batch_size, args.num_runs, args.timeout, args.dataset_path)
+    if args.framework == "tf":
+        run_tf(**vars(args))
+    else:
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":
