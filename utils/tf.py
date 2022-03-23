@@ -10,51 +10,6 @@ from transformers import TFAutoModelForSequenceClassification
 import utils.benchmark as bench_utils
 
 
-class NLPModelRunner:
-    """
-    A class providing facilities to run NLP transformer models
-    """
-    def __init__(self, model_name: str):
-
-        tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
-        tf.config.threading.set_inter_op_parallelism_threads(1)
-        self.__model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
-
-    def run(self, input):
-        """
-        A function executing single pass over the network, measuring the time needed and returning the output.
-
-        :return: NumPy array, output array with predictions
-        """
-
-        start = time.time()
-        paraphrase_classification_logits = self.__model(input)[0]
-        finish = time.time()
-
-        output = tf.nn.softmax(paraphrase_classification_logits, axis=1).numpy()
-
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        self.__times_invoked += 1
-
-        return output
-
-    def print_performance_metrics(self, batch_size):
-        """
-        A function printing performance metrics on runs executed by the runner so far
-
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
-        """
-
-        perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
-        return perf
-
-
 class TFProfiler:
     def __init__(self):
         self.__do_profile = os.getenv("PROFILER", "0") == "1"
@@ -204,15 +159,8 @@ class TFSavedModelRunner:
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
-        print(input)
-        print(self.model(input))
-        print(self.model(input)[0])
-
-        quit()
         start = time.time()
-
-        output = self.model(input)[0]
+        output = self.model(input)
         finish = time.time()
 
         self.__total_inference_time += finish - start
