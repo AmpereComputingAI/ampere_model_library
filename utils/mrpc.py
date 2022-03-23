@@ -68,6 +68,8 @@ class MRPC:
 
         :return: a NumPy array containing the predictions (a 1 or 0 value)
         """
+        print(output)
+        quit()
         predictions = np.argmax(output, axis=1)
         return predictions
 
