@@ -48,10 +48,10 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
         print(type(output))
 
         print(output[0])
-        print(output[1])
-        print(output[2])
 
-        print(np.argmax(output))
+        print(tf.argmax(output[0], axis=1))
+
+        # print(np.argmax(output))
         quit()
 
         predictions = mrpc.extract_prediction(output)
