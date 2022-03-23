@@ -6,6 +6,10 @@ This folder contains the script to run Hugging Face models on named entity recog
 
 Dataset can be downloaded from here: https://data.deepai.org/conll2003.zip
 
+```
+wget https://data.deepai.org/conll2003.zip
+```
+
 Extract the dataset:
 ```
 unzip conll2003.zip
@@ -33,11 +37,11 @@ Now you are able to run the run.py script.
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
 
-The precision (with a flag "-p") as well as framework (with a flag "--framework") have to be specified.
+Framework (with a flag "--framework") has to be specified.
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 Example command for PyTorch:
 
 ```
-python3 run.py -m dslim/bert-large-NER -p fp32 --framework pytorch
+python3 run.py -m dslim/bert-large-NER --framework pytorch
 ```

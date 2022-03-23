@@ -15,6 +15,11 @@ tar -xvf dailymail_stories.tgz
 
 Create a new directory and put both extracted folders there.
 
+```
+mkdir cnn_dailymail
+mv cnn_stories dailymail_stories cnn_dailymail
+```
+
 PyTorch models can be found here: https://huggingface.co/models?library=pytorch&pipeline_tag=summarization&sort=downloads
 
 ### Running instructions
@@ -37,11 +42,11 @@ Now you are able to run the run.py script.
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
 
-The precision (with a flag "-p") as well as framework (with a flag "--framework") have to be specified.
+Framework (with a flag "--framework") has to be specified.
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 Example command for PyTorch:
 
 ```
-python3 run.py -m sshleifer/distilbart-cnn-6-6 -p fp32 --framework pytorch
+python3 run.py -m sshleifer/distilbart-cnn-6-6 --framework pytorch
 ```
