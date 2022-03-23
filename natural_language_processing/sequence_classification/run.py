@@ -1,6 +1,7 @@
 import argparse
 
 import tensorflow as tf
+from transformers import TFAutoModelForSequenceClassification
 
 from utils.mrpc import MRPC
 from utils.tf import TFSavedModelRunner
