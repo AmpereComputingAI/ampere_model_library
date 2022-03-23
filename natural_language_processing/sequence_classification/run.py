@@ -34,7 +34,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, dataset_path):
+def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
 
     def run_single_pass(nlp_runner, mrpc):
 
