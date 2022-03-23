@@ -1,8 +1,9 @@
-from transformers import AutoTokenizer
-import utils.dataset as utils_ds
-import tensorflow as tf
-import pandas as pd
 import numpy as np
+import pandas as pd
+import tensorflow as tf
+from transformers import AutoTokenizer
+
+import utils.misc as utils
 
 
 class MRPC:
@@ -55,7 +56,7 @@ class MRPC:
                 sequence_1[i] = self.__mrpc_dataset[self.latest_index, 4]
                 labels[i] = int(self.__mrpc_dataset[self.latest_index, 0])
         except IndexError:
-            raise utils_ds.OutOfInstances("No more sentences in the MRPC dataset to be processed")
+            raise utils.OutOfInstances("No more sentences in the MRPC dataset to be processed")
 
         input = self.__tokenizer(sequence_0, sequence_1, padding=True, truncation=True, return_tensors="tf")
 
