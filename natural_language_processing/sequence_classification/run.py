@@ -44,6 +44,10 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
         input, labels = mrpc.get_input_array()
         output = nlp_runner.run(input)
 
+        print(output)
+        print(type(output))
+        quit()
+
         predictions = mrpc.extract_prediction(output)
         for i in range(batch_size):
             mrpc.submit_predictions(
