@@ -5,6 +5,8 @@ import time
 import utils.benchmark as bench_utils
 import numpy as np
 import sys
+from utils.profiling import *
+from torch.autograd.profiler import profile
 
 
 class PyTorchRunner:
@@ -23,6 +25,7 @@ class PyTorchRunner:
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
         self.__times_invoked = 0
+        self.__is_profiling = aio_profiler_enabled()
 
         self.__start_times = list()
         self.__finish_times = list()
@@ -45,7 +48,7 @@ class PyTorchRunner:
                 start = time.time()
                 output = model(input)
                 finish = time.time()
-
+                
             self.__total_inference_time += finish - start
             if self.__times_invoked == 0:
                 self.__warm_up_run_latency += finish - start
@@ -58,17 +61,20 @@ class PyTorchRunner:
 
         with torch.no_grad():
             if self.__frozen_script is None:
-                output_tensor = runner_func(self.__model)
+                model = self.__model
             else:
-                output_tensor = runner_func(self.__frozen_script)
+                model = self.__frozen_script
+            if self.__is_profiling:
+                with profile() as self.__profile:        
+                    output_tensor = runner_func(model)
+            else:
+                output_tensor = runner_func(model)
 
         return output_tensor
 
     def print_performance_metrics(self, batch_size):
         perf = bench_utils.print_performance_metrics(
             self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
-        if os.getenv("AIO_PROFILER", "0") == "1":
-            torch.AIO.print_profile_data()
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
@@ -77,4 +83,7 @@ class PyTorchRunner:
                 writer.writerow(self.__start_times)
                 writer.writerow(self.__finish_times)
 
+        if self.__is_profiling:
+            print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
+            torch._C._aio_profiler_print()
         return perf

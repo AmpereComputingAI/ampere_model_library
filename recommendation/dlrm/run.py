@@ -84,6 +84,7 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, de
 
 def main():
     args = parse_args()
+     
     if args.framework == "pytorch":
         if args.model_path is None:
             print_goodbye_message_and_die(
