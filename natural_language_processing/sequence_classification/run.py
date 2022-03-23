@@ -1,5 +1,7 @@
 import argparse
 
+import tensorflow as tf
+
 from utils.mrpc import MRPC
 from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
