@@ -1,21 +1,22 @@
-import transformers
+import os
+import csv
+import shutil
+import argparse
+from datetime import datetime
 
+import transformers
 import tensorflow as tf
 from tensorflow.python.profiler import model_analyzer
-from datetime import datetime
-import os
-import argparse
-from utils.misc import print_goodbye_message_and_die
+
 from utils.profiling import *
+from utils.misc import print_goodbye_message_and_die
 from utils.benchmark import get_intra_op_parallelism_threads
-import shutil
-import csv
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run NLP model from Hugging Face Transformers repo.")
     parser.add_argument("-m", "--model_name",
-                        type=str, required=True,
+                        type=str,
                         help="name of the model")
     parser.add_argument("-p,", "--precision",
                         type=str, choices=["fp32", "fp16"], required=True,
@@ -26,6 +27,10 @@ def parse_args():
     parser.add_argument("-s", "--sequence_length",
                         type=int, default=8,
                         help="sequence length to feed the model with")
+    parser.add_argument("-f", "--framework",
+                        type=str, default="tf",
+                        choices=["tf"],
+                        help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=15.0,
                         help="timeout in seconds")
@@ -38,11 +43,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_of_runs, timeout, profiler, fp16):
+def get_TensorFlowBenchmarkArguments(model_name, batch_size, sequence_length, num_runs, timeout, profiler, fp16):
     return transformers.TensorFlowBenchmarkArguments(models=[model_name],
                                                      batch_sizes=[batch_size],
                                                      sequence_lengths=[sequence_length],
-                                                     num_runs=num_of_runs,
+                                                     num_runs=num_runs,
                                                      timeout=timeout,
                                                      fp16=fp16,
                                                      profiler=profiler,
@@ -92,17 +97,27 @@ def main():
 
     args = parse_args()
 
-    use_profiler = dls_profiler_enabled() or args.profiler
+    use_profiler = aio_profiler_enabled() or args.profiler
 
     if use_profiler:
         set_profile_path(args.model_name)
 
-    if args.precision == "fp32":
-        run_tf_fp32(args, use_profiler)
-    elif args.precision == "fp16":
-        run_tf_fp16(args, use_profiler)
+    if args.framework == "tf":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
+
+        if args.precision == "fp32":
+            run_tf_fp32(args, use_profiler)
+        elif args.precision == "fp16":
+            run_tf_fp16(args, use_profiler)
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
     else:
-        assert False
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
 
     if use_profiler:
         summarize_tf_profiling()

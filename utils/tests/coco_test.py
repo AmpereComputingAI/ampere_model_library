@@ -2,8 +2,8 @@ import os
 import cv2
 import json
 import pathlib
-import utils.coco as coco_utils
-import utils.miscellaneous as utils
+import utils.cv.coco as coco_utils
+import utils.misc as utils
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
