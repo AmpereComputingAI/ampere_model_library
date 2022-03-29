@@ -24,7 +24,6 @@ class MRPC:
         self.__tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         self.__current_sentence = 0
-        # self.available_instances = len(self.__mrpc_dataset)
         self.__correct = 0
         self.latest_index = None
 
