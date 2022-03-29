@@ -4,8 +4,6 @@ import time
 from datetime import datetime
 
 import tensorflow as tf
-from tensorflow.python.saved_model import tag_constants
-from transformers import TFAutoModelForSequenceClassification
 
 import utils.benchmark as bench_utils
 

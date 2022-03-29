@@ -31,7 +31,7 @@ def parse_args():
                         type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to mrpc dataset. Original dataset can be downloaded from"
                              "https://www.microsoft.com/en-us/download/details.aspx?id=52398")
     return parser.parse_args()

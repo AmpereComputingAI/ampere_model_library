@@ -13,17 +13,19 @@ class MRPC:
 
     def __init__(self, model_name: str, batch_size: int, mrpc_dataset_path: None):
 
+        if mrpc_dataset_path is None:
+            env_var = "MRPC_PATH"
+            mrpc_dataset_path = utils.get_env_variable(
+                env_var, f"Path to MRPC dataset directory has not been specified with {env_var} flag")
+
         self.__batch_size = batch_size
         self.__mrpc_dataset_path = mrpc_dataset_path
         self.__mrpc_dataset = pd.read_csv(self.__mrpc_dataset_path, sep=r'\t', engine='python').to_numpy()
         self.__tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         self.__current_sentence = 0
-        self.available_instances = len(self.__mrpc_dataset)
-        self.__label = None
+        # self.available_instances = len(self.__mrpc_dataset)
         self.__correct = 0
-        self.__incorrect = 0
-        self.__count = 0
         self.latest_index = None
 
     def __get_sentence_index(self):
@@ -78,12 +80,8 @@ class MRPC:
        :param prediction: int, a prediction number (0 or 1)
        :param label: int, a prediction number (0 or 1)
        """
-
         if label == prediction:
             self.__correct += 1
-        else:
-            self.__incorrect += 1
-        self.__count += 1
 
     def summarize_accuracy(self):
         """
@@ -95,7 +93,7 @@ class MRPC:
         """
 
         correct = self.__correct / self.__current_sentence
-        print("\n Correct = {:.3f}".format(correct))
+        print("\n Accuracy = {:.3f}".format(correct))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
         return {"Correct": correct}

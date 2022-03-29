@@ -28,8 +28,8 @@ Before running any code you should first export the PYTHONPATH variable with pat
 as well as DLS_NUM_THREADS specifying the number of threads to be used.
 
 ```
-export PYTHONPATH=/path/to/model_zoo
-export DLS_NUM_THREADS=1
+export PYTHONPATH=/path/to/ampere_model_library
+export AIO_NUM_THREADS=1
 ```
 
 
