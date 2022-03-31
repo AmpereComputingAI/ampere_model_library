@@ -21,6 +21,8 @@ https://huggingface.co/models
 
 the official mrpc dataset can be downloaded from microsoft website   
 https://www.microsoft.com/en-us/download/details.aspx?id=52398
+after downloading the MSRParaphraseCorpus.msi file, it needs to be opened with the MSRParaphraseCorpus Setup Wizard (preferably on Windows),
+the dataset for this pipeline is in file msr_paraphrase_test.txt
 
 ### Running instructions
 
