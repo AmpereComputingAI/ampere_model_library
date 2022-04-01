@@ -54,7 +54,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     dataset = MRPC(model_name, batch_size, dataset_path)
 
     print(model_name)
-    print(str(model_name))
+    print(type(model_name))
     quit()
 
     runner = TFSavedModelRunner()
