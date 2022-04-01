@@ -45,8 +45,6 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
         output = nlp_runner.run(input)
         predictions = mrpc.extract_prediction(output)
 
-        print(model_name)
-
         for i in range(batch_size):
             mrpc.submit_predictions(
                 predictions[i],
@@ -54,6 +52,10 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
             )
 
     dataset = MRPC(model_name, batch_size, dataset_path)
+
+    print(model_name)
+    print(str(model_name))
+    quit()
 
     runner = TFSavedModelRunner()
     runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
