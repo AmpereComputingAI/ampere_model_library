@@ -55,6 +55,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
 
     print(model_name)
     print(type(model_name))
+    model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
     quit()
 
     runner = TFSavedModelRunner()
