@@ -21,7 +21,17 @@ https://huggingface.co/models
 
 the official mrpc dataset can be downloaded from microsoft website   
 https://www.microsoft.com/en-us/download/details.aspx?id=52398
-after downloading the MSRParaphraseCorpus.msi file, it needs to be opened with the MSRParaphraseCorpus Setup Wizard (preferably on Windows),
+after downloading the MSRParaphraseCorpus.msi file it can be opened on 
+
+#### Windows:
+
+it needs to be opened with the MSRParaphraseCorpus Setup Wizard (preferably on Windows),
+
+#### Linux:
+```
+sudo apt install msitools
+msiextract MSRParaphraseCorpus.msi
+```
 the dataset for this pipeline is in file msr_paraphrase_test.txt
 
 ### Running instructions
@@ -48,3 +58,11 @@ Example command:
 ```
 python3 run.py -m bert-base-cased-finetuned-mrpc -d path/to/mrpc_dataset
 ```
+
+### Models
+list of all available models is available at https://huggingface.co/models
+
+exemplary models:
+
+textattack/bert-base-uncased-MRPC
+textattack/roberta-base-MRPC
