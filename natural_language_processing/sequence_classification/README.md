@@ -61,8 +61,3 @@ python3 run.py -m bert-base-cased-finetuned-mrpc -d path/to/mrpc_dataset
 
 ### Models
 list of all available models is available at https://huggingface.co/models
-
-exemplary models:
-
-textattack/bert-base-uncased-MRPC
-textattack/roberta-base-MRPC
