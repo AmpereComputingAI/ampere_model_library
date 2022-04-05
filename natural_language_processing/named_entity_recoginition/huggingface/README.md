@@ -17,6 +17,17 @@ unzip conll2003.zip
 
 PyTorch models can be found here: https://huggingface.co/models?library=pytorch&pipeline_tag=token-classification&sort=downloads
 
+Some of the supported models are:
+```
+dslim/bert-large-NER (default)
+xlm-roberta-large-finetuned-conll03-english
+dbmdz/bert-large-cased-finetuned-conll03-english
+dslim/bert-base-NER
+dslim/bert-base-NER-uncased
+hf-internal-testing/tiny-bert-for-token-classification
+elastic/distilbert-base-uncased-finetuned-conll03-english
+```
+
 ### Running instructions
 
 Before running any code you should first export the PYTHONPATH variable with path pointing to the ampere_model_library directory,

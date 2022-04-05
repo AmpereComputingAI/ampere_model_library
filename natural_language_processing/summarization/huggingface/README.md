@@ -22,6 +22,16 @@ mv cnn_stories dailymail_stories cnn_dailymail
 
 PyTorch models can be found here: https://huggingface.co/models?library=pytorch&pipeline_tag=summarization&sort=downloads
 
+Some of the supported models are:
+```
+sshleifer/distilbart-cnn-6-6 (default)
+sshleifer/distilbart-cnn-12-6
+facebook/bart-large-cnn
+philschmid/bart-large-cnn-samsum
+facebook/bart-large-xsum
+sshleifer/distilbart-xsum-12-6
+```
+
 ### Running instructions
 
 Before running any code you should first export the PYTHONPATH variable with path pointing to the ampere_model_library directory,
