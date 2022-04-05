@@ -40,15 +40,12 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
 
     def run_single_pass(pytorch_runner, cnn_dm):
         input = torch.tensor(np.array(cnn_dm.get_input_ids_array(), dtype=np.int32))
-        output = pytorch_runner.run(input)
+        output = pytorch_runner.run(input, generate=True)
 
         for i in range(batch_size):
-            token_predictions = [x for x in np.argmax(output[0][i], axis=1)]
-            prediction = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(token_predictions))
-
             cnn_dm.submit_prediction(
                 i,
-                prediction
+                detokenize(output[i])
             )
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -61,7 +58,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
 
     model = BartForConditionalGeneration.from_pretrained(model_name, torchscript=True)
     dataset = CNN_DailyMail(batch_size, tokenize, detokenize, dataset_path=cnn_dm_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)))
+    runner = PyTorchRunner(model, disable_jit_freeze=True, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
