@@ -17,7 +17,10 @@ class PyTorchRunner:
     def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
-        self.__model.eval()
+        try:
+            self.__model.eval()
+        except AttributeError:
+            pass
         self.__frozen_script = None
         if not disable_jit_freeze:
             try:
@@ -35,24 +38,21 @@ class PyTorchRunner:
 
         print("\nRunning with PyTorch\n")
 
-    def run(self, input, generate=False):
+    def run(self, input):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        def runner_func(model, generate=False):
+        def runner_func(model):
             if isinstance(input, tuple):
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
             else:
                 start = time.time()
-                if not generate:
-                    output = model(input)
-                else:
-                    output = model.generate(input)
+                output = model(input)
                 finish = time.time()
                 
             self.__total_inference_time += finish - start
@@ -72,9 +72,9 @@ class PyTorchRunner:
                 model = self.__frozen_script
             if self.__is_profiling:
                 with profile() as self.__profile:        
-                    output_tensor = runner_func(model, generate=generate)
+                    output_tensor = runner_func(model)
             else:
-                output_tensor = runner_func(model, generate=generate)
+                output_tensor = runner_func(model)
 
         return output_tensor
 
