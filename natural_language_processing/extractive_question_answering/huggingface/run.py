@@ -63,6 +63,37 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
+def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=True, **kwargs):
+
+    def run_single_pass(pytorch_runner, squad):
+        input = torch.tensor(np.array(squad.get_input_ids_array(), dtype=np.int32))
+        output = pytorch_runner.run(input)
+
+        for i in range(batch_size):
+            answer_start_id = np.argmax(output.start_logits[i])
+            answer_end_id = np.argmax(output.end_logits[i])
+            squad.submit_prediction(
+                i,
+                squad.extract_answer(i, answer_start_id, answer_end_id)
+            )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    def tokenize(question, text):
+        return tokenizer(question, text, add_special_tokens=True)
+
+    def detokenize(answer):
+        return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
+
+    model = BertModel.from_pretrained(model_name, torchscript=True)
+    dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
+    runner = PyTorchRunner(model.generate,
+                           disable_jit_freeze=disable_jit_freeze,
+                           example_inputs=torch.tensor(np.array(squad.get_input_ids_array(), dtype=np.int32)))
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
 def main():
     args = parse_args()
     if args.framework == "tf":
