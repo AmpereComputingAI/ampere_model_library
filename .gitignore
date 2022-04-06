@@ -7,7 +7,3 @@ val2017*
 *.pb
 __pycache__
 
-# marcel
-temp/
-images/
-dockerfiles/x86_marcel.Dockerfile
