@@ -11,13 +11,13 @@ from utils.misc import print_goodbye_message_and_die
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["jimypbr/bert-base-uncased-squad"], require=True,
+                        type=str, choices=["jimypbr/bert-base-uncased-squad"], required=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
-                        type=str, choices=["pytorch"], require=True,
+                        type=str, choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
