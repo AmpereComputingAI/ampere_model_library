@@ -44,7 +44,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
                 squad.extract_answer(i, answer_start_id, answer_end_id)
             )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, model_max_length=512)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
         return tokenizer(question, text, return_tensors="pt")
