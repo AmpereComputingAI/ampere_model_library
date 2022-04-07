@@ -138,6 +138,10 @@ class Squad_v1_1:
         self.__f1_count = 0
         return True
 
+    def get_input_arrays(self):
+        self.__load_next_inputs_maybe()
+        return self.__current_inputs
+
     def get_input_ids_array(self):
         return self.__get_input_array("input_ids")
 
