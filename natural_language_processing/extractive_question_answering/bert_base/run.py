@@ -47,7 +47,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
-        return tokenizer(question, text, return_tensors="pt")
+        return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
