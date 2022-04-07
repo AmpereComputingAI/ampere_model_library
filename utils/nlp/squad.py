@@ -12,7 +12,7 @@ class Squad_v1_1:
     A class providing facilities for preprocessing and postprocessing of Squad v1.1 validation dataset.
     """
 
-    def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None):
+    def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None, apply_padding=True):
 
         if dataset_path is None:
             env_var = "SQUAD_V1_1_PATH"
@@ -24,6 +24,7 @@ class Squad_v1_1:
         self.__tokenize_func = tokenize_func
         self.__detokenize_func = detokenize_func
         self.__dataset = self.__verify_and_load(dataset_path)
+        self.__apply_padding = apply_padding
         self.__example_iterator = self.__examples()
 
         self.__questions_count = 0
@@ -105,6 +106,8 @@ class Squad_v1_1:
         """
         self.__load_next_inputs_maybe()
         input = self.__current_inputs[input_name]
+        if not self.__apply_padding:
+            return input
 
         # if seq size has not been specified the target one will be set to the size of the longest sequence in a batch
         if self.__target_seq_size is None:
@@ -137,6 +140,10 @@ class Squad_v1_1:
         self.__exact_match_count = 0
         self.__f1_count = 0
         return True
+
+    def get_input_arrays(self):
+        self.__load_next_inputs_maybe()
+        return self.__current_inputs
 
     def get_input_ids_array(self):
         return self.__get_input_array("input_ids")
