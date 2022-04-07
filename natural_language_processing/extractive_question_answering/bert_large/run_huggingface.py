@@ -13,14 +13,13 @@ from utils.misc import print_goodbye_message_and_die
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad"],
+                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad"], require=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
-                        type=str,
-                        choices=["tf"],
+                        type=str, choices=["tf"], require=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -30,7 +29,7 @@ def parse_args():
                         help="number of passes through network to execute")
     parser.add_argument("--squad_path",
                         type=str,
-                        help="path to directory with ImageNet validation images")
+                        help="path to .json file with Squad v1.1 data")
     return parser.parse_args()
 
 
