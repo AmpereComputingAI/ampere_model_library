@@ -3,7 +3,7 @@ import csv
 import time
 from datetime import datetime
 
-#import tensorflow as tf
+import tensorflow as tf
 
 import utils.benchmark as bench_utils
 
