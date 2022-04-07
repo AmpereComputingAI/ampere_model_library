@@ -58,7 +58,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
 
     model = BartForConditionalGeneration.from_pretrained(model_name, torchscript=True)
     dataset = CNN_DailyMail(batch_size, tokenize, detokenize, dataset_path=cnn_dm_path)
-    runner = PyTorchRunner(model.generate, disable_jit_freeze=True, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)))
+    runner = PyTorchRunner(model.generate, disable_jit_freeze=disable_jit_freeze, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
