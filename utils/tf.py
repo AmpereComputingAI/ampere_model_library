@@ -1,9 +1,11 @@
 import os
 import csv
 import time
-import tensorflow as tf
-import utils.benchmark as bench_utils
 from datetime import datetime
+
+import tensorflow as tf
+
+import utils.benchmark as bench_utils
 
 
 class TFProfiler:
@@ -155,7 +157,6 @@ class TFSavedModelRunner:
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
         start = time.time()
         output = self.model(input)
         finish = time.time()

@@ -26,7 +26,7 @@ class PyTorchRunner:
             try:
                 self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
             except torch.jit.frontend.UnsupportedNodeError:
-                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs=example_inputs, strict=False))
+                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs, strict=False))
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
@@ -49,6 +49,10 @@ class PyTorchRunner:
             if isinstance(input, tuple):
                 start = time.time()
                 output = model(*input)
+                finish = time.time()
+            elif isinstance(input, dict):
+                start = time.time()
+                output = model(**input)
                 finish = time.time()
             else:
                 start = time.time()
