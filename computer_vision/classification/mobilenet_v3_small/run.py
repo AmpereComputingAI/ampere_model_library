@@ -41,7 +41,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -56,21 +56,21 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["mobilenet_v3_small"](pretrained=True),
+    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
-    return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze)
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze, **kwargs):
+    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze)
 
 
 def main():
     args = parse_args()
     if args.framework == "pytorch":
         if args.precision == "fp32":
-            run_pytorch_fp32(**vars(args))
+            run_pytorch_fp32(model_name="mobilenet_v3_small", **vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
