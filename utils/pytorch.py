@@ -14,19 +14,17 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
-        try:
-            self.__model.eval()
-        except AttributeError:
-            pass
+        self.__func = func
+        self.__model.eval()
         self.__frozen_script = None
         if not disable_jit_freeze:
             try:
                 self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
             except torch.jit.frontend.UnsupportedNodeError:
-                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs=example_inputs))
+                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
@@ -74,6 +72,9 @@ class PyTorchRunner:
                 model = self.__model
             else:
                 model = self.__frozen_script
+            if self.__func is not None:
+                model = getattr(model, self.__func)
+
             if self.__is_profiling:
                 with profile() as self.__profile:        
                     output_tensor = runner_func(model)
