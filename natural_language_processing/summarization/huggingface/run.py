@@ -36,7 +36,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze=True, **kwargs):
 
     def run_single_pass(pytorch_runner, cnn_dm):
         input = torch.tensor(np.array(cnn_dm.get_input_ids_array(), dtype=np.int32))
