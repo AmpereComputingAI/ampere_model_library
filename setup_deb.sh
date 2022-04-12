@@ -27,15 +27,23 @@ log "done.\n"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-log "Installing systems dependencies ..."
+log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python-is-python3 python3-pip ffmpeg libsm6 libxext6
+apt-get install -y python3.8 python3-pip ffmpeg libsm6 libxext6 wget
 log "done.\n"
 
 log "Installing python dependencies ..."
 sleep 1
-pip3 install -r $SCRIPT_DIR/requirements.txt
+#PYTHON3_VERSION=$( pip3 --version )
+#if echo "$PYTHON3_VERSION" | grep -q "(python 3.8)"; then
+    #wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl
+#else
+#   log "\nCompatible Python versions are: 3.8 and 3.6. Version detected: $PYTHON3_VERSION. Quitting."
+#   exit 1
+#fi
+python3.8 -m pip install -r $SCRIPT_DIR/requirements.txt
 log "done.\n"
 
 touch $SCRIPT_DIR/.setup_completed
+log "Setup completed."
