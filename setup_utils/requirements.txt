@@ -1,3 +1,4 @@
+# reference-only, installation causes trouble as of today on aarch64 platform, use setup_deb.sh script from main directory
 batchgenerators==0.21
 medpy==0.4.0
 nibabel==3.2.2
@@ -8,8 +9,7 @@ pandas==1.4.2
 pycocotools==2.0.4
 scikit-build==0.14.1
 scipy==1.8.0
--f https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp36-cp36m-linux_aarch64.whl; python_version=='3.6'
--f https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl; python_version=='3.8'
+SimpleITK==2.1.1
 tensorflow-aarch64==2.7.0
 torch==1.9.0
 torchvision==0.10.0
