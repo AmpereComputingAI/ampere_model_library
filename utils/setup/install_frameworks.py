@@ -19,6 +19,7 @@ try:
     torch._C._aio_profiler_print()
 except (AttributeError, ModuleNotFoundError):
     subprocess.check_call([sys.executable, "-m", "pip", "install", "torch==1.11.0"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision==0.12.0"])
     native_frameworks.append("PyTorch")
 
 # TensorFlow

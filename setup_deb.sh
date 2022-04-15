@@ -52,7 +52,7 @@ else
    log "\nThis script requires python >=3.8! Quitting."
    exit 1
 fi
-pip3 install --no-deps --upgrade medpy==0.4.0 batchgenerators==0.21 medpy==0.4.0 nibabel==3.2.2 numpy==1.22.3 opencv-python==4.5.5.64 pandas==1.4.2 pycocotools==2.0.4 scikit-build==0.14.1 scipy==1.8.0 torchvision==0.10.0 transformers==4.18.0 tqdm==4.64.0
+pip3 install --no-deps --upgrade medpy==0.4.0 batchgenerators==0.21 medpy==0.4.0 nibabel==3.2.2 numpy==1.22.3 opencv-python==4.5.5.64 pandas==1.4.2 pycocotools==2.0.4 scikit-build==0.14.1 scipy==1.8.0 transformers==4.18.0 tqdm==4.64.0
 pip3 install --no-deps --upgrade cycler==0.11.0 filelock==3.6.0 future==0.18.2 huggingface-hub==0.5.1 joblib==1.1.0 kiwisolver==1.4.2 matplotlib==3.5.1 nnunet==1.7.0 packaging==21.3 Pillow==9.1.0 pyparsing==3.0.8 python-dateutil==2.8.2 pytz==2022.1 pyyaml==6.0 regex==2022.3.15 sacremoses==0.0.49 scikit-image==0.19.2 scikit-learn==1.0.2 threadpoolctl==3.1.0 tokenizers==0.12.1
 python3 $SCRIPT_DIR/utils/setup/install_frameworks.py
 log "done.\n"
