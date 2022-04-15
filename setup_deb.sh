@@ -1,14 +1,14 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 
 log() {
   COLOR_DEFAULT='\033[0m'
   COLOR_CYAN='\033[1;36m'
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
-
-if [ "$FORCE_INSTALL" != "1" ]; then
+   
+if [ "$FORCE_INSTALL" != 1 ]; then
    log "Checking for aarch64 system ..."
    sleep 1
    ARCH=$( uname -m )
@@ -17,9 +17,7 @@ if [ "$FORCE_INSTALL" != "1" ]; then
       exit 1
    fi
    log "done.\n"
-fi
-
-if [ "$FORCE_INSTALL" != "1" ]; then
+   
    log "Checking for Debian based Linux ..."
    sleep 1
    if [ -f "/etc/debian_version" ]; then
