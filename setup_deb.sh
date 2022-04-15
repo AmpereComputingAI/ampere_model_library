@@ -8,26 +8,30 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-log "Checking for aarch64 system ..."
-sleep 1
-ARCH=$( uname -m )
-if [ ${ARCH} != "aarch64" ]; then
-   log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
-   exit 1
+if [ "$FORCE_INSTALL" != "1" ]; then
+   log "Checking for aarch64 system ..."
+   sleep 1
+   ARCH=$( uname -m )
+   if [ ${ARCH} != "aarch64" ]; then
+      log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
+      exit 1
+   fi
+   log "done.\n"
 fi
-log "done.\n"
 
-log "Checking for Debian based Linux ..."
-sleep 1
-if [ -f "/etc/debian_version" ]; then
-   debian_version=$(</etc/debian_version)
-   log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
-   sleep 3
-else
-   log "\nDebian-based Linux has not been detected! Quitting."
-   exit 1
+if [ "$FORCE_INSTALL" != "1" ]; then
+   log "Checking for Debian based Linux ..."
+   sleep 1
+   if [ -f "/etc/debian_version" ]; then
+      debian_version=$(</etc/debian_version)
+      log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
+      sleep 3
+   else
+      log "\nDebian-based Linux has not been detected! Quitting."
+      exit 1
+   fi
+   log "done.\n"
 fi
-log "done.\n"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
