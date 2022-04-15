@@ -26,7 +26,9 @@ log "done.\n"
 
 log "Setting environment variables ..."
 sleep 1
-export LD_PRELOAD=$( find / -name "libgomp-d22c30c5.so.1.0.0" | grep "scikit_image.libs" )
+LD_PRELOAD=$( find / -name "libgomp-d22c30c5.so.1.0.0" | grep "scikit_image.libs" )
+LD_PRELOAD=$( echo $LD_PRELOAD|awk -v OFS=":" '$1=$1' )
+export LD_PRELOAD=$LD_PRELOAD
 echo "LD_PRELOAD=$LD_PRELOAD"
 export PYTHONPATH=$SCRIPT_DIR
 echo "PYTHONPATH=$PYTHONPATH"
