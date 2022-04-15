@@ -8,25 +8,23 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-log "Checking for Debian based Linux ..."
-sleep 1
-if [ -f "/etc/debian_version" ]; then
-   debian_version=$(</etc/debian_version)
-   if [ "`echo "${debian_version} < 11.0" | bc`" -eq 1 ]; then
-       echo "Debian version >= 11.0 required! Quitting."
-       exit 1
-   fi
-else
-   log "\nDebian-based Linux has not been detected! Quitting."
-   exit 1
-fi
-log "done.\n"
-
 log "Checking for aarch64 system ..."
 sleep 1
 ARCH=$( uname -m )
 if [ ${ARCH} != "aarch64" ]; then
    log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
+   exit 1
+fi
+log "done.\n"
+
+log "Checking for Debian based Linux ..."
+sleep 1
+if [ -f "/etc/debian_version" ]; then
+   debian_version=$(</etc/debian_version)
+   log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
+   sleep 3
+else
+   log "\nDebian-based Linux has not been detected! Quitting."
    exit 1
 fi
 log "done.\n"
@@ -58,4 +56,4 @@ python3 $SCRIPT_DIR/utils/setup/install_frameworks.py
 log "done.\n"
 
 touch $SCRIPT_DIR/.setup_completed
-log "Setup completed. Please run: source set_env_variables.sh"
+log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"
