@@ -26,7 +26,7 @@ log "done.\n"
 
 log "Setting environment variables ..."
 sleep 1
-LD_PRELOAD=$( find / -name "libgomp-*" )  # | grep "scikit_image.libs\|torch/lib" )
+LD_PRELOAD=$( find / -name "libgomp-*" | grep "\.so" )
 LD_PRELOAD="$( echo $LD_PRELOAD|awk -v OFS=":" '$1=$1' ):/lib/aarch64-linux-gnu/libGLdispatch.so.0"
 export LD_PRELOAD=$LD_PRELOAD
 echo "LD_PRELOAD=$LD_PRELOAD"
