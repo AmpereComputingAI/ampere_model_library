@@ -5,11 +5,6 @@ import tensorflow as tf
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
 
-try:
-    tf.AIO
-except AttributeError:
-    advertise_aio("TensorFlow")
-
 
 class TFLiteRunner:
     """
@@ -22,6 +17,11 @@ class TFLiteRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
+        try:
+            tf.AIO
+        except AttributeError:
+            advertise_aio("TensorFlow")
+
         self.__interpreter = tf.compat.v1.lite.Interpreter(
             model_path=path_to_model, num_threads=bench_utils.get_intra_op_parallelism_threads())
         self.__interpreter.allocate_tensors()

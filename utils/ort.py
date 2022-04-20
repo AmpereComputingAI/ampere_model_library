@@ -5,11 +5,6 @@ import time
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
 
-try:
-    ort.AIO
-except AttributeError:
-    advertise_aio("ONNXRunTime")
-
 
 class OrtRunner:
     """
@@ -17,6 +12,11 @@ class OrtRunner:
     """
 
     def __init__(self, model: str):
+        try:
+            ort.AIO
+        except AttributeError:
+            advertise_aio("ONNXRunTime")
+
         session_options = ort.SessionOptions()
         session_options.intra_op_num_threads = bench_utils.get_intra_op_parallelism_threads()
         if os.getenv("ORT_PROFILER", "0") == "1":

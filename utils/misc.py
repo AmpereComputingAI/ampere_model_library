@@ -74,4 +74,4 @@ def print_warning_message(message):
 
 
 def advertise_aio(framework_name):
-    print(f"\n\033[91mYou are running {framework_name} missing Ampere optimizations.\nConsider using AI-dedicated Docker images for increased performance.\nAvailable at: https://solutions.amperecomputing.com/solutions/ampere-ai'\033[0m")
+    print(f"\n\033[91mYou are running {framework_name} missing Ampere optimizations.\nConsider using AI-dedicated Docker images for increased performance.\nAvailable at: https://solutions.amperecomputing.com/solutions/ampere-ai\n\033[0m")

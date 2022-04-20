@@ -9,13 +9,6 @@ import sys
 from utils.profiling import *
 from torch.autograd.profiler import profile
 
-try:
-    torch._C._aio_profiler_print()
-    AIO=True
-except AttributeError:
-    utils.advertise_aio("Torch")
-    AIO=False
-
 
 class PyTorchRunner:
     """
@@ -23,6 +16,14 @@ class PyTorchRunner:
     """
 
     def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
+        try:
+            torch._C._aio_profiler_print()
+            AIO=True
+        except AttributeError:
+            utils.advertise_aio("Torch")
+            AIO=False
+
+
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
         self.__model.eval()
