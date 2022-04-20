@@ -3,6 +3,12 @@ import csv
 import time
 import tensorflow as tf
 import utils.benchmark as bench_utils
+from utils.misc import advertise_aio
+
+try:
+    tf.AIO
+except AttributeError:
+    advertise_aio("TensorFlow")
 
 
 class TFLiteRunner:

@@ -3,6 +3,12 @@ import csv
 import onnxruntime as ort
 import time
 import utils.benchmark as bench_utils
+from utils.misc import advertise_aio
+
+try:
+    ort.AIO
+except AttributeError:
+    advertise_aio("ONNXRunTime")
 
 
 class OrtRunner:

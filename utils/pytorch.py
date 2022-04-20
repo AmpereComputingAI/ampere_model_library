@@ -9,6 +9,13 @@ import sys
 from utils.profiling import *
 from torch.autograd.profiler import profile
 
+try:
+    torch._C._aio_profiler_print()
+    AIO=True
+except AttributeError:
+    utils.advertise_aio("Torch")
+    AIO=False
+
 
 class PyTorchRunner:
     """
@@ -20,7 +27,10 @@ class PyTorchRunner:
         self.__model = model
         self.__model.eval()
         self.__frozen_script = None
-        if not disable_jit_freeze:
+        if disable_jit_freeze:
+            if AIO:
+                utils.print_warning_message(f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
+        else:
             try:
                 self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
             except torch.jit.frontend.UnsupportedNodeError:
