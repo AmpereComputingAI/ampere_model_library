@@ -26,6 +26,7 @@ log "done.\n"
 
 log "Setting environment variables ..."
 sleep 1
+ARCH=$( uname -m )
 if [ "${ARCH}" == "aarch64" ]; then
    LD_PRELOAD=$( find / -name "libgomp-*" | grep "\.so" )
    # shellcheck disable=SC2086
