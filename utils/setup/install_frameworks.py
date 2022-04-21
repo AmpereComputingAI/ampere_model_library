@@ -84,10 +84,10 @@ except AttributeError:
     ampere_tf = False
 
 if not ampere_tf and install_tf:
-    if platform == "x86_64":
-        subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow=={native_tf_version}"])
-    elif platform == "aarch64":
+    if platform.processor() == "aarch64":
         subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow-aarch64=={native_tf_version}"])
+    else:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow=={native_tf_version}"])
     native_frameworks.append("TensorFlow")
 
 

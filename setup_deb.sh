@@ -14,7 +14,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 if [ "$FORCE_INSTALL" != 1 ]; then
    log "Checking for aarch64 system ..."
    sleep 1
-   if [ ${ARCH} != "aarch64" ]; then
+   if [ "${ARCH}" != "aarch64" ]; then
       log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
       exit 1
    fi
@@ -41,7 +41,7 @@ log "done.\n"
 
 log "Installing python dependencies ..."
 sleep 1
-if [ ${ARCH} == "aarch64" ]; then
+if [ "${ARCH}" == "aarch64" ]; then
    PYTHON3_VERSION=$( pip3 --version )
    if echo "$PYTHON3_VERSION" | grep -q "(python 3.8)"; then
       pip3 install --no-deps --upgrade \
@@ -92,8 +92,8 @@ pip3 install --no-deps --upgrade \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
    tokenizers==0.12.1
-python3 $SCRIPT_DIR/utils/setup/install_frameworks.py
+python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
 
-touch $SCRIPT_DIR/.setup_completed
+touch "$SCRIPT_DIR"/.setup_completed
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"

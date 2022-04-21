@@ -26,8 +26,9 @@ log "done.\n"
 
 log "Setting environment variables ..."
 sleep 1
-if [ ${ARCH} == "aarch64" ]; then
+if [ "${ARCH}" == "aarch64" ]; then
    LD_PRELOAD=$( find / -name "libgomp-*" | grep "\.so" )
+   # shellcheck disable=SC2086
    LD_PRELOAD="$( echo $LD_PRELOAD|awk -v OFS=":" '$1=$1' ):/lib/aarch64-linux-gnu/libGLdispatch.so.0"
    export LD_PRELOAD=$LD_PRELOAD
    echo "LD_PRELOAD=$LD_PRELOAD"
