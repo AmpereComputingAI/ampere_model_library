@@ -1,5 +1,5 @@
+import os
 import sys
-import platform
 import subprocess
 from packaging import version
 
@@ -84,7 +84,7 @@ except AttributeError:
     ampere_tf = False
 
 if not ampere_tf and install_tf:
-    if platform.processor() == "aarch64":
+    if os.environ["ARCH"] == "aarch64":
         subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow-aarch64=={native_tf_version}"])
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow=={native_tf_version}"])
