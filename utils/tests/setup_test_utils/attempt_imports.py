@@ -21,6 +21,6 @@ import utils.nlp.mrpc
 import utils.nlp.squad
 import utils.ort
 import utils.pytorch
-# import utils.speech_recognition.libri_speech TO-DO
+# import utils.speech_recognition.libri_speech TO-DO, numba is a pain on arm64 (requires numpy<=1.21)
 import utils.tf
 import utils.tflite
