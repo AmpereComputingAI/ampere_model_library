@@ -8,22 +8,19 @@ log() {
 
 if [ -z "$1" ]
 then
-  log "Please specify name of latest TF release Docker image, like: bash setup_script_test.sh tf_release_image "\
-  "torch_release_image ort_release_image"
+  log "Please specify name of latest TF release Docker image, like: bash setup_script_test.sh tf_release_image torch_release_image ort_release_image"
 	exit
 fi
 
 if [ -z "$2" ]
 then
-  log "Please specify name of latest Torch release Docker image, like: bash setup_script_test.sh tf_release_image "\
-  "torch_release_image ort_release_image"
+  log "Please specify name of latest Torch release Docker image, like: bash setup_script_test.sh tf_release_image torch_release_image ort_release_image"
   exit
 fi
 
 if [ -z "$3" ]
 then
-  log "Please specify name of latest ORT release Docker image, like: bash setup_script_test.sh tf_release_image "\
-  "torch_release_image ort_release_image"
+  log "Please specify name of latest ORT release Docker image, like: bash setup_script_test.sh tf_release_image torch_release_image ort_release_image"
   exit
 fi
 
