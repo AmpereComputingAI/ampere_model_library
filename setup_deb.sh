@@ -56,6 +56,8 @@ if [ "${ARCH}" == "aarch64" ]; then
       log "\nThis script requires python >=3.8! Quitting."
       exit 1
    fi
+else
+   pip3 install --no-deps --upgrade SimpleITK==2.1.1
 fi
 # direct dependencies
 pip3 install --no-deps --upgrade \
