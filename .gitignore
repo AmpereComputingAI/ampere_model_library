@@ -1,5 +1,6 @@
 .idea/
 .setup_completed
+.ld_preload
 annotations*
 ssd_mobilenet_v2_coco_2018_03_29
 yolo_v4_tiny_tf_fp32
