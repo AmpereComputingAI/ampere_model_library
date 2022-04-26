@@ -78,6 +78,8 @@ def main():
     dataset_bash = pathlib.Path(get_downloads_path(), "download_coco.sh")
     subprocess.run(["source", dataset_bash, get_downloads_path])
 
+    quit()
+
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
