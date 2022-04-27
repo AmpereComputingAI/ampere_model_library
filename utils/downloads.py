@@ -1,6 +1,8 @@
 import pathlib
 import subprocess
 
+from downloads.utils import get_downloads_path
+
 
 def download_coco_dataset():
     labels = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_anno_onspecta.json"

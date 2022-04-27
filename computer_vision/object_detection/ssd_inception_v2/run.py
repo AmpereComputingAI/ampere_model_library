@@ -7,7 +7,6 @@ from utils.cv.coco import COCODataset
 from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
 from utils.tf import TFFrozenModelRunner
-from downloads.utils import get_downloads_path
 from utils.downloads import download_coco_dataset
 from utils.misc import print_goodbye_message_and_die
 
