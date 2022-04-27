@@ -76,6 +76,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 def main():
     args = parse_args()
     dataset_bash = pathlib.Path(get_downloads_path(), "download_coco.sh")
+    print(dataset_bash)
     subprocess.run(["source", dataset_bash, get_downloads_path()])
 
     quit()
