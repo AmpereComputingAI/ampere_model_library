@@ -1,6 +1,5 @@
 import os
 import time
-import pathlib
 import argparse
 
 import utils.misc as utils
