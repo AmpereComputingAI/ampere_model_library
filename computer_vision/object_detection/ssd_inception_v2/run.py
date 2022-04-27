@@ -75,11 +75,35 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-    dataset_bash = pathlib.Path(get_downloads_path(), "download_coco.sh")
-    print(dataset_bash)
-    subprocess.run(['bash', '-c', 'source', dataset_bash, get_downloads_path()])
+
+    labels = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_anno_onspecta.json'
+    images = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_onspecta.tar.gz'
+    coco_data = get_downloads_path(), "coco"
+
+    subprocess.run(['wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_anno_onspecta.json'])
 
     quit()
+
+    if not pathlib.Path(coco_data).is_dir():
+        try:
+            subprocess.run(["wget", labels])
+            subprocess.run(["wget", images])
+            subprocess.run(["mkdir", coco_data])
+            subprocess.run(["mv", 'COCO2014_anno_onspecta.json', coco_data])
+            subprocess.run(["tar", "-xf", 'COCO2014_onspecta.tar.gz', "-C", coco_data])
+            subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
+        except KeyboardInterrupt:
+            subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
+            subprocess.run(["rm", '-rf', coco_data])
+
+    quit()
+
+    # if not self.__annotations_file_path.is_file():
+    #     try:
+    #         subprocess.run(["wget", self.__annotations_link])
+    #         subprocess.run(["mv", self.__annotations_file_name, str(self.__coco_dir_path)])
+    #     except KeyboardInterrupt:
+    #         subprocess.run(["rm", self.__annotations_file_name])
 
     if args.framework == "tf":
         if args.model_path is None:
