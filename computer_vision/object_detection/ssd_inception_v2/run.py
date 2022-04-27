@@ -73,10 +73,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-
     download_coco_dataset()
-    print(os.environ["COCO_IMG_PATH"])
-    quit()
 
     if args.framework == "tf":
         if args.model_path is None:
