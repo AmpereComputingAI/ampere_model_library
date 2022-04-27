@@ -77,13 +77,8 @@ def main():
     args = parse_args()
 
     labels = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_anno_onspecta.json"
-
     images = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_onspecta.tar.gz"
     coco_data = get_downloads_path(), "coco"
-
-    subprocess.run(['wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_anno_onspecta.json'])
-
-    quit()
 
     if not pathlib.Path(coco_data).is_dir():
         try:
