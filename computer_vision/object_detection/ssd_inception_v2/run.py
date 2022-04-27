@@ -78,7 +78,7 @@ def main():
 
     labels = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_anno_onspecta.json"
     images = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_onspecta.tar.gz"
-    coco_data = get_downloads_path(), "coco"
+    coco_data = pathlib.Path(get_downloads_path(), "coco")
 
     if not pathlib.Path(coco_data).is_dir():
         try:
