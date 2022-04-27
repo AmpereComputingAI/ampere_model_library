@@ -19,6 +19,7 @@ def download_coco_dataset():
             subprocess.run(["tar", "-xf", 'COCO2014_onspecta.tar.gz', "-C", coco_data])
             subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
         except KeyboardInterrupt:
+            subprocess.run(["rm", 'COCO2014_anno_onspecta.json'])
             subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
             subprocess.run(["rm", '-rf', coco_data])
     else:
