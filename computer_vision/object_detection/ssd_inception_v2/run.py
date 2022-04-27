@@ -77,7 +77,7 @@ def main():
     args = parse_args()
     dataset_bash = pathlib.Path(get_downloads_path(), "download_coco.sh")
     print(dataset_bash)
-    subprocess.run(["source", dataset_bash, get_downloads_path()])
+    subprocess.run(['bash', '-c', 'source', dataset_bash, get_downloads_path()])
 
     quit()
 
