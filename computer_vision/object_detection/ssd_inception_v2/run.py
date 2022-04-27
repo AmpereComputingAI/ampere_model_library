@@ -2,7 +2,6 @@ import os
 import time
 import pathlib
 import argparse
-import subprocess
 
 import utils.misc as utils
 from utils.cv.coco import COCODataset
@@ -10,6 +9,7 @@ from utils.tflite import TFLiteRunner
 from utils.benchmark import run_model
 from utils.tf import TFFrozenModelRunner
 from downloads.utils import get_downloads_path
+from utils.downloads import download_coco_dataset
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -76,30 +76,8 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 def main():
     args = parse_args()
 
-    labels = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_anno_onspecta.json"
-    images = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_onspecta.tar.gz"
-    coco_data = pathlib.Path(get_downloads_path(), "coco")
-
-    if not pathlib.Path(coco_data).is_dir():
-        try:
-            subprocess.run(["wget", labels])
-            subprocess.run(["wget", images])
-            subprocess.run(["mkdir", coco_data])
-            subprocess.run(["mv", 'COCO2014_anno_onspecta.json', coco_data])
-            subprocess.run(["tar", "-xf", 'COCO2014_onspecta.tar.gz', "-C", coco_data])
-            subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
-        except KeyboardInterrupt:
-            subprocess.run(["rm", 'COCO2014_onspecta.tar.gz'])
-            subprocess.run(["rm", '-rf', coco_data])
-
+    download_coco_dataset()
     quit()
-
-    # if not self.__annotations_file_path.is_file():
-    #     try:
-    #         subprocess.run(["wget", self.__annotations_link])
-    #         subprocess.run(["mv", self.__annotations_file_name, str(self.__coco_dir_path)])
-    #     except KeyboardInterrupt:
-    #         subprocess.run(["rm", self.__annotations_file_name])
 
     if args.framework == "tf":
         if args.model_path is None:
