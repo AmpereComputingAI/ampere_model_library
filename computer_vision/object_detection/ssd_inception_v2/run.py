@@ -76,8 +76,9 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 def main():
     args = parse_args()
 
-    labels = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_anno_onspecta.json'
-    images = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_onspecta.tar.gz'
+    labels = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_anno_onspecta.json"
+
+    images = "https://ampereaimodelzoo.s3.amazonaws.com/COCO2014_onspecta.tar.gz"
     coco_data = get_downloads_path(), "coco"
 
     subprocess.run(['wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/COCO2014_anno_onspecta.json'])
