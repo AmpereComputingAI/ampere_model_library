@@ -75,6 +75,7 @@ def main():
     args = parse_args()
 
     download_coco_dataset()
+    print(os.environ["COCO_IMG_PATH"])
     quit()
 
     if args.framework == "tf":
