@@ -69,7 +69,7 @@ class PyTorchRunner:
                 finish = time.time()
                 
             self.__total_inference_time += finish - start
-            if self.__times_invoked == 0:
+            if self.__times_invoked < 2:
                 self.__warm_up_run_latency += finish - start
             else:
                 self.__start_times.append(start)
@@ -93,7 +93,7 @@ class PyTorchRunner:
 
     def print_performance_metrics(self, batch_size):
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size, 2)
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
