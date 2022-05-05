@@ -30,7 +30,7 @@ log "done.\n"
 log "Setting environment variables ..."
 sleep 1
 ARCH=$( uname -m )
-if [ "${ARCH}" == "aarch64" ]; then
+if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
    LD_PRELOAD=$(<$SCRIPT_DIR/utils/setup/.ld_preload)
    export LD_PRELOAD=$LD_PRELOAD
