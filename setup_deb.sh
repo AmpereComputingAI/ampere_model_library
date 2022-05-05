@@ -9,7 +9,12 @@ log() {
 }
 
 ARCH=$( uname -m )
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+if [[ -z "${SCRIPT_DIR}" ]]; then
+  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+else
+  SCRIPT_DIR="${SCRIPT_DIR}"
+fi
    
 if [ "$FORCE_INSTALL" != 1 ]; then
    log "Checking for aarch64 system ..."

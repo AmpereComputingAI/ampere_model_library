@@ -6,9 +6,14 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
+if [[ -z "${SCRIPT_DIR}" ]]; then
+  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+else
+  SCRIPT_DIR="${SCRIPT_DIR}"
+fi
+
 log "Checking if setup has been completed ..."
 sleep 1
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 if ! [ -f "$SCRIPT_DIR/.setup_completed" ]; then
    log "\nPlease complete setup first by running: 'bash setup_deb.sh'! Quitting."
    exit 1
