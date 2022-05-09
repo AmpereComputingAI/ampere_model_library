@@ -9,11 +9,10 @@ from pathlib import Path
 try:
     from utils.cv.imagenet import ImageNet
 except ModuleNotFoundError as e:
-    print(e)
+    print("FAIL: " + e)
     path = os.path.join(Path(os.getcwd(), __file__))
-    print(f"\033[93m" + f"export PYTHONPATH={path.split('/computer_vision')[0]}" + '\033[0m')
-    # print('export PYTHONPATH=' + path.split('/computer_vision')[0])
-    sys.exit('exiting ...')
+    print(f"\n\033[91m" + f"export PYTHONPATH={path.split('/computer_vision')[0]}" + '\n\033[0m')
+    sys.exit()
 
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
