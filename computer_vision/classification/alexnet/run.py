@@ -11,8 +11,8 @@ try:
 except ModuleNotFoundError as e:
     print(e)
     path = os.path.join(Path(os.getcwd(), __file__))
-    print(f"\n\033[91mYou are running test missing Ampere optimizations.\nConsider using AI-dedicated Docker images for increased performance.\nAvailable at: https://solutions.amperecomputing.com/solutions/ampere-ai\n\033[0m")
-    print('export PYTHONPATH=' + path.split('/computer_vision')[0])
+    print(f"\n\033[export PYTHONPATH={path.split('/computer_vision')[0]}\n\033[0m")
+    # print('export PYTHONPATH=' + path.split('/computer_vision')[0])
     sys.exit('exiting ...')
 
 from utils.pytorch import PyTorchRunner
