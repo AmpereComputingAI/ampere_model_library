@@ -1,9 +1,16 @@
+import os
 import argparse
 
 import torch
 import torchvision
 
-from utils.cv.imagenet import ImageNet
+try:
+    from utils.cv.imagenet import ImageNet
+except ModuleNotFoundError as e:
+    print(e)
+    path = os.path.join(Path(os.getcwd(), __file__))
+    print('export PYTHONPATH=' + path.split('/computer_vision')[0])
+
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
