@@ -11,7 +11,11 @@ try:
 except ModuleNotFoundError as e:
     print("FAIL: ", e)
     path = os.path.join(Path(os.getcwd(), __file__))
-    print(f"\n\033[91m" + f"export PYTHONPATH={path.split('/computer_vision')[0]}" + '\n\033[0m')
+    print(f"\n\033[91m" + f"export PYTHONPATH={path.split('/computer_vision')[0]}" + '\033[0m')
+    print('here0')
+    sys.path.append(path.split('/computer_vision')[0])
+    from utils.cv.imagenet import ImageNet
+    print('here1')
     sys.exit()
 
 from utils.pytorch import PyTorchRunner
