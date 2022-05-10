@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
 
 imagenet_labels = {
     0: 'tench, Tinca tinca',
