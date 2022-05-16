@@ -30,3 +30,28 @@ def download_coco_dataset():
 
     os.environ["COCO_IMG_PATH"] = str(dataset)
     os.environ["COCO_ANNO_PATH"] = str(labels)
+
+
+def download_squad_1_1_dataset():
+
+    dataset_link = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/dev-v1.1.json'
+    squad_data = pathlib.Path(get_downloads_path(), "squad")
+
+    if not pathlib.Path(squad_data).is_dir():
+        try:
+            subprocess.run(["wget", dataset_link])
+            subprocess.run(["mkdir", squad_data])
+            subprocess.run(["mv", 'dev-v1.1.json', squad_data])
+
+        except KeyboardInterrupt:
+            subprocess.run(["rm", 'dev-v1.1.json'])
+            subprocess.run(["rm", '-rf', squad_data])
+    else:
+        pass
+
+    dataset = pathlib.Path(coco_data, 'COCO2014_onspecta')
+    labels = pathlib.Path(coco_data, 'COCO2014_anno_onspecta.json')
+
+    os.environ["COCO_IMG_PATH"] = str(dataset)
+    os.environ["COCO_ANNO_PATH"] = str(labels)
+
