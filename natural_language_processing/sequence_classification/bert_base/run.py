@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import argparse
 
 import tensorflow as tf
@@ -5,7 +8,6 @@ from transformers import TFAutoModelForSequenceClassification
 
 from utils.nlp.mrpc import MRPC
 from utils.benchmark import run_model
-from utils.tf import TFSavedModelRunner
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -37,6 +39,7 @@ def parse_args():
 
 
 def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
+    from utils.tf import TFSavedModelRunner
 
     def run_single_pass(nlp_runner, mrpc):
 

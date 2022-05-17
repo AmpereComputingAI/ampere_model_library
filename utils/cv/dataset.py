@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import cv2
 import numpy as np
 import utils.misc as utils

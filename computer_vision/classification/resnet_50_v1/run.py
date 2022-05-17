@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import argparse
 
 import torch
@@ -6,8 +9,6 @@ import numpy as np
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
-from utils.ort import OrtRunner
-from utils.pytorch import PyTorchRunner
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -46,7 +47,8 @@ def parse_args():
     return args
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -61,13 +63,14 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path, disa
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__["resnet50"](pretrained=True),
+    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
@@ -87,8 +90,8 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    return run_pytorch_fp(batch_size, num_runs, timeout, images_path, labels_path)
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
@@ -99,7 +102,7 @@ def main():
     args = parse_args()
     if args.framework == "pytorch":
         if args.precision == "fp32":
-            run_pytorch_fp32(**vars(args))
+            run_pytorch_fp32(model_name="resnet50", **vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

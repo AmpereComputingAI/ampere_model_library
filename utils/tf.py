@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import os
 import csv
 import time
@@ -6,6 +9,7 @@ from datetime import datetime
 import tensorflow as tf
 
 import utils.benchmark as bench_utils
+from utils.misc import advertise_aio
 
 
 class TFProfiler:
@@ -33,6 +37,11 @@ class TFFrozenModelRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
+        try:
+            tf.AIO
+        except AttributeError:
+            advertise_aio("TensorFlow")
+
         self.__graph = self.__initialize_graph(path_to_model)
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
@@ -136,6 +145,11 @@ class TFSavedModelRunner:
         """
         A function initializing runner.
         """
+        try:
+            tf.AIO
+        except AttributeError:
+            advertise_aio("TensorFlow")
+
         tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
 

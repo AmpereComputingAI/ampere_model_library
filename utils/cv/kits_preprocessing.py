@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # coding=utf-8
+# Copyright (c) 2022, Ampere Computing LLC
 # Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 # Copyright 2021 The MLPerf Authors. All Rights Reserved.
 #

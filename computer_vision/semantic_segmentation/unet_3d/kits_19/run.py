@@ -1,10 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import argparse
+
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.saved_model import tag_constants
 
 from utils.cv.kits import KiTS19
-from tensorflow.python.saved_model import tag_constants
-from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -34,6 +37,7 @@ def parse_args():
 
 
 def run_tf_fp(model_path, num_runs, timeout, kits_path):
+    from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, kits):
         output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
