@@ -24,7 +24,9 @@ jobs:
         run:
           sudo -s
           FORCE_INSTALL="1" bash setup_deb.sh
-          source set_env_variables.sh
+          
       - name: AML imports test
         run:
+          sudo -s
+          source set_env_variables.sh
           python3 utils/tests/setup_test_utils/attempt_imports.py 
