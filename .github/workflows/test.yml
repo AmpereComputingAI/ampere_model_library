@@ -9,6 +9,8 @@ on:
 jobs:
   test_setup:
     runs-on: ubuntu-latest
+    env:
+      FORCE_INSTALL: "1"
     strategy:
       matrix:
         python-version: [ '3.8', '3.9', '3.10' ]
@@ -22,5 +24,3 @@ jobs:
           architecture: x64
       - name: Set up AML
         run: echo "AAAA $FIRST_INSTALL"; sudo bash setup_deb.sh
-        env:
-          FORCE_INSTALL: "1"
