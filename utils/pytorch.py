@@ -9,8 +9,10 @@ import time
 import utils.benchmark as bench_utils
 import numpy as np
 import sys
+import hashlib
 from utils.profiling import *
 from torch.autograd.profiler import profile
+from pathlib import Path
 
 
 class PyTorchRunner:
@@ -35,10 +37,20 @@ class PyTorchRunner:
             if AIO:
                 utils.print_warning_message(f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
         else:
-            try:
-                self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
-            except torch.jit.frontend.UnsupportedNodeError:
-                self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
+            cached_dir = Path(__file__).resolve().parents[1] / "cached"
+            cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
+            if cached_path.exists():
+                self.__frozen_script = torch.jit.load(cached_path)
+                print(f"Loaded from cached file at {cached_path}")
+            else:
+                try:
+                    self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+                except torch.jit.frontend.UnsupportedNodeError:
+                    self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
+                if not cached_dir.exists():
+                    cached_dir.mkdir()
+                torch.jit.save(self.__frozen_script, cached_path)
+                print(f"Cached to file at {cached_path}")
 
         self.__warm_up_run_latency = 0.0
         self.__total_inference_time = 0.0
