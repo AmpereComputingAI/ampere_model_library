@@ -14,7 +14,10 @@ jobs:
         python-version: [ '3.8', '3.9', '3.10' ]
     name: Python ${{ matrix.python-version }} sample
     steps:
-      - uses: actions/checkout@v3
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
