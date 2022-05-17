@@ -23,7 +23,7 @@ jobs:
       - name: Set up AML
         run: |
           chmod +x ./setup_deb.sh
-          ./setup_deb.sh
+          sudo ./setup_deb.sh
         shell: bash
         env: 
           FORCE_INSTALL: 1
