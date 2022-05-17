@@ -22,8 +22,9 @@ jobs:
           architecture: x64
       - name: Set up AML
         run:
-          sudo -E FORCE_INSTALL="1" bash setup_deb.sh
+          sudo -s
+          FORCE_INSTALL="1" bash setup_deb.sh
           source set_env_variables.sh
       - name: AML imports test
         run:
-          sudo python3 utils/tests/setup_test_utils/attempt_imports.py 
+          python3 utils/tests/setup_test_utils/attempt_imports.py 
