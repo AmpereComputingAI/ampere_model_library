@@ -26,4 +26,4 @@ jobs:
           source set_env_variables.sh
       - name: AML imports test
         run:
-          python3 utils/tests/setup_test_utils/attempt_imports.py 
+          sudo python3 utils/tests/setup_test_utils/attempt_imports.py 
