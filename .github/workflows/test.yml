@@ -23,4 +23,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
       - name: Set up AML
-        run: echo "AAAA $FORCE_INSTALL"; sudo bash setup_deb.sh
+        run: echo "$FORCE_INSTALL" == "1"; sudo bash setup_deb.sh
