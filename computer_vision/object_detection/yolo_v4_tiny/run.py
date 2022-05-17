@@ -10,7 +10,6 @@ from tensorflow.python.saved_model import tag_constants
 
 import utils.misc as utils
 from utils.cv.coco import COCODataset
-from utils.tf import TFSavedModelRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -46,6 +45,7 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, coco):
         shape = (416, 416)

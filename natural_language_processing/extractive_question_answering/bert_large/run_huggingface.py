@@ -5,10 +5,9 @@ import argparse
 
 import numpy as np
 import tensorflow as tf
-
-from utils.tf import TFSavedModelRunner
-from utils.benchmark import run_model
 from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
+
+from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die
 
@@ -37,6 +36,7 @@ def parse_args():
 
 
 def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+    from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, squad):
 

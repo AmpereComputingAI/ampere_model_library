@@ -5,13 +5,11 @@ import argparse
 
 import torch
 
-from utils.speech_recognition.libri_speech import LibriSpeech
-from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
-
-from utils.speech_recognition.rnnt.decoders import ScriptGreedyDecoder
 import utils.speech_recognition.rnnt.model as rnnt
+from utils.misc import print_goodbye_message_and_die
+from utils.speech_recognition.libri_speech import LibriSpeech
+from utils.speech_recognition.rnnt.decoders import ScriptGreedyDecoder
 from utils.speech_recognition.rnnt.config import config as rnnt_config
 
 
@@ -43,7 +41,9 @@ def parse_args():
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
+
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, libri_speech):
         
@@ -51,19 +51,20 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, di
         _, _, output = pytorch_runner.run(input_arrays)
         libri_speech.submit_predictions(output)
     
-    
     rnnt_vocab = rnnt_config['labels']['labels']
     featurizer_config = rnnt_config['input_eval']
 
     model = rnnt.RNNT(feature_config=featurizer_config,
-            rnnt=rnnt_config['rnnt'],
-            num_classes=len(rnnt_vocab))
+                      rnnt=rnnt_config['rnnt'],
+                      num_classes=len(rnnt_vocab))
+
     model.load_state_dict(load_and_migrate_checkpoint(model_path), strict=True)
     decoder = ScriptGreedyDecoder(len(rnnt_vocab) - 1, model)
     runner = PyTorchRunner(decoder, disable_jit_freeze=disable_jit_freeze)
     dataset = LibriSpeech(dataset_dir_path=dataset_path, config=rnnt_config, max_batch_size=batch_size)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
 
 def load_and_migrate_checkpoint(ckpt_path):
     checkpoint = torch.load(ckpt_path, map_location="cpu")
@@ -74,6 +75,7 @@ def load_and_migrate_checkpoint(ckpt_path):
     del migrated_state_dict["audio_preprocessor.featurizer.fb"]
     del migrated_state_dict["audio_preprocessor.featurizer.window"]
     return migrated_state_dict
+
 
 def main():
     args = parse_args()

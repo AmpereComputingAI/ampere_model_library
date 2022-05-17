@@ -7,9 +7,6 @@ import argparse
 
 import utils.misc as utils
 from utils.cv.coco import COCODataset
-from utils.tflite import TFLiteRunner
-from utils.tf import TFFrozenModelRunner
-from utils.ort import OrtRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -45,6 +42,7 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
@@ -67,6 +65,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
 
 def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    from utils.tflite import TFLiteRunner
 
     def run_single_pass(tflite_runner, coco):
         shape = (300, 300)
@@ -102,6 +101,7 @@ def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, anno
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)

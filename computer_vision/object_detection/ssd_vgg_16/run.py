@@ -9,7 +9,6 @@ import warnings
 import torchvision
 
 from utils.cv.coco import COCODataset
-from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -47,6 +46,8 @@ def parse_args():
 
 
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunner
+
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
         output = pytorch_runner.run(coco.get_input_array(shape))
