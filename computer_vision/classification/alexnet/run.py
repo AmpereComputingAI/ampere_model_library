@@ -10,7 +10,7 @@ try:
     from utils.cv.imagenet import ImageNet
 except ModuleNotFoundError as e:
     # print("FAIL: ", e)
-    # path = os.path.join(Path(os.getcwd(), __file__))
+    path = os.path.join(Path(os.getcwd(), __file__))
     # print(f"\n\033[91m" + f"export PYTHONPATH={path.split('/computer_vision')[0]}" + '\033[0m')
     print('here0')
     test = path.split('/computer_vision')[0]
