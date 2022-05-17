@@ -16,7 +16,7 @@ if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
    
-if [ "$FORCE_INSTALL" != 1 ]; then
+if [ "${FORCE_INSTALL}" != "1" ]; then
    log "Checking for aarch64 system ..."
    sleep 1
    if [ "${ARCH}" != "aarch64" ]; then
