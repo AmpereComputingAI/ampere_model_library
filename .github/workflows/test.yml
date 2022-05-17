@@ -19,5 +19,5 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: aarch64
-      - run: bash setup_deb.sh
+          architecture: x64
+      - run: FORCE_INSTALL=1 bash setup_deb.sh
