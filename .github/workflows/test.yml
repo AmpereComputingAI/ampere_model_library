@@ -20,4 +20,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - run: FORCE_INSTALL=1 bash setup_deb.sh
+      - run: FORCE_INSTALL=1 sudo bash setup_deb.sh
