@@ -21,19 +21,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
       - name: Set up AML
-        run:
+        run: |
           sudo -s
           FORCE_INSTALL="1" bash setup_deb.sh
       - name: AML imports test
-        run:
+        run: |
           sudo -s
           source set_env_variables.sh
           python3 utils/tests/setup_test_utils/attempt_imports.py 
       - name: AML test
-        run:
+        run: |
           sudo -s
           source set_env_variables.sh
           wget https://data.deepai.org/squad1.1.zip
           unzip squad1.1.zip
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb
           OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=10 --squad_path=dev-v1.1.json
+          OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=10 --squad_path=dev-v1.1.json
