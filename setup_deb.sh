@@ -15,8 +15,8 @@ ARCH=$( uname -m )
 if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
-   
-if [ "$FORCE_INSTALL" != 1 ]; then
+
+if [ "$FORCE_INSTALL" != "1" ]; then
    log "Checking for aarch64 system ..."
    sleep 1
    if [ "${ARCH}" != "aarch64" ]; then
@@ -50,13 +50,13 @@ if [ "${ARCH}" == "aarch64" ]; then
    PYTHON3_VERSION=$( pip3 --version )
    if echo "$PYTHON3_VERSION" | grep -q "(python 3.8)"; then
       pip3 install --no-deps --upgrade \
-         https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl
+         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl
    elif echo "$PYTHON3_VERSION" | grep -q "(python 3.9)"; then
       pip3 install --no-deps --upgrade \
-         https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp39-cp39-linux_aarch64.whl
+         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp39-cp39-linux_aarch64.whl
    elif echo "$PYTHON3_VERSION" | grep -q "(python 3.10)"; then
       pip3 install --no-deps --upgrade \
-         https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/SimpleITK_aarch64-2.1.1-cp310-cp310-linux_aarch64.whl
+         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64_precompiled-2.1.1-cp310-cp310-linux_aarch64.whl
    else
       log "\nThis script requires python >=3.8! Quitting."
       exit 1

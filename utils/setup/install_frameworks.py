@@ -98,14 +98,13 @@ if not ampere_tf and install_tf:
 len_native_frameworks = len(native_frameworks)
 if len_native_frameworks > 0:
     native_frameworks_string = ""
-    if len_native_frameworks > 1:
-        for i in range(len_native_frameworks):
+    for i in range(len_native_frameworks):
             if i+2 == len_native_frameworks:
                 native_frameworks_string += f"{native_frameworks[i]} and "
             elif i+1 == len_native_frameworks:
                 native_frameworks_string += f"{native_frameworks[i]}"
             else:
-                native_frameworks_string += f"{native_frameworks[i]}, "
+                native_frameworks_string += f"{native_frameworks[i]}, "      
     print(f"\033[1;31m \nCAUTION: {native_frameworks_string} frameworks have been installed in their native versions "
           f"missing Ampere optimizations. Consider using AI-dedicated Docker images for increased performance. "
           f"Available at: https://solutions.amperecomputing.com/solutions/ampere-ai")
