@@ -7,10 +7,6 @@ import torch
 import torchvision
 
 from utils.cv.imagenet import ImageNet
-from utils.tf import TFFrozenModelRunner
-from utils.tflite import TFLiteRunner
-from utils.pytorch import PyTorchRunner
-from utils.ort import OrtRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -48,6 +44,8 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.tf import TFFrozenModelRunner
+
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
         tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
@@ -67,6 +65,8 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
 
 
 def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.tflite import TFLiteRunner
+
     def run_single_pass(tflite_runner, imagenet):
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
@@ -87,6 +87,8 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunner
+
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
         output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
@@ -122,6 +124,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, lab
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    from utils.ort import OrtRunner
+
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("data", imagenet.get_input_array(shape))
@@ -142,6 +146,8 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_
 
 
 def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    from utils.ort import OrtRunner
+
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("input:0", imagenet.get_input_array(shape).astype("float16"))

@@ -2,17 +2,18 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
-import torch
 
-from utils.pytorch import PyTorchRunner
-from utils.benchmark import run_model
+import torch
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+
+from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
+    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive"
+                                                 "question answering task.")
     parser.add_argument("-m", "--model_name",
                         type=str, choices=["jimypbr/bert-base-uncased-squad"], required=True,
                         help="name of the model")
@@ -35,6 +36,8 @@ def parse_args():
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
+    from utils.pytorch import PyTorchRunner
+
     def run_single_pass(pytorch_runner, squad):
 
         output = pytorch_runner.run(dict(squad.get_input_arrays()))
