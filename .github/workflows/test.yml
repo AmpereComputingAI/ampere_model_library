@@ -22,5 +22,5 @@ jobs:
           architecture: x64
       - name: Set up AML
         run:
-          FORCE_INSTALL=1 sudo bash setup_deb.sh
+          sudo -E FORCE_INSTALL="1" bash setup_deb.sh
         shell: bash
