@@ -1,14 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import os
 import sys
-import torch
 import argparse
 
+import torch
 import numpy as np
 
-from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
-from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
+from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
 
 
 def parse_args():
@@ -41,6 +43,7 @@ def parse_args():
 
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, criteo):
         output = torch_runner.run(criteo.get_inputs())

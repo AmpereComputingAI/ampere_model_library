@@ -1,12 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import argparse
 
 import torch
 import torchvision
 
-from utils.cv.imagenet import ImageNet
-from utils.pytorch import PyTorchRunner
-from utils.ort import OrtRunner
 from utils.benchmark import run_model
+from utils.cv.imagenet import ImageNet
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -43,6 +44,7 @@ def parse_args():
 
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
@@ -64,6 +66,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
   
   
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)

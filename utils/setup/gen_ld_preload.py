@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import os
 import re
 import subprocess
@@ -32,4 +35,6 @@ end_indices = [match.start() for match in re.finditer(end_pattern, errors)]
 for start, end in zip(start_indices, end_indices):
     ld_preload.remove(errors[start:end])
 
-open(os.path.join(script_dir, ".ld_preload"), "w").write(":".join(ld_preload))
+f = open(os.path.join(script_dir, ".ld_preload"), "w")
+f.write(":".join(ld_preload))
+f.close()

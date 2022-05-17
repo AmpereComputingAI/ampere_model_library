@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import argparse
 
 import numpy as np
 
 from utils.cv.coco import COCODataset
-from utils.ort import OrtRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -39,6 +41,8 @@ def parse_args():
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    from utils.ort import OrtRunner
+
     def run_single_pass(ort_runner, coco):
         shape = (416, 416)
         ort_runner.set_input_tensor("input_1", coco.get_input_array(shape).astype("float32"))

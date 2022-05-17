@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 import os
 import argparse
 
@@ -5,13 +8,11 @@ import pickle
 import torch
 import numpy as np
 
-import utils.cv.nnUNet.nnunet as nnunet
 from utils.cv.brats import BraTS19
-from utils.tf import TFFrozenModelRunner
-from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
+import utils.cv.nnUNet.nnunet as nnunet
 from utils.misc import print_goodbye_message_and_die
+from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
 
 
 def parse_args():
@@ -39,6 +40,7 @@ def parse_args():
 
 
 def run_tf_fp(model_path, num_runs, timeout, dataset_path):
+    from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, brats):
         tf_runner.set_input_tensor("input:0", np.expand_dims(brats.get_input_array(), axis=0))
@@ -61,6 +63,7 @@ def run_tf_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
 
 
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, brats):
         output = pytorch_runner.run(torch.from_numpy(np.expand_dims(brats.get_input_array(), axis=0)))
