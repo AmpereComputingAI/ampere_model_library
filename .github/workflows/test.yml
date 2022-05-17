@@ -28,11 +28,11 @@ jobs:
           sudo -s FORCE_INSTALL=1 bash setup_deb.sh
       - name: AML imports test
         run:
-          sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py 
+          sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py
       - name: AML smoke test
         run: |
-          wget https://data.deepai.org/squad1.1.zip
-          unzip squad1.1.zip
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb
-          sudo -s OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=10 --squad_path=dev-v1.1.json 
-          sudo -s OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=10 --squad_path=dev-v1.1.json
+          wget https://data.deepai.org/squad1.1.zip > /dev/null
+          unzip squad1.1.zip > /dev/null
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb > /dev/null
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=10 --squad_path=dev-v1.1.json 
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=10 --squad_path=dev-v1.1.json
