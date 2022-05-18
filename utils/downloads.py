@@ -2,7 +2,7 @@ import os
 import pathlib
 import subprocess
 
-from downloads.utils import get_downloads_path
+from utils.downloads.utils import get_downloads_path
 
 
 def download_coco_dataset():
