@@ -37,7 +37,7 @@ class PyTorchRunner:
             if AIO:
                 utils.print_warning_message(f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
         else:
-            cached_dir = Path(__file__).resolve().parents[1] / "cached"
+            cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
             if cached_path.exists():
                 self.__frozen_script = torch.jit.load(cached_path)
