@@ -12,9 +12,7 @@ from pathlib import Path
 try:
     from utils.cv.imagenet import ImageNet
 except ModuleNotFoundError as e:
-    test = os.path.abspath(__file__)
-    pythonpath = os.path.join(Path(os.getcwd(), __file__))
-    sys.path.append(test.split('/computer_vision')[0])
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
     from utils.cv.imagenet import ImageNet
 
 from utils.benchmark import run_model
