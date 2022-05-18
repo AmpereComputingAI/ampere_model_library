@@ -5,7 +5,7 @@ import numpy as np
 from utils.ort import OrtRunner
 from utils.benchmark import run_model
 from utils.cv.coco import COCODataset
-from utils.downloads import download_coco_dataset
+from utils.misc import download_coco_dataset
 from utils.misc import print_goodbye_message_and_die
 
 
