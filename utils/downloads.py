@@ -49,9 +49,6 @@ def download_squad_1_1_dataset():
     else:
         pass
 
-    dataset = pathlib.Path(coco_data, 'COCO2014_onspecta')
-    labels = pathlib.Path(coco_data, 'COCO2014_anno_onspecta.json')
+    dataset = pathlib.Path(squad_data, 'dev-v1.1.json')
 
-    os.environ["COCO_IMG_PATH"] = str(dataset)
-    os.environ["COCO_ANNO_PATH"] = str(labels)
-
+    os.environ["SQUAD_V1_1_PATH"] = str(dataset)
