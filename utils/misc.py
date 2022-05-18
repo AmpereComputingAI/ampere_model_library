@@ -1,6 +1,8 @@
 import os
 import sys
 import hashlib
+import pathlib
+import subprocess
 
 from utils.downloads.utils import get_downloads_path
 
