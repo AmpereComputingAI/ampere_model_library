@@ -7,23 +7,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  test_setup:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.8', '3.9', '3.10' ]
-    name: Python ${{ matrix.python-version }} sample
+  x86-64_test:
+    runs-on: ubuntu-22.04
+    name: x86-64 Ubuntu 22.04 test
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
         with:
           submodules: true
-      
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
       
       - name: Set up AML
         run:
@@ -60,4 +51,50 @@ jobs:
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+  
+  aarch64_test:
+    runs-on: ubuntu-22.04
+    name: aarch64 Ubuntu 22.04 test
+    steps:
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: true
           
+      - uses: uraimo/run-on-arch-action@v2
+        name: AML test
+        id: runcmd
+        with:
+          arch: aarch64
+          distro: ubuntu22.04
+
+          run: |
+            sudo -s FORCE_INSTALL=1 bash setup_deb.sh
+            
+            sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py
+            
+            wget https://data.deepai.org/squad1.1.zip > /dev/null 2>&1
+            unzip squad1.1.zip > /dev/null 2>&1
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb > /dev/null 2>&1
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=10 --squad_path=dev-v1.1.json 
+
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=10 --squad_path=dev-v1.1.json
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_classification_dataset.tar.gz > /dev/null 2>&1
+            tar -xvf aio_classification_dataset.tar.gz > /dev/null 2>&1
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=10 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
+
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=10 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
+            tar -xvf aio_objdet_dataset.tar.gz > /dev/null 2>&1
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
+            tar -xvf yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v4_tiny/run.py -m yolo_v4_tiny_tf_fp32 -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+
+            wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+            sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
