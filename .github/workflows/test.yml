@@ -8,22 +8,13 @@ on:
 
 jobs:
   test_setup:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ '3.8', '3.9', '3.10' ]
-    name: Python ${{ matrix.python-version }} sample
+    runs-on: ubuntu-20.04
+    name: Ubuntu 20.04 x86-64 AML test
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
         with:
           submodules: true
-      
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
       
       - name: Set up AML
         run:
