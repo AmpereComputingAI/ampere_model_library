@@ -8,8 +8,8 @@ on:
 
 jobs:
   x86-64_test:
-    runs-on: ubuntu-22.04
-    name: x86-64 Ubuntu 22.04 test
+    runs-on: ubuntu-20.04
+    name: Ubuntu 20.04 x86-64 test
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -53,8 +53,8 @@ jobs:
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
   
   aarch64_test:
-    runs-on: ubuntu-22.04
-    name: aarch64 Ubuntu 22.04 test
+    runs-on: ubuntu-20.04
+    name: Ubuntu 20.04 aarch64 test
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -63,10 +63,10 @@ jobs:
           
       - uses: uraimo/run-on-arch-action@v2
         name: AML test
-        id: runcmd
+        id: aml_test
         with:
           arch: aarch64
-          distro: ubuntu22.04
+          distro: ubuntu20.04
 
           run: |
             sudo -s FORCE_INSTALL=1 bash setup_deb.sh
