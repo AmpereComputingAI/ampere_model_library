@@ -106,17 +106,39 @@ def download_coco_dataset():
 
 def download_squad_1_1_dataset():
 
-    dataset_link = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/dev-v1.1.json'
+    # dataset_link = 'https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/dev-v1.1.json'
+    # squad_data = pathlib.Path(get_downloads_path(), "squad")
+    #
+    # if not pathlib.Path(squad_data).is_dir():
+    #     try:
+    #         subprocess.run(["wget", dataset_link])
+    #         subprocess.run(["mkdir", squad_data])
+    #         subprocess.run(["mv", 'dev-v1.1.json', squad_data])
+    #
+    #     except KeyboardInterrupt:
+    #         subprocess.run(["rm", 'dev-v1.1.json'])
+    #         subprocess.run(["rm", '-rf', squad_data])
+    # else:
+    #     pass
+    #
+    # dataset = pathlib.Path(squad_data, 'dev-v1.1.json')
+    #
+    # os.environ["SQUAD_V1_1_PATH"] = str(dataset)
+
+    dataset_link1 = 'https://data.deepai.org/squad1.1.zip'
     squad_data = pathlib.Path(get_downloads_path(), "squad")
 
     if not pathlib.Path(squad_data).is_dir():
         try:
             subprocess.run(["wget", dataset_link])
             subprocess.run(["mkdir", squad_data])
+            subprocess.run(["unzip", 'squad1.1.zip'])
             subprocess.run(["mv", 'dev-v1.1.json', squad_data])
+            subprocess.run(["mv", 'train-v1.1.json', squad_data])
 
         except KeyboardInterrupt:
             subprocess.run(["rm", 'dev-v1.1.json'])
+            subprocess.run(["rm", 'train-v1.1.json'])
             subprocess.run(["rm", '-rf', squad_data])
     else:
         pass
