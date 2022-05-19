@@ -1,3 +1,7 @@
+=======================================================================
+COCO dataset
+=======================================================================
+
 Certain functions within this library may download artifacts that are licensed
 under the COCO Creative Commons Attribution 4.0 License. These artifacts
 include but are not limited to:
@@ -6,6 +10,18 @@ include but are not limited to:
   - COCO2014_onspecta.tar.gz
 
 The license text has been included in full at the bottom of this NOTICE file.
+
+=======================================================================
+SQUAD dataset
+=======================================================================
+
+Certain functions within this library may download artifacts that are licensed
+under the Squad Creative Commons Attribution 4.0 License. These artifacts
+include but are not limited to:
+
+  - dev-v1.1.json
+  - train-v1.1.json
+
 
 =======================================================================
 COCO dataset Creative Commons Attribution 4.0 License.

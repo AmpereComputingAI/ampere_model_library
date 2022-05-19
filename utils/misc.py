@@ -130,7 +130,7 @@ def download_squad_1_1_dataset():
 
     if not pathlib.Path(squad_data).is_dir():
         try:
-            subprocess.run(["wget", dataset_link])
+            subprocess.run(["wget", dataset_link1])
             subprocess.run(["mkdir", squad_data])
             subprocess.run(["unzip", 'squad1.1.zip'])
             subprocess.run(["mv", 'dev-v1.1.json', squad_data])
