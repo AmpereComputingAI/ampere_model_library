@@ -12,6 +12,9 @@ import torchvision
 try:
     from utils.benchmark import run_model
 except ModuleNotFoundError as e:
+    print(os.path.abspath(__file__).split('/object_detection')[0])
+    print('terefere')
+    quit()
     sys.path.append(os.path.abspath(__file__).split('/object_detection')[0])
     from utils.benchmark import run_model
 
