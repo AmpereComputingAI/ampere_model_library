@@ -9,6 +9,7 @@ from utils.tflite import TFLiteRunner
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.tf import TFFrozenModelRunner
+from utils.misc import download_ampere_imagenet
 from utils.misc import print_goodbye_message_and_die
 warnings.filterwarnings("ignore")
 
@@ -123,6 +124,8 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, di
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
