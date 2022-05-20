@@ -154,7 +154,10 @@ def download_ampere_imagenet():
     images_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute.tar.gz"
     imagenet_data = pathlib.Path(get_downloads_path(), "imagenet")
 
-    if not pathlib.Path(coco_data).is_dir():
+    if pathlib.Path(imagenet_data).is_dir() and len(os.listdir(imagenet_data)) == 0:
+        subprocess.run(["rm", '-rf', imagenet_data])
+
+    if not pathlib.Path(imagenet_data).is_dir():
         try:
             subprocess.run(["wget", labels_link])
             subprocess.run(["wget", images_link])
@@ -169,7 +172,7 @@ def download_ampere_imagenet():
     else:
         pass
 
-    dataset = pathlib.Path(imagenet_data, 'ampere_imagenet_substitute')
+    dataset = pathlib.Path(imagenet_data)
     labels = pathlib.Path(imagenet_data, 'ampere_imagenet_substitute_labels.txt')
 
     os.environ["IMAGENET_IMG_PATH"] = str(dataset)

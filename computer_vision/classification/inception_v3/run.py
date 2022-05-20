@@ -137,7 +137,7 @@ def main():
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
 
-    if args.framework == "tflite":
+    elif args.framework == "tflite":
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
