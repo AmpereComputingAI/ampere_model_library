@@ -7,7 +7,12 @@ import warnings
 import torch
 import torchvision
 
-from utils.benchmark import run_model
+try:
+    from utils.benchmark import run_model
+except ModuleNotFoundError as e:
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
+    from utils.benchmark import run_model
+
 from utils.cv.imagenet import ImageNet
 from utils.misc import print_goodbye_message_and_die
 warnings.filterwarnings("ignore")

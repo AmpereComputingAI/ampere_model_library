@@ -5,7 +5,12 @@ import os
 import time
 import argparse
 
-import utils.misc as utils
+try:
+    import utils.misc as utils
+except ModuleNotFoundError as e:
+    sys.path.append(os.path.abspath(__file__).split('/object_detection')[0])
+    import utils.misc as utils
+
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
