@@ -146,3 +146,31 @@ def download_squad_1_1_dataset():
     dataset = pathlib.Path(squad_data, 'dev-v1.1.json')
 
     os.environ["SQUAD_V1_1_PATH"] = str(dataset)
+
+
+def download_ampere_imagenet():
+
+    labels_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute_labels.txt"
+    images_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute.tar.gz"
+    imagenet_data = pathlib.Path(get_downloads_path(), "imagenet")
+
+    if not pathlib.Path(coco_data).is_dir():
+        try:
+            subprocess.run(["wget", labels_link])
+            subprocess.run(["wget", images_link])
+            subprocess.run(["mkdir", imagenet_data])
+            subprocess.run(["mv", 'ampere_imagenet_substitute_labels.txt', imagenet_data])
+            subprocess.run(["tar", "-xf", 'ampere_imagenet_substitute.tar.gz', "-C", imagenet_data])
+            subprocess.run(["rm", 'ampere_imagenet_substitute.tar.gz'])
+        except KeyboardInterrupt:
+            subprocess.run(["rm", 'ampere_imagenet_substitute_labels.txt'])
+            subprocess.run(["rm", 'ampere_imagenet_substitute.tar.gz'])
+            subprocess.run(["rm", '-rf', imagenet_data])
+    else:
+        pass
+
+    dataset = pathlib.Path(imagenet_data, 'ampere_imagenet_substitute')
+    labels = pathlib.Path(imagenet_data, 'ampere_imagenet_substitute_labels.txt')
+
+    os.environ["IMAGENET_IMG_PATH"] = str(dataset)
+    os.environ["IMAGENET_LABELS_PATH"] = str(labels)
