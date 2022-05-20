@@ -9,7 +9,7 @@ import argparse
 try:
     import utils.misc as utils
 except ModuleNotFoundError as e:
-    sys.path.append(os.path.abspath(__file__).split('/object_detection')[0])
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
     import utils.misc as utils
 
 from utils.cv.coco import COCODataset

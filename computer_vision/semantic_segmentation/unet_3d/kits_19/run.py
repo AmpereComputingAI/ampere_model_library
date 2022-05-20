@@ -12,7 +12,7 @@ from tensorflow.python.saved_model import tag_constants
 try:
     from utils.benchmark import run_model
 except ModuleNotFoundError as e:
-    sys.path.append(os.path.abspath(__file__).split('/semantic_segmentation')[0])
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
     from utils.benchmark import run_model
 
 from utils.cv.kits import KiTS19
