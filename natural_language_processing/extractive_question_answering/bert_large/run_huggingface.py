@@ -15,7 +15,7 @@ from utils.misc import print_goodbye_message_and_die
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad"], required=True,
+                        type=str, default="bert-large-uncased-whole-word-masking-finetuned-squad", required=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -53,7 +53,17 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def tokenize(question, text):
-        return tokenizer(question, text, add_special_tokens=True)
+        max_length = 220
+        if model_name == "valhalla/longformer-base-4096-finetuned-squadv1":
+            pad_multiple = 1
+        elif model_name == "madlag/bert-base-uncased-squadv1-x2.44-f87.7-d26-hybrid-filled-v1":
+            max_length = 216
+            pad_multiple = 8
+        elif model_name == "salti/bert-base-multilingual-cased-finetuned-squad":
+            pad_multiple = 2
+        else:
+            pad_multiple = 20
+        return tokenizer(question, text, add_special_tokens=True, padding=True, max_length=max_length, truncation=True, pad_to_multiple_of=pad_multiple)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
