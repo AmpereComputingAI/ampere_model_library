@@ -20,7 +20,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
         try:
             torch._C._aio_profiler_print()
             AIO=True
@@ -31,6 +31,7 @@ class PyTorchRunner:
 
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
+        self.__func = func
         self.__model.eval()
         self.__frozen_script = None
         if disable_jit_freeze:
@@ -98,6 +99,9 @@ class PyTorchRunner:
                 model = self.__model
             else:
                 model = self.__frozen_script
+            if self.__func is not None:
+                model = getattr(model, self.__func)
+
             if self.__is_profiling:
                 with profile() as self.__profile:        
                     output_tensor = runner_func(model)
