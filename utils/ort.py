@@ -30,10 +30,7 @@ class OrtRunner:
         self.__feed_dict = dict()
         self.__output_names = [output.name for output in self.session.get_outputs()]
 
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
         self.__times_invoked = 0
-
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -45,12 +42,8 @@ class OrtRunner:
         outputs = self.session.run(self.__output_names, self.__feed_dict)
         finish = time.time()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
         self.__times_invoked += 1
 
         return outputs
@@ -64,7 +57,7 @@ class OrtRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
