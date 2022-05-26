@@ -30,25 +30,25 @@ jobs:
           unzip squad1.1.zip > /dev/null 2>&1
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=10 --squad_path=dev-v1.1.json 
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=60 --squad_path=dev-v1.1.json 
           
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=10 --squad_path=dev-v1.1.json
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=60 --squad_path=dev-v1.1.json
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_classification_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_classification_dataset.tar.gz > /dev/null 2>&1
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=10 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
           
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=10 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60 --images_path=aio_classification_dataset --labels_path=aio_classification_dataset/labels.txt
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null 2>&1
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
           tar -xvf yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v4_tiny/run.py -m yolo_v4_tiny_tf_fp32 -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v4_tiny/run.py -m yolo_v4_tiny_tf_fp32 -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=10 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
           
