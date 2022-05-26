@@ -147,11 +147,11 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
     """
     if num_runs == 0:
         utils.print_goodbye_message_and_die(
-            "Cannot print performance data as not a single run has been completed! Increase timeout.")
+            "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
     if num_runs <= warm_up_runs:
         utils.print_goodbye_message_and_die(
-            "Cannot print performance data as only warm-up runs have been completed! Increase timeout.")
+            "Cannot print performance data as only warm-up run(s) have been completed! Increase the timeout.")
     else:
         assert len(start_times) == len(finish_times) == num_runs
 
