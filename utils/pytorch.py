@@ -53,11 +53,9 @@ class PyTorchRunner:
                 torch.jit.save(self.__frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
 
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
         self.__is_profiling = aio_profiler_enabled()
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -83,13 +81,9 @@ class PyTorchRunner:
                 start = time.time()
                 output = model(input)
                 finish = time.time()
-                
-            self.__total_inference_time += finish - start
-            if self.__times_invoked == 0:
-                self.__warm_up_run_latency += finish - start
-            else:
-                self.__start_times.append(start)
-                self.__finish_times.append(finish)
+
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
             self.__times_invoked += 1
 
             return output
@@ -112,7 +106,8 @@ class PyTorchRunner:
 
     def print_performance_metrics(self, batch_size):
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size
+        )
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
