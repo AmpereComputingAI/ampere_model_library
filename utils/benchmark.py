@@ -167,7 +167,7 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
         mean_throughput = batch_size / mean_latency_sec
         median_throughput = batch_size / median_latency_sec
 
-        print("\n Latency: mean - {:.0f} ms, median - {:.0f} ms".format(mean_latency_ms, median_latency_ms))
-        print(" Throughput: mean - {:.2f} ips, median - {:.2f} ips\n".format(mean_throughput, median_throughput))
+        print("\n Latency:       mean= {:>10.0f}  ms, median= {:>10.0f}  ms".format(mean_latency_ms, median_latency_ms))
+        print(" Throughput:    mean= {:>10.2f} ips, median= {:>10.2f} ips\n".format(mean_throughput, median_throughput))
         return {"mean_lat_ms": mean_latency_ms, "median_lat_ms": median_latency_ms,
                 "mean_throughput": mean_throughput, "median_throughput": median_throughput}
