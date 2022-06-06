@@ -92,6 +92,8 @@ if not ampere_tf and install_tf:
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow=={native_tf_version}"])
     native_frameworks.append("TensorFlow")
+    
+subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", f"protobuf==3.20.1"])
 
 
 # summary
