@@ -6,8 +6,8 @@ import warnings
 import torchvision
 
 from utils.cv.coco import COCODataset
-from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
+from utils.pytorch import PyTorchRunner
 from utils.misc import download_coco_dataset
 from utils.misc import print_goodbye_message_and_die
 
@@ -74,7 +74,6 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, anno_path, disa
 
 def main():
     args = parse_args()
-    download_coco_dataset()
 
     if args.framework == "pytorch":
         if args.precision == "fp32":

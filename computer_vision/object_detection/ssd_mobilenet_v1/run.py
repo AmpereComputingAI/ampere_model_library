@@ -3,8 +3,8 @@ import time
 import argparse
 
 from utils.cv.coco import COCODataset
-from utils.tf import TFFrozenModelRunner
 from utils.benchmark import run_model
+from utils.tf import TFFrozenModelRunner
 from utils.misc import download_coco_dataset
 from utils.misc import print_goodbye_message_and_die
 
@@ -71,7 +71,6 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-    download_coco_dataset()
 
     if args.framework == "tf":
         if args.model_path is None:

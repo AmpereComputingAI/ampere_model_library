@@ -74,7 +74,6 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
 
 def main():
     args = parse_args()
-    download_coco_dataset()
 
     if args.framework == "ort":
         if args.precision == "fp32":

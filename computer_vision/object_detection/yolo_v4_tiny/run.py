@@ -83,7 +83,6 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-    download_coco_dataset()
 
     if args.framework == "tf":
         if args.model_path is None:
