@@ -6,7 +6,7 @@ import torchvision
 from utils.cv.imagenet import ImageNet
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
@@ -65,6 +65,8 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, labels_path, di
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
