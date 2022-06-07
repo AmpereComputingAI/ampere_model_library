@@ -5,11 +5,12 @@ from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from utils.nlp.squad import Squad_v1_1
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
+    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive"
+                                                 "question answering task.")
     parser.add_argument("-m", "--model_name",
                         type=str, choices=["jimypbr/bert-base-uncased-squad"], required=True,
                         help="name of the model")
@@ -64,6 +65,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
 
 def main():
     args = parse_args()
+    download_squad_1_1_dataset()
+
     if args.framework == "pytorch":
         run_pytorch(**vars(args))
     else:

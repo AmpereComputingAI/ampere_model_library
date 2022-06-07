@@ -6,8 +6,7 @@ import tensorflow as tf
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.tf import TFSavedModelRunner
-from utils.misc import print_goodbye_message_and_die
-from utils.misc import download_squad_1_1_dataset
+from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
 
 
