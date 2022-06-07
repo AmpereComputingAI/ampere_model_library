@@ -27,6 +27,9 @@ def parse_args():
     parser.add_argument("--debug",
                         action="store_true",
                         help="print stdout + stderr of processes?")
+    parser.add_argument("--skip_warm_up",
+                        action="store_true",
+                        help="skip warm-up run?")
     return parser.parse_args()
 
 
@@ -94,15 +97,16 @@ def main():
     args = parse_args()
     exec_args = args.args.split()
 
-    os.environ["AIO_NUMA_CPUS"] = "1"
-    os.environ["DLS_NUMA_CPUS"] = "1"
-    cmd = ["python3", args.executable] + exec_args
-    if args.debug:
-        warm_up = subprocess.Popen(cmd)
-    else:
-        warm_up = subprocess.Popen(cmd, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-    if warm_up.wait() != 0:
-        print_goodbye_message_and_die("Warm-up run died, consider running with --debug")
+    if args.skip_warm_up:
+        os.environ["AIO_NUMA_CPUS"] = "1"
+        os.environ["DLS_NUMA_CPUS"] = "1"
+        cmd = ["python3", args.executable] + exec_args
+        if args.debug:
+            warm_up = subprocess.Popen(cmd)
+        else:
+            warm_up = subprocess.Popen(cmd, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+        if warm_up.wait() != 0:
+            print_goodbye_message_and_die("Warm-up run died, consider running with --debug")
 
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
 
