@@ -131,18 +131,15 @@ def main():
                 cmd, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')))
 
     exit_codes = [p.wait() for p in current_subprocesses]
-
-    failure = False
     if not all(exit_code == 0 for exit_code in exit_codes):
-        failure = True
+        print(exit_codes)
+        print_goodbye_message_and_die("At least one of subprocesses returned exit code 1!")
+
     logs = os.listdir(results_dir)
     if len(logs) != args.num_processes:
-        failure = True
+        print_goodbye_message_and_die("At least one of subprocesses failed to dump results!")
 
-    if failure:
-        print_goodbye_message_and_die("At least one of processes either died or failed to dump results!")
-    else:
-        calculate_throughput(args, results_dir, logs)
+    calculate_throughput(args, results_dir, logs)
 
 
 if __name__ == "__main__":
