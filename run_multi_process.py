@@ -39,7 +39,7 @@ def gen_threads_config(num_threads, process_id):
 
 
 def calculate_throughput(args, logs_dir, logs):
-    with open(os.path.join(logs_dir, "meta.json"), "r") as meta_file:
+    with open(os.path.join(logs_dir, f"meta_{logs[0][:-4]}.json"), "r") as meta_file:
         batch_size = json.load(meta_file)["batch_size"]
 
     runs = dict()
@@ -85,9 +85,9 @@ def calculate_throughput(args, logs_dir, logs):
 
     overlap_time = earliest_finish - latest_start
     print("\n Overlap time of processes: {:.2f} s".format(overlap_time))
-    mean_lat_proc = statistics.mean(latencies)
+
     batch_x_proc = batch_size * args.num_processes
-    throughput_mean = batch_x_proc / mean_lat_proc
+    throughput_mean = batch_x_proc / statistics.mean(latencies)
     throughput_median = batch_x_proc / statistics.median(latencies)
     print(" Throughput:     mean= {:>10.2f} ips,     median= {:>10.2f} ips\n".format(
         throughput_mean, throughput_median))
