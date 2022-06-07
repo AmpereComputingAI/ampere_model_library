@@ -15,7 +15,7 @@ from utils.misc import print_goodbye_message_and_die
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad"], required=True,
+                        type=str, required=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
