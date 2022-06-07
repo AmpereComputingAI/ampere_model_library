@@ -136,7 +136,7 @@ def main():
         print_goodbye_message_and_die("At least one of subprocesses returned exit code 1!")
 
     logs = os.listdir(results_dir)
-    if len(logs) != args.num_processes:
+    if len(logs) != args.num_processes + 1:
         print_goodbye_message_and_die("At least one of subprocesses failed to dump results!")
 
     calculate_throughput(args, results_dir, logs)
