@@ -4,6 +4,7 @@
 import os
 import csv
 import time
+import json
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
@@ -83,6 +84,8 @@ class TFLiteRunner:
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
+            with open(f"{dump_dir}/meta.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times)

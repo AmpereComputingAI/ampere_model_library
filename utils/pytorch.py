@@ -1,14 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
 import csv
+import json
 import torch
 import utils.misc as utils
 import time
 import utils.benchmark as bench_utils
-import numpy as np
-import sys
 import hashlib
 from utils.profiling import *
 from torch.autograd.profiler import profile
@@ -23,11 +21,10 @@ class PyTorchRunner:
     def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
         try:
             torch._C._aio_profiler_print()
-            AIO=True
+            AIO = True
         except AttributeError:
             utils.advertise_aio("Torch")
-            AIO=False
-
+            AIO = False
 
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
@@ -36,7 +33,8 @@ class PyTorchRunner:
         self.__frozen_script = None
         if disable_jit_freeze:
             if AIO:
-                utils.print_warning_message(f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
+                utils.print_warning_message(
+                    f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
@@ -97,7 +95,7 @@ class PyTorchRunner:
                 model = getattr(model, self.__func)
 
             if self.__is_profiling:
-                with profile() as self.__profile:        
+                with profile() as self.__profile:
                     output_tensor = runner_func(model)
             else:
                 output_tensor = runner_func(model)
@@ -111,6 +109,8 @@ class PyTorchRunner:
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
+            with open(f"{dump_dir}/meta.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times)

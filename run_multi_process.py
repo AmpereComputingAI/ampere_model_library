@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 import shutil
 import argparse
 import statistics
@@ -21,9 +22,6 @@ def parse_args():
     parser.add_argument("-t", "--num_threads",
                         type=int, default=1,
                         help="number of threads to use per process")
-    parser.add_argument("--timeout",
-                        type=float, default=15.0,
-                        help="timeout in seconds")
     parser.add_argument("--debug",
                         action="store_true",
                         help="print stdout + stderr of processes?")
@@ -41,6 +39,9 @@ def gen_threads_config(num_threads, process_id):
 
 
 def calculate_throughput(args, logs_dir, logs):
+    with open(os.path.join(logs_dir, "meta.json"), "r") as meta_file:
+        batch_size = json.load(meta_file)["batch_size"]
+
     runs = dict()
     latest_start = None
     earliest_finish = None
@@ -85,7 +86,7 @@ def calculate_throughput(args, logs_dir, logs):
     overlap_time = earliest_finish - latest_start
     print("\n Overlap time of processes: {:.2f} s".format(overlap_time))
     mean_lat_proc = statistics.mean(latencies)
-    batch_x_proc = args.batch_size * args.num_processes
+    batch_x_proc = batch_size * args.num_processes
     throughput_mean = batch_x_proc / mean_lat_proc
     throughput_median = batch_x_proc / statistics.median(latencies)
     print(" Throughput:     mean= {:>10.2f} ips,     median= {:>10.2f} ips\n".format(

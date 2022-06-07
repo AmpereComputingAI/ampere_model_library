@@ -4,6 +4,7 @@
 import os
 import csv
 import time
+import json
 from datetime import datetime
 
 import tensorflow as tf
@@ -124,6 +125,8 @@ class TFFrozenModelRunner:
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
+            with open(f"{dump_dir}/meta.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times)
@@ -186,6 +189,8 @@ class TFSavedModelRunner:
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:
+            with open(f"{dump_dir}/meta.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times)
