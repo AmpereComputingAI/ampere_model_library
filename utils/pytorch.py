@@ -20,7 +20,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
         try:
             torch._C._aio_profiler_print()
             AIO=True
@@ -31,6 +31,7 @@ class PyTorchRunner:
 
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self.__model = model
+        self.__func = func
         self.__model.eval()
         self.__frozen_script = None
         if disable_jit_freeze:
@@ -52,11 +53,9 @@ class PyTorchRunner:
                 torch.jit.save(self.__frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
 
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
         self.__is_profiling = aio_profiler_enabled()
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -82,13 +81,9 @@ class PyTorchRunner:
                 start = time.time()
                 output = model(input)
                 finish = time.time()
-                
-            self.__total_inference_time += finish - start
-            if self.__times_invoked == 0:
-                self.__warm_up_run_latency += finish - start
-            else:
-                self.__start_times.append(start)
-                self.__finish_times.append(finish)
+
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
             self.__times_invoked += 1
 
             return output
@@ -98,6 +93,9 @@ class PyTorchRunner:
                 model = self.__model
             else:
                 model = self.__frozen_script
+            if self.__func is not None:
+                model = getattr(model, self.__func)
+
             if self.__is_profiling:
                 with profile() as self.__profile:        
                     output_tensor = runner_func(model)
@@ -108,7 +106,8 @@ class PyTorchRunner:
 
     def print_performance_metrics(self, batch_size):
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size
+        )
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None:

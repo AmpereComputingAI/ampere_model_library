@@ -13,6 +13,7 @@ class TFLiteRunner:
     """
     A class providing facilities to run TensorFlow Lite model (in .tflite format).
     """
+
     def __init__(self, path_to_model: str):
         """
         A function initializing runner.
@@ -30,10 +31,8 @@ class TFLiteRunner:
         self.__interpreter.allocate_tensors()
         self.input_details = self.__interpreter.get_input_details()
         self.output_details = self.__interpreter.get_output_details()
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -66,13 +65,10 @@ class TFLiteRunner:
         start = time.time()
         self.__interpreter.invoke()
         finish = time.time()
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+
         self.__times_invoked += 1
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
 
     def print_performance_metrics(self, batch_size):
         """
@@ -81,7 +77,7 @@ class TFLiteRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
 

@@ -49,10 +49,8 @@ class TFFrozenModelRunner:
         )
         self.__feed_dict = dict()
         self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -106,13 +104,10 @@ class TFFrozenModelRunner:
         output = self.__sess.run(self.__output_dict, self.__feed_dict)
         finish = time.time()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
         self.__times_invoked += 1
+
         return output
 
     def print_performance_metrics(self, batch_size):
@@ -121,7 +116,7 @@ class TFFrozenModelRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
@@ -154,10 +149,8 @@ class TFSavedModelRunner:
         tf.config.threading.set_inter_op_parallelism_threads(1)
 
         self.model = None
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -175,12 +168,8 @@ class TFSavedModelRunner:
         output = self.model(input)
         finish = time.time()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
         self.__times_invoked += 1
         return output
 
@@ -190,7 +179,7 @@ class TFSavedModelRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
