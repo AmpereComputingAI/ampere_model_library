@@ -23,7 +23,7 @@ def parse_args():
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
-                        type=str, choices=["pytorch"], required=True,
+                        type=str, choices=["tf", "pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
