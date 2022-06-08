@@ -8,7 +8,7 @@ import torchvision
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
@@ -122,6 +122,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, lab
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
