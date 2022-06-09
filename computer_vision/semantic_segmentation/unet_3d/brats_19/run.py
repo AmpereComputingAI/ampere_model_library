@@ -2,14 +2,20 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
+import sys
 import argparse
 
 import pickle
 import torch
 import numpy as np
 
+try:
+    from utils.benchmark import run_model
+except ModuleNotFoundError as e:
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
+    from utils.benchmark import run_model
+
 from utils.cv.brats import BraTS19
-from utils.benchmark import run_model
 import utils.cv.nnUNet.nnunet as nnunet
 from utils.misc import print_goodbye_message_and_die
 from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class

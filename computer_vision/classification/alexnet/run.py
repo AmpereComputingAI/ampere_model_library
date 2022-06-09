@@ -1,10 +1,19 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
+import os
+import sys
 import argparse
 
 import torch
 import torchvision
+from pathlib import Path
+
+try:
+    from utils.cv.imagenet import ImageNet
+except ModuleNotFoundError as e:
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
+    from utils.cv.imagenet import ImageNet
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet

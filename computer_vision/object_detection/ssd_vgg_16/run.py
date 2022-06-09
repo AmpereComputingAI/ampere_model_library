@@ -2,14 +2,20 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
+import sys
 import time
 import argparse
 import warnings
 
 import torchvision
 
+try:
+    from utils.benchmark import run_model
+except ModuleNotFoundError as e:
+    sys.path.append(os.path.abspath(__file__).split('/computer_vision')[0])
+    from utils.benchmark import run_model
+
 from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
 
