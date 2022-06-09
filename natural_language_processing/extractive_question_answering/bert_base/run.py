@@ -3,8 +3,8 @@
 
 import argparse
 
-import torch
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+import numpy as np
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TFAutoModelForQuestionAnswering
 
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
@@ -15,13 +15,15 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive"
                                                  "question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["jimypbr/bert-base-uncased-squad"], required=True,
+                        type=str, choices=["jimypbr/bert-base-uncased-squad",
+                                           "madlag/bert-base-uncased-squadv1-x2.44-f87.7-d26-hybrid-filled-v1",
+                                           "salti/bert-base-multilingual-cased-finetuned-squad"], required=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
-                        type=str, choices=["pytorch"], required=True,
+                        type=str, choices=["tf", "pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -34,6 +36,42 @@ def parse_args():
                         help="path to .json file with Squad v1.1 data")
     return parser.parse_args()
 
+
+def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+    import tensorflow as tf
+    from utils.tf import TFSavedModelRunner
+
+    def run_single_pass(tf_runner, squad):
+
+        output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
+
+        for i in range(batch_size):
+            answer_start_id = np.argmax(output.start_logits[i])
+            answer_end_id = np.argmax(output.end_logits[i])
+            squad.submit_prediction(
+                i,
+                squad.extract_answer(i, answer_start_id, answer_end_id)
+            )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    def tokenize(question, text):
+        if model_name == "madlag/bert-base-uncased-squadv1-x2.44-f87.7-d26-hybrid-filled-v1":
+            max_length = 216
+            pad_multiple = 8
+        elif model_name == "salti/bert-base-multilingual-cased-finetuned-squad":
+            max_length = 220
+            pad_multiple = 2
+        return tokenizer(question, text, add_special_tokens=True, padding=True, max_length=max_length, truncation=True, pad_to_multiple_of=pad_multiple)
+
+    def detokenize(answer):
+        return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
+
+    dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
+    runner = TFSavedModelRunner()
+    runner.model = tf.function(TFAutoModelForQuestionAnswering.from_pretrained(model_name))
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunner
@@ -72,7 +110,10 @@ def main():
     args = parse_args()
     download_squad_1_1_dataset()
 
-    if args.framework == "pytorch":
+    if args.framework == "tf":
+        run_tf(**vars(args))
+    elif args.framework == "pytorch":
+
         run_pytorch(**vars(args))
     else:
         print_goodbye_message_and_die(
