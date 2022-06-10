@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
+import sys
 import time
 import statistics
 import utils.misc as utils
@@ -119,6 +120,10 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
 
     start = time.time()
     try:
+        if os.environ.get("WARM_UP_ONLY") == "1":
+            single_pass_func(runner, dataset)
+            sys.exit(0)
+
         if num_runs is None:
             single_pass_func(runner, dataset)
             while time.time() - start < timeout:

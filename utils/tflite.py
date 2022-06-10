@@ -4,6 +4,7 @@
 import os
 import csv
 import time
+import json
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
@@ -82,10 +83,12 @@ class TFLiteRunner:
             tf.AIO.print_profile_data()
 
         dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None:
+        if dump_dir is not None and len(self.__start_times) > 2:
+            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
-                writer.writerow(self.__start_times)
-                writer.writerow(self.__finish_times)
+                writer.writerow(self.__start_times[2:])
+                writer.writerow(self.__finish_times[2:])
 
         return perf
