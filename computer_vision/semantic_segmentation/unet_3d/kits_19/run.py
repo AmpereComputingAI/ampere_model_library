@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument("--num_runs",
                         type=int,
                         help="number of passes through network to execute")
-    parser.add_argument("--dataset_path",
+    parser.add_argument("--kits_path",
                         type=str,
                         help="path to directory with KiTS19 dataset")
     return parser.parse_args()
