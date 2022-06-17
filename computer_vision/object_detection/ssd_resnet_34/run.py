@@ -17,7 +17,7 @@ def parse_args():
                         type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
