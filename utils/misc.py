@@ -7,8 +7,6 @@ import hashlib
 import pathlib
 import subprocess
 
-from utils.downloads.utils import get_downloads_path
-
 
 class UnsupportedPrecisionValueError(ValueError):
     """
@@ -87,7 +85,7 @@ def advertise_aio(framework_name):
 
 
 def download_squad_1_1_dataset():
-
+    from utils.downloads.utils import get_downloads_path
     dataset_link1 = 'https://data.deepai.org/squad1.1.zip'
     squad_data = pathlib.Path(get_downloads_path(), "squad")
 
@@ -112,7 +110,7 @@ def download_squad_1_1_dataset():
 
 
 def download_ampere_imagenet():
-
+    from utils.downloads.utils import get_downloads_path
     labels_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute_labels.txt"
     images_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute.tar.gz"
     imagenet_data = pathlib.Path(get_downloads_path(), "imagenet")
