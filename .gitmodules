@@ -3,4 +3,4 @@
 	url = git@github.com:MIC-DKFZ/nnUNet.git
 [submodule "utils/recommendation/dlrm"]
 	path = utils/recommendation/dlrm
-	url = git@github.com:OnSpecta/dlrm.git
+	url = git@github.com:AmpereComputingAI/dlrm.git
