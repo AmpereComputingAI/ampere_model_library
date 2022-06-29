@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import statistics
+import numpy as np
 import utils.misc as utils
 from tqdm.auto import tqdm
 
@@ -166,15 +167,25 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
 
         mean_latency_sec = statistics.mean(latencies)
         median_latency_sec = statistics.median(latencies)
+        percentile_90th_latency_sec = np.percentile(latencies, 90)
 
         mean_latency_ms = mean_latency_sec * 1000
         median_latency_ms = median_latency_sec * 1000
+        percentile_90th_latency_ms = percentile_90th_latency_sec * 1000
         mean_throughput = batch_size / mean_latency_sec
         median_throughput = batch_size / median_latency_sec
+        percentile_90th_throughput = batch_size / percentile_90th_latency_sec
 
-        print("\n Latency:        mean= {:>10.0f}  ms,     median= {:>10.0f}  ms".format(
-            mean_latency_ms, median_latency_ms))
-        print(" Throughput:     mean= {:>10.2f} ips,     median= {:>10.2f} ips\n".format(
-            mean_throughput, median_throughput))
-        return {"mean_lat_ms": mean_latency_ms, "median_lat_ms": median_latency_ms,
-                "mean_throughput": mean_throughput, "median_throughput": median_throughput}
+        print("\n Latency:    mean= {:>10.0f} ms, median= {:>10.0f} ms, 90th percentile= {:>10.0f} ms".format(
+            mean_latency_ms, median_latency_ms, percentile_90th_latency_ms))
+        print(" Throughput:    mean= {:>10.2f} ips, median= {:>10.2f} ips, 90th percentile= {:>10.2f} ips\n".format(
+            mean_throughput, median_throughput, percentile_90th_throughput))
+
+        return {
+            "mean_lat_ms": mean_latency_ms,
+            "median_lat_ms": median_latency_ms,
+            "90th_percentile_lat_ms": percentile_90th_latency_ms,
+            "mean_throughput": mean_throughput,
+            "median_throughput": median_throughput,
+            "90th_percentile_throughput": percentile_90th_throughput
+        }
