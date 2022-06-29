@@ -176,8 +176,8 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
         median_throughput = batch_size / median_latency_sec
         percentile_90th_throughput = batch_size / percentile_90th_latency_sec
 
-        print("\n                             mean      /  median    /  90th-percentile")
-        print(" Latency [ms]:               {:>6.2f}  /  {:>6.2f}  /  {:>6.2f}".format(
+        print("\n                                 mean    /  median    /  90th-percentile")
+        print(" Latency           [ms]:     {:>6.2f}  /  {:>6.2f}  /  {:>6.2f}".format(
             mean_latency_ms, median_latency_ms, percentile_90th_latency_ms))
         print(" Throughput [samples/s]:     {:>6.2f}  /  {:>6.2f}  /  {:>6.2f}\n".format(
             mean_throughput, median_throughput, percentile_90th_throughput))
