@@ -54,7 +54,7 @@ class Postprocessor:
     Class that continuously blurs people on image using a dedicated thread.
     """
 
-    def __init__(self, pose_postprocessor_queue, postprocessor_writter_queue, frames):
+    def __init__(self, pose_postprocessor_queue, postprocessor_writter_queue, frames, faces):
         self.frame = None
         self.people = None
         self.blurred = None
@@ -64,6 +64,7 @@ class Postprocessor:
         self.postprocessor_writter_queue = postprocessor_writter_queue
         self.frames = frames
         self.frame_number = 0
+        self.faces = faces
 
     def start(self):
         Thread(target=self.blur, args=()).start()
@@ -114,7 +115,7 @@ class Postprocessor:
         left_point = (int(left_point[1]), int(left_point[0]))
         right_point = (int(right_point[1]), int(right_point[0]))
         center = ((left_point[0] + right_point[0]) // 2, (left_point[1] + right_point[1]) // 2)
-        radius = int_distance(left_point, center)
+        radius = int_distance(left_point, center) * 2
         cv2.circle(mask, center, radius, (255, 255, 255), cv2.FILLED)
 
         return mask
@@ -166,54 +167,55 @@ class Postprocessor:
             if left_point is not None and right_point is not None:
                 mask = self.mask_face(mask, left_point, right_point)
             
-            # Blur torso
-            if (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
-                human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold and
-                human[0, KEYPOINT_DICT['left_hip'], 2] > threshold and
-                human[0, KEYPOINT_DICT['right_hip'], 2] > threshold):
-                contours = np.array([
-                    human[0, KEYPOINT_DICT['left_shoulder'], :2],
-                    human[0, KEYPOINT_DICT['right_shoulder'], :2],
-                    human[0, KEYPOINT_DICT['right_hip'], :2],
-                    human[0, KEYPOINT_DICT['left_hip'], :2],
-                ], dtype="int64")
-                contours = contours[:, [1, 0]]
-                cv2.fillPoly(mask, pts=[contours], color=(255, 255, 255))
-            lines = np.array(lines, dtype=np.uint64)
+            if not self.faces:
+                # Blur torso
+                if (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['left_hip'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_hip'], 2] > threshold):
+                    contours = np.array([
+                        human[0, KEYPOINT_DICT['left_shoulder'], :2],
+                        human[0, KEYPOINT_DICT['right_shoulder'], :2],
+                        human[0, KEYPOINT_DICT['right_hip'], :2],
+                        human[0, KEYPOINT_DICT['left_hip'], :2],
+                    ], dtype="int64")
+                    contours = contours[:, [1, 0]]
+                    cv2.fillPoly(mask, pts=[contours], color=(255, 255, 255))
+                lines = np.array(lines, dtype=np.uint64)
 
-            # Determine the thickness of the lines
-            thickness = 10
-            if (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
-                human[0, KEYPOINT_DICT['left_elbow'], 2] > threshold):
-                point1 = human[0, KEYPOINT_DICT['left_shoulder'], :2]
-                point2 = human[0, KEYPOINT_DICT['left_elbow'], :2]
-                thickness = int_distance(point1, point2) // 3
-            elif (human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold and
-                human[0, KEYPOINT_DICT['right_elbow'], 2] > threshold):
-                point1 = human[0, KEYPOINT_DICT['right_shoulder'], :2]
-                point2 = human[0, KEYPOINT_DICT['right_elbow'], :2]
-                thickness = int_distance(point1, point2) // 3
-            elif (human[0, KEYPOINT_DICT['left_wrist'], 2] > threshold and
-                human[0, KEYPOINT_DICT['left_elbow'], 2] > threshold):
-                point1 = human[0, KEYPOINT_DICT['left_wrist'], :2]
-                point2 = human[0, KEYPOINT_DICT['left_elbow'], :2]
-                thickness = int_distance(point1, point2) // 3
-            elif (human[0, KEYPOINT_DICT['right_wrist'], 2] > threshold and
-                human[0, KEYPOINT_DICT['right_elbow'], 2] > threshold):
-                point1 = human[0, KEYPOINT_DICT['right_wrist'], :2]
-                point2 = human[0, KEYPOINT_DICT['right_elbow'], :2]
-                thickness = int_distance(point1, point2) // 3
-            elif (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
-                human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold):
-                point1 = human[0, KEYPOINT_DICT['left_shoulder'], :2]
-                point2 = human[0, KEYPOINT_DICT['right_shoulder'], :2]
-                thickness = int_distance(point1, point2) // 3
-            elif (human[0, KEYPOINT_DICT['left_hip'], 2] > threshold and
-                  human[0, KEYPOINT_DICT['right_hip'], 2] > threshold):
-                  point1 = human[0, KEYPOINT_DICT['left_hip'], :2]
-                  point2 = human[0, KEYPOINT_DICT['right_hip'], :2]
-                  thickness = int_distance(point1, point2) // 3
-            cv2.polylines(mask, lines, False, (255, 255, 255), thickness)
+                # Determine the thickness of the lines
+                thickness = 10
+                if (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['left_elbow'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['left_shoulder'], :2]
+                    point2 = human[0, KEYPOINT_DICT['left_elbow'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                elif (human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_elbow'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['right_shoulder'], :2]
+                    point2 = human[0, KEYPOINT_DICT['right_elbow'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                elif (human[0, KEYPOINT_DICT['left_wrist'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['left_elbow'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['left_wrist'], :2]
+                    point2 = human[0, KEYPOINT_DICT['left_elbow'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                elif (human[0, KEYPOINT_DICT['right_wrist'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_elbow'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['right_wrist'], :2]
+                    point2 = human[0, KEYPOINT_DICT['right_elbow'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                elif (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_shoulder'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['left_shoulder'], :2]
+                    point2 = human[0, KEYPOINT_DICT['right_shoulder'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                elif (human[0, KEYPOINT_DICT['left_hip'], 2] > threshold and
+                    human[0, KEYPOINT_DICT['right_hip'], 2] > threshold):
+                    point1 = human[0, KEYPOINT_DICT['left_hip'], :2]
+                    point2 = human[0, KEYPOINT_DICT['right_hip'], :2]
+                    thickness = int_distance(point1, point2) // 3
+                cv2.polylines(mask, lines, False, (255, 255, 255), thickness)
         pose[mask>0] = mask[mask>0]
         npimg[mask>0] = blur[mask>0]
         
