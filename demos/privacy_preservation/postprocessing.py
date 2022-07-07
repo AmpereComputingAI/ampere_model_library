@@ -103,20 +103,22 @@ class Postprocessor:
     def stop(self):
         self.stopped = True
     
-    def mask_face(self, mask, left_point, right_point):
+    def mask_face(self, mask, left_point, right_point, radius_multiplier):
         """
         Draws a circle on mask delimited by left_point and right_point.
         :param mask: nparray 
         :param left_point: array [x, y, score], either the left eye or left ear
-        :param right_point: array [x, y, score], either the right eye or right ear 
+        :param right_point: array [x, y, score], either the right eye or right ear
+        :param radius_multiplier: float
 
         :return: ids: mask with the circle drawn on it
         """
         left_point = (int(left_point[1]), int(left_point[0]))
         right_point = (int(right_point[1]), int(right_point[0]))
         center = ((left_point[0] + right_point[0]) // 2, (left_point[1] + right_point[1]) // 2)
-        radius = int_distance(left_point, center) * 2
-        cv2.circle(mask, center, radius, (255, 255, 255), cv2.FILLED)
+        radius = int(int_distance(left_point, center) * radius_multiplier)
+        # cv2.circle(mask, center, radius, (255, 255, 255), cv2.FILLED)
+        cv2.ellipse(mask, center, (int(radius * 1.5), radius), 90, 0, 360, (255, 255, 255), -1)
 
         return mask
 
@@ -153,19 +155,26 @@ class Postprocessor:
                     continue
                 lines.append([centers[pair[0]], centers[pair[1]]])
             
-            left_point, right_point = None, None
+            left_point, right_point, radius_multiplier = None, None, 1.0
             if human[0, KEYPOINT_DICT['left_ear'], 2] > threshold:
                 left_point = human[0,  KEYPOINT_DICT['left_ear']]
             elif human[0, KEYPOINT_DICT['left_eye'], 2] > threshold:
                 left_point = human[0, KEYPOINT_DICT['left_eye']]
+                radius_multiplier *= 1.5
             
             if human[0, KEYPOINT_DICT['right_ear'], 2] > threshold:
                 right_point = human[0, KEYPOINT_DICT['right_ear']]
             elif human[0, KEYPOINT_DICT['right_eye'], 2] > threshold:
                 right_point = human[0, KEYPOINT_DICT['right_eye']]
+                radius_multiplier *= 1.5
+
+            if left_point is not None and right_point is None and human[0, KEYPOINT_DICT['nose'], 2] > threshold:
+                right_point = human[0, KEYPOINT_DICT['nose']]
+            if right_point is not None and left_point is None and human[0, KEYPOINT_DICT['nose'], 2] > threshold:
+                left_point = human[0, KEYPOINT_DICT['nose']]
             
             if left_point is not None and right_point is not None:
-                mask = self.mask_face(mask, left_point, right_point)
+                mask = self.mask_face(mask, left_point, right_point, radius_multiplier)
             
             if not self.faces:
                 # Blur torso
