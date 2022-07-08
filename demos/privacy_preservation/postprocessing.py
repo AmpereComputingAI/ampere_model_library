@@ -48,6 +48,8 @@ KEYPOINT_EDGE_INDS_TO_COLOR = {
 def int_distance(point1, point2):
     return int(np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2))
 
+def clamp(n, smallest, largest):
+    return max(smallest, min(n, largest))
 
 class Postprocessor:
     """
@@ -88,7 +90,8 @@ class Postprocessor:
             self.frame = self.frames[idx]
             image = self.frame.frame
             self.people = self.frames[self.frame.detection_idx].people
-            self.blurred, self.pose = self.blur_humans(image, self.people)
+            self.bboxes = self.frames[self.frame.detection_idx].humans
+            self.blurred, self.pose = self.blur_humans(image)
 
             self.frames[idx].blurred = self.blurred
             self.frames[idx].pose = self.pose
@@ -122,21 +125,29 @@ class Postprocessor:
 
         return mask
 
-    def blur_humans(self, npimg, humans):
+    def blur_humans(self, npimg):
         npimg = npimg.astype("uint8")
         threshold = 0.11
         pose = npimg.copy()
         mask = np.zeros_like(npimg)
 
-        height, width = npimg.shape[:2]
-        pixelated_size = int(width/10)
-        # Resize input to "pixelated" size
-        temp = cv2.resize(npimg, (pixelated_size, pixelated_size), interpolation=cv2.INTER_LINEAR)
-        blur = cv2.resize(temp, (width, height), interpolation=cv2.INTER_NEAREST)
-
-        image_h, image_w = mask.shape[:2]
+        img_blurred_bboxes = npimg.copy()
         centers = {}
-        for human in humans:
+        for idx, human in enumerate(self.people):
+            bbox = [clamp(round(self.bboxes[idx][0] * npimg.shape[0]), 0, npimg.shape[0]),
+                    clamp(round(self.bboxes[idx][1] * npimg.shape[1]), 0, npimg.shape[1]),
+                    clamp(round(self.bboxes[idx][2] * npimg.shape[0]), 0, npimg.shape[0]),
+                    clamp(round(self.bboxes[idx][3] * npimg.shape[1]), 0, npimg.shape[1])]
+                    
+            height = bbox[2] - bbox[0]
+            width = bbox[3] - bbox[1]
+            bboxed_img = npimg[bbox[0]:bbox[2], bbox[1]:bbox[3]]
+            pixelated_size = (16, 1 + round(16 * (height/width)))
+            temp = cv2.resize(bboxed_img, pixelated_size, interpolation=cv2.INTER_LINEAR)
+            blur = cv2.resize(temp, (width, height), interpolation=cv2.INTER_NEAREST)
+            img_blurred_bboxes[bbox[0]:bbox[2], bbox[1]:bbox[3]] = blur
+            # cv2.rectangle(npimg, (bbox[1], bbox[0]), (bbox[3], bbox[2]), (255, 0, 0), 1) # Draw bboxes
+
             human = human[0]
             # draw point
             for key, value in KEYPOINT_DICT.items():
@@ -226,6 +237,6 @@ class Postprocessor:
                     thickness = int_distance(point1, point2) // 3
                 cv2.polylines(mask, lines, False, (255, 255, 255), thickness)
         pose[mask>0] = mask[mask>0]
-        npimg[mask>0] = blur[mask>0]
+        npimg[mask>0] = img_blurred_bboxes[mask>0]
         
         return npimg, pose # npimg - blurred, pose - skeleton drawn over the image
