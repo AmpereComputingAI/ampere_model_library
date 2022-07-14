@@ -9,7 +9,7 @@ class VideoWriter:
     Class that continuously writes frames to file using a dedicated thread.
     """
 
-    def __init__(self, out_path, fps, width, height, queue, frames):
+    def __init__(self, out_path, fps, width, height, queue, frames, show):
         self.frame = None
         self.stopped = False
         self.command = ["ffmpeg",
@@ -23,6 +23,7 @@ class VideoWriter:
         self.proc = subprocess.Popen(self.command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         self.queue = queue
         self.frames = frames
+        self.show = show
         self.frame_number = 0
         self.last_frame = sys.maxsize
         self.last_deleted_idx = 0
@@ -50,6 +51,9 @@ class VideoWriter:
             # self.frame = self.frames[idx].frame
             # self.frame = np.concatenate((self.frames[idx].frame, self.frames[idx].blurred), axis=1)
 
+            if self.show:
+                cv2.imshow("Privacy Preservation Demo", self.frame)
+                cv2.waitKey(1)
             self.frame = self.frame[:, :, [2, 1, 0]] # RGB to BGR
             self.proc.stdin.write(self.frame.tostring())
             self.frame_number += 1

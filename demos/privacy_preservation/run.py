@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument('-m', '--model-path', required=True)
     parser.add_argument('-d', '--detection-model-path', required=True)
     parser.add_argument('-f', '--faces', action='store_true', help='Only blur faces')
+    parser.add_argument('-s', '--show', action='store_true', help='Show window displaying the demo, otherwise only save to file')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -45,7 +46,7 @@ if __name__ == "__main__":
     pipeline = Pipeline(getter_det_queue, postprocessor_writter_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
 
     os.makedirs("out", exist_ok=True)
-    writter = VideoWriter(f"out/{Path(args.video_path).stem}.avi", fps, width, height, postprocessor_writter_queue, frames)
+    writter = VideoWriter(f"out/{Path(args.video_path).stem}.avi", fps, width, height, postprocessor_writter_queue, frames, args.show)
 
     getter.start()
     pipeline.start()
