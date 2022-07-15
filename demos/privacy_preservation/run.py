@@ -15,18 +15,26 @@ from pipeline import Pipeline
 
 def parse_args():
     parser = argparse.ArgumentParser(description='tf-pose-estimation run')
-    parser.add_argument('-v', '--video-path', required=True)
+    parser.add_argument('-v', '--video-path')
     parser.add_argument('-m', '--model-path', required=True)
     parser.add_argument('-d', '--detection-model-path', required=True)
     parser.add_argument('-f', '--faces', action='store_true', help='Only blur faces')
     parser.add_argument('-s', '--show', action='store_true', help='Show window displaying the demo, otherwise only save to file')
+    parser.add_argument('-c', '--camera', action='store_true', help='Use webcam')
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
 
+    if args.camera:
+        source = 0
+        out_path = "out/camera.avi"
+    else:
+        source = args.video_path
+        out_path = f"out/{Path(args.video_path).stem}.avi"
+
     # Get info about the video
-    cap = cv2.VideoCapture(args.video_path)
+    cap = cv2.VideoCapture(source)
     fps = cap.get(cv2.CAP_PROP_FPS)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -41,12 +49,12 @@ if __name__ == "__main__":
 
     frames = dict()
 
-    getter = VideoGetter(args.video_path, getter_det_queue, pose_postprocessor_queue, frames)
+    getter = VideoGetter(source, getter_det_queue, pose_postprocessor_queue, frames)
 
     pipeline = Pipeline(getter_det_queue, postprocessor_writter_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
 
     os.makedirs("out", exist_ok=True)
-    writter = VideoWriter(f"out/{Path(args.video_path).stem}.avi", fps, width, height, postprocessor_writter_queue, frames, args.show)
+    writter = VideoWriter(out_path, fps, width, height, postprocessor_writter_queue, frames, args.show)
 
     getter.start()
     pipeline.start()
