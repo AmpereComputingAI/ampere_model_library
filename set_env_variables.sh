@@ -7,11 +7,12 @@ log() {
   COLOR_CYAN='\033[1;36m'
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
-echo $BASH_SOURCE[0]
-echo $SCRIPT_DIR
+
 if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 fi
+
+echo $SCRIPT_DIR
 
 log "Checking if setup has been completed ..."
 sleep 1
