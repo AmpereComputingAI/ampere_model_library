@@ -7,7 +7,11 @@ log() {
   COLOR_CYAN='\033[1;36m'
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
-echo "pwd: `pwd`"
+
+# TODO:
+# #  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# doesn't work, throws bad substitution, it returns path to script (in this case aml
+# as a temporary hack I supply the SCRIPT DIR manually
 if [ -z ${SCRIPT_DIR+x} ]; then
 #  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
   SCRIPT_DIR=`pwd`
