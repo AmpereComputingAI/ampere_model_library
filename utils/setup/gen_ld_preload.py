@@ -11,16 +11,30 @@ from pathlib import Path
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ld_preload = list()
 
-for path in Path("/").rglob("libgomp*"):
-    if ".so" in path.name:
+try:
+    for path in Path("/").rglob("libgomp*"):
+        if ".so" in path.name:
+            ld_preload.append(str(path))
+except OSError as e:
+    print(e)
+    for path in Path("/lib").rglob("libgomp*"):
+        if ".so" in path.name:
+            ld_preload.append(str(path))
+
+try:
+    for path in Path("/").rglob("libGLdispatch.so.0"):
+        ld_preload.append(str(path))
+except OSError as e:
+    print(e)
+    for path in Path("/lib").rglob("libGLdispatch.so.0"):
         ld_preload.append(str(path))
 
-for path in Path("/lib").rglob("libGLdispatch.so.0"):
-    ld_preload.append(str(path))
-
-for path in Path("/root").rglob("libgomp*"):
-    if ".so" in path.name:
-        ld_preload.append(str(path))
+try:
+    for path in Path("/root").rglob("libgomp*"):
+        if ".so" in path.name:
+            ld_preload.append(str(path))
+except OSError as e:
+    print(e)
 
 print(ld_preload)
 
