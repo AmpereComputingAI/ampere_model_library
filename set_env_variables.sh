@@ -8,7 +8,7 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way
+# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way (SET JENKINS TO 1)
 if [[ -z "${JENKINS}" ]]; then
   # not run with JENKINS
   if [ -z ${SCRIPT_DIR+x} ]; then
@@ -43,9 +43,10 @@ sleep 1
 ARCH=$( uname -m )
 if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
+#   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
    # add this path manually, due to the fact that python doesn't find it. (temporary hack?)
-   LD_PRELOAD=$LD_PRELOAD:/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
+#   LD_PRELOAD=$LD_PRELOAD:/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
+   LD_PRELOAD=/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export PYTHONPATH=$SCRIPT_DIR
