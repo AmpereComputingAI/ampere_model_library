@@ -9,7 +9,8 @@ log() {
 }
 echo "pwd: `pwd`"
 if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+  SCRIPT_DIR=`pwd`
 fi
 
 echo $SCRIPT_DIR
