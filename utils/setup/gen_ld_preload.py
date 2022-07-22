@@ -11,11 +11,11 @@ from pathlib import Path
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ld_preload = list()
 
-for path in Path("/space/jenkins").rglob("libgomp*"):
+for path in Path("/lib").rglob("libgomp*"):
     if ".so" in path.name:
         ld_preload.append(str(path))
 
-for path in Path("/space/jenkins").rglob("libGLdispatch.so.0"):
+for path in Path("/lib").rglob("libGLdispatch.so.0"):
     ld_preload.append(str(path))
 
 # test the preload for errors

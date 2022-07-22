@@ -17,6 +17,7 @@ log() {
 #  SCRIPT_DIR=`pwd`
 #fi
 
+# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way (does this work?)
 if [[ -z "${JENKINS}" ]]; then
   # JENKINS is undefined
   if [ -z ${SCRIPT_DIR+x} ]; then
