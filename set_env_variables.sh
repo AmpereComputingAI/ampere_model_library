@@ -58,7 +58,7 @@ if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
    LD_PRELOAD=$(<$SCRIPT_DIR/utils/setup/.ld_preload)
    cat $SCRIPT_DIR/utils/setup/.ld_preload
-   export LD_PRELOAD=$LD_PRELOAD
+#   export LD_PRELOAD=$LD_PRELOAD
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export PYTHONPATH=$SCRIPT_DIR
