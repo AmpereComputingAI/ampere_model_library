@@ -10,7 +10,7 @@ log() {
 echo $BASH_SOURCE[0]
 echo $SCRIPT_DIR
 if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR=$( cd -- "$( dirname -- "$(BASH_SOURCE[0])" )" &> /dev/null && pwd )
+  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 fi
 
 log "Checking if setup has been completed ..."
