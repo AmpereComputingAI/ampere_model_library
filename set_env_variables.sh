@@ -12,15 +12,20 @@ log() {
 # #  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # doesn't work, throws bad substitution, it returns path to script (in this case aml
 # as a temporary hack I supply the SCRIPT DIR manually
-if [ -z ${SCRIPT_DIR+x} ]; then
-#  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#if [ -z ${SCRIPT_DIR+x} ]; then
+##  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#  SCRIPT_DIR=`pwd`
+#fi
+
+if [[ -z "${JENKINS}" ]]; then
+  # JENKINS is undefined
+  if [ -z ${SCRIPT_DIR+x} ]; then
+  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+  fi
+else
   SCRIPT_DIR=`pwd`
 fi
 
-#if [ $# -eq 0 ]
-#  then
-#    echo "No arguments supplied"
-#fi
 
 echo $SCRIPT_DIR
 SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
