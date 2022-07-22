@@ -24,12 +24,13 @@ if [[ -z "${JENKINS}" ]]; then
   fi
 else
   SCRIPT_DIR=`pwd`
+  SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
 fi
 
 
-echo $SCRIPT_DIR
-SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
-echo $SCRIPT_DIR
+#echo $SCRIPT_DIR
+#SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
+#echo $SCRIPT_DIR
 
 
 log "Checking if setup has been completed ..."
