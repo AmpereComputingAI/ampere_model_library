@@ -15,10 +15,14 @@ for path in Path("/lib").rglob("libgomp*"):
     if ".so" in path.name:
         ld_preload.append(str(path))
 
-print(ld_preload)
-
 for path in Path("/lib").rglob("libGLdispatch.so.0"):
     ld_preload.append(str(path))
+
+for path in Path("/root").rglob("libgomp*"):
+    if ".so" in path.name:
+        ld_preload.append(str(path))
+
+print(ld_preload)
 
 # test the preload for errors
 os.environ["LD_PRELOAD"] = ":".join(ld_preload)
