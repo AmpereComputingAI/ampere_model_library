@@ -15,7 +15,9 @@ for path in Path("/lib").rglob("libgomp*"):
     if ".so" in path.name:
         ld_preload.append(str(path))
 
-for path in Path("/lib").rglob("libGLdispatch.so.0"):
+print(ld_preload)
+
+for path in Path("/").rglob("libGLdispatch.so.0"):
     ld_preload.append(str(path))
 
 # test the preload for errors
@@ -35,6 +37,7 @@ end_indices = [match.start() for match in re.finditer(end_pattern, errors)]
 for start, end in zip(start_indices, end_indices):
     ld_preload.remove(errors[start:end])
 
+print(ld_preload)
 f = open(os.path.join(script_dir, ".ld_preload"), "w")
 f.write(":".join(ld_preload))
 f.close()
