@@ -8,9 +8,18 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way (SET JENKINS TO 1)
+if [[ -z "${JENKINS}" ]]; then
+  # not run with JENKINS
+  if [ -z ${SCRIPT_DIR+x} ]; then
+  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+  fi
+else
+  # run with JENKINS, need to set the SCRIPT_DIR in a different way, more manually
+  SCRIPT_DIR=`pwd`
+  SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
 fi
+
 
 log "Checking if setup has been completed ..."
 sleep 1
@@ -34,10 +43,10 @@ sleep 1
 ARCH=$( uname -m )
 if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=$(<$SCRIPT_DIR/utils/setup/.ld_preload)
-   export LD_PRELOAD=$LD_PRELOAD
+   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
+export LD_PRELOAD=$LD_PRELOAD
 export PYTHONPATH=$SCRIPT_DIR
 echo "PYTHONPATH=$PYTHONPATH"
 log "done.\n"
