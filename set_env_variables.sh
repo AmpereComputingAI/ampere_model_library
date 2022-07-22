@@ -45,7 +45,7 @@ if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
    LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
    # add this path manually, due to the fact that python doesn't find it. (temporary hack?)
-   LD_PRELOAD=$LD_PRELOAD:/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
+#   LD_PRELOAD=$LD_PRELOAD:/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export LD_PRELOAD=$LD_PRELOAD
