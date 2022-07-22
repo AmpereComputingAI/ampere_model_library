@@ -15,7 +15,7 @@ for path in Path("/space/jenkins").rglob("libgomp*"):
     if ".so" in path.name:
         ld_preload.append(str(path))
 
-for path in Path("/").rglob("libGLdispatch.so.0"):
+for path in Path("/space/jenkins").rglob("libGLdispatch.so.0"):
     ld_preload.append(str(path))
 
 # test the preload for errors

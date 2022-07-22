@@ -17,6 +17,11 @@ if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=`pwd`
 fi
 
+#if [ $# -eq 0 ]
+#  then
+#    echo "No arguments supplied"
+#fi
+
 echo $SCRIPT_DIR
 SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
 echo $SCRIPT_DIR
