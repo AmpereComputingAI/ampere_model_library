@@ -17,7 +17,7 @@ for path in Path("/lib").rglob("libgomp*"):
 
 print(ld_preload)
 
-for path in Path("/").rglob("libGLdispatch.so.0"):
+for path in Path("/lib").rglob("libGLdispatch.so.0"):
     ld_preload.append(str(path))
 
 # test the preload for errors
