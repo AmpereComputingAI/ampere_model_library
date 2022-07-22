@@ -36,8 +36,6 @@ try:
 except OSError as e:
     print(e)
 
-print(ld_preload)
-
 # test the preload for errors
 os.environ["LD_PRELOAD"] = ":".join(ld_preload)
 test_cmd = ["python3", "-c", "'print(\"AML\")'"]
@@ -55,7 +53,6 @@ end_indices = [match.start() for match in re.finditer(end_pattern, errors)]
 for start, end in zip(start_indices, end_indices):
     ld_preload.remove(errors[start:end])
 
-print(ld_preload)
 f = open(os.path.join(script_dir, ".ld_preload"), "w")
 f.write(":".join(ld_preload))
 f.close()
