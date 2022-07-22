@@ -8,30 +8,17 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-# TODO:
-# #  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-# doesn't work, throws bad substitution, it returns path to script (in this case aml
-# as a temporary hack I supply the SCRIPT DIR manually
-#if [ -z ${SCRIPT_DIR+x} ]; then
-##  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-#  SCRIPT_DIR=`pwd`
-#fi
-
-# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way (does this work?)
+# if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way
 if [[ -z "${JENKINS}" ]]; then
-  # JENKINS is undefined
+  # not run with JENKINS
   if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
   fi
 else
+  # run with JENKINS, need to set the SCRIPT_DIR in a different way, more manually
   SCRIPT_DIR=`pwd`
   SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
 fi
-
-
-#echo $SCRIPT_DIR
-#SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
-echo $SCRIPT_DIR
 
 
 log "Checking if setup has been completed ..."

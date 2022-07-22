@@ -11,7 +11,7 @@ from pathlib import Path
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ld_preload = list()
 
-for path in Path("/lib").rglob("libgomp*"):
+for path in Path("/").rglob("libgomp*"):
     if ".so" in path.name:
         ld_preload.append(str(path))
 
