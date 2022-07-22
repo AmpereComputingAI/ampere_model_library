@@ -49,6 +49,7 @@ if [ "${ARCH}" = "aarch64" ]; then
    LD_PRELOAD=/root/miniforge3/envs/tensorflow/lib/python3.8/site-packages/skimage/_shared/../../scikit_image.libs/libgomp-d22c30c5.so.1.0.0
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
+export LD_PRELOAD=$LD_PRELOAD
 export PYTHONPATH=$SCRIPT_DIR
 echo "PYTHONPATH=$PYTHONPATH"
 log "done.\n"
