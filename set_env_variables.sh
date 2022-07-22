@@ -8,6 +8,7 @@ log() {
   echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 echo $BASH_SOURCE[0]
+echo $SCRIPT_DIR
 if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
