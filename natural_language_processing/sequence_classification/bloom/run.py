@@ -53,14 +53,14 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, **kwarg
                 labels[i]
             )
 
+    tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
+
     dataset = MRPC(model_name, batch_size, dataset_path)
 
     runner = TFSavedModelRunner()
     # runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
     runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
 
-
-    tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
     # model = BloomModel.from_pretrained("bigscience/bloom-350m")
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)

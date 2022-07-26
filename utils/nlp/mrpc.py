@@ -14,7 +14,7 @@ class MRPC:
     A class providing facilities for preprocessing and postprocessing of MRPC test dataset.
     """
 
-    def __init__(self, model_name: str, batch_size: int, mrpc_dataset_path: None):
+    def __init__(self, model_name: str, tokenize_func, batch_size: int, mrpc_dataset_path: None):
 
         if mrpc_dataset_path is None:
             env_var = "MRPC_PATH"
@@ -24,7 +24,8 @@ class MRPC:
         self.__batch_size = batch_size
         self.__mrpc_dataset_path = mrpc_dataset_path
         self.__mrpc_dataset = pd.read_csv(self.__mrpc_dataset_path, sep=r'\t', engine='python').to_numpy()
-        self.__tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.__tokenizer = tokenize_func
+        # self.__tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         self.__current_sentence = 0
         self.__correct = 0
