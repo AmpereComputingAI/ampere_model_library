@@ -40,7 +40,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=True):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(nlp_runner, mrpc):
