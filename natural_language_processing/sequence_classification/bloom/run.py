@@ -56,14 +56,15 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disa
             )
 
     tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
-
+    model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
+    # model = BloomModel.from_pretrained("bigscience/bloom-350m")
     dataset = MRPC(model_name, tokenizer, batch_size, dataset_path)
 
-    runner = PyTorchRunner(disable_jit_freeze=disable_jit_freeze)
+    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze)
     # runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
-    runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
+    # runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
 
-    # model = BloomModel.from_pretrained("bigscience/bloom-350m")
+
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
