@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate the Hugging Face models "
                                                  "for Sequence Classification task on MRPC dataset")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["bert-base-cased-finetuned-mrpc"], required=True,
+                        type=str, choices=["bloom-350m"], required=True,
                         help="name of the transformers model to run. "
                              "list of all available models is available at "
                              "https://huggingface.co/models")
@@ -23,7 +23,7 @@ def parse_args():
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
-                        type=str, choices=["tf"], required=True,
+                        type=str, choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
