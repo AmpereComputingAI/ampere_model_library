@@ -35,10 +35,12 @@ def parse_args():
                         type=str,
                         help="path to mrpc dataset. Original dataset can be downloaded from"
                              "https://www.microsoft.com/en-us/download/details.aspx?id=52398")
+    parser.add_argument("--disable_jit_freeze", action='store_true',
+                        help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=False):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(nlp_runner, mrpc):
@@ -57,7 +59,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, **kwarg
 
     dataset = MRPC(model_name, tokenizer, batch_size, dataset_path)
 
-    runner = TFSavedModelRunner()
+    runner = PyTorchRunner(disable_jit_freeze=disable_jit_freeze)
     # runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
     runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
 
