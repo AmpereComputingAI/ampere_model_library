@@ -68,8 +68,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, **kwarg
 
 def main():
     args = parse_args()
-    if args.framework == "tf":
-        run_tf(**vars(args))
+    if args.framework == "pytorch":
+        run_pytorch(**vars(args))
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)
