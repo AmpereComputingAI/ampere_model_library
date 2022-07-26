@@ -56,10 +56,14 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disa
                 labels[i]
             )
 
+    print('hereeeee2')
+
     tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
     model = BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m")
     # model = BloomModel.from_pretrained("bigscience/bloom-350m")
     dataset = MRPC(model_name, tokenizer, batch_size, dataset_path)
+
+    print('hereeeee3')
 
     print(disable_jit_freeze)
     runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze)
