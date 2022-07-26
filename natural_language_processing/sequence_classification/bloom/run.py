@@ -4,7 +4,7 @@
 import argparse
 
 import torch
-from transformers import BloomTokenizerFast, BloomModel
+from transformers import BloomTokenizerFast, BloomModel, BloomForSequenceClassification
 
 from utils.nlp.mrpc import MRPC
 from utils.benchmark import run_model
