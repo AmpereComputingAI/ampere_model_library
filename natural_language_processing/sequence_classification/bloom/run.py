@@ -47,6 +47,8 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disa
     def run_single_pass(nlp_runner, mrpc):
 
         input, labels = mrpc.get_input_array()
+        print('input: ')
+        print(input)
         output = nlp_runner.run(input)
         predictions = mrpc.extract_prediction(output)
 
