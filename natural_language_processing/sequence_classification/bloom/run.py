@@ -4,7 +4,7 @@
 import argparse
 
 import torch
-from transformers import BloomTokenizer, BloomForSequenceClassification
+from transformers import BloomTokenizerFast, BloomModel
 
 from utils.nlp.mrpc import MRPC
 from utils.benchmark import run_model
@@ -38,8 +38,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
-    from utils.tf import TFSavedModelRunner
+def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(nlp_runner, mrpc):
 
@@ -57,7 +57,11 @@ def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
 
     runner = TFSavedModelRunner()
     # runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
-    runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/Bloom"))
+    runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
+
+
+    tokenizer = BloomTokenizerFast.from_pretrained("bigscience/bloom-350m")
+    # model = BloomModel.from_pretrained("bigscience/bloom-350m")
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

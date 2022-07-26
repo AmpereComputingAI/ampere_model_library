@@ -73,6 +73,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunner
 
