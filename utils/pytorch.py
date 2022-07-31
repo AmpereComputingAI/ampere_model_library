@@ -3,14 +3,17 @@
 
 import csv
 import json
-import torch
-import utils.misc as utils
 import time
-import utils.benchmark as bench_utils
 import hashlib
-from utils.profiling import *
-from torch.autograd.profiler import profile
 from pathlib import Path
+
+import torch
+from torch.autograd.profiler import profile
+from transformers.models.bloom.modeling_bloom import BloomForCausalLM
+
+import utils.misc as utils
+from utils.profiling import *
+import utils.benchmark as bench_utils
 
 
 class PyTorchRunner:
@@ -74,6 +77,10 @@ class PyTorchRunner:
             elif isinstance(input, dict):
                 start = time.time()
                 output = model(**input)
+                finish = time.time()
+            elif isinstance(model, BloomForCausalLM):
+                start = time.time()
+                output = model.generate(**input, max_length=50, top_k=0, temperature=0.7)
                 finish = time.time()
             else:
                 start = time.time()
