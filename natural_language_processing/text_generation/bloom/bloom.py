@@ -42,7 +42,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=True):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(nlp_runner, text_generation_dummy):
@@ -88,7 +88,6 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, dataset_path, di
 
 def main():
     args = parse_args()
-    print('hereeeee')
     if args.framework == "pytorch":
         run_pytorch_fp32(**vars(args))
     else:
