@@ -64,7 +64,7 @@ class TextGenerationDummy:
         #
         # input = self.__tokenizer(sequence_0, sequence_1, padding=True, truncation=True, return_tensors="tf")
 
-        input = self.__tokenizer(prompt1, return_tensors='pt')
+        input = self.__tokenizer(self.__text_generation_dataset, return_tensors='pt')
 
         return input, labels
 
