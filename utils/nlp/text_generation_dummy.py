@@ -66,7 +66,7 @@ class TextGenerationDummy:
 
         input = self.__tokenizer(self.__text_generation_dataset, return_tensors='pt')
 
-        return input, labels
+        return input
 
     def extract_prediction(self, output):
         """
