@@ -8,6 +8,7 @@ from transformers import BloomTokenizerFast, BloomModel, BloomForSequenceClassif
 from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 
 from utils.nlp.mrpc import MRPC
+from utils.nlp.text_generation_dummy import TextGenerationDummy
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
