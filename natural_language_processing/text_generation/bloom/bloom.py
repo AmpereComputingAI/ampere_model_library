@@ -75,6 +75,9 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, dataset_path, disa
     model = AutoModelForCausalLM.from_pretrained("bigscience/bloom-1b3", use_cache=True)
     dataset = TextGenerationDummy(model_name, tokenizer, batch_size, dataset_path)
 
+    print(disable_jit_freeze)
+    quit()
+
     runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze)
     # runner.model = tf.function(TFAutoModelForSequenceClassification.from_pretrained(model_name))
     # runner.model = tf.function(BloomForSequenceClassification.from_pretrained("bigscience/bloom-350m"))
