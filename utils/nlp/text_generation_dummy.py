@@ -96,9 +96,5 @@ class TextGenerationDummy:
         :return: dict, a dictionary containing the accuracy
         """
 
-        correct = self.__correct / self.__current_sentence
-        print("\n Accuracy = {:.3f}".format(correct))
-
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
-        return {"Correct": correct}
+        print(f"\nAccuracy metrics to be implemented")
 
