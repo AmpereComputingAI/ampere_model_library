@@ -30,7 +30,7 @@ class TextGenerationDummy:
         self.__tokenizer = tokenize_func
         self.__current_sentence = 0
         # self.__correct = 0
-        self.latest_index = None
+        self.latest_index = 0
 
     def __get_sentence_index(self):
         """
@@ -66,11 +66,14 @@ class TextGenerationDummy:
         #
         # input = self.__tokenizer(sequence_0, sequence_1, padding=True, truncation=True, return_tensors="tf")
 
-        self.latest_index = self.__get_sentence_index()
+        try:
+            print(self.__text_generation_dataset[self.latest_index])
+        except Error as e:
+            print(e)
 
-        print(self.__text_generation_dataset[self.latest_index])
         try:
             input = self.__tokenizer(self.__text_generation_dataset[self.latest_index], return_tensors='pt')
+            self.latest_index = self.__get_sentence_index()
         except IndexError:
             raise utils.OutOfInstances("No more sentences in the text generation dummy dataset to be processed")
 
