@@ -68,6 +68,7 @@ class TextGenerationDummy:
 
         self.latest_index = self.__get_sentence_index()
 
+        print(self.__text_generation_dataset[self.latest_index])
         try:
             input = self.__tokenizer(self.__text_generation_dataset[self.latest_index], return_tensors='pt')
         except IndexError:
