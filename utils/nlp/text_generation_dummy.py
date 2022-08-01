@@ -23,12 +23,14 @@ class TextGenerationDummy:
 
         self.__batch_size = batch_size
         self.__text_generation_dataset_path = text_generation_dataset_path
-        self.__text_generation_dataset = 'Once upon a time,'
-        self.__tokenizer = tokenize_func
+        self.__text_generation_dataset = ['Once upon a time,', 'we knew that our ancestors were',
+                                          'My name is Mariama, my favorite',
+                                          'A good many of our ancient explorers and poets have']
 
-        # self.__current_sentence = 0
+        self.__tokenizer = tokenize_func
+        self.__current_sentence = 0
         # self.__correct = 0
-        # self.latest_index = None
+        self.latest_index = None
 
     def __get_sentence_index(self):
         """
@@ -64,7 +66,12 @@ class TextGenerationDummy:
         #
         # input = self.__tokenizer(sequence_0, sequence_1, padding=True, truncation=True, return_tensors="tf")
 
-        input = self.__tokenizer(self.__text_generation_dataset, return_tensors='pt')
+        self.latest_index = self.__get_sentence_index()
+
+        try:
+            input = self.__tokenizer(self.__text_generation_dataset[self.latest_index], return_tensors='pt')
+        except IndexError:
+            raise utils.OutOfInstances("No more sentences in the text generation dummy dataset to be processed")
 
         return input
 
