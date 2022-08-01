@@ -68,7 +68,7 @@ class TextGenerationDummy:
 
         try:
             print(self.__text_generation_dataset[self.latest_index])
-        except Error as e:
+        except Exception as e:
             print(e)
 
         try:
