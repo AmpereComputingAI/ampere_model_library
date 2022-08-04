@@ -2,8 +2,10 @@ import argparse
 from queue import Queue
 from pathlib import Path
 import os
+import time
 
 import cv2
+from flask import Flask, render_template, Response
 
 from video_getter import VideoGetter
 from video_writer import VideoWriter
@@ -22,6 +24,13 @@ def parse_args():
     parser.add_argument('-s', '--show', action='store_true', help='Show window displaying the demo, otherwise only save to file')
     parser.add_argument('-c', '--camera', action='store_true', help='Use webcam')
     return parser.parse_args()
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    """Video streaming home page."""
+    return render_template('index.html')
 
 if __name__ == "__main__":
     args = parse_args()
@@ -60,7 +69,25 @@ if __name__ == "__main__":
     pipeline.start()
     writter.start()
 
-    import time
+    @app.route('/video_feed')
+    def video_feed():
+        #Video streaming route. Put this in the src attribute of an img tag
+        return Response(get_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+    def get_frames():
+        while True:
+            idx = writter.frame_number
+
+            while idx not in writter.queue:
+                time.sleep(0.02)
+            ret, buffer = cv2.imencode('.jpg', writter.frames[idx].blurred)
+            frame = buffer.tobytes()
+
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
+
+    app.run(host="0.0.0.0", debug=False)
+    
     start = time.time()
 
     still_running = True
