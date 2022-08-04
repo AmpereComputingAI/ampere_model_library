@@ -1,9 +1,9 @@
-from threading import Thread, current_thread
 import concurrent.futures
-import tensorflow as tf
+from threading import Thread, current_thread
+
 import numpy as np
-import time
-import cv2
+import tensorflow as tf
+
 
 class Pose:
     """

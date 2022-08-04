@@ -1,7 +1,8 @@
 from threading import Thread
-import numpy as np
+
 import cv2
-import time
+import numpy as np
+
 # Dictionary that maps from joint names to keypoint indices.
 KEYPOINT_DICT = {
     'nose': 0,

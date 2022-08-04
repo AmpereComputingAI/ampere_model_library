@@ -1,9 +1,11 @@
-from threading import Thread
-import cv2
-import sys
 import subprocess
-import numpy as np
+import sys
 import time
+from threading import Thread
+
+import cv2
+
+
 class VideoWriter:
     """
     Class that continuously writes frames to file using a dedicated thread.

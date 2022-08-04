@@ -1,7 +1,10 @@
-from threading import Thread
-import cv2
-from frame import Frame
 import time
+from threading import Thread
+
+import cv2
+
+from frame import Frame
+
 
 class VideoGetter:
     """

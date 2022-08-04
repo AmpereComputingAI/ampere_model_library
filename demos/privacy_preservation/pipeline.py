@@ -7,6 +7,7 @@ from detector import Detector
 from pose import Pose
 from postprocessing import Postprocessor
 
+
 class Pipeline:
     def __init__(self, getter_queue, writer_queue, pose_postprocessor_queue, frames, detection_model_path, model_path, faces):
         self.getter_queue = getter_queue

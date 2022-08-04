@@ -1,19 +1,16 @@
 import argparse
-from queue import Queue
-from pathlib import Path
 import os
 import time
+from pathlib import Path
+from queue import Queue
 
 import cv2
-from flask import Flask, render_template, Response
-
-from video_getter import VideoGetter
-from video_writer import VideoWriter
-from detector import Detector
-from pose import Pose
-from postprocessing import Postprocessor
+from flask import Flask, Response, render_template
 
 from pipeline import Pipeline
+from video_getter import VideoGetter
+from video_writer import VideoWriter
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='tf-pose-estimation run')
