@@ -44,6 +44,7 @@ if __name__ == "__main__":
     fps = cap.get(cv2.CAP_PROP_FPS)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.release()
 
     getter_det_queue = Queue()
@@ -60,8 +61,9 @@ if __name__ == "__main__":
     pipeline = Pipeline(getter_det_queue, postprocessor_writter_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
 
     os.makedirs("out", exist_ok=True)
-    writter = VideoWriter(out_path, fps, width, height, postprocessor_writter_queue, frames, args.show)
+    writter = VideoWriter(out_path, fps, width, height, postprocessor_writter_queue, frames, args.show, num_frames)
 
+    start = time.time()
     getter.start()
     pipeline.start()
     writter.start()
@@ -72,35 +74,23 @@ if __name__ == "__main__":
         return Response(get_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
     def get_frames():
-        while True:
+        while not writter.stopped:
             idx = writter.frame_number
 
             while idx not in writter.queue:
                 time.sleep(0.02)
-            ret, buffer = cv2.imencode('.jpg', writter.frames[idx].blurred)
+            try:
+                ret, buffer = cv2.imencode('.jpg', writter.frames[idx].blurred)
+            except AttributeError:
+                print("Skipping a frame") # TODO: This happens because of removing the frames in video_writer.py
             frame = buffer.tobytes()
 
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
+        end = time.time()
+        print("Total time: ", end - start)
+        print("FPS: ", (writter.last_frame + 1) / (end - start))
+        print("Press CTRL+C to quit")
 
-    app.run(host="0.0.0.0", debug=False)
+    app.run(host="0.0.0.0", debug= False)
     
-    start = time.time()
-
-    still_running = True
-
-    # Check if all frames were processed
-    while still_running:
-        still_running = False
-        if not pipeline.stopped:
-            still_running = True
-        time.sleep(0.1) # Without it, this thread blocks the other threads
-    
-    # Wait until all frames are written
-    writter.last_frame = max(writter.queue)
-    while not writter.stopped:
-        time.sleep(0.1)
-
-    end = time.time()
-    print("Total time: ", end - start)
-    print("FPS: ", (writter.last_frame + 1) / (end - start))

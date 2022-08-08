@@ -11,7 +11,7 @@ class VideoWriter:
     Class that continuously writes frames to file using a dedicated thread.
     """
 
-    def __init__(self, out_path, fps, width, height, queue, frames, show):
+    def __init__(self, out_path, fps, width, height, queue, frames, show, num_frames):
         self.frame = None
         self.stopped = False
         self.command = ["ffmpeg",
@@ -27,7 +27,7 @@ class VideoWriter:
         self.frames = frames
         self.show = show
         self.frame_number = 0
-        self.last_frame = sys.maxsize
+        self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
         self.last_deleted_idx = 0
 
     def start(self):
@@ -47,7 +47,7 @@ class VideoWriter:
             if idx is None:
                 self.stop()
                 break
-            print("Writer ", idx)
+            # print("Writer ", idx)
             self.frame = self.frames[idx].blurred
             # self.frame = self.frames[idx].pose
             # self.frame = self.frames[idx].frame
@@ -62,6 +62,7 @@ class VideoWriter:
             if self.frames[idx].detection_idx == idx:
                 for i in range(self.last_deleted_idx, idx):
                     self.frames[i] = None
+                    self.last_deleted_idx = idx
 
             # self.frames.pop(idx)
 
