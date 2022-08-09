@@ -9,17 +9,22 @@ log() {
 }
 
 # if the script is run with Jenkins, then set the SCRIPT_DIR manually, otherwise use the old way (SET JENKINS TO 1)
-if [[ -z "${JENKINS}" ]]; then
-  # not run with JENKINS
-  if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-  fi
-else
+#if [[ -z "${JENKINS}" ]]; then
+#   not run with JENKINS
+#  if [ -z ${SCRIPT_DIR+x} ]; then
+#    SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#  fi
+#else
   # run with JENKINS, need to set the SCRIPT_DIR in a different way, more manually
-  SCRIPT_DIR=`pwd`
-  SCRIPT_DIR=$SCRIPT_DIR/ampere_model_library
-fi
+#  SCRIPT_DIR=`pwd`/ampere_model_library
+#fi
 
+# checks if IS_JENKINS has length equal to zero
+if [[ -z "${IS_JENKINS}" ]]; then
+  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+else
+  SCRIPT_DIR=`pwd`/ampere_model_library
+fi
 
 log "Checking if setup has been completed ..."
 sleep 1

@@ -12,6 +12,13 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 ld_preload = list()
 
 try:
+    for path in Path("/root").rglob("libgomp*"):
+        if ".so" in path.name:
+            ld_preload.append(str(path))
+except OSError as e:
+    print(e)
+
+try:
     for path in Path("/").rglob("libgomp*"):
         if ".so" in path.name:
             ld_preload.append(str(path))
@@ -29,12 +36,7 @@ except OSError as e:
     for path in Path("/lib").rglob("libGLdispatch.so.0"):
         ld_preload.append(str(path))
 
-try:
-    for path in Path("/root").rglob("libgomp*"):
-        if ".so" in path.name:
-            ld_preload.append(str(path))
-except OSError as e:
-    print(e)
+
 
 # test the preload for errors
 os.environ["LD_PRELOAD"] = ":".join(ld_preload)
