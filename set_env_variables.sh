@@ -27,12 +27,12 @@ log() {
 #fi
 
 # if SCRIPT_DIR has length equal to zero
-echo $SCRIPT_DIR
-if [[ -z "${SCRIPT_DIR}" ]]; then
+echo SCRIPT_DIR=$SCRIPT_DIR
+if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
-echo $SCRIPT_DIR
+echo SCRIPT_DIR=$SCRIPT_DIR
 log "Checking if setup has been completed ..."
 sleep 1
 if ! [ -f "$SCRIPT_DIR/.setup_completed" ]; then
