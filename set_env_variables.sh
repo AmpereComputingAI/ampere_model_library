@@ -20,10 +20,15 @@ log() {
 #fi
 
 # checks if IS_JENKINS has length equal to zero
-if [[ -z "${IS_JENKINS}" ]]; then
-  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-else
-  SCRIPT_DIR=`pwd`/ampere_model_library
+#if [[ -z "${IS_JENKINS}" ]]; then
+#  SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+#else
+#  SCRIPT_DIR=`pwd`/ampere_model_library
+#fi
+
+# if SCRIPT_DIR has length equal to zero
+if [[ -z "${SCRIPT_DIR}" ]]; then
+  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
 log "Checking if setup has been completed ..."
@@ -47,10 +52,6 @@ log "Setting environment variables ..."
 sleep 1
 ARCH=$( uname -m )
 if [ "${ARCH}" = "aarch64" ]; then
-   python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
-   echo "LD_PRELOAD=$LD_PRELOAD"
-else
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
    LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
    echo "LD_PRELOAD=$LD_PRELOAD"
