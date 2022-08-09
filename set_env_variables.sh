@@ -27,7 +27,9 @@ log() {
 #fi
 
 # if SCRIPT_DIR has length equal to zero
+echo $SCRIPT_DIR
 if [[ -z "${SCRIPT_DIR}" ]]; then
+  echo $SCRIPT_DIR
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
