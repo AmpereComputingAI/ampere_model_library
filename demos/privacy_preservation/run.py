@@ -74,8 +74,10 @@ if __name__ == "__main__":
         return Response(get_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
     def get_frames():
-        # idx = writer.frame_number
-        idx = 0
+        if args.camera:
+            idx = writer.frame_number
+        else:
+            idx = 0
         while not idx > writer.last_frame:
             while idx not in writer.queue:
                 time.sleep(0.01)
