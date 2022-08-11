@@ -64,6 +64,8 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+    return run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
 
 def main():
     args = parse_args()
