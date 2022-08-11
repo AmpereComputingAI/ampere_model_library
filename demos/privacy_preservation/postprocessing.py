@@ -57,14 +57,14 @@ class Postprocessor:
     Class that continuously blurs people on image using a dedicated thread.
     """
 
-    def __init__(self, pose_postprocessor_queue, postprocessor_writter_queue, frames, faces):
+    def __init__(self, pose_postprocessor_queue, postprocessor_writer_queue, frames, faces):
         self.frame = None
         self.people = None
         self.blurred = None
         self.pose = None
         self.stopped = False
         self.pose_postprocessor_queue = pose_postprocessor_queue
-        self.postprocessor_writter_queue = postprocessor_writter_queue
+        self.postprocessor_writer_queue = postprocessor_writer_queue
         self.frames = frames
         self.frame_number = 0
         self.faces = faces
@@ -97,8 +97,8 @@ class Postprocessor:
             self.frames[idx].blurred = self.blurred
             self.frames[idx].pose = self.pose
             # cv2.imwrite(f"crops/{idx}.jpg", self.pose)
-            # self.postprocessor_writter_queue.put(idx)
-            self.postprocessor_writter_queue.append(idx)
+            # self.postprocessor_writer_queue.put(idx)
+            self.postprocessor_writer_queue.append(idx)
 
             self.people = None
             self.frame_number += 1

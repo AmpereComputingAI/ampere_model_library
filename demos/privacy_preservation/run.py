@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument('-m', '--model-path', required=True)
     parser.add_argument('-d', '--detection-model-path', required=True)
     parser.add_argument('-f', '--faces', action='store_true', help='Only blur faces')
-    parser.add_argument('-s', '--show', action='store_true', help='Show window displaying the demo, otherwise only save to file')
+    parser.add_argument('-s', '--save', action='store_true', help='Save to file')
     parser.add_argument('-c', '--camera', action='store_true', help='Use webcam')
     return parser.parse_args()
 
@@ -51,22 +51,22 @@ if __name__ == "__main__":
     det_pose_queue = Queue()
     # pose_postprocessor_queue = Queue()
     pose_postprocessor_queue = []
-    # postprocessor_writter_queue = Queue()
-    postprocessor_writter_queue = []
+    # postprocessor_writer_queue = Queue()
+    postprocessor_writer_queue = []
 
     frames = dict()
 
     getter = VideoGetter(source, getter_det_queue, pose_postprocessor_queue, frames)
 
-    pipeline = Pipeline(getter_det_queue, postprocessor_writter_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
+    pipeline = Pipeline(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
 
     os.makedirs("out", exist_ok=True)
-    writter = VideoWriter(out_path, fps, width, height, postprocessor_writter_queue, frames, args.show, num_frames)
+    writer = VideoWriter(out_path, fps, width, height, postprocessor_writer_queue, frames, args.save, num_frames)
 
     start = time.time()
     getter.start()
     pipeline.start()
-    writter.start()
+    writer.start()
 
     @app.route('/video_feed')
     def video_feed():
@@ -74,22 +74,22 @@ if __name__ == "__main__":
         return Response(get_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
     def get_frames():
-        while not writter.stopped:
-            idx = writter.frame_number
-
-            while idx not in writter.queue:
-                time.sleep(0.02)
+        # idx = writer.frame_number
+        idx = 0
+        while not idx > writer.last_frame:
+            while idx not in writer.queue:
+                time.sleep(0.01)
             try:
-                ret, buffer = cv2.imencode('.jpg', writter.frames[idx].blurred)
+                ret, buffer = cv2.imencode('.jpg', writer.frames[idx].blurred)
             except AttributeError:
                 print("Skipping a frame") # TODO: This happens because of removing the frames in video_writer.py
             frame = buffer.tobytes()
-
+            idx += 1
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         end = time.time()
         print("Total time: ", end - start)
-        print("FPS: ", (writter.last_frame + 1) / (end - start))
+        print("FPS: ", (writer.last_frame + 1) / (end - start))
         print("Press CTRL+C to quit")
 
     app.run(host="0.0.0.0", debug= False)
