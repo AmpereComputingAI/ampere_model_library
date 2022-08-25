@@ -1,5 +1,5 @@
 from threading import Thread
-
+import time
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -24,6 +24,7 @@ class Detector:
         self.frames = frames
 
     def start(self):
+        self.stopped = False
         Thread(target=self.detect, args=()).start()
         return self
 
@@ -48,7 +49,10 @@ class Detector:
 
             input_image = np.expand_dims(input_image, axis=0)
             self.model.set_tensor(self.input_details[0]["index"], input_image)
+            st = time.time()
             self.model.invoke()
+            end = time.time()
+            # print("detector", end - st)
             detection_boxes = self.model.get_tensor(self.output_details[0]["index"])
             detection_classes = self.model.get_tensor(self.output_details[1]["index"])
             detection_scores = self.model.get_tensor(self.output_details[2]["index"])
@@ -66,3 +70,7 @@ class Detector:
 
     def stop(self):
         self.stopped = True
+    
+    def reset(self, getter_det_queue, det_pose_queue):
+        self.getter_det_queue = getter_det_queue
+        self.det_pose_queue = det_pose_queue

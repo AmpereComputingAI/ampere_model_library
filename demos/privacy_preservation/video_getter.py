@@ -12,8 +12,7 @@ class VideoGetter:
     """
 
     def __init__(self, src, det_queue, postprocessor_queue, frames):
-        self.stream = cv2.VideoCapture(src)
-        (self.grabbed, self.frame) = self.stream.read()
+        self.src = src
         self.stopped = False
         self.det_queue = det_queue
         self.postprocessor_queue = postprocessor_queue
@@ -22,7 +21,10 @@ class VideoGetter:
         self.time_since_last_detection = 0.0
         self.last_detection_idx = 0
 
-    def start(self):    
+    def start(self):
+        self.stream = cv2.VideoCapture(self.src)
+        (self.grabbed, self.frame) = self.stream.read()
+        self.stopped = False
         Thread(target=self.get, args=()).start()
         return self
 
@@ -49,3 +51,11 @@ class VideoGetter:
 
     def stop(self):
         self.stopped = True
+        self.stream.release()
+    
+    def reset(self, det_queue, postprocessor_queue):
+        self.det_queue = det_queue
+        self.postprocessor_queue = postprocessor_queue
+        self.idx = 0
+        self.time_since_last_detection = 0.0
+        self.last_detection_idx = 0

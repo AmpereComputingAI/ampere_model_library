@@ -18,6 +18,16 @@
             <h3 class="mt-5">Privacy Preservation Demo</h3>
             <img src="{{ url_for('video_feed') }}" width="100%">
         </div>
+        <form action="/reset" method="post">
+            <button name="resetBtn" type="submit">Reset</button>
+        </form>
+        <form action="/getfile" method="POST" enctype="multipart/form-data">
+            <input type="file" name="videoSrc" accept="video/*"><br>
+            <input type="submit" value="Submit" name="getfile">
+        </form>
+        <form action="/webcam" method="post">
+            <button name="webcamBtn" type="submit">Webcam</button>
+        </form>
     </div>
 </div>
 </body>

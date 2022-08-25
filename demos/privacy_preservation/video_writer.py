@@ -34,6 +34,7 @@ class VideoWriter:
         self.last_deleted_idx = 0
 
     def start(self):
+        self.stopped = False
         Thread(target=self.write, args=()).start()
         return self
 
@@ -61,12 +62,6 @@ class VideoWriter:
             if self.save:
                 self.proc.stdin.write(self.frame.tostring())
             self.frame_number += 1
-            if self.frames[idx].detection_idx == idx:
-                for i in range(self.last_deleted_idx, idx):
-                    # self.frames[i] = None
-                    self.last_deleted_idx = idx
-
-            # self.frames.pop(idx)
 
 
     def stop(self):
@@ -76,3 +71,8 @@ class VideoWriter:
             if self.proc.stderr is not None:
                 self.proc.stderr.close()
             self.proc.wait()
+    
+    def reset(self, queue):
+        self.queue = queue
+        self.frame_number = 0
+        self.last_deleted_idx = 0

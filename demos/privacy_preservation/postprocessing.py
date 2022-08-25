@@ -1,3 +1,5 @@
+import sys
+import time
 from threading import Thread
 
 import cv2
@@ -57,7 +59,7 @@ class Postprocessor:
     Class that continuously blurs people on image using a dedicated thread.
     """
 
-    def __init__(self, pose_postprocessor_queue, postprocessor_writer_queue, frames, faces):
+    def __init__(self, pose_postprocessor_queue, postprocessor_writer_queue, frames, faces, num_frames):
         self.frame = None
         self.people = None
         self.blurred = None
@@ -68,8 +70,10 @@ class Postprocessor:
         self.frames = frames
         self.frame_number = 0
         self.faces = faces
+        self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
 
     def start(self):
+        self.stopped = False
         Thread(target=self.blur, args=()).start()
         return self
 
@@ -77,11 +81,11 @@ class Postprocessor:
         while not self.stopped:
             # idx = self.pose_postprocessor_queue.get()
             while self.frame_number not in self.pose_postprocessor_queue:
-                if None in self.pose_postprocessor_queue and self.frame_number > max(el for el in self.pose_postprocessor_queue if el is not None):
+                if self.frame_number > self.last_frame:
                     self.stop()
                     break # Break out of the inner loop
                 continue
-            if self.frame_number > max(el for el in self.pose_postprocessor_queue if el is not None): 
+            if self.frame_number > self.last_frame:
                 break # Break out of the outer loop
             idx = self.frame_number
             if idx is None:
@@ -92,8 +96,10 @@ class Postprocessor:
             image = self.frame.frame
             self.people = self.frames[self.frame.detection_idx].people
             self.bboxes = self.frames[self.frame.detection_idx].humans
+            st = time.time()
             self.blurred, self.pose = self.blur_humans(image)
-
+            end = time.time()
+            # print(end - st)
             self.frames[idx].blurred = self.blurred
             self.frames[idx].pose = self.pose
             # cv2.imwrite(f"crops/{idx}.jpg", self.pose)
@@ -241,3 +247,12 @@ class Postprocessor:
         npimg[mask>0] = img_blurred_bboxes[mask>0]
         
         return npimg, pose # npimg - blurred, pose - skeleton drawn over the image
+    
+    def reset(self, pose_postprocessor_queue, postprocessor_writer_queue):
+        self.pose_postprocessor_queue = pose_postprocessor_queue
+        self.postprocessor_writer_queue = postprocessor_writer_queue
+        self.frame = None
+        self.people = None
+        self.blurred = None
+        self.pose = None
+        self.frame_number = 0

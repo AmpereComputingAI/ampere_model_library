@@ -1,6 +1,6 @@
 import concurrent.futures
 from threading import Thread, current_thread
-
+import time
 import numpy as np
 import tensorflow as tf
 
@@ -33,11 +33,15 @@ class Pose:
     def run(self, interpreters, image, idx):
         model = interpreters[current_thread().name]
         model.set_tensor(model.get_input_details()[0]['index'], image)
+        st = time.time()
         model.invoke()
+        end = time.time()
+        # print("pose", end - st)
         output_tensor = model.get_tensor(model.get_output_details()[0]['index'])
         return output_tensor, idx
 
     def start(self):
+        self.stopped = False
         Thread(target=self.detect, args=()).start()
         return self
 
@@ -81,3 +85,9 @@ class Pose:
 
     def stop(self):
         self.stopped = True
+    
+    def reset(self, det_pose_queue, pose_postprocessor_queue):
+        self.det_pose_queue = det_pose_queue
+        self.pose_postprocessor_queue = pose_postprocessor_queue
+        self.humans = None
+        self.people = None
