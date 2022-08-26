@@ -6,17 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
-          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"> -->
 
     <title>Privacy Preservation Demo</title>
 </head>
 <body>
 <div class="container">
     <div class="row">
+        <img src="{{url_for('static', filename='ampere_logo_®_primary_stacked_rgb 200x30.jpg')}}" width="300" style="float:right">
         <div class="col-lg-8  offset-lg-2">
             <h3 class="mt-5">Privacy Preservation Demo</h3>
-            <img src="{{ url_for('video_feed') }}" width="100%">
+            <img src="{{ url_for('video_feed') }}" width=720>
         </div>
         <form action="/reset" method="post">
             <button name="resetBtn" type="submit">Reset</button>
