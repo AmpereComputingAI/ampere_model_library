@@ -59,7 +59,7 @@ class Postprocessor:
     Class that continuously blurs people on image using a dedicated thread.
     """
 
-    def __init__(self, pose_postprocessor_queue, postprocessor_writer_queue, frames, faces, num_frames):
+    def __init__(self, pose_postprocessor_queue, postprocessor_writer_queue, frames, faces):
         self.frame = None
         self.people = None
         self.blurred = None
@@ -70,9 +70,9 @@ class Postprocessor:
         self.frames = frames
         self.frame_number = 0
         self.faces = faces
-        self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
 
-    def start(self):
+    def start(self, num_frames):
+        self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
         self.stopped = False
         Thread(target=self.blur, args=()).start()
         return self

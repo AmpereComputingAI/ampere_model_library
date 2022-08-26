@@ -9,7 +9,7 @@ from postprocessing import Postprocessor
 
 
 class Pipeline:
-    def __init__(self, getter_queue, writer_queue, pose_postprocessor_queue, frames, detection_model_path, model_path, faces, num_frames):
+    def __init__(self, getter_queue, writer_queue, pose_postprocessor_queue, frames, detection_model_path, model_path, faces):
         self.getter_queue = getter_queue
         self.writer_queue = writer_queue
         self.frames = frames
@@ -23,18 +23,18 @@ class Pipeline:
 
         self.det = Detector(detection_model_path, omp_num_threads, self.getter_queue, self.det_pose_queue, self.frames)
         self.pose_estimator = Pose(model_path, omp_num_threads, self.det_pose_queue, self.pose_postprocessor_queue, frames)
-        self.postprocessor = Postprocessor(self.pose_postprocessor_queue, self.writer_queue, frames, faces, num_frames)
+        self.postprocessor = Postprocessor(self.pose_postprocessor_queue, self.writer_queue, frames, faces)
 
     
-    def start(self):
+    def start(self, num_frames):
         self.stopped = False
-        Thread(target=self.process, args=()).start()
+        Thread(target=self.process, args=(num_frames,)).start()
         return self
 
-    def process(self):
+    def process(self, num_frames):
         self.det.start()
         self.pose_estimator.start()
-        self.postprocessor.start()
+        self.postprocessor.start(num_frames)
 
         self.stopped = False
         while not self.postprocessor.stopped:

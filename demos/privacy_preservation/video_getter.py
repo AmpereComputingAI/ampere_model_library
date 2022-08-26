@@ -11,8 +11,8 @@ class VideoGetter:
     Class that continuously gets frames from a VideoCapture object using a dedicated thread.
     """
 
-    def __init__(self, src, det_queue, postprocessor_queue, frames):
-        self.src = src
+    def __init__(self, det_queue, postprocessor_queue, frames):
+        self.src = None
         self.stopped = False
         self.det_queue = det_queue
         self.postprocessor_queue = postprocessor_queue
@@ -51,7 +51,10 @@ class VideoGetter:
 
     def stop(self):
         self.stopped = True
-        self.stream.release()
+        try:
+            self.stream.release()
+        except AttributeError:
+            pass
     
     def reset(self, det_queue, postprocessor_queue):
         self.det_queue = det_queue
