@@ -124,8 +124,6 @@ if __name__ == "__main__":
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         end = time.time()
-        print("Total time: ", end - start)
-        print("FPS: ", (writer.last_frame + 1) / (end - start))
         print("Press CTRL+C to quit")
 
     app.run(host="0.0.0.0", debug= False)
