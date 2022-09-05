@@ -79,14 +79,11 @@ class Postprocessor:
 
     def blur(self):
         while not self.stopped:
-            # idx = self.pose_postprocessor_queue.get()
-            while self.frame_number not in self.pose_postprocessor_queue:
-                if self.frame_number > self.last_frame:
-                    self.stop()
-                    break # Break out of the inner loop
-                continue
             if self.frame_number > self.last_frame:
-                break # Break out of the outer loop
+                self.stop()
+                break 
+            while self.frame_number not in self.pose_postprocessor_queue:
+                time.sleep(0.001)
             idx = self.frame_number
             if idx is None:
                 self.stop()
@@ -211,6 +208,7 @@ class Postprocessor:
                 lines = np.array(lines, dtype=np.uint64)
 
                 # Determine the thickness of the lines
+                # TODO: Simplify it
                 thickness = 10
                 if (human[0, KEYPOINT_DICT['left_shoulder'], 2] > threshold and
                     human[0, KEYPOINT_DICT['left_elbow'], 2] > threshold):

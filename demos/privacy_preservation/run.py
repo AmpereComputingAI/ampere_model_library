@@ -114,7 +114,7 @@ if __name__ == "__main__":
             try:
                 ret, buffer = cv2.imencode('.jpg', writer.frames[idx].blurred)
             except AttributeError:
-                print("Skipping a frame") # TODO: This happens because of removing the frames in video_writer.py
+                print("Skipping a frame")
             frame = buffer.tobytes()
             if writer.frames[idx].detection_idx == idx:
                 for i in range(writer.last_deleted_idx, idx):

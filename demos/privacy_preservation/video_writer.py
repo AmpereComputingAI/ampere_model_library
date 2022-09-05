@@ -41,13 +41,11 @@ class VideoWriter:
 
     def write(self):
         while not self.stopped:
+            if self.frame_number > self.last_frame:
+                self.stop()
+                break
             while self.frame_number not in self.queue:
-                if self.frame_number > self.last_frame:
-                    self.stop()
-                    break # Break out of the inner loop
                 time.sleep(0.001)
-            if self.frame_number > self.last_frame: 
-                break # Break out of the outer loop
             idx = self.frame_number
             if idx is None:
                 self.stop()
