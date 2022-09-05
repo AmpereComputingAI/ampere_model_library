@@ -33,10 +33,11 @@ def get_video_parameters(source):
 
 def start_demo(getter, pipeline, writer):
     print("Starting")
+    start_time = time.time()
     fps, height, width, num_frames = get_video_parameters(getter.src)
     getter.start()
     pipeline.start(num_frames)
-    writer.start(getter.src, fps, height, width, num_frames)
+    writer.start(getter.src, fps, height, width, num_frames, start_time)
 
 app = Flask(__name__)
 

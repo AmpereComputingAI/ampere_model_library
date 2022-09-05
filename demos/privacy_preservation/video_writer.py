@@ -19,8 +19,10 @@ class VideoWriter:
         self.last_deleted_idx = 0
         self.last_frame = -1
         self.proc = None
+        self.start_time = time.time()
 
-    def start(self, source, fps, height, width, num_frames):
+    def start(self, source, fps, height, width, num_frames, start_time):
+        self.start_time = start_time
         out_path = f"out/{Path(str(source)).stem}.avi"
         self.command = ["ffmpeg",
                         "-y", # overwrite
@@ -66,12 +68,15 @@ class VideoWriter:
 
 
     def stop(self):
-        self.stopped = True
-        if self.proc:
-            self.proc.stdin.close()
-            if self.proc.stderr is not None:
-                self.proc.stderr.close()
-            self.proc.wait()
+        if not self.stopped:
+            total_time = time.time() - self.start_time
+            print(f"time: {total_time}, fps: {self.frame_number / total_time}")
+            self.stopped = True
+            if self.proc:
+                self.proc.stdin.close()
+                if self.proc.stderr is not None:
+                    self.proc.stderr.close()
+                self.proc.wait()
     
     def reset(self, queue):
         self.queue = queue
