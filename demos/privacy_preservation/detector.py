@@ -18,7 +18,7 @@ class Detector:
         self.frame = None
         self.shape = 448
         self.humans = None
-        self.stopped = False
+        self.stopped = True
         self.getter_det_queue = getter_det_queue
         self.det_pose_queue = det_pose_queue
         self.frames = frames

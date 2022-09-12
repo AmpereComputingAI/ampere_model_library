@@ -64,7 +64,7 @@ class Postprocessor:
         self.people = None
         self.blurred = None
         self.pose = None
-        self.stopped = False
+        self.stopped = True
         self.pose_postprocessor_queue = pose_postprocessor_queue
         self.postprocessor_writer_queue = postprocessor_writer_queue
         self.frames = frames

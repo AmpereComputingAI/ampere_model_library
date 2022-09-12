@@ -18,7 +18,7 @@ class Pose:
         self.frame = None # Full frame
         self.humans = None
         self.people = None
-        self.stopped = False
+        self.stopped = True
         self.det_pose_queue = det_pose_queue
         self.pose_postprocessor_queue = pose_postprocessor_queue
         self.frames = frames

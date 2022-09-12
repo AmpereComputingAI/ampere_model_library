@@ -105,6 +105,12 @@ if __name__ == "__main__":
         return redirect('/reset')
 
     def get_frames():
+        if writer.stopped:
+            banner = cv2.imread("static/demo_banner.png")
+            _, banner_buffer = cv2.imencode(".png", banner)
+            banner_frame = banner_buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + banner_frame + b'\r\n')  # concat frame one by one and show result
         if getter.src == 0:
             idx = writer.frame_number
         else:
@@ -113,7 +119,7 @@ if __name__ == "__main__":
             while idx not in writer.queue:
                 time.sleep(0.01)
             try:
-                ret, buffer = cv2.imencode('.jpg', writer.frames[idx].blurred)
+                _, buffer = cv2.imencode('.jpg', writer.frames[idx].blurred)
             except AttributeError:
                 print("Skipping a frame")
             frame = buffer.tobytes()
@@ -126,6 +132,11 @@ if __name__ == "__main__":
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         end = time.time()
         print("Press CTRL+C to quit")
+        banner = cv2.imread("static/demo_banner.png")
+        _, banner_buffer = cv2.imencode(".png", banner)
+        banner_frame = banner_buffer.tobytes()
+        yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + banner_frame + b'\r\n')  # concat frame one by one and show result
 
     app.run(host="0.0.0.0", debug= False)
     

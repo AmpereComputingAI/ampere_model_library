@@ -11,7 +11,7 @@ class VideoWriter:
 
     def __init__(self, queue, frames, save):
         self.frame = None
-        self.stopped = False
+        self.stopped = True
         self.queue = queue
         self.frames = frames
         self.save = save

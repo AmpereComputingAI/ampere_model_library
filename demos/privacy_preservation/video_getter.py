@@ -13,7 +13,7 @@ class VideoGetter:
 
     def __init__(self, det_queue, postprocessor_queue, frames):
         self.src = None
-        self.stopped = False
+        self.stopped = True
         self.det_queue = det_queue
         self.postprocessor_queue = postprocessor_queue
         self.idx = 0
