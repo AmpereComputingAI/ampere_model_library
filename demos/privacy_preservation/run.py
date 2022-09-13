@@ -107,6 +107,12 @@ if __name__ == "__main__":
   
         return redirect('/reset')
 
+    @app.route('/faces', methods=['POST'])
+    def toggle_faces():
+        pipeline.postprocessor.faces = not pipeline.postprocessor.faces
+  
+        return redirect('/')
+
     def get_frames():
         global display_idx
 
