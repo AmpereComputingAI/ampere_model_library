@@ -52,6 +52,7 @@ if __name__ == "__main__":
     getter_det_queue = Queue()
     pose_postprocessor_queue = []
     postprocessor_writer_queue = []
+    display_idx = 0
 
     frames = dict()
 
@@ -71,6 +72,7 @@ if __name__ == "__main__":
 
     @app.route('/reset', methods=['POST', 'GET'])
     def reset():
+        global display_idx
         print("RESET")
         getter.stop()
         pipeline.stop()
@@ -80,6 +82,7 @@ if __name__ == "__main__":
         pose_postprocessor_queue = []
         postprocessor_writer_queue = []
         frames.clear()
+        display_idx = 0
         getter.reset(getter_det_queue, pose_postprocessor_queue)
         pipeline.reset(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue)
         writer.reset(postprocessor_writer_queue)
@@ -105,6 +108,8 @@ if __name__ == "__main__":
         return redirect('/reset')
 
     def get_frames():
+        global display_idx
+
         if writer.stopped:
             banner = cv2.imread("static/demo_banner.png")
             _, banner_buffer = cv2.imencode(".png", banner)
@@ -112,22 +117,20 @@ if __name__ == "__main__":
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + banner_frame + b'\r\n')  # concat frame one by one and show result
         if getter.src == 0:
-            idx = writer.frame_number
-        else:
-            idx = 0
-        while not idx > writer.last_frame:
-            while idx not in writer.queue:
+            display_idx = writer.frame_number
+        while not display_idx > writer.last_frame:
+            while display_idx not in writer.queue:
                 time.sleep(0.01)
             try:
-                _, buffer = cv2.imencode('.jpg', writer.frames[idx].blurred)
+                _, buffer = cv2.imencode('.jpg', writer.frames[display_idx].blurred)
             except AttributeError:
                 print("Skipping a frame")
             frame = buffer.tobytes()
-            if writer.frames[idx].detection_idx == idx:
-                for i in range(writer.last_deleted_idx, idx):
+            if writer.frames[display_idx].detection_idx == display_idx:
+                for i in range(writer.last_deleted_idx, display_idx):
                     writer.frames[i] = None
-                    writer.last_deleted_idx = idx
-            idx += 1
+                    writer.last_deleted_idx = display_idx
+            display_idx += 1
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         end = time.time()
