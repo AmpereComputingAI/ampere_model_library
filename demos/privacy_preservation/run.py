@@ -128,8 +128,8 @@ if __name__ == "__main__":
             while display_idx not in writer.queue:
                 time.sleep(0.01)
             try:
-                input_image = cv2.resize(writer.frames[display_idx].blurred, (480, 270)) # Helps with slow network connection
-                _, buffer = cv2.imencode('.jpg', input_image)
+                input_image = cv2.resize(writer.frames[display_idx].blurred, (640, 360)) # Helps with slow network connection
+                _, buffer = cv2.imencode('.jpg', input_image, (cv2.IMWRITE_JPEG_QUALITY, 70))
             except AttributeError:
                 print("Skipping a frame")
             frame = buffer.tobytes()
