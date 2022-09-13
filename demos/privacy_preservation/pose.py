@@ -3,6 +3,7 @@ from threading import Thread, current_thread
 import time
 import numpy as np
 import tensorflow as tf
+import queue
 
 
 class Pose:
@@ -47,7 +48,11 @@ class Pose:
 
     def detect(self):
         while not self.stopped:
-            idx = self.det_pose_queue.get()
+            try:
+                idx = self.det_pose_queue.get(block=False)
+            except queue.Empty:
+                time.sleep(0.001)
+                continue
             if idx is None:
                 for i in range(8):
                     self.pose_postprocessor_queue.append(None)
