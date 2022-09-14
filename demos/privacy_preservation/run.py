@@ -103,9 +103,14 @@ if __name__ == "__main__":
     
     @app.route('/webcam', methods=['POST'])
     def use_webcam():
-        getter.src = 0
-  
-        return redirect('/reset')
+        cap = cv2.VideoCapture(0)
+        camera_exists = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != 0.0
+        cap.release()
+        if camera_exists:
+            getter.src = 0
+            return redirect('/reset')
+        else:
+            return ('', 204)
 
     @app.route('/faces', methods=['POST'])
     def toggle_faces():
