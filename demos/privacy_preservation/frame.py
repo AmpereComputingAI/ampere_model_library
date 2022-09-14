@@ -6,3 +6,4 @@ class Frame:
         self.blurred = None
         self.pose = None
         self.detection_idx = None
+        self.init_time = None

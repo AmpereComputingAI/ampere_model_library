@@ -70,6 +70,7 @@ class Postprocessor:
         self.frames = frames
         self.frame_number = 0
         self.faces = faces
+        self.latencies = []
 
     def start(self, num_frames):
         self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
@@ -90,6 +91,9 @@ class Postprocessor:
                 break
             # print("Post", idx)
             self.frame = self.frames[idx]
+            if self.frame.init_time is None:
+                self.frame.init_time = time.time()
+
             image = self.frame.frame
             self.people = self.frames[self.frame.detection_idx].people
             self.bboxes = self.frames[self.frame.detection_idx].humans
@@ -97,6 +101,7 @@ class Postprocessor:
             self.blurred, self.pose = self.blur_humans(image)
             end = time.time()
             # print(end - st)
+            self.blurred = self.add_latency_overlay(idx)
             self.frames[idx].blurred = self.blurred
             self.frames[idx].pose = self.pose
             # cv2.imwrite(f"crops/{idx}.jpg", self.pose)
@@ -109,6 +114,17 @@ class Postprocessor:
 
     def stop(self):
         self.stopped = True
+    
+    def add_latency_overlay(self, idx):
+        latency = time.time() - self.frames[idx].init_time
+        self.latencies.append(latency)
+        if idx > 3:
+            window = self.latencies[idx-4:idx+1]
+            moving_average_latency = sum(window) / len(window)
+            text = f"Latency: {moving_average_latency:.4f}"
+            cv2.putText(self.blurred, text, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 5, cv2.LINE_AA) # Adds a black border around text, making it much easier to read on all backgrounds
+            cv2.putText(self.blurred, text, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (245, 135, 66), 4, cv2.LINE_AA)
+        return self.blurred
     
     def mask_face(self, mask, left_point, right_point, radius_multiplier):
         """

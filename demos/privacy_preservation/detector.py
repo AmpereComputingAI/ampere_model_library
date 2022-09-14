@@ -42,6 +42,7 @@ class Detector:
 
                 self.stop()
                 break
+            self.frames[idx].init_time = time.time()
             # print("Detector", idx)
             self.frame = self.frames[idx].frame
             image = self.frame
