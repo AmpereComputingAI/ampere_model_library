@@ -74,6 +74,8 @@ if __name__ == "__main__":
     def reset():
         global display_idx
         print("RESET")
+        if getter.src is None:
+            return ('', 204)
         getter.stop()
         pipeline.stop()
         writer.stop()
