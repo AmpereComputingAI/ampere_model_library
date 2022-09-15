@@ -53,6 +53,7 @@ if __name__ == "__main__":
     pose_postprocessor_queue = []
     postprocessor_writer_queue = []
     display_idx = 0
+    resetting = False
 
     frames = dict()
 
@@ -72,6 +73,14 @@ if __name__ == "__main__":
 
     @app.route('/reset', methods=['POST', 'GET'])
     def reset():
+        reset_helper()
+        return redirect('/')
+    
+    def reset_helper():
+        global resetting
+        if resetting: # Ignore reset button if reset already started
+            return
+        resetting = True
         global display_idx
         print("RESET")
         if getter.src is None:
@@ -89,7 +98,7 @@ if __name__ == "__main__":
         pipeline.reset(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue)
         writer.reset(postprocessor_writer_queue)
         start_demo(getter, pipeline, writer)
-        return redirect('/')
+        resetting = False
     
     @app.route('/getfile', methods=['POST'])
     def getfile():
@@ -145,15 +154,12 @@ if __name__ == "__main__":
                     writer.frames[i] = None
                     writer.last_deleted_idx = display_idx
             display_idx += 1
+            if display_idx > writer.last_frame:
+                reset_helper()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
         end = time.time()
         print("Press CTRL+C to quit")
-        banner = cv2.imread("static/demo_banner.png")
-        _, banner_buffer = cv2.imencode(".png", banner)
-        banner_frame = banner_buffer.tobytes()
-        yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + banner_frame + b'\r\n')  # concat frame one by one and show result
 
     app.run(host="0.0.0.0", debug= False)
     
