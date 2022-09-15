@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument('-m', '--model-path', required=True)
     parser.add_argument('-d', '--detection-model-path', required=True)
     parser.add_argument('-s', '--save', action='store_true', help='Save to file')
+    parser.add_argument('-p', '--port', type=int, default=5000, help='Number of port to use')
     return parser.parse_args()
 
 def get_video_parameters(source):
@@ -154,5 +155,5 @@ if __name__ == "__main__":
         end = time.time()
         print("Press CTRL+C to quit")
 
-    app.run(host="0.0.0.0", debug= False)
+    app.run(host="0.0.0.0", port=args.port, debug=False)
     
