@@ -56,11 +56,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def tokenize(question, text):
-        if model_name == "madlag/bert-base-uncased-squadv1-x2.44-f87.7-d26-hybrid-filled-v1":
-            pad_multiple = 32
-        elif model_name == "salti/bert-base-multilingual-cased-finetuned-squad":
-            pad_multiple = 32
-        return tokenizer(question, text, padding=True, pad_to_multiple_of=pad_multiple)
+        return tokenizer(question, text, padding=True, pad_to_multiple_of=32, truncation=True)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
