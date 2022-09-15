@@ -18,7 +18,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description='tf-pose-estimation run')
     parser.add_argument('-m', '--model-path', required=True)
     parser.add_argument('-d', '--detection-model-path', required=True)
-    parser.add_argument('-f', '--faces', action='store_true', help='Only blur faces')
     parser.add_argument('-s', '--save', action='store_true', help='Save to file')
     return parser.parse_args()
 
@@ -59,7 +58,7 @@ if __name__ == "__main__":
 
     getter = VideoGetter(getter_det_queue, pose_postprocessor_queue, frames)
 
-    pipeline = Pipeline(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, args.faces)
+    pipeline = Pipeline(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, False)
 
     os.makedirs("out", exist_ok=True)
     writer = VideoWriter(postprocessor_writer_queue, frames, args.save)

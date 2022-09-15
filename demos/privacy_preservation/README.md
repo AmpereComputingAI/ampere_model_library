@@ -17,8 +17,6 @@ wget -O lite-model_efficientdet_lite2_detection_default_1.tflite https://tfhub.d
 
 You can use short versions of the flags, too (`-m`, `-d`).
 
-Use `--faces` flag (`-f`) to only pixelate faces.
-
 Use `--save` flag (`-s`) in order to save the output of the demo to a file.
 
 To make the demo run faster, consider lowering the video resolution:
