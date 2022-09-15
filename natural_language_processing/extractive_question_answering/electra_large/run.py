@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
 
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 
 
 def parse_args():
@@ -53,7 +53,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def tokenize(question, text):
-        return tokenizer(question, text, add_special_tokens=True, padding=True, max_length=220, truncation=True, pad_to_multiple_of=20)
+        return tokenizer(question, text, padding=True, pad_to_multiple_of=32)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
@@ -69,6 +69,7 @@ def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
 
 def main():
     args = parse_args()
+    download_squad_1_1_dataset()
     if args.framework == "tf":
         run_tf(**vars(args))
     else:
