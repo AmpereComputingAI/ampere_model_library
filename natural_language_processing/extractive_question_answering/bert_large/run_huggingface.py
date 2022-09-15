@@ -54,7 +54,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def tokenize(question, text):
-        return tokenizer(question, text, padding=True, pad_to_multiple_of=32)
+        return tokenizer(question, text, padding=True, pad_to_multiple_of=32, truncation=True)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
