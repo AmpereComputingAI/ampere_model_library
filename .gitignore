@@ -8,4 +8,4 @@ val2017*
 *.tflite
 *.pb
 __pycache__
-
+*.zip
