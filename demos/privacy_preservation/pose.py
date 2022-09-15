@@ -18,7 +18,6 @@ class Pose:
             self.shape = 256
         self.frame = None # Full frame
         self.humans = None
-        self.people = None
         self.stopped = True
         self.det_pose_queue = det_pose_queue
         self.pose_postprocessor_queue = pose_postprocessor_queue
@@ -82,8 +81,7 @@ class Pose:
 
                 keypoints_with_scores.append(pose)
 
-            self.people = np.asarray(keypoints_with_scores)
-            self.frames[idx].people = self.people
+            self.frames[idx].people = np.asarray(keypoints_with_scores)
             self.pose_postprocessor_queue.append(idx)
 
             self.humans = None
@@ -95,4 +93,3 @@ class Pose:
         self.det_pose_queue = det_pose_queue
         self.pose_postprocessor_queue = pose_postprocessor_queue
         self.humans = None
-        self.people = None
