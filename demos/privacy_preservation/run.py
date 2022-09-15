@@ -132,12 +132,6 @@ if __name__ == "__main__":
     def get_frames():
         global display_idx
 
-        if writer.stopped:
-            banner = cv2.imread("static/demo_banner.png")
-            _, banner_buffer = cv2.imencode(".png", banner)
-            banner_frame = banner_buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + banner_frame + b'\r\n')  # concat frame one by one and show result
         if getter.src == 0:
             display_idx = writer.frame_number
         while not display_idx > writer.last_frame:
