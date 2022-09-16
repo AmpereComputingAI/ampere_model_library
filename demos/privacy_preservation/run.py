@@ -28,16 +28,17 @@ def get_video_parameters(source):
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
     cap.release()
-    return fps, height, width, num_frames
+    return fps, height, width, last_frame
 
 def start_demo(getter, pipeline, writer):
     print("Starting")
     start_time = time.time()
-    fps, height, width, num_frames = get_video_parameters(getter.src)
+    fps, height, width, last_frame = get_video_parameters(getter.src)
     getter.start()
-    pipeline.start(num_frames)
-    writer.start(getter.src, fps, height, width, num_frames, start_time)
+    pipeline.start(last_frame)
+    writer.start(getter.src, fps, height, width, last_frame, start_time)
 
 app = Flask(__name__)
 

@@ -32,8 +32,7 @@ class VideoGetter:
         while not self.stopped:
             (self.grabbed, self.frame) = self.stream.read()
             if not self.grabbed:
-                for i in range(8): # That's not the ideal way of doing it
-                    self.det_queue.put(None)
+                self.det_queue.put(None)
                 self.stop()
                 break
             self.frames[self.idx] = Frame(self.frame)

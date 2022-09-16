@@ -37,9 +37,7 @@ class Detector:
                 time.sleep(0.001)
                 continue
             if idx is None:
-                for i in range(8):
-                    self.det_pose_queue.put(None)
-
+                self.det_pose_queue.put(None)
                 self.stop()
                 break
             self.frames[idx].init_time = time.time()

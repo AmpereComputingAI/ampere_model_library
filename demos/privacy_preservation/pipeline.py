@@ -27,15 +27,15 @@ class Pipeline:
         self.postprocessor = Postprocessor(self.pose_postprocessor_queue, self.writer_queue, frames, faces)
 
     
-    def start(self, num_frames):
+    def start(self, last_frame):
         self.stopped = False
-        Thread(target=self.process, args=(num_frames,)).start()
+        Thread(target=self.process, args=(last_frame,)).start()
         return self
 
-    def process(self, num_frames):
+    def process(self, last_frame):
         self.det.start()
         self.pose_estimator.start()
-        self.postprocessor.start(num_frames)
+        self.postprocessor.start(last_frame)
 
         self.stopped = False
         while not self.postprocessor.stopped:

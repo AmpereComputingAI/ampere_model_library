@@ -72,8 +72,8 @@ class Postprocessor:
         self.faces = faces
         self.latencies = []
 
-    def start(self, num_frames):
-        self.last_frame = int(num_frames) - 2 if num_frames > 0 else sys.maxsize
+    def start(self, last_frame):
+        self.last_frame = last_frame
         self.stopped = False
         Thread(target=self.blur, args=()).start()
         return self

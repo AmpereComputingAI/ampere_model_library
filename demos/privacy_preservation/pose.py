@@ -53,9 +53,7 @@ class Pose:
                 time.sleep(0.001)
                 continue
             if idx is None:
-                for i in range(8):
-                    self.pose_postprocessor_queue.append(None)
-
+                self.pose_postprocessor_queue.append(None)
                 self.stop()
                 break
             # print("Pose", idx)
