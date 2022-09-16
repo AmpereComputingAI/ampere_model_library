@@ -55,9 +55,9 @@ class Detector:
 
             input_image = np.expand_dims(input_image, axis=0)
             self.model.set_tensor(self.input_details[0]["index"], input_image)
-            st = time.time()
+            start_time = time.thread_time()
             self.model.invoke()
-            end = time.time()
+            self.frames[idx].latency += time.thread_time() - start_time
             # print("detector", end - st)
             detection_boxes = self.model.get_tensor(self.output_details[0]["index"])
             detection_classes = self.model.get_tensor(self.output_details[1]["index"])

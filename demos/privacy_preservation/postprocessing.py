@@ -91,16 +91,13 @@ class Postprocessor:
                 break
             # print("Post", idx)
             self.frame = self.frames[idx]
-            if self.frame.init_time is None:
-                self.frame.init_time = time.time()
 
             image = self.frame.frame
             self.people = self.frames[self.frame.detection_idx].people
             self.bboxes = self.frames[self.frame.detection_idx].humans
-            st = time.time()
+            start_time = time.thread_time()
             self.blurred, self.pose = self.blur_humans(image)
-            end = time.time()
-            # print(end - st)
+            self.frames[idx].latency += time.thread_time() - start_time
             self.blurred = self.add_latency_overlay(idx)
             self.frames[idx].blurred = self.blurred
             self.frames[idx].pose = self.pose
@@ -116,8 +113,7 @@ class Postprocessor:
         self.stopped = True
     
     def add_latency_overlay(self, idx):
-        latency = time.time() - self.frames[idx].init_time
-        self.latencies.append(latency)
+        self.latencies.append(self.frames[idx].latency)
         if idx > 3:
             window = self.latencies[idx-4:idx+1]
             moving_average_latency = sum(window) / len(window)
@@ -270,3 +266,4 @@ class Postprocessor:
         self.blurred = None
         self.pose = None
         self.frame_number = 0
+        self.latencies=[]

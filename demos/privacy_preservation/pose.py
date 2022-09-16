@@ -67,6 +67,7 @@ class Pose:
                 input_image = np.expand_dims(self.frame, axis=0)
                 input_image = tf.cast(tf.image.crop_and_resize(input_image, self.humans, [0]*self.humans.shape[0], (self.shape, self.shape)), dtype=tf.float32)
             keypoints_with_scores = []
+            start_time = time.thread_time()
             futures = [self.executor.submit(self.run, self.interpreters, input_image[i:i+1].numpy(), i) for i in range(len(self.humans))]
             for future in concurrent.futures.as_completed(futures):
                 pose, i = future.result()
@@ -80,6 +81,7 @@ class Pose:
                 pose[0, 0, :, 1] = pose[0, 0, :, 1] * cropped_width + offset_width
 
                 keypoints_with_scores.append(pose)
+            self.frames[idx].latency += time.thread_time() - start_time
 
             self.frames[idx].people = np.asarray(keypoints_with_scores)
             self.pose_postprocessor_queue.append(idx)
