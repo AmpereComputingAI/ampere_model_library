@@ -7,7 +7,7 @@ import torch
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer, AutoModelForTokenClassification, TFAutoModelForTokenClassification
-from utils.nlp.conll2003 import CoNNL2003
+from utils.nlp.conll2003 import CoNLL2003
 from utils.misc import print_goodbye_message_and_die
 
 
@@ -22,7 +22,7 @@ def parse_args():
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["tf", "pytorch"],
+                        choices=["tf", "pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument("--num_runs",
                         type=int,
                         help="number of passes through network to execute")
-    parser.add_argument("--conll2003_path",
+    parser.add_argument("--conll_path",
                         type=str,
                         help="path to directory with the CoNLL-2003 dataset")
     parser.add_argument("--disable_jit_freeze", action='store_true',
@@ -38,7 +38,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, connl_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, conll_path, **kwargs):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
 
@@ -73,7 +73,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, connl_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, conll2003_path, disable_jit_freeze, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_jit_freeze, **kwargs):
     def run_single_pass(pytorch_runner, conll2003):
 
         input = torch.tensor(np.array(conll2003.get_input_ids_array(), dtype=np.int32))
