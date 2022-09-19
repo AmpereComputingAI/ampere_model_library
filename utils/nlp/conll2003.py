@@ -4,7 +4,7 @@ import string
 import utils.misc as utils
 
 
-class CoNNL2003:
+class CoNLL2003:
     """
     A class providing facilities for preprocessing and postprocessing of CoNLL-2003 dataset.
     """
@@ -30,8 +30,7 @@ class CoNNL2003:
         self.__ner_tags = None
         self.__f1_count = 0
         self.__exact_match_count = 0
-        
-    
+
     def __examples(self):
         with open(self.__dataset, encoding="utf-8") as f:
             tokens = []
@@ -39,7 +38,7 @@ class CoNNL2003:
             for line in f:
                 if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                     if tokens:
-                        yield tokens, ner_tags 
+                        yield tokens, ner_tags
                         tokens = []
                         ner_tags = []
                 else:
@@ -48,7 +47,7 @@ class CoNNL2003:
                     tokens.append(splits[0])
                     ner_tags.append(splits[3].rstrip())
             # last example
-            yield tokens, ner_tags 
+            yield tokens, ner_tags
 
     def __load_next_inputs_maybe(self):
         """
@@ -72,7 +71,6 @@ class CoNNL2003:
                 self.__unsubmitted_count += 1
             tokenized = self.__tokenize_func(texts)
             self.__current_inputs = tokenized
-            
 
     def __get_input_array(self, input_name: string):
         """
@@ -129,7 +127,6 @@ class CoNNL2003:
 
     def get_offset_mapping_array(self):
         return self.__current_inputs["offset_mapping"]
-
 
     def submit_prediction(self, id_in_batch: int, prediction: string):
         """
