@@ -6,7 +6,7 @@ import torch
 
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
-from transformers import AutoTokenizer, AutoModelForTokenClassificationfrom, TFAutoModelForTokenClassification
+from transformers import AutoTokenizer, AutoModelForTokenClassification, TFAutoModelForTokenClassification
 from utils.nlp.conll2003 import CoNNL2003
 from utils.misc import print_goodbye_message_and_die
 
