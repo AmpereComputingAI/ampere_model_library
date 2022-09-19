@@ -42,7 +42,6 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, squad):
-
         output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
 
         for i in range(batch_size):
@@ -67,11 +66,11 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-
         output = pytorch_runner.run(dict(squad.get_input_arrays()))
 
         for i in range(batch_size):
@@ -99,11 +98,14 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+
 def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     return run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
 
+
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, **kwargs)
+
 
 def main():
     args = parse_args()
