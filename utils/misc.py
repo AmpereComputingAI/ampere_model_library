@@ -109,6 +109,19 @@ def download_squad_1_1_dataset():
     os.environ["SQUAD_V1_1_PATH"] = str(dataset)
 
 
+def download_conll_2003_dataset():
+    from utils.downloads.utils import get_downloads_path
+    dataset_link = 'https://data.deepai.org/conll2003.zip'
+    conll_data = pathlib.Path(get_downloads_path(), "conll")
+
+    if not pathlib.Path(conll_data).is_dir():
+        subprocess.run(["wget", dataset_link])
+        subprocess.run(["mkdir", conll_data])
+        subprocess.run(["unzip", 'conll2003.zip', '-d', conll_data])
+
+    os.environ["CONLL2003_PATH"] = str(pathlib.Path(conll_data, 'train.txt'))
+
+
 def download_ampere_imagenet():
     from utils.downloads.utils import get_downloads_path
     labels_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_imagenet_substitute_labels.txt"

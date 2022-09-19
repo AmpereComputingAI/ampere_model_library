@@ -8,7 +8,7 @@ from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from transformers import AutoTokenizer, AutoModelForTokenClassification, TFAutoModelForTokenClassification
 from utils.nlp.conll2003 import CoNLL2003
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_conll_2003_dataset
 
 
 def parse_args():
@@ -66,7 +66,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, conll_path, **kwargs):
     def detokenize(summary):
         return tokenizer.decode(summary)
 
-    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=conll_path)
+    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=conll_path, target_seq_size=64)
     runner = TFSavedModelRunner()
     runner.model = tf.function(TFAutoModelForTokenClassification.from_pretrained(model_name))
     id2label = runner.model.config.id2label
@@ -115,6 +115,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_j
 
 def main():
     args = parse_args()
+    download_conll_2003_dataset()
     if args.framework == "pytorch":
         run_pytorch(**vars(args))
     elif args.framework == "tf":
