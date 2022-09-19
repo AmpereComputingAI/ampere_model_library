@@ -66,7 +66,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, conll_path, **kwargs):
     def detokenize(summary):
         return tokenizer.decode(summary)
 
-    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=connl_path)
+    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=conll_path)
     runner = TFSavedModelRunner()
     runner.model = tf.function(TFAutoModelForTokenClassification.from_pretrained(model_name))
     id2label = runner.model.config.id2label
@@ -104,7 +104,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_j
     def detokenize(summary):
         return tokenizer.decode(summary)
 
-    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=conll2003_path)
+    dataset = CoNLL2003(batch_size, tokenize, detokenize, dataset_path=conll_path)
     model = AutoModelForTokenClassification.from_pretrained(model_name, return_dict=False)
     id2label = model.config.id2label
     runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze,
