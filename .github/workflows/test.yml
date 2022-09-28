@@ -25,11 +25,7 @@ jobs:
           sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py
       
       - name: AML smoke test
-        run: |
-
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_tf_fp32.pb -p fp32 --timeout=60
-          
+        run: |    
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 natural_language_processing/extractive_question_answering/bert_base/run.py -m jimypbr/bert-base-uncased-squad -f pytorch --timeout=60
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
