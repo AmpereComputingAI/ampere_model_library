@@ -26,6 +26,10 @@ try:
 except ModuleNotFoundError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch"])
     native_frameworks.append("PyTorch")
+try:
+    import torchvision
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision"])
 
 # TensorFlow
 try:
