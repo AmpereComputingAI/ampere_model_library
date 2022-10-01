@@ -50,6 +50,7 @@ class TFFrozenModelRunner:
         # self.res_dataset = dataset
         self.__graph = self.__initialize_graph1(path_to_model)
         self.graph = self.__initialize_graph1(path_to_model)
+        self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
             graph=self.__graph
@@ -118,31 +119,7 @@ class TFFrozenModelRunner:
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
-        # print(graph)
-        # print(type(graph))
-        # print('here')
-        #
-        # # print(res_dataset)
-        # # print(type(res_dataset))
-        # iterator = tf.compat.v1.data.make_one_shot_iterator(self.res_dataset)
-        # print(iterator)
-        # print(type(iterator))
-        # next_element = iterator.get_next()
-        # print(next_element)
-        # print(type(next_element))
-        #
-        # features_list = []
-        # print('here')
-        # print(graph)
-        # print(type(graph))
-        # with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
-        #                           graph=graph) as sess:
-        #     batch = sess.run(next_element)
-        #     quit()
-
         return graph
-
-
 
     def set_input_tensor(self, input_name: str, input_array):
         """
@@ -152,14 +129,13 @@ class TFFrozenModelRunner:
         """
         self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
 
-    def set_input_tensor1(self, input_name: str, input_array):
+    def set_input_tensor1(self, input_names: list, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input name.
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
-        self.input_tensor = [self.__graph.get_tensor_by_name(name) for name in placeholder_list]
+
 
     def run(self):
         """
@@ -182,43 +158,7 @@ class TFFrozenModelRunner:
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-        # with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
-        #                           graph=self.__graph) as sess:
-
-        print(res_dataset)
-        print(type(res_dataset))
-        iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
-        print(iterator)
-        print(type(iterator))
-        next_element = iterator.get_next()
-        print(next_element)
-        print(type(next_element))
-
-        features_list = []
-        print('here')
-        with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
-                                  graph=self.__graph) as sess:
-            batch = sess.run(tf.Tensor(2))
-            # for i in range(int(no_of_batches)):
-            #     batch = sess.run(next_element)
-            #     quit()
-            #     features = batch[0:3]
-            #     features_list.append(features)
-            #
-            # print(features_list)
-            # quit()
-
-        logistic = self.__sess.run(self.__output_dict, dict(zip(self.input_tensor, features_list[i][0:2])))
-        # if i > warm_iter:
-        #     infer_time = time.time() - inference_start
-        #     total_infer_consume += infer_time
-        # if args.compute_accuracy:
-        #     predicted_labels = np.argmax(logistic, 1)
-        #     correctly_predicted = correctly_predicted + np.sum(features_list[i][2] == predicted_labels)
-        #
-        # inference_end = time.time()
-
-        return output
+        pass
 
     def print_performance_metrics(self, batch_size):
         """
