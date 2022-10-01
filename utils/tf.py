@@ -8,9 +8,13 @@ import json
 from datetime import datetime
 
 import tensorflow as tf
+from google.protobuf import text_format
+from tensorflow.python.framework import ops
+from tensorflow.core.framework import graph_pb2
 
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
+tf.compat.v1.disable_eager_execution()
 
 
 class TFProfiler:
@@ -43,19 +47,25 @@ class TFFrozenModelRunner:
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        self.__graph = self.__initialize_graph(path_to_model)
+        # self.res_dataset = dataset
+        self.__graph = self.__initialize_graph1(path_to_model)
+        self.graph = self.__initialize_graph1(path_to_model)
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
             graph=self.__graph
         )
         self.__feed_dict = dict()
-        self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
+        # self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
 
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
         self.__profiler = TFProfiler()
+
+        # NEW
+        self.input_tensor = None
+
 
         print("\nRunning with TensorFlow\n")
 
@@ -67,7 +77,7 @@ class TFFrozenModelRunner:
         :return: TensorFlow config
         """
         config = tf.compat.v1.ConfigProto()
-        config.allow_soft_placement = True
+        config.log_device_placement = False
         config.intra_op_parallelism_threads = intra_threads
         config.inter_op_parallelism_threads = inter_threads
         return config
@@ -78,6 +88,7 @@ class TFFrozenModelRunner:
         :param path_to_model: str
         :return: TensorFlow graph
         """
+
         graph = tf.compat.v1.Graph()
         with graph.as_default():
             graph_def = tf.compat.v1.GraphDef()
@@ -87,6 +98,52 @@ class TFFrozenModelRunner:
                 tf.compat.v1.import_graph_def(graph_def, name="")
         return graph
 
+    def __initialize_graph1(self, path_to_model: str):
+        """
+        A function initializing TF graph from frozen .pb model.
+        :param path_to_model: str
+        :return: TensorFlow graph
+        """
+
+        graph = ops.Graph()
+        graph_def = graph_pb2.GraphDef()
+
+        filename, file_ext = os.path.splitext(path_to_model)
+
+        with open(path_to_model, "rb") as f:
+            if file_ext == ".pbtxt":
+                text_format.Merge(f.read(), graph_def)
+            else:
+                graph_def.ParseFromString(f.read())
+        with graph.as_default():
+            tf.import_graph_def(graph_def)
+
+        # print(graph)
+        # print(type(graph))
+        # print('here')
+        #
+        # # print(res_dataset)
+        # # print(type(res_dataset))
+        # iterator = tf.compat.v1.data.make_one_shot_iterator(self.res_dataset)
+        # print(iterator)
+        # print(type(iterator))
+        # next_element = iterator.get_next()
+        # print(next_element)
+        # print(type(next_element))
+        #
+        # features_list = []
+        # print('here')
+        # print(graph)
+        # print(type(graph))
+        # with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
+        #                           graph=graph) as sess:
+        #     batch = sess.run(next_element)
+        #     quit()
+
+        return graph
+
+
+
     def set_input_tensor(self, input_name: str, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input name.
@@ -94,6 +151,15 @@ class TFFrozenModelRunner:
         :param input_array: numpy array with intended input
         """
         self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+
+    def set_input_tensor1(self, input_name: str, input_array):
+        """
+        A function assigning given numpy input array to the tensor under the provided input name.
+        :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
+        :param input_array: numpy array with intended input
+        """
+        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+        self.input_tensor = [self.__graph.get_tensor_by_name(name) for name in placeholder_list]
 
     def run(self):
         """
@@ -108,6 +174,49 @@ class TFFrozenModelRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
         self.__times_invoked += 1
+
+        return output
+
+    def run1(self, res_dataset, no_of_batches):
+        """
+        A function executing single pass over the network, measuring the time needed and returning the output.
+        :return: dict, output dictionary with tensor names and corresponding output
+        """
+        # with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
+        #                           graph=self.__graph) as sess:
+
+        print(res_dataset)
+        print(type(res_dataset))
+        iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
+        print(iterator)
+        print(type(iterator))
+        next_element = iterator.get_next()
+        print(next_element)
+        print(type(next_element))
+
+        features_list = []
+        print('here')
+        with tf.compat.v1.Session(config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
+                                  graph=self.__graph) as sess:
+            batch = sess.run(tf.Tensor(2))
+            # for i in range(int(no_of_batches)):
+            #     batch = sess.run(next_element)
+            #     quit()
+            #     features = batch[0:3]
+            #     features_list.append(features)
+            #
+            # print(features_list)
+            # quit()
+
+        logistic = self.__sess.run(self.__output_dict, dict(zip(self.input_tensor, features_list[i][0:2])))
+        # if i > warm_iter:
+        #     infer_time = time.time() - inference_start
+        #     total_infer_consume += infer_time
+        # if args.compute_accuracy:
+        #     predicted_labels = np.argmax(logistic, 1)
+        #     correctly_predicted = correctly_predicted + np.sum(features_list[i][2] == predicted_labels)
+        #
+        # inference_end = time.time()
 
         return output
 
