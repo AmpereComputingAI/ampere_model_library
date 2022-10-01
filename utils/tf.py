@@ -56,7 +56,7 @@ class TFFrozenModelRunner:
             graph=self.__graph
         )
         self.__feed_dict = dict()
-        # self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
+        self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
 
         self.__times_invoked = 0
         self.__start_times = list()
@@ -65,6 +65,7 @@ class TFFrozenModelRunner:
         self.__profiler = TFProfiler()
 
         # NEW
+        self.__output_names = output_names
         self.output_tensor = self.graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
 
 
@@ -167,10 +168,10 @@ class TFFrozenModelRunner:
             logistic = sess.run(self.output_tensor, self.__feed_dict)
         quit()
 
-    def test(self, config, graph, input_tensor, output_tensor, features_list):
+    def test(self, config, graph):
 
         with tf.compat.v1.Session(config=config, graph=graph) as sess1:
-            logistic = sess1.run(output_tensor, dict(zip(input_tensor, features_list[0][0:2])))
+            logistic = sess1.run(self.output_tensor, self.__feed_dict)
 
         print('IT WORKS!!!!')
         quit()
