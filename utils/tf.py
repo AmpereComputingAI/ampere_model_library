@@ -65,7 +65,7 @@ class TFFrozenModelRunner:
         self.__profiler = TFProfiler()
 
         # NEW
-        self.input_tensor = None
+        self.output_tensor = self.graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
 
 
         print("\nRunning with TensorFlow\n")
@@ -132,10 +132,11 @@ class TFFrozenModelRunner:
     def set_input_tensor1(self, input_names: list, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input name.
-        :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
+        :param input_names: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-
+        input_tensors = [self.graph.get_tensor_by_name(name) for name in input_names]
+        self.__feed_dict = dict(zip(input_tensors, input_array))
 
     def run(self):
         """
@@ -153,12 +154,26 @@ class TFFrozenModelRunner:
 
         return output
 
-    def run1(self, res_dataset, no_of_batches):
+    def run1(self, config, graph, no_of_batches):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-        pass
+        # {'import/import/head/predictions/probabilities:0':
+        # < tf.Tensor'import/import/head/predictions/probabilities:0'shape = (None, 2)dtype = float32 >}
+        # print(self.__output_dict)
+
+        with tf.compat.v1.Session(config=config, graph=graph) as sess:
+            logistic = sess.run(self.output_tensor, self.__feed_dict)
+        quit()
+
+    def test(self, config, graph, input_tensor, output_tensor, features_list):
+
+        with tf.compat.v1.Session(config=config, graph=graph) as sess1:
+            logistic = sess1.run(output_tensor, dict(zip(input_tensor, features_list[0][0:2])))
+
+        print('IT WORKS!!!!')
+        quit()
 
     def print_performance_metrics(self, batch_size):
         """

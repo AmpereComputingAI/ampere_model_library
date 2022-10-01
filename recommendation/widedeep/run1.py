@@ -52,66 +52,50 @@ def parse_args():
 
 def run_tf_fp(model_path, batch_size, dataset_path):
 
-    runner = TFFrozenModelRunner(model_path, ["import/head/predictions/probabilities"])
-    dataset = WideDeep(batch_size, dataset_path)
+    runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"])
+    dataset = WideDeep(batch_size, dataset_path, runner.config, runner.graph)
 
-    # runner.set_input_tensor1(['import/new_numeric_placeholder:0', 'import/new_categorical_placeholder:0'], )
-    #
     placeholder_list = ['import/new_numeric_placeholder:0', 'import/new_categorical_placeholder:0']
     input_tensor = [runner.graph.get_tensor_by_name(name) for name in placeholder_list]
+    output_tensor = runner.graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
 
-    output_name = "import/head/predictions/probabilities"
-    output_tensor = runner.graph.get_tensor_by_name("import/" + output_name + ":0")
+    features_list = dataset.get_features_list(runner.config, runner.graph, dataset.no_of_batches)
+    test = runner.test(runner.config, runner.graph, input_tensor, output_tensor, features_list)
+    runner.set_input_tensor1(['import/new_numeric_placeholder:0', 'import/new_categorical_placeholder:0'],
+                             dataset.get_input())
+    # something = runner.run1(runner.config, runner.graph, dataset.no_of_batches)
 
-    correctly_predicted = 0
     total_infer_consume = 0.0
     warm_iter = 100
-    features_list = []
-
-    with tf.compat.v1.Session(config=runner.config, graph=runner.graph) as sess:
-        res_dataset = dataset.input_fn(False)
-        iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
-        next_element = iterator.get_next()
-        for i in range(int(dataset.no_of_batches)):
-            batch = sess.run(next_element)
-            features = batch[0:3]
-            features_list.append(features)
-
-    # print(features_list)
-    print(type(features_list))
-    print(len(features_list))
-    print('here1')
-
-    # runner.set_input_tensor1(['import/new_numeric_placeholder:0', 'import/new_categorical_placeholder:0'], )
-
+    # Tensor("import/import/head/predictions/probabilities:0", shape=(None, 2), dtype=float32)
+    output_tensor = runner.graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
     with tf.compat.v1.Session(config=runner.config, graph=runner.graph) as sess1:
         i = 0
         while True:
             if i >= dataset.no_of_batches:
                 break
             if i > warm_iter:
-                inference_start = time.time()
-            logistic = sess1.run(output_tensor, dict(zip(input_tensor, features_list[i][0:2])))
+                start = time.time()
+                logistic = sess1.run(output_tensor, dict(zip(input_tensor, features_list[i][0:2])))
+                finish = time.time()
             if i > warm_iter:
-                infer_time = time.time() - inference_start
+                infer_time = finish - start
                 total_infer_consume += infer_time
 
             i = i + 1
-        inference_end = time.time()
-    print('here2')
-    quit()
-    evaluate_duration = total_infer_consume
-    latency = (1000 * batch_size * float(evaluate_duration) / float(dataset.no_of_test_samples - warm_iter * batch_size))
-    throughput = (dataset.no_of_test_samples - warm_iter * batch_size) / evaluate_duration
 
-    print('--------------------------------------------------')
-    print('Total test records           : ', dataset.no_of_test_samples)
-    print('Batch size is                : ', batch_size)
-    print('Number of batches            : ', int(dataset.no_of_batches))
-    print('Inference duration (seconds) : ', round(evaluate_duration, 4))
-    print('Average Latency (ms/batch)   : ', round(latency, 4))
-    print('Throughput is (records/sec)  : ', round(throughput, 3))
-    print('--------------------------------------------------')
+    # evaluate_duration = total_infer_consume
+    # latency = (1000 * batch_size * float(evaluate_duration) / float(dataset.no_of_test_samples - warm_iter * batch_size))
+    # throughput = (dataset.no_of_test_samples - warm_iter * batch_size) / evaluate_duration
+    #
+    # print('--------------------------------------------------')
+    # print('Total test records           : ', dataset.no_of_test_samples)
+    # print('Batch size is                : ', batch_size)
+    # print('Number of batches            : ', int(dataset.no_of_batches))
+    # print('Inference duration (seconds) : ', round(evaluate_duration, 4))
+    # print('Average Latency (ms/batch)   : ', round(latency, 4))
+    # print('Throughput is (records/sec)  : ', round(throughput, 3))
+    # print('--------------------------------------------------')
 
 
 def run_tf_fp32(model_path, batch_size, dataset_path, **kwargs):
