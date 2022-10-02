@@ -59,20 +59,6 @@ class WideDeep:
         dataset = dataset.prefetch(self.batch_size * 10)
         return dataset
 
-    def preprocess_dataset(self, config, graph, no_of_batches):
-        features_list = []
-        with tf.compat.v1.Session(config=config, graph=graph) as sess:
-            # res_dataset = dataset.input_fn(False)
-            res_dataset = self.input_fn(False)
-            iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
-            next_element = iterator.get_next()
-            for i in range(int(no_of_batches)):
-                batch = sess.run(next_element)
-                features = batch[0:3]
-                features_list.append(features)
-
-        return features_list
-
     def get_features_list(self, config, graph, no_of_batches):
         features_list = []
         with tf.compat.v1.Session(config=config, graph=graph) as sess:
@@ -87,18 +73,7 @@ class WideDeep:
 
         return features_list
 
-    def test(self, config, graph, input_tensor, output_tensor):
-
-        with tf.compat.v1.Session(config=config, graph=graph) as sess1:
-            logistic = sess1.run(output_tensor, dict(zip(input_tensor, self.features_list[0][0:2])))
-
-        print('IT WORKS!!!!')
-        quit()
-
-
-
-    def get_input(self):
-        print('get_input()')
+    def get_input_array(self):
         input_array = self.features_list[self.current_feature][0:2]
         self.current_feature += 1
         return input_array

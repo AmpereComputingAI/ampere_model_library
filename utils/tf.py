@@ -65,9 +65,8 @@ class TFFrozenModelRunner:
         self.__profiler = TFProfiler()
 
         # NEW
-        self.__output_names = output_names
-        self.output_tensor = self.graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
-
+        # self.__output_names = output_names
+        # self.output_tensor = self.__graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
 
         print("\nRunning with TensorFlow\n")
 
@@ -122,22 +121,25 @@ class TFFrozenModelRunner:
 
         return graph
 
-    def set_input_tensor(self, input_name: str, input_array):
+    def set_input_tensor(self, input_name, input_array):
         """
         A function assigning given numpy input array to the tensor under the provided input name.
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+        if isinstance(input_name, str):
+            self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+        elif isinstance(input_name, list):
+            self.__feed_dict = dict(zip([self.__graph.get_tensor_by_name(name) for name in input_name], input_array))
 
-    def set_input_tensor1(self, input_names: list, input_array):
-        """
-        A function assigning given numpy input array to the tensor under the provided input name.
-        :param input_names: str, name of a input node in a model, eg. "image_tensor:0"
-        :param input_array: numpy array with intended input
-        """
-        input_tensors = [self.graph.get_tensor_by_name(name) for name in input_names]
-        self.__feed_dict = dict(zip(input_tensors, input_array))
+    # def set_input_tensor1(self, input_names: list, input_array):
+    #     """
+    #     A function assigning given numpy input array to the tensor under the provided input name.
+    #     :param input_names: str, name of a input node in a model, eg. "image_tensor:0"
+    #     :param input_array: numpy array with intended input
+    #     """
+    #     input_tensors = [self.__graph.get_tensor_by_name(name) for name in input_names]
+    #     self.__feed_dict = dict(zip(input_tensors, input_array))
 
     def run(self):
         """
@@ -152,29 +154,10 @@ class TFFrozenModelRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
         self.__times_invoked += 1
+        print('here1')
+        quit()
 
         return output
-
-    def run1(self, config, graph, no_of_batches):
-        """
-        A function executing single pass over the network, measuring the time needed and returning the output.
-        :return: dict, output dictionary with tensor names and corresponding output
-        """
-        # {'import/import/head/predictions/probabilities:0':
-        # < tf.Tensor'import/import/head/predictions/probabilities:0'shape = (None, 2)dtype = float32 >}
-        # print(self.__output_dict)
-
-        with tf.compat.v1.Session(config=config, graph=graph) as sess:
-            logistic = sess.run(self.output_tensor, self.__feed_dict)
-        quit()
-
-    def test(self, config, graph):
-
-        with tf.compat.v1.Session(config=config, graph=graph) as sess1:
-            logistic = sess1.run(self.output_tensor, self.__feed_dict)
-
-        print('IT WORKS!!!!')
-        quit()
 
     def print_performance_metrics(self, batch_size):
         """
