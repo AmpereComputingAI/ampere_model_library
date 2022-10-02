@@ -50,7 +50,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
                                    widedeep.get_input_array())
         output = tf_runner.run()
 
-    runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"])
+    runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
     dataset = WideDeep(batch_size, dataset_path, runner.config, runner.graph)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)

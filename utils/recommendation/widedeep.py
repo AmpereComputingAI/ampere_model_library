@@ -77,3 +77,9 @@ class WideDeep:
         input_array = self.features_list[self.current_feature][0:2]
         self.current_feature += 1
         return input_array
+
+    def submit_predictions(self):
+        pass
+
+    def summarize_accuracy(self):
+        pass

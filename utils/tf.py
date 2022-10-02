@@ -35,7 +35,7 @@ class TFFrozenModelRunner:
     """
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
     """
-    def __init__(self, path_to_model: str, output_names: list):
+    def __init__(self, path_to_model: str, output_names: list, use_opsgraph=False):
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
         Netron app).
@@ -47,10 +47,11 @@ class TFFrozenModelRunner:
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        # self.res_dataset = dataset
-        self.__graph = self.__initialize_graph1(path_to_model)
-        self.graph = self.__initialize_graph1(path_to_model)
+        self.__graph = self.__initialize_graph(path_to_model, use_opsgraph)
+        # temporary
+        self.graph = self.__initialize_graph(path_to_model, use_opsgraph)
         self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
+        # temporary
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
             graph=self.__graph
@@ -63,10 +64,6 @@ class TFFrozenModelRunner:
         self.__finish_times = list()
 
         self.__profiler = TFProfiler()
-
-        # NEW
-        # self.__output_names = output_names
-        # self.output_tensor = self.__graph.get_tensor_by_name("import/import/head/predictions/probabilities:0")
 
         print("\nRunning with TensorFlow\n")
 
@@ -83,41 +80,28 @@ class TFFrozenModelRunner:
         config.inter_op_parallelism_threads = inter_threads
         return config
 
-    def __initialize_graph(self, path_to_model: str):
+    def __initialize_graph(self, path_to_model: str, use_opsgraph=False):
         """
         A function initializing TF graph from frozen .pb model.
         :param path_to_model: str
         :return: TensorFlow graph
         """
+        if use_opsgraph:
+            graph = ops.Graph()
+            graph_def = graph_pb2.GraphDef()
 
-        graph = tf.compat.v1.Graph()
-        with graph.as_default():
+        else:
+            graph = tf.compat.v1.Graph()
             graph_def = tf.compat.v1.GraphDef()
+
+        with graph.as_default():
             with tf.compat.v1.gfile.GFile(path_to_model, 'rb') as fid:
                 serialized_graph = fid.read()
                 graph_def.ParseFromString(serialized_graph)
-                tf.compat.v1.import_graph_def(graph_def, name="")
-        return graph
-
-    def __initialize_graph1(self, path_to_model: str):
-        """
-        A function initializing TF graph from frozen .pb model.
-        :param path_to_model: str
-        :return: TensorFlow graph
-        """
-
-        graph = ops.Graph()
-        graph_def = graph_pb2.GraphDef()
-
-        filename, file_ext = os.path.splitext(path_to_model)
-
-        with open(path_to_model, "rb") as f:
-            if file_ext == ".pbtxt":
-                text_format.Merge(f.read(), graph_def)
-            else:
-                graph_def.ParseFromString(f.read())
-        with graph.as_default():
-            tf.import_graph_def(graph_def)
+                if use_opsgraph:
+                    tf.import_graph_def(graph_def)
+                else:
+                    tf.compat.v1.import_graph_def(graph_def, name="")
 
         return graph
 
@@ -132,15 +116,6 @@ class TFFrozenModelRunner:
         elif isinstance(input_name, list):
             self.__feed_dict = dict(zip([self.__graph.get_tensor_by_name(name) for name in input_name], input_array))
 
-    # def set_input_tensor1(self, input_names: list, input_array):
-    #     """
-    #     A function assigning given numpy input array to the tensor under the provided input name.
-    #     :param input_names: str, name of a input node in a model, eg. "image_tensor:0"
-    #     :param input_array: numpy array with intended input
-    #     """
-    #     input_tensors = [self.__graph.get_tensor_by_name(name) for name in input_names]
-    #     self.__feed_dict = dict(zip(input_tensors, input_array))
-
     def run(self):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
@@ -154,8 +129,7 @@ class TFFrozenModelRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
         self.__times_invoked += 1
-        print('here1')
-        quit()
+        print('yuppieeee')
 
         return output
 
