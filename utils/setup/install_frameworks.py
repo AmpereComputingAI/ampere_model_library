@@ -14,86 +14,29 @@ native_frameworks = list()
 
 
 # ONNXRunTime
-native_ort_version = "1.11.0"
-
-ampere_ort = False
-install_ort = False
-
 try:
     import onnxruntime as ort
-    if version.parse(ort.__version__) != version.parse(native_ort_version):
-        install_ort = True
-    ort.AIO
-    ampere_ort = True
 except ModuleNotFoundError:
-    install_ort = True
-except AttributeError:
-    ampere_ort = False
-
-if not ampere_ort and install_ort:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"onnxruntime=={native_ort_version}"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"onnxruntime"])
     native_frameworks.append("ONNXRunTime")
 
-
 # PyTorch
-native_torch_version = "1.11.0"
-torchvision_version = "0.12.0"
-
-ampere_torch = False
-install_torch = False
-install_torchvision = False
-
 try:
     import torch
-    if version.parse(torch.__version__) != version.parse(native_torch_version):
-        install_torch = True
-    torch._C._aio_profiler_print()
-    ampere_torch = True
 except ModuleNotFoundError:
-    install_torch = True
-except AttributeError:
-    ampere_torch = False
-
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch"])
+    native_frameworks.append("PyTorch")
 try:
     import torchvision
-    if version.parse(torchvision.__version__) != version.parse(torchvision_version):
-        install_torchvision = True
 except ModuleNotFoundError:
-    install_torchvision = True
-
-if not ampere_torch:
-    if install_torch:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch=={native_torch_version}"])
-    if install_torchvision:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision=={torchvision_version}"])
-    native_frameworks.append("PyTorch")
-
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision"])
 
 # TensorFlow
-native_tf_version = "2.8.0"
-
-ampere_tf = False
-install_tf = False
-
 try:
     import tensorflow as tf
-    if version.parse(tf.__version__) != version.parse(native_tf_version):
-        install_tf = True
-    tf.AIO
-    ampere_tf = True
 except ModuleNotFoundError:
-    install_tf = True
-except AttributeError:
-    ampere_tf = False
-
-if not ampere_tf and install_tf:
-    if os.environ["ARCH"] == "aarch64":
-        subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow-aarch64=={native_tf_version}"])
-    else:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow=={native_tf_version}"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow"])
     native_frameworks.append("TensorFlow")
-    
-subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", f"protobuf==3.20.1"])
 
 
 # summary
