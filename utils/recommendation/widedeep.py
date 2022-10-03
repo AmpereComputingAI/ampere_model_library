@@ -4,7 +4,6 @@
 import math
 import collections
 
-import numpy as np
 import tensorflow as tf
 
 import utils.misc as utils
@@ -24,11 +23,12 @@ class WideDeep:
 
         self.batch_size = batch_size
         self.dataset_path = dataset_path
-        self.no_of_test_samples = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(self.dataset_path))
-        self.no_of_batches = math.ceil(float(self.no_of_test_samples / self.batch_size))
+        self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(self.dataset_path))
+        self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
         self.features_list = self.get_features_list(config, runner, self.no_of_batches)
         self.current_feature = 0
         self.correct = 0
+
         super().__init__()
 
     def input_fn(self, shuffle):
