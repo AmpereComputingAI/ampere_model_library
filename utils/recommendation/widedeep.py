@@ -43,11 +43,6 @@ class WideDeep:
                 [], tf.int64, default_value=0, allow_missing=True)] + [
                                 tf.io.FixedLenSequenceFeature([], tf.int64, default_value=0, allow_missing=True)]
 
-        # full_features_names = numeric_feature_names + string_feature_names
-        # feature_datatypes = [tf.io.FixedLenSequenceFeature([], tf.float32, default_value=0.0, allow_missing=True)] + [
-        #     tf.io.FixedLenSequenceFeature(
-        #         [], tf.int64, default_value=0, allow_missing=True)]
-
         def _parse_function(proto):
             f = collections.OrderedDict(
                 zip(full_features_names, feature_datatypes))
