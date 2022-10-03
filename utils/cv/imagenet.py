@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import numpy as np
 import pathlib
+import numpy as np
 import utils.misc as utils
 import utils.cv.pre_processing as pp
 from utils.cv.dataset import ImageDataset

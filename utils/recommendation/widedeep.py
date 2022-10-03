@@ -4,7 +4,9 @@
 import math
 import collections
 
+import numpy as np
 import tensorflow as tf
+
 import utils.misc as utils
 
 
@@ -26,6 +28,7 @@ class WideDeep:
         self.no_of_batches = math.ceil(float(self.no_of_test_samples / self.batch_size))
         self.features_list = self.get_features_list(config, runner, self.no_of_batches)
         self.current_feature = 0
+        self.correct = 0
         super().__init__()
 
     def input_fn(self, shuffle):
@@ -34,10 +37,16 @@ class WideDeep:
         numeric_feature_names = ["numeric_1"]
         string_feature_names = ["string_1"]
 
-        full_features_names = numeric_feature_names + string_feature_names
+        full_features_names = numeric_feature_names + string_feature_names + ["label"]
         feature_datatypes = [tf.io.FixedLenSequenceFeature([], tf.float32, default_value=0.0, allow_missing=True)] + [
             tf.io.FixedLenSequenceFeature(
-                [], tf.int64, default_value=0, allow_missing=True)]
+                [], tf.int64, default_value=0, allow_missing=True)] + [
+                                tf.io.FixedLenSequenceFeature([], tf.int64, default_value=0, allow_missing=True)]
+
+        # full_features_names = numeric_feature_names + string_feature_names
+        # feature_datatypes = [tf.io.FixedLenSequenceFeature([], tf.float32, default_value=0.0, allow_missing=True)] + [
+        #     tf.io.FixedLenSequenceFeature(
+        #         [], tf.int64, default_value=0, allow_missing=True)]
 
         def _parse_function(proto):
             f = collections.OrderedDict(
@@ -48,6 +57,11 @@ class WideDeep:
             parsed_feature_vals_str = [tf.reshape(
                 parsed_features["string_1"], shape=[-1, 2]) for i in string_feature_names]
             parsed_feature_vals = parsed_feature_vals_num + parsed_feature_vals_str
+
+            # labels
+            parsed_feature_vals_label = [tf.reshape(parsed_features[i], shape=[-1]) for i in ["label"]]
+            parsed_feature_vals = parsed_feature_vals + parsed_feature_vals_label
+
             return parsed_feature_vals
 
         # Extract lines from input files using the Dataset API.
@@ -78,8 +92,15 @@ class WideDeep:
         self.current_feature += 1
         return input_array
 
-    def submit_predictions(self):
+    def submit_predictions(self, output_array):
+        # predicted_labels = np.argmax(output_array, 1)
+        # self.correct + np.sum(self.features_list[self.current_feature][2] == predicted_labels)
         pass
 
     def summarize_accuracy(self):
+        # accuracy = float(self.correct) / float(self.no_of_test_samples)
+        # print("\n accuracy = {:.3f}".format(accuracy))
+
+        # print("\n correct predictions = {:.3f}".format(self.correct))
+        # print("\n total predictions = {:.3f}".format(self.no_of_test_samples))
         pass

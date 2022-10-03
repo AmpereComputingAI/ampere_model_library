@@ -129,7 +129,6 @@ class TFFrozenModelRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
         self.__times_invoked += 1
-        print('yuppieeee')
 
         return output
 

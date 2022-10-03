@@ -49,6 +49,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
         tf_runner.set_input_tensor(['import/new_numeric_placeholder:0', 'import/new_categorical_placeholder:0'],
                                    widedeep.get_input_array())
         output = tf_runner.run()
+        widedeep.submit_predictions(output)
 
     runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
     dataset = WideDeep(batch_size, dataset_path, runner.config, runner.graph)
