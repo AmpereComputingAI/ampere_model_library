@@ -52,6 +52,7 @@ class TFFrozenModelRunner:
         self.graph = self.__initialize_graph(path_to_model, use_opsgraph)
         self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
         self.test = 0
+        self.times_invoked = 0
         # temporary
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
@@ -122,7 +123,6 @@ class TFFrozenModelRunner:
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-        self.test += 1
         start = time.time()
         output = self.__sess.run(self.__output_dict, self.__feed_dict)
         finish = time.time()
@@ -130,7 +130,6 @@ class TFFrozenModelRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
         self.__times_invoked += 1
-        # print(self.test)
 
         return output
 
