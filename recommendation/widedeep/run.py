@@ -5,7 +5,7 @@ import argparse
 
 from utils.benchmark import run_model
 from utils.recommendation.widedeep import WideDeep
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_widedeep_processed_data
 
 
 def parse_args():
@@ -18,7 +18,7 @@ def parse_args():
                         help="precision of the model provided")
     parser.add_argument('--batch_size', type=int,
                         help='batch size for inference.Default is 512',
-                        default=512,
+                        default=512, choices=[1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
                         dest='batch_size')
     parser.add_argument("-f", "--framework",
                         type=str, default="tf",
@@ -30,13 +30,10 @@ def parse_args():
     parser.add_argument("--num_runs",
                         type=int,
                         help="number of passes through network to execute")
-    parser.add_argument("--dataset_path",
-                        type=str, required=True,
-                        help="path to a dataset")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
+def run_tf_fp(model_path, batch_size, num_runs, timeout):
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, widedeep):
@@ -46,17 +43,18 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
         widedeep.submit_predictions(output)
 
     runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
-    dataset = WideDeep(batch_size, dataset_path, runner.config, runner.graph)
+    dataset = WideDeep(batch_size)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, dataset_path, **kwargs):
-    return run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
+    download_widedeep_processed_data(args.batch_size)
 
     if args.framework == "tf":
         if args.model_path is None:
