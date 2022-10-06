@@ -16,14 +16,26 @@ class WideDeep:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int):
+    def __init__(self, batch_size: int, dataset_path: str, config, runner):
 
-        env_var = "WIDEDEEP_DATASET_PATH"
-        self.batch_size = batch_size
-        self.dataset_path = utils.get_env_variable(
+        # env_var = "WIDEDEEP_DATASET_PATH"
+        # self.batch_size = batch_size
+        # self.dataset_path = utils.get_env_variable(
+        #         env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+        # self.features_list = self.unpickle()
+        # self.available_instances = 0
+        # self.current_feature = 0
+        # self.correct = 0
+        if dataset_path is None:
+            env_var = "WIDEDEEP_PATH"
+            dataset_path = utils.get_env_variable(
                 env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
-        self.features_list = self.unpickle()
-        self.available_instances = 0
+
+        self.batch_size = batch_size
+        self.dataset_path = dataset_path
+        self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(self.dataset_path))
+        self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
+        self.features_list = self.get_features_list(config, runner, self.no_of_batches)
         self.current_feature = 0
         self.correct = 0
 
