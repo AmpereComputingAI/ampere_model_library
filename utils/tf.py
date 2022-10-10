@@ -51,8 +51,6 @@ class TFFrozenModelRunner:
         # temporary
         self.graph = self.__initialize_graph(path_to_model, use_opsgraph)
         self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
-        self.test = 0
-        self.times_invoked = 0
         # temporary
         self.__sess = tf.compat.v1.Session(
             config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
