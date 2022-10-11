@@ -47,17 +47,14 @@ class TFFrozenModelRunner:
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        self.__graph = self.__initialize_graph(path_to_model, use_opsgraph)
-        # temporary
         self.graph = self.__initialize_graph(path_to_model, use_opsgraph)
         self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
-        # temporary
         self.__sess = tf.compat.v1.Session(
-            config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
-            graph=self.__graph
+            config=self.config,
+            graph=self.graph
         )
         self.__feed_dict = dict()
-        self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
+        self.__output_dict = {output_name: self.graph.get_tensor_by_name(output_name) for output_name in output_names}
 
         self.__times_invoked = 0
         self.__start_times = list()
@@ -112,9 +109,9 @@ class TFFrozenModelRunner:
         :param input_array: numpy array with intended input
         """
         if isinstance(input_name, str):
-            self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+            self.__feed_dict[self.graph.get_tensor_by_name(input_name)] = input_array
         elif isinstance(input_name, list):
-            self.__feed_dict = dict(zip([self.__graph.get_tensor_by_name(name) for name in input_name], input_array))
+            self.__feed_dict = dict(zip([self.graph.get_tensor_by_name(name) for name in input_name], input_array))
 
     def run(self):
         """

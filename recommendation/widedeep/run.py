@@ -17,8 +17,8 @@ def parse_args():
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
     parser.add_argument('--batch_size', type=int,
-                        help='batch size for inference.Default is 512',
-                        default=512,
+                        help='batch size for inference',
+                        default=1,
                         dest='batch_size')
     parser.add_argument("-f", "--framework",
                         type=str, default="tf",
@@ -31,7 +31,7 @@ def parse_args():
                         type=int,
                         help="number of passes through network to execute")
     parser.add_argument("--dataset_path",
-                        type=str, required=True,
+                        type=str,
                         help="path to a dataset")
     return parser.parse_args()
 
@@ -46,8 +46,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
         widedeep.submit_predictions(output)
 
     runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
-    # dataset = WideDeep(batch_size)
-    dataset = WideDeep(batch_size, dataset_path, runner.config, runner.graph)
+    dataset = WideDeep(batch_size=batch_size, config=runner.config, runner=runner.graph)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

@@ -2,7 +2,9 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import math
+import time
 import pickle
+import bz2
 import collections
 
 import numpy as np
@@ -16,28 +18,30 @@ class WideDeep:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int, dataset_path: str, config, runner):
+    def __init__(self, batch_size: int, dataset_path=None, tfrecords_path=None, config=None, runner=None):
 
-        # env_var = "WIDEDEEP_DATASET_PATH"
-        # self.batch_size = batch_size
-        # self.dataset_path = utils.get_env_variable(
-        #         env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
-        # self.features_list = self.unpickle()
-        # self.available_instances = 0
-        # self.current_feature = 0
-        # self.correct = 0
-        if dataset_path is None:
-            env_var = "WIDEDEEP_PATH"
-            dataset_path = utils.get_env_variable(
-                env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+        env_var = "WIDEDEEP_TFRECORDS_PATH"
+        self.tfrecords_path = utils.get_env_variable(
+            env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
 
+        env_var = "WIDEDEEP_DATASET_PATH"
+        self.dataset_path = utils.get_env_variable(
+            env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+
+        self.fixed_batch_sizes = [1, 2, 4, 8, 16, 32, 65, 128, 256]
         self.batch_size = batch_size
-        self.dataset_path = dataset_path
-        self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(self.dataset_path))
-        self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
-        self.features_list = self.get_features_list(config, runner, self.no_of_batches)
         self.current_feature = 0
         self.correct = 0
+        self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(
+            self.tfrecords_path))
+
+        if self.batch_size in self.fixed_batch_sizes:
+            self.features_list = self.unpickle()
+
+        else:
+            # self.dataset_path = dataset_path
+            self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
+            self.features_list = self.get_features_list(config, runner, self.no_of_batches)
 
         super().__init__()
 
@@ -69,7 +73,7 @@ class WideDeep:
             return parsed_feature_vals
 
         # Extract lines from input files using the Dataset API.
-        dataset = tf.data.TFRecordDataset([self.dataset_path])
+        dataset = tf.data.TFRecordDataset([self.tfrecords_path])
         if shuffle:
             dataset = dataset.shuffle(buffer_size=20000)
         dataset = dataset.batch(self.batch_size)
@@ -90,7 +94,7 @@ class WideDeep:
         return features_list
 
     def unpickle(self):
-        file = open(self.dataset_path, 'rb')
+        file = bz2.BZ2File(self.dataset_path, 'rb')
         features_list = pickle.load(file)
         file.close()
         return features_list
