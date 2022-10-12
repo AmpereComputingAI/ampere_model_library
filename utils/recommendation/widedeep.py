@@ -23,28 +23,26 @@ class WideDeep:
         if tfrecords_path is None:
             env_var = "WIDEDEEP_TFRECORDS_PATH"
             tfrecords_path = utils.get_env_variable(
-                env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+                env_var, f"Path to tfrecords path has not been specified with {env_var} flag")
 
-        if dataset_path is None:
-            env_var = "WIDEDEEP_DATASET_PATH"
-            dataset_path = utils.get_env_variable(
-                env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+        self.batch_size = batch_size
+        if self.batch_size in [1, 2, 4, 8, 16, 32, 65, 128, 256]:
+            if dataset_path is None:
+                env_var = "WIDEDEEP_DATASET_PATH"
+                dataset_path = utils.get_env_variable(
+                    env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
 
         self.tfrecords_path = tfrecords_path
         self.dataset_path = dataset_path
-
-        self.fixed_batch_sizes = [1, 2, 4, 8, 16, 32, 65, 128, 256]
-        self.batch_size = batch_size
         self.current_feature = 0
         self.correct = 0
         self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(
             self.tfrecords_path))
 
-        if self.batch_size in self.fixed_batch_sizes:
+        if self.batch_size in [1, 2, 4, 8, 16, 32, 65, 128, 256]:
             self.features_list = self.unpickle()
 
         else:
-            # self.dataset_path = dataset_path
             self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
             self.features_list = self.get_features_list(config, runner, self.no_of_batches)
 
