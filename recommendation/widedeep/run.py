@@ -33,10 +33,13 @@ def parse_args():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to a dataset")
+    parser.add_argument("--tfrecords_path",
+                        type=str,
+                        help="path to a tfrecords file")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path):
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, widedeep):
@@ -46,13 +49,13 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path):
         widedeep.submit_predictions(output)
 
     runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
-    dataset = WideDeep(batch_size=batch_size, config=runner.config, runner=runner.graph)
+    dataset = WideDeep(batch_size=batch_size, config=runner.config, runner=runner.graph, dataset_path=dataset_path, tfrecords_path=tfrecords_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, dataset_path, **kwargs):
-    return run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path)
 
 
 def main():

@@ -18,15 +18,20 @@ class WideDeep:
     A class providing facilities for preprocessing and postprocessing of ImageNet validation dataset.
     """
 
-    def __init__(self, batch_size: int, dataset_path=None, tfrecords_path=None, config=None, runner=None):
+    def __init__(self, batch_size: int, config=None, runner=None, dataset_path=None, tfrecords_path=None):
 
-        env_var = "WIDEDEEP_TFRECORDS_PATH"
-        self.tfrecords_path = utils.get_env_variable(
-            env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+        if tfrecords_path is None:
+            env_var = "WIDEDEEP_TFRECORDS_PATH"
+            tfrecords_path = utils.get_env_variable(
+                env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
 
-        env_var = "WIDEDEEP_DATASET_PATH"
-        self.dataset_path = utils.get_env_variable(
-            env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+        if dataset_path is None:
+            env_var = "WIDEDEEP_DATASET_PATH"
+            dataset_path = utils.get_env_variable(
+                env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
+
+        self.tfrecords_path = tfrecords_path
+        self.dataset_path = dataset_path
 
         self.fixed_batch_sizes = [1, 2, 4, 8, 16, 32, 65, 128, 256]
         self.batch_size = batch_size
