@@ -164,6 +164,8 @@ def download_widedeep_processed_data(batch_size):
                                                   "widedeep_eval_processed_data.tfrecords"
 
     if pathlib.Path(widedeep_data).is_dir():
+        print(os.path.join(widedeep_data, widedeep_eval_processed_data_tfrecords_link.split('/')[-1]))
+        quit()
         if not os.path.isfile(
                 os.path.join(widedeep_data, widedeep_eval_processed_data_tfrecords_link.split('/')[-1])):
             subprocess.run(["wget", widedeep_eval_processed_data_tfrecords_link])
