@@ -181,7 +181,7 @@ def download_widedeep_processed_data(batch_size):
     os.environ["WIDEDEEP_TFRECORDS_PATH"] = os.path.join(widedeep_data,
                                                          widedeep_eval_processed_data_tfrecords_link.split('/')[-1])
 
-    if batch_size in [1, 2, 4, 8, 16, 32, 65, 128, 256]:
+    if batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
         processed_data_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/widedeep_processed_data_b" + \
                               str(batch_size)
 
