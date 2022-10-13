@@ -26,7 +26,7 @@ class WideDeep:
                 env_var, f"Path to tfrecords path has not been specified with {env_var} flag")
 
         self.batch_size = batch_size
-        if self.batch_size in [1, 2, 4, 8, 16, 32, 65, 128, 256]:
+        if self.batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
             if dataset_path is None:
                 env_var = "WIDEDEEP_DATASET_PATH"
                 dataset_path = utils.get_env_variable(
@@ -39,7 +39,7 @@ class WideDeep:
         self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(
             self.tfrecords_path))
 
-        if self.batch_size in [1, 2, 4, 8, 16, 32, 65, 128, 256]:
+        if self.batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
             self.features_list = self.unpickle()
 
         else:
