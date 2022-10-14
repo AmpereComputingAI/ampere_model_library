@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
                         help="precision of the model provided")
-    parser.add_argument('--batch_size', type=int,
+    parser.add_argument('-b', '--batch_size', type=int,
                         help='batch size for inference',
                         default=1,
                         dest='batch_size')

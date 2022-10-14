@@ -156,48 +156,32 @@ def download_ampere_imagenet():
 def download_widedeep_processed_data(batch_size):
     from utils.downloads.utils import get_downloads_path
 
-    widedeep_data = pathlib.Path(get_downloads_path(), "widedeep")
-    if pathlib.Path(widedeep_data).is_dir() and len(os.listdir(widedeep_data)) == 0:
-        subprocess.run(["rm", '-rf', widedeep_data])
+    widedeep_dir_path = pathlib.Path(get_downloads_path(), "widedeep")
 
-    widedeep_eval_processed_data_tfrecords_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/" \
-                                                  "widedeep_eval_processed_data.tfrecords"
+    tfrecords_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/widedeep_eval_processed_data.tfrecords"
+    tfrecords_file_name = "widedeep_eval_processed_data.tfrecords"
 
-    if pathlib.Path(widedeep_data).is_dir():
-        if not os.path.isfile(
-                os.path.join(widedeep_data, widedeep_eval_processed_data_tfrecords_link.split('/')[-1])):
-            subprocess.run(["wget", widedeep_eval_processed_data_tfrecords_link])
-            subprocess.run(["mv", widedeep_eval_processed_data_tfrecords_link.split('/')[-1], widedeep_data])
-
-    if not pathlib.Path(widedeep_data).is_dir():
+    if not pathlib.Path(widedeep_dir_path).is_dir():
         try:
-            subprocess.run(["mkdir", widedeep_data])
-            subprocess.run(["wget", widedeep_eval_processed_data_tfrecords_link])
-            subprocess.run(["mv", widedeep_eval_processed_data_tfrecords_link.split('/')[-1], widedeep_data])
+            subprocess.run(["mkdir", widedeep_dir_path])
+            subprocess.run(["wget", tfrecords_link])
+            subprocess.run(["mv", tfrecords_file_name, widedeep_dir_path])
         except KeyboardInterrupt:
-            subprocess.run(["rm", widedeep_eval_processed_data_tfrecords_link.split('/')[-1]])
-            subprocess.run(["rm", '-rf', widedeep_data])
+            subprocess.run(["rm", tfrecords_file_name])
+            subprocess.run(["rm", '-rf', widedeep_dir_path])
 
-    os.environ["WIDEDEEP_TFRECORDS_PATH"] = os.path.join(widedeep_data,
-                                                         widedeep_eval_processed_data_tfrecords_link.split('/')[-1])
+    os.environ["WIDEDEEP_TFRECORDS_PATH"] = os.path.join(widedeep_dir_path, tfrecords_file_name)
 
     if batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
         processed_data_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/widedeep_processed_data_b" + \
                               str(batch_size)
 
-        if pathlib.Path(widedeep_data).is_dir():
-            if not os.path.isfile(os.path.join(widedeep_data, processed_data_link.split('/')[-1])):
-                subprocess.run(["wget", processed_data_link])
-                subprocess.run(["mv", processed_data_link.split('/')[-1], widedeep_data])
-
-        if not pathlib.Path(widedeep_data).is_dir():
+        if not pathlib.Path(widedeep_dir_path, processed_data_link.split('/')[-1]).is_file():
             try:
-                subprocess.run(["mkdir", widedeep_data])
                 subprocess.run(["wget", processed_data_link])
-                subprocess.run(["mv", processed_data_link.split('/')[-1], widedeep_data])
-
+                subprocess.run(["mv", processed_data_link.split('/')[-1], widedeep_dir_path])
             except KeyboardInterrupt:
                 subprocess.run(["rm", processed_data_link.split('/')[-1]])
-                subprocess.run(["rm", '-rf', widedeep_data])
 
-        os.environ["WIDEDEEP_DATASET_PATH"] = os.path.join(widedeep_data, processed_data_link.split('/')[-1])
+        os.environ["WIDEDEEP_DATASET_PATH"] = \
+            os.path.join(widedeep_dir_path, processed_data_link.split('/')[-1])
