@@ -18,7 +18,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False):
         try:
             torch._C._aio_profiler_print()
             AIO = True
@@ -43,8 +43,10 @@ class PyTorchRunner:
                 print(f"Loaded from cached file at {cached_path}")
             else:
                 try:
+                    if skip_script:
+                        raise SkipScript 
                     self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
-                except torch.jit.frontend.UnsupportedNodeError:
+                except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
                     self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
                 if not cached_dir.exists():
                     cached_dir.mkdir()
@@ -120,3 +122,6 @@ class PyTorchRunner:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
         return perf
+
+class SkipScript(Exception):
+    pass
