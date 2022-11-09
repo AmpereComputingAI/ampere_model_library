@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022, Ampere Computing LLC
+
 from utils.recommendation.criteo import append_dlrm_to_pypath
 
 class RandomDataset:
