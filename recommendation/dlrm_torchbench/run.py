@@ -29,13 +29,10 @@ def parse_args():
     parser.add_argument("--num_runs",
                         type=int,
                         help="number of passes through network to execute")
-    parser.add_argument("--dataset_path",
-                        type=str,
-                        help="path to Criteo dataset .txt file") #TODO: Do we need a dataset file? Use random data
     return parser.parse_args()
 
 
-def run_pytorch_fp(batch_size, num_runs, timeout, dataset_path):
+def run_pytorch_fp(batch_size, num_runs, timeout):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
@@ -153,8 +150,8 @@ def run_pytorch_fp(batch_size, num_runs, timeout, dataset_path):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_runs, timeout, dataset_path, **kwargs):
-    return run_pytorch_fp(batch_size, num_runs, timeout, dataset_path)
+def run_pytorch_fp32(batch_size, num_runs, timeout, **kwargs):
+    return run_pytorch_fp(batch_size, num_runs, timeout)
 
 
 def main():
