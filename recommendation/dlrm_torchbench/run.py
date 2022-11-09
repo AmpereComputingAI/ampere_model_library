@@ -1,35 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
-import sys
 import argparse
 
-import torch
 import numpy as np
 
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from utils.recommendation.criteo import append_dlrm_to_pypath
-
-class FakeDataset:
-    def __init__(self) -> None:
-        self.num_available_instances = 1
-    
-    def reset(self):
-        return False
-
-    def get_inputs(self):
-        """
-        A function returning input arrays for DLRM network.
-        """
-        pass
-
-    def submit_predictions(self, prediction):
-        pass
-
-    def summarize_accuracy(self):
-        return [1, 1, 1]
+from utils.recommendation.torchbench_random import RandomDataset
 
 
 def parse_args():
@@ -60,12 +39,11 @@ def run_pytorch_fp(batch_size, num_runs, timeout, dataset_path):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
-        output = torch_runner.run((example_inputs[0], example_inputs[1], example_inputs[2]))
-        
+        output = torch_runner.run(example_inputs)
+        dataset.submit_predictions(output)
 
     append_dlrm_to_pypath()
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
-    from utils.recommendation.dlrm.dlrm_data_pytorch import make_random_data_and_loader
 
     arch_embedding_size = "1000000-1000000-1000000-1000000-1000000-1000000-1000000-1000000"
     arch_sparse_feature_size = 64
@@ -136,8 +114,8 @@ def run_pytorch_fp(batch_size, num_runs, timeout, dataset_path):
      # Input and target at random
     opt.ln_emb = np.fromstring(opt.arch_embedding_size, dtype=int, sep="-")
     opt.m_den = opt.ln_bot[0]
-    train_data, train_ld, _, _ = make_random_data_and_loader(opt, opt.ln_emb, opt.m_den)
-    opt.nbatches = len(train_ld)
+    dataset = RandomDataset(opt)
+    opt.nbatches = len(dataset.train_ld)
 
     opt.m_spa = opt.arch_sparse_feature_size
     num_fea = opt.ln_emb.size + 1  # num sparse + num dense features
@@ -167,11 +145,10 @@ def run_pytorch_fp(batch_size, num_runs, timeout, dataset_path):
         md_threshold=opt.md_threshold,
         )
 
-    X, lS_o, lS_i, targets = next(iter(train_ld))
+    X, lS_o, lS_i, targets = next(iter(dataset.train_ld))
     example_inputs = (X, lS_o, lS_i)
 
     runner = PyTorchRunner(dlrm, example_inputs=example_inputs, skip_script=True)
-    dataset = FakeDataset()
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
