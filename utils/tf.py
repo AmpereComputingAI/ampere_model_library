@@ -14,7 +14,7 @@ from tensorflow.core.framework import graph_pb2
 
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
-tf.compat.v1.disable_eager_execution()
+# tf.compat.v1.disable_eager_execution()
 
 
 class TFProfiler:
@@ -72,7 +72,7 @@ class TFFrozenModelRunner:
         :return: TensorFlow config
         """
         config = tf.compat.v1.ConfigProto()
-        config.log_device_placement = False
+        config.allow_soft_placement = True
         config.intra_op_parallelism_threads = intra_threads
         config.inter_op_parallelism_threads = inter_threads
         return config
