@@ -6,6 +6,8 @@ import sys
 import subprocess
 from packaging import version
 
+import tensorflow
+
 native_frameworks = list()
 
 # We skip installation of given framework if an Ampere-optimized version is already present. If it is not, then we
