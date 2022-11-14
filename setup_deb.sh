@@ -104,6 +104,7 @@ pip3 install --no-deps --upgrade \
    opt_einsum \
    gast \
    astunparse \
+   termcolor \
    tensorflow==2.7.1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
