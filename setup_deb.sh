@@ -100,6 +100,7 @@ pip3 install --no-deps --upgrade \
    threadpoolctl==3.1.0 \
    tokenizers==0.12.1 \
    absl-py \
+   wrapt \
    tensorflow==2.7.1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
