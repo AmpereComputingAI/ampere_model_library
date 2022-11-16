@@ -12,6 +12,12 @@ native_frameworks = list()
 # install the vanilla version (because we don't supply installation packages yet - go to
 # https://solutions.amperecomputing.com/solutions/ampere-ai for optimized AI docker images from Ampere)
 
+# TensorFlow
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow"])
+    native_frameworks.append("TensorFlow")
 
 # ONNXRunTime
 try:
@@ -30,13 +36,6 @@ try:
     import torchvision
 except ModuleNotFoundError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision==0.13.1"])
-
-# TensorFlow
-try:
-    import tensorflow as tf
-except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow"])
-    native_frameworks.append("TensorFlow")
 
 
 # summary
