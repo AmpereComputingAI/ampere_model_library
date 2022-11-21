@@ -46,7 +46,6 @@ log "done.\n"
 
 log "Setup LD_PRELOAD ..."
 sleep 1
-ARCH=$( uname -m )
 if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
    LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
