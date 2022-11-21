@@ -44,6 +44,16 @@ apt-get update -y
 apt-get install -y python3 python3-pip ffmpeg libsm6 libxext6 wget
 log "done.\n"
 
+log "Setup LD_PRELOAD ..."
+sleep 1
+if [ "${ARCH}" = "aarch64" ]; then
+   python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
+   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
+   echo "LD_PRELOAD=$LD_PRELOAD"
+fi
+export LD_PRELOAD=$LD_PRELOAD
+log "done.\n"
+
 log "Installing python dependencies ..."
 sleep 1
 if [ "${ARCH}" == "aarch64" ]; then
