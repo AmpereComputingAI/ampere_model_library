@@ -4,3 +4,6 @@
 [submodule "utils/recommendation/dlrm"]
 	path = utils/recommendation/dlrm
 	url = https://github.com/AmpereComputingAI/dlrm.git
+[submodule "utils/nlp/fastT5"]
+	path = utils/nlp/fastT5
+	url = git@github.com:AmpereComputingAI/fastT5.git
