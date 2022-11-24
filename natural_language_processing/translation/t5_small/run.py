@@ -13,7 +13,7 @@ import onnxruntime as ort
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run T5 small architecture for translation.")
-    parser.add_argument("-m", "--models_path",
+    parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the directory containing .onnx models")
     parser.add_argument("-b", "--batch_size",
@@ -91,7 +91,7 @@ class Runner:
         return perf
 
 
-def run_ort(models_path, batch_size, num_runs, timeout, **kwargs):
+def run_ort(model_path, batch_size, num_runs, timeout, **kwargs):
     def run_single_pass(external_runner, opus):
         external_runner.run(opus)
 
@@ -106,12 +106,12 @@ def run_ort(models_path, batch_size, num_runs, timeout, **kwargs):
 
     dataset = Opus(batch_size, tokenize, detokenize)
 
-    return bench_utils.run_model(run_single_pass, Runner(get_onnx_model(model_name, models_path, quantized=False)),
+    return bench_utils.run_model(run_single_pass, Runner(get_onnx_model(model_name, model_path, quantized=False)),
                                  dataset, batch_size, num_runs, timeout)
 
 
-def run_ort_fp32(models_path, batch_size, num_runs, timeout, **kwargs):
-    return run_ort(models_path, batch_size, num_runs, timeout, **kwargs)
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, **kwargs):
+    return run_ort(model_path, batch_size, num_runs, timeout, **kwargs)
 
 
 if __name__ == "__main__":
