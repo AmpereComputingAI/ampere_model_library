@@ -3,7 +3,7 @@ import time
 import os
 import json
 import csv
-from utils.nlp.fastT5 import get_onnx_model
+from utils.nlp.fastT5.fastT5 import get_onnx_model
 from transformers import AutoTokenizer
 import utils.benchmark as bench_utils
 from utils.nlp.opus import Opus
