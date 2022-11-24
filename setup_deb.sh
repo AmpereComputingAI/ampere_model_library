@@ -108,7 +108,8 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.12.1
+   tokenizers==0.12.1 \
+   progress==1.6
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
 
