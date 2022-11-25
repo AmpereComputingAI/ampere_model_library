@@ -62,24 +62,22 @@ class Runner:
     def print_performance_metrics(self, batch_size):
         """
         A function printing performance metrics on runs executed by the runner so far.
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
+        param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
             self._start_times, self._finish_times, self._times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
-            encoder_prof = self._model.encoder.encoder.end_profiling()
-            time.sleep(2)
-            decoder_prof = self._model.decoder.decoder.end_profiling()
-            time.sleep(2)
-            decoder_init_prof = self._model.decoder_init.decoder.end_profiling()
+            profs = [self._model.encoder.encoder.end_profiling(),
+                     self._model.decoder.decoder.end_profiling(),
+                     self._model.decoder_init.decoder.end_profiling()]
 
             if not os.path.exists("profiler_output/ort/"):
                 os.makedirs("profiler_output/ort/")
-            os.replace(encoder_prof, f"profiler_output/ort/{encoder_prof}")
-            os.replace(decoder_prof, f"profiler_output/ort/{decoder_prof}")
-            os.replace(decoder_init_prof, f"profiler_output/ort/{decoder_init_prof}")
+            for i in range(len(profs)):
+                if profs[i] not in profs[:i]:
+                    os.replace(profs[i], f"profiler_output/ort/{profs[i]}")
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None and len(self._start_times) > 2:
