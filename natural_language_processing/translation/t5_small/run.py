@@ -71,9 +71,9 @@ class Runner:
         if os.getenv("ORT_PROFILER", "0") == "1":
             encoder_prof = self._model.encoder.encoder.end_profiling()
             time.sleep(2)
-	    decoder_prof = self._model.decoder.decoder.end_profiling()
-            time.sleep(2)	    
-	    decoder_init_prof = self._model.decoder_init.decoder.end_profiling()
+            decoder_prof = self._model.decoder.decoder.end_profiling()
+            time.sleep(2)
+            decoder_init_prof = self._model.decoder_init.decoder.end_profiling()
 
             if not os.path.exists("profiler_output/ort/"):
                 os.makedirs("profiler_output/ort/")
