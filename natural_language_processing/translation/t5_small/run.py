@@ -69,9 +69,9 @@ class Runner:
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
-            encoder_prof = self._model.encoder_sess.end_profiling()
-            decoder_prof = self._model.decoder_sess.end_profiling()
-            decoder_init_prof = self._model.decoder_sess_init.end_profiling()
+            encoder_prof = self._model.encoder.encoder.end_profiling()
+            decoder_prof = self._model.decoder.decoder.end_profiling()
+            decoder_init_prof = self._model.decoder_init.decoder.end_profiling()
 
             if not os.path.exists("profiler_output/ort/"):
                 os.makedirs("profiler_output/ort/")
