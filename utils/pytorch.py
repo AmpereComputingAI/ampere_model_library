@@ -18,7 +18,7 @@ class PyTorchRunner:
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None):
+    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None, precision="fp32"):
         try:
             torch._C._aio_profiler_print()
             AIO = True
@@ -31,6 +31,7 @@ class PyTorchRunner:
         self.__func = func
         self.__model.eval()
         self.__frozen_script = None
+        self.__precision=precision
         if disable_jit_freeze:
             if AIO:
                 utils.print_warning_message(
@@ -42,6 +43,8 @@ class PyTorchRunner:
                 self.__frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
             else:
+                if precision=="fp16":
+                    self.__model = self.__model.half()
                 try:
                     self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
                 except torch.jit.frontend.UnsupportedNodeError:
@@ -85,6 +88,9 @@ class PyTorchRunner:
             self.__times_invoked += 1
 
             return output
+
+        if self.__precision == "fp16":
+            input = input.half()
 
         with torch.no_grad():
             if self.__frozen_script is None:

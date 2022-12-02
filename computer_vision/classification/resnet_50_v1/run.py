@@ -18,7 +18,7 @@ def parse_args():
                         type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "fp16"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -43,16 +43,18 @@ def parse_args():
                         help="if true model will be run not in jit freeze mode")
     args = parser.parse_args()
     if args.framework != "pytorch" and args.model_path is None:
-        parser.error(f"You need to specify the model path when using {args.framework} framework.")
+        parser.error(
+            f"You need to specify the model path when using {args.framework} framework.")
     return args
 
 
-def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, precision="fp32"):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
+        output = pytorch_runner.run(
+            torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -64,7 +66,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
     runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True),
-                           disable_jit_freeze=disable_jit_freeze)
+                           disable_jit_freeze=disable_jit_freeze, precision=precision)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
@@ -74,7 +76,8 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
-        ort_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
+        ort_runner.set_input_tensor(
+            "input_tensor:0", imagenet.get_input_array(shape))
         output = ort_runner.run()
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -91,7 +94,11 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
+    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, False, "fp32")
+
+
+def run_pytorch_fp16(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, False, "fp16")
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
@@ -105,6 +112,8 @@ def main():
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(model_name="resnet50", **vars(args))
+        elif args.precision == "fp16":
+            run_pytorch_fp16(model_name="resnet50", **vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
