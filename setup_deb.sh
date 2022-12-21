@@ -79,7 +79,7 @@ pip3 install --no-deps --upgrade \
    batchgenerators==0.21 \
    medpy==0.4.0 \
    nibabel==3.2.2 \
-   "numpy>=1.22.3" \
+   "numpy<1.24.0" \
    opencv-python==4.5.5.64 \
    pandas==1.4.2 \
    pycocotools==2.0.4 \
