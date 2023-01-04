@@ -14,14 +14,14 @@ class CTranslateRunner:
     A class providing facilities to run CTranslate2 model.
     """
 
-    def __init__(self, model):
+    def __init__(self, model, tokenizer):
         # try:
         #     #TODO: Check for AIO
         # except AttributeError:
         #     utils.advertise_aio("CTranslate2")
 
         self.translator = ctranslate2.Translator(model, device='cpu', compute_type='float', inter_threads=1, intra_threads=bench_utils.get_intra_op_parallelism_threads())
-        self.tokenizer = sentencepiece.SentencePieceProcessor("/ampere/models/en_de_sp.model")
+        self.tokenizer = sentencepiece.SentencePieceProcessor(tokenizer)
 
         self.__times_invoked = 0
         self.__start_times = list()
@@ -30,9 +30,8 @@ class CTranslateRunner:
         print("\nRunning with CTranslate2\n")
 
     def run(self, input):
-
         start = time.time()
-        outputs = self.translate_sentence(input)
+        outputs = self.translator.translate_batch(input)
         finish = time.time()
 
         self.__start_times.append(start)
@@ -40,21 +39,6 @@ class CTranslateRunner:
         self.__times_invoked += 1
 
         return outputs
-    
-    def translate_sentence(self, sentence):
-        tokenized = self.tokenizer.encode(sentence, out_type=str)
-        hypothesis = self.translator.translate_batch([tokenized],
-                                                return_attention=True,
-                                                beam_size=5,
-                                                max_batch_size=1,
-                                                max_decoding_length=1024,
-                                                batch_type="tokens",
-                                                length_penalty=0.2,
-                                                coverage_penalty=0.2,
-                                                num_hypotheses=1)
-
-        tokens = hypothesis[0][0]['tokens']
-        return self.tokenizer.decode(tokens)
 
     def print_performance_metrics(self, batch_size):
         """
