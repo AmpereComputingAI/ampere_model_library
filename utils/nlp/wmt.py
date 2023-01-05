@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import json
-import re
 import string
-from collections import Counter
+import subprocess
 
 from sacrebleu.metrics import BLEU
 
@@ -37,8 +35,9 @@ class WMT:
         self.__unanswered_questions_count = 0
         self.available_instances = self.__get_num_sentences()
         self.__current_inputs = None
-        self.__exact_match_count = 0
-        self.__f1_count = 0
+        self.__targets = [[]]
+        self.__outputs = []
+        self.__metric = BLEU()
 
     def __get_num_sentences(self):
         """
@@ -46,8 +45,7 @@ class WMT:
 
         :return: int, number of sentences available
         """
-        return 1
-        raise NotImplementedError
+        return int(subprocess.check_output(['wc', '-l', self.dataset_path]).split()[0])
 
     def __examples(self):
         """
@@ -84,8 +82,8 @@ class WMT:
         self.__questions_count = 0
         self.__unanswered_questions_count = 0
         self.__current_inputs = None
-        self.__exact_match_count = 0
-        self.__f1_count = 0
+        self.__targets = [[]]
+        self.__outputs = []
         return True
 
 
@@ -102,11 +100,8 @@ class WMT:
         :param translation: string, detokenized translation
         """
         target = self.translations[id_in_batch]
-        metric = BLEU()
-        print(metric.corpus_score(translation, [target]))
-        
-        self.__exact_match_count += 1 # TODO: Do the actual accuracy check
-        self.__f1_count += 0
+        self.__targets[0].append(target)
+        self.__outputs.append(translation)
         self.__unanswered_questions_count -= 1
 
     def summarize_accuracy(self):
@@ -120,12 +115,8 @@ class WMT:
             utils.print_goodbye_message_and_die(
                 "Answers for some of the issued questions have not been submitted.")
 
-        exact_match = self.__exact_match_count / self.__questions_count
-        print("\n Exact match = {:.3f}".format(exact_match))
-
-        f1 = self.__f1_count / self.__questions_count
-        print(" F1 = {:.3f}".format(f1))
+        bleu = self.__metric.corpus_score(self.__outputs, self.__targets).score
+        print("\n BLEU = {:.3f}".format(bleu))
 
         print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} translated sentences.")
-        return {"exact_match": exact_match, "f1": f1} #TODO: BLEU, not this
-        raise NotImplementedError
+        return {"bleu": bleu}
