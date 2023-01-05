@@ -14,7 +14,7 @@ class WMT:
     A class providing facilities for preprocessing and postprocessing of WMT validation dataset.
     """
 
-    def __init__(self, batch_size: int, dataset_path=None, targets_path=None):
+    def __init__(self, batch_size: int, dataset_path=None, targets_path=None, constant_input=False):
 
         if dataset_path is None:
             env_var = "WMT_DATASET_PATH"
@@ -38,6 +38,7 @@ class WMT:
         self.__targets = [[]]
         self.__outputs = []
         self.__metric = BLEU()
+        self.constant_input = constant_input
 
     def __get_num_sentences(self):
         """
@@ -62,18 +63,28 @@ class WMT:
         A function that loads new examples in the quantity equal to the requested batch size under the condition that
         previously issued questions have already been answered.
         """
-        if self.__unanswered_questions_count == 0:
+        if self.constant_input and self.__current_inputs is not None:
+            self.__questions_count += self.__batch_size
+            self.__unanswered_questions_count += self.__batch_size
+        elif self.__unanswered_questions_count == 0:
             sentences = list()
             self.translations = list()
-            for _ in range(self.__batch_size):
-                try:
-                    sentence, translation = next(self.__example_iterator)
-                except StopIteration:
-                    raise utils.OutOfInstances("No more examples to process in the file provided.")
-                sentences.append(sentence)
-                self.translations.append(translation)
-                self.__questions_count += 1
-                self.__unanswered_questions_count += 1
+            if self.constant_input:
+                sentence, translation = next(self.__example_iterator)
+                sentences = [sentence for _ in range(self.__batch_size)]
+                self.translations = [translation for _ in range(self.__batch_size)]
+                self.__questions_count += self.__batch_size
+                self.__unanswered_questions_count += self.__batch_size
+            else:
+                for _ in range(self.__batch_size):
+                    try:
+                        sentence, translation = next(self.__example_iterator)
+                    except StopIteration:
+                        raise utils.OutOfInstances("No more examples to process in the file provided.")
+                    sentences.append(sentence)
+                    self.translations.append(translation)
+                    self.__questions_count += 1
+                    self.__unanswered_questions_count += 1
             self.__current_inputs = sentences
 
 

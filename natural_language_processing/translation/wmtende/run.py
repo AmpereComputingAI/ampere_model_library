@@ -37,10 +37,12 @@ def parse_args():
     parser.add_argument("--targets_path",
                         type=str,
                         help="path to file with target translations")
+    parser.add_argument("--constant_input", action='store_true',
+                        help="if true model will receive the same sentence as input every time")
     return parser.parse_args()
 
 
-def run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs):
+def run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs):
     from utils.ctranslate import CTranslateRunner
 
     def run_single_pass(ct_runner, dataset):
@@ -53,7 +55,7 @@ def run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, da
             )
 
     runner = CTranslateRunner(model_path, tokenizer_path)
-    dataset = WMT(batch_size, dataset_path, targets_path)
+    dataset = WMT(batch_size, dataset_path, targets_path, constant_input)
 
     def tokenize(tokenizer, sentence):
         return tokenizer.encode(sentence, out_type=str)
@@ -64,14 +66,14 @@ def run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, da
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_ctranslate_fp32(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs):
-    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs)
+def run_ctranslate_fp32(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs):
+    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs)
 
-def run_ctranslate_fp16(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs):
-    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs)
+def run_ctranslate_fp16(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs):
+    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs)
 
-def run_ctranslate_int8(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs):
-    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, **kwargs)
+def run_ctranslate_int8(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs):
+    return run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path, constant_input, **kwargs)
 
 
 def main():
