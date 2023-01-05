@@ -86,7 +86,8 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    transformers==4.18.0 \
-   tqdm==4.64.0
+   tqdm==4.64.0 \
+   sacrebleu==2.3.1
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
@@ -108,7 +109,13 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.12.1
+   tokenizers==0.12.1 \
+   tabulate==0.9.0 \
+   regex==2022.3.15 \
+   portalocker==2.6.0 \
+   lxml==4.9.2 \
+   colorama==0.4.6
+
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
 
