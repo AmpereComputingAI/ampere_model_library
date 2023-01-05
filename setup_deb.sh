@@ -87,7 +87,8 @@ pip3 install --no-deps --upgrade \
    scipy==1.8.0 \
    transformers==4.18.0 \
    tqdm==4.64.0 \
-   sacrebleu==2.3.1
+   sacrebleu==2.3.1 \
+   sentencepiece==0.1.97
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
