@@ -20,7 +20,7 @@ class CTranslateRunner:
         # except AttributeError:
         #     utils.advertise_aio("CTranslate2")
 
-        self.translator = ctranslate2.Translator(model, device='cpu', compute_type='float', inter_threads=1, intra_threads=bench_utils.get_intra_op_parallelism_threads())
+        self.translator = ctranslate2.Translator(model, device='cpu', compute_type='auto', inter_threads=1, intra_threads=bench_utils.get_intra_op_parallelism_threads())
         self.tokenizer = sentencepiece.SentencePieceProcessor(tokenizer)
 
         self.__times_invoked = 0
