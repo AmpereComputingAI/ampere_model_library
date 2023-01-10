@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-# python run.py -m /Users/smamindla/Desktop/ml/Movenet/AML/ampere_model_library/computer_vision/object_detection/model.tflitef --images_path /Users/smamindla/Desktop/ml/Movenet/AML/ampere_model_library/computer_vision/object_detection/ --anno_path /Users/smamindla/Desktop/ml/Movenet/AML/ampere_model_library/computer_vision/object_detection/annotations/person_keypoints_val2017.json --framework tf
-
 import os
 import time
 import argparse
@@ -14,11 +12,8 @@ from utils.misc import print_goodbye_message_and_die
 from pycocotools.coco import COCO
 import tensorflow as tf
 
-KP_FILTERING_GT = 10
-BBOX_MIN_SIZE = 900
-
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run EfficientDet model.")
+    parser = argparse.ArgumentParser(description="Run Movenet model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
                         help="path to the model")
@@ -59,9 +54,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     runner = TFLiteRunner(model_path)
     image_size = runner.input_details[0]['shape'][1]
 
-    dataset = MovenetDataset(anno_path, images_path, image_size)
-
-    
+    dataset = MovenetDataset(anno_path, images_path, image_size)    
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

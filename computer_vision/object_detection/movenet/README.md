@@ -1,35 +1,36 @@
-# EfficientDet
+# Movenet
 
-This folder contains the script to run EfficientDet on COCO object detection task.
+This folder contains the script to run Movenet on COCO keypoint prediction task.
 
-Variant supplied below for TFLite accepts input of shape 448x448.
+Variant supplied below for TFLite accepts input of shape 192x192
 
-The original paper on the architecture is available here: https://arxiv.org/pdf/1911.09070.pdf
+The original architecture is available here: https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html
 
 ### Metrics
 
-Based on 1000 images from COCO Dataset for TensorFlow framework in int8 precision
+Based on 50 images from COCO Dataset for TensorFlow framework in int8 precision
 
-| Metric                  | IoU       | Area   | maxDets |Score  |
-|:---:                    |:---:      |:---:   |:---:    |:---:  |
-| Average Precision  (AP) | 0.50:0.95 |    all | 100     | 0.432 |
-| Average Precision  (AP) | 0.50      |    all | 100     | 0.624 |
-| Average Precision  (AP) | 0.75      |    all | 100     | 0.467 |
-| Average Precision  (AP) | 0.50:0.95 |  small | 100     | 0.174 |
-| Average Precision  (AP) | 0.50:0.95 | medium | 100     | 0.477 |
-| Average Precision  (AP) | 0.50:0.95 |  large | 100     | 0.678 |
-| Average Recall     (AR) | 0.50:0.95 |    all |   1     | 0.330 |
-| Average Recall     (AR) | 0.50:0.95 |    all |  10     | 0.482 |
-| Average Recall     (AR) | 0.50:0.95 |    all | 100     | 0.494 |
-| Average Recall     (AR) | 0.50:0.95 |  small | 100     | 0.209 |
-| Average Recall     (AR) | 0.50:0.95 | medium | 100     | 0.548 |
-| Average Recall     (AR) | 0.50:0.95 |  large | 100     | 0.743 |
+Summary: 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.107
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.175
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.118
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.082
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.143
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.109
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.175
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.121
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.082
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.143
+
+                               mean  /      median  / 90th-percentile
+ Latency           [ms]:      33.24  /       32.44  /       37.71
+ Throughput [samples/s]:      30.08  /       30.83  /       26.52
 
 ### Dataset and model
 
 Dataset can be downloaded from here: https://cocodataset.org/#download
 
-TFLite model in int8 precision can be downloaded here: https://tfhub.dev/tensorflow/lite-model/efficientdet/lite2/detection/default/1
+TFLite model in fp32 precision can be downloaded here: https://tfhub.dev/google/lite-model/movenet/singlepose/lightning/3
 
 ```
 wget -O lite-model_efficientdet_lite2_detection_default_1.tflite https://tfhub.dev/tensorflow/lite-model/efficientdet/lite2/detection/default/1?lite-format=tflite

@@ -77,9 +77,6 @@ VAL_SHUFFLE = False
 # Data filtering constants
 BBOX_MIN_SIZE = 900 # Filter out images smaller than 30x30, TODO tweak
 
-# Output filtering constants
-HM_TO_KP_THRESHOLD = 0.2
-HM_TO_KP_THRESHOLD_POST_FILTER = HM_TO_KP_THRESHOLD / 5
 
 PCK_THRESHOLD = 0.2
 # This default PCK threshold is used when either hip is not present.
@@ -183,7 +180,7 @@ def transform_bbox_square(bbox, slack=1):
 
 class MovenetDataset:
 
-    def __init__(self, anno_path, images_path, size):
+    def __init__(self, anno_path, images_path, size):        
         df = get_df(anno_path)
         df = df.loc[df['is_crowd'] == 0] # drop crowd anns
         df = df.loc[df['num_keypoints'] > KP_FILTERING_GT] # drop anns containing x kps
@@ -220,7 +217,6 @@ class MovenetDataset:
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_bbox_prediction() function.
         """
-        print('***********',self.image_ids)
         return oks_eval(self.image_ids, self.oks_values, self.cocoGt)
 
 class DataGenerator(Sequence):
