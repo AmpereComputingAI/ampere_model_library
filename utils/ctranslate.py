@@ -47,8 +47,6 @@ class CTranslateRunner:
         """
         perf = bench_utils.print_performance_metrics(
             self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
-        if os.getenv("AIO_PROFILER", "0") == "1":
-            ctranslate2.AIO.print_profile_data() #TODO: See if it works
 
         dump_dir = os.environ.get("RESULTS_DIR")
         if dump_dir is not None and len(self.__start_times) > 2:
