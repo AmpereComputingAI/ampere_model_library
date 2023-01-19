@@ -15,56 +15,6 @@ from tqdm import tqdm
 from enum import Enum
 import numpy as np
 
-
-# Model Defaults
-DEFAULT_NUM_HG = 4 # NOTE in their final design, 8 were used
-DEFAULT_EPOCHS = 70
-DEFAULT_DATA_BASE_DIR = 'data'
-DEFAULT_MODEL_BASE_DIR = 'models'
-DEFAULT_LOGS_BASE_DIR = 'logs'
-DEFAULT_OUTPUT_BASE_DIR = 'output'
-
-DEFAULT_RESUME_DIR_FLAG = '_resume_'
-HPE_EPOCH_PREFIX = 'hpe_epoch'
-HPE_HOURGLASS_STACKS_PREFIX = 'hpe_hourglass_stacks'
-
-
-DEFAULT_LEARNING_RATE = 0.005
-
-# Order of keypoints in COCO dataset
-COCO_KEYPOINT_LABEL_ARR = ["nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow",
-                           "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"]
-
-# This array was copied from https://github.com/microsoft/human-pose-estimation.pytorch/blob/master/lib/dataset/coco.py
-# The original array was 1-indexed, so we subtract 1 from each element
-COCO_SKELETON = np.array([
-                    [16, 14],
-                    [14, 12],
-                    [17, 15],
-                    [15, 13],
-                    [12, 13],
-                    [6, 12],
-                    [7, 13],
-                    [6, 7],
-                    [6, 8],
-                    [7, 9],
-                    [8, 10],
-                    [9, 11],
-                    [2, 3],
-                    [1, 2],
-                    [1, 3],
-                    [2, 4],
-                    [3, 5],
-                    [4, 6],
-                    [5, 7]]) - 1
-
-
-# Model parameters
-INPUT_DIM = (256,256)
-INPUT_CHANNELS = 3
-OUTPUT_DIM = (64,64)
-NUM_CHANNELS = 256
-
 # Data Generator Constants
 DEFAULT_BATCH_SIZE = 12 #NOTE need to test optimal batch size
 NUM_COCO_KEYPOINTS = 17 # Number of joints to detect
@@ -72,22 +22,10 @@ NUM_COCO_KP_ATTRBS = 3 # (x,y,v) * 17 keypoints
 BBOX_SLACK = 1.3 # before augmentation, increase bbox size to 130%
 
 KP_FILTERING_GT = 4 # Greater than x keypoints
-VAL_SHUFFLE = False
+
 
 # Data filtering constants
 BBOX_MIN_SIZE = 900 # Filter out images smaller than 30x30, TODO tweak
-
-
-PCK_THRESHOLD = 0.2
-# This default PCK threshold is used when either hip is not present.
-# It is empirically chosen by taking the mean torso width in the validation set
-# {'mean': 25.273791558055517, 'std': 19.27466898776274}
-DEFAULT_PCK_THRESHOLD = PCK_THRESHOLD * 25
-
-# Output save names
-OUTPUT_STACKED_HEATMAP = 'heatmaps'
-OUTPUT_SKELETON = 'skeleton'
-OUTPUT_USER_IMG = 'user_img'
 
 
 #converting anns to df
@@ -182,11 +120,13 @@ class MovenetDataset:
 
     def __init__(self, anno_path, images_path, size):        
         df = get_df(anno_path)
+        df = df.groupby('src_set_image_id').filter(lambda x: x.shape[0] == 1)
+        # 
         df = df.loc[df['is_crowd'] == 0] # drop crowd anns
         df = df.loc[df['num_keypoints'] > KP_FILTERING_GT] # drop anns containing x kps
         df = df.loc[df['bbox_area'] > BBOX_MIN_SIZE]
         df = df.reset_index(drop=True)
-
+        print(df.shape[0])
         dataset = DataGenerator(df=df,base_dir=images_path,
                                 input_dim=(size,size),
                                 output_dim=(4,4),
@@ -285,7 +225,7 @@ class DataGenerator(Sequence):
     """
     def __getitem__(self, idx):
         # Initialize Batch:
-        X = np.empty((self.batch_size, *self.input_dim, INPUT_CHANNELS))
+        X = np.empty((self.batch_size, *self.input_dim, 3))
 
         metadatas = []
         # get the indices of the requested batch
@@ -440,13 +380,5 @@ def oks_eval(image_ids, list_of_predictions, cocoGt):
 
 
 
-KP_FILTERING_GT = 4
-BBOX_MIN_SIZE = 900
-if __name__ == '__main__':
-    path_to_val_anns = '/Users/smamindla/Desktop/ml/Movenet/AML/ampere_model_library/computer_vision/object_detection/annotations/person_keypoints_val2017.json'
-    df = get_df(path_to_val_anns)
-    df = df.loc[df['is_crowd'] == 0] # drop crowd anns
-    df = df.loc[df['num_keypoints'] > KP_FILTERING_GT] # drop anns containing x kps
-    df = df.loc[df['bbox_area'] > BBOX_MIN_SIZE]
 
 
