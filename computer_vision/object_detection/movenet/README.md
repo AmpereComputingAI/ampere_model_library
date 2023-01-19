@@ -8,32 +8,43 @@ The original architecture is available here: https://blog.tensorflow.org/2021/05
 
 ### Metrics
 
-Based on 50 images from COCO Dataset for TensorFlow framework in int8 precision
+Based on 815 images (i.e., all single person images) from COCO Dataset for TensorFlow framework:
 
+```
 Summary: 
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.107
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.175
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.118
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.082
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.143
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.109
- Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.175
- Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.121
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.082
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.143
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.566
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.854
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.577
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.546
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.573
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.636
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.900
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.640
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.567
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.658
 
                                mean  /      median  / 90th-percentile
- Latency           [ms]:      33.24  /       32.44  /       37.71
- Throughput [samples/s]:      30.08  /       30.83  /       26.52
+ Latency           [ms]:      46.85  /       35.04  /       73.62
+ Throughput [samples/s]:      21.34  /       28.54  /       13.58
+
+```
 
 ### Dataset and model
 
-Dataset can be downloaded from here: https://cocodataset.org/#download
-
-TFLite model in fp32 precision can be downloaded here: https://tfhub.dev/google/lite-model/movenet/singlepose/lightning/3
-
+Images and annotations can be downloaded from here: https://cocodataset.org/#download
+To download images do 
 ```
-wget -O lite-model_efficientdet_lite2_detection_default_1.tflite https://tfhub.dev/tensorflow/lite-model/efficientdet/lite2/detection/default/1?lite-format=tflite
+wget http://images.cocodataset.org/zips/val2017.zip
+```
+To download annotations do
+```
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+```
+Extract the zip file and use ```person_keypoints_val2017.json```
+
+TFLite model in fp32 precision can be downloaded here: https://tfhub.dev/google/lite-model/movenet/singlepose/lightning/3?lite-format=tflite or use the following command:
+```
+wget -q -O movenet_fp32.tflite https://tfhub.dev/google/lite-model/movenet/singlepose/lightning/3?lite-format=tflite
 ```
 
 ### Running instructions
@@ -46,23 +57,14 @@ export PYTHONPATH=/path/to/ampere_model_library
 export AIO_NUM_THREADS=1
 ```
 
-For the best experience we also recommend setting environment variables as specified below.
-
-```
-export COCO_IMG_PATH=/path/to/images
-export COCO_ANNO_PATH=/path/to/annotations
-```
-
-Now you are able to run the run.py script. 
+Now you are able to run the ```run.py``` script. 
 
 To get detailed information on the script's recognized arguments run it with -h flag for help.
-
-The path to model (with a flag "-m") as well as its precision (with a flag "-p") have to be specified.
 
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 Example command for TensorFlow: 
 
 ```
-python3 run.py -m /path/to/model.pb -p int8 --framework tf
+python3 run.py -m /path/to/movenet_fp32.tflite  --images_path /path/to/images_path --anno_path /path/to/anno_path --framework tf
 ```
