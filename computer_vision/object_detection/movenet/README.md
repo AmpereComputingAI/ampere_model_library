@@ -12,20 +12,20 @@ Based on 815 images (i.e., all single person images) from COCO Dataset for Tenso
 
 ```
 Summary: 
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.566
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.854
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.577
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.546
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.573
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.636
- Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.900
- Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.640
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.567
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.658
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.620
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.897
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.692
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.561
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.639
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.673
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.915
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.731
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.617
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.691
 
                                mean  /      median  / 90th-percentile
- Latency           [ms]:      46.85  /       35.04  /       73.62
- Throughput [samples/s]:      21.34  /       28.54  /       13.58
+ Latency           [ms]:      10.21  /        9.79  /       12.67
+ Throughput [samples/s]:      97.94  /      102.14  /       78.95
 
 ```
 
