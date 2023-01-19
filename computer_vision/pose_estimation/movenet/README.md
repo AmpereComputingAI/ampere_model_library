@@ -66,5 +66,5 @@ Please note that the default batch size is 1 and if not specified otherwise the 
 Example command for TensorFlow: 
 
 ```
-python3 run.py -m /path/to/movenet_fp32.tflite  --images_path /path/to/images_path --anno_path /path/to/anno_path --framework tf
+python3 run.py -m /path/to/movenet_fp32.tflite  --images_path /path/to/images_path --anno_path /path/to/anno_path --framework tf --num_runs 815
 ```
