@@ -6,7 +6,7 @@ import time
 import argparse
 import numpy as np
 import utils.misc as utils
-from utils.cv.movenet import MovenetDataset
+from utils.cv.pose_estimation import PoseEstimationDataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from pycocotools.coco import COCO
@@ -54,7 +54,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     runner = TFLiteRunner(model_path)
     image_size = runner.input_details[0]['shape'][1]
 
-    dataset = MovenetDataset(anno_path, images_path, image_size)    
+    dataset = PoseEstimationDataset(anno_path, images_path, image_size)    
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

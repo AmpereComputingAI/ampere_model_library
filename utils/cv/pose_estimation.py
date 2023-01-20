@@ -15,19 +15,6 @@ from tqdm import tqdm
 from enum import Enum
 import numpy as np
 
-# Data Generator Constants
-DEFAULT_BATCH_SIZE = 12 #NOTE need to test optimal batch size
-NUM_COCO_KEYPOINTS = 17 # Number of joints to detect
-NUM_COCO_KP_ATTRBS = 3 # (x,y,v) * 17 keypoints
-BBOX_SLACK = 1.3 # before augmentation, increase bbox size to 130%
-
-KP_FILTERING_GT = 4 # Greater than x keypoints
-
-
-# Data filtering constants
-BBOX_MIN_SIZE = 900 # Filter out images smaller than 30x30, TODO tweak
-
-
 #converting anns to df
 def get_meta(coco):
     ids = list(coco.imgs.keys())
@@ -116,15 +103,14 @@ def transform_bbox_square(bbox, slack=1):
     new_y = center_y - new_h/2
     return (round(new_x), round(new_y), round(new_x+new_w), round(new_y+new_h))
 
-class MovenetDataset:
-
-    def __init__(self, anno_path, images_path, size):        
+class PoseEstimationDataset:
+    def __init__(self, anno_path, images_path, size, bbox_min_size=900, min_kp=4):
         df = get_df(anno_path)
         df = df.groupby('src_set_image_id').filter(lambda x: x.shape[0] == 1)
         # 
         df = df.loc[df['is_crowd'] == 0] # drop crowd anns
-        df = df.loc[df['num_keypoints'] > KP_FILTERING_GT] # drop anns containing x kps
-        df = df.loc[df['bbox_area'] > BBOX_MIN_SIZE]
+        df = df.loc[df['num_keypoints'] > min_kp] # drop anns containing x kps
+        df = df.loc[df['bbox_area'] > bbox_min_size]
         df = df.reset_index(drop=True)
         print(df.shape[0])
         dataset = DataGenerator(df=df,base_dir=images_path,
@@ -162,7 +148,7 @@ class MovenetDataset:
 class DataGenerator(Sequence):
 
     def __init__(self, df, base_dir, input_dim, output_dim, num_hg_blocks, shuffle=False, \
-        batch_size=DEFAULT_BATCH_SIZE, online_fetch=False, is_eval=False):
+        batch_size=12, online_fetch=False, is_eval=False, bbox_slack=1.3):
 
         self.df = df                    # df of the the annotations we want
         self.base_dir = base_dir        # where to read imgs from in collab runtime        
@@ -172,6 +158,7 @@ class DataGenerator(Sequence):
         self.shuffle = shuffle
         self.batch_size = batch_size
         self.is_eval = is_eval
+        self.bbox_slack = 1.3
         # If true, images will be loaded from url over network rather than filesystem
         self.online_fetch = online_fetch
         self.on_epoch_end()
@@ -187,7 +174,7 @@ class DataGenerator(Sequence):
         return int(len(self.df) / self.batch_size)
     #this transforms image 
     def transform_image(self, img, bbox):
-        new_bbox = transform_bbox_square(bbox, slack=BBOX_SLACK)
+        new_bbox = transform_bbox_square(bbox, slack=self.bbox_slack)
         cropped_img = img.crop(box=new_bbox)
         cropped_width, cropped_height = cropped_img.size
         new_img = cv2.resize(np.array(cropped_img), self.input_dim,
@@ -199,7 +186,7 @@ class DataGenerator(Sequence):
         label = [int(v) for v in label]
         # adjust x/y coords to new resized img
         transformed_label = []
-        for x, y, v in zip(*[iter(label)]*NUM_COCO_KP_ATTRBS):
+        for x, y, v in zip(*[iter(label)]*3):
             x = round((x-anchor_x) * self.input_dim[0]/cropped_width)
             y = round((y-anchor_y) * self.input_dim[1]/cropped_height)
             # validate kps, throw away if out of bounds
@@ -307,7 +294,9 @@ class MoveNetCoco:
     """
     def _undo_bounding_box_transformations(self, metadata, untransformed_predictions):
         untransformed_predictions = untransformed_predictions.flatten()
-
+        
+        NUM_COCO_KEYPOINTS = 17 # Number of joints to detect
+        NUM_COCO_KP_ATTRBS = 3 # (x,y,v) * 17 keypoints
         predicted_labels = np.zeros(NUM_COCO_KEYPOINTS * NUM_COCO_KP_ATTRBS)
         list_of_scores = np.zeros(NUM_COCO_KEYPOINTS)
 
