@@ -25,7 +25,7 @@ def parse_args():
                         choices=["tf"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
-                        type=float, default=60.0,
+                        type=float, default=120.0,
                         help="timeout in seconds")
     parser.add_argument("--num_runs",
                         type=int,
@@ -43,7 +43,10 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     from utils.tflite import TFLiteRunner
 
     def run_single_pass(tflite_runner, coco):
-        images, metadatas = next(coco.dataset)
+        try:
+            images, metadatas = next(coco.dataset)
+        except StopIteration:
+            raise utils.OutOfInstances("No more MoveNet images to process in the dir provided")
         input_image = tf.cast(images, dtype=tf.float32)
 
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], input_image)
@@ -60,7 +63,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
 
 
 def run_tflite_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
-    return run_tflite(model_path, 1, num_runs, timeout, images_path, anno_path)
+    return run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
 
 def main():
@@ -69,6 +72,8 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
+        if args.batch_size!=1:
+            raise ValueError("Batch size must be 1 for this model")
         run_tflite_fp32(**vars(args))       
     else:
         print_goodbye_message_and_die(

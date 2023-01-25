@@ -11,8 +11,6 @@ from pycocotools.coco import COCO
 import numpy as np
 import pandas as pd
 import skimage.io as io
-from tqdm import tqdm
-from enum import Enum
 import numpy as np
 
 #converting anns to df
@@ -107,12 +105,10 @@ class PoseEstimationDataset:
     def __init__(self, anno_path, images_path, size, bbox_min_size=900, min_kp=4):
         df = get_df(anno_path)
         df = df.groupby('src_set_image_id').filter(lambda x: x.shape[0] == 1)
-        # 
         df = df.loc[df['is_crowd'] == 0] # drop crowd anns
         df = df.loc[df['num_keypoints'] > min_kp] # drop anns containing x kps
         df = df.loc[df['bbox_area'] > bbox_min_size]
         df = df.reset_index(drop=True)
-        print(df.shape[0])
         dataset = DataGenerator(df=df,base_dir=images_path,
                                 input_dim=(size,size),
                                 output_dim=(4,4),
@@ -166,8 +162,6 @@ class DataGenerator(Sequence):
     # after each epoch, shuffle indices so data order changes
     def on_epoch_end(self):
         self.indices = np.arange(len(self.df))
-        if self.shuffle:
-            np.random.shuffle(self.indices)
 
     # number of batches (not number of examples)
     def __len__(self):
@@ -202,15 +196,16 @@ class DataGenerator(Sequence):
 
     # returns batch at index idx
 
-    """
-    Returns a batch from the dataset
-    ### Parameters:
-    idx : {int-type} Batch number to retrieve
-    ### Returns:    
-    X : ndarray of shape (batch number, input_dim1, input_dim2, 3)
-        This corresponds to a batch of images, normalized from [0,255] to [0,1]
-    """
+    
     def __getitem__(self, idx):
+        """
+        Returns a batch from the dataset
+        ### Parameters:
+        idx : {int-type} Batch number to retrieve
+        ### Returns:    
+        X : ndarray of shape (batch number, input_dim1, input_dim2, 3)
+            This corresponds to a batch of images, normalized from [0,255] to [0,1]
+        """
         # Initialize Batch:
         X = np.empty((self.batch_size, *self.input_dim, 3))
 
@@ -221,11 +216,7 @@ class DataGenerator(Sequence):
             ann = self.df.loc[data_index]
             img_path = os.path.join(self.base_dir, ann['path'])
 
-            if self.online_fetch:
-                img = Image.fromarray(io.imread(ann['coco_url'])).convert('RGB')  # bottleneck opening from URL
-            else:
-                # bottleneck opening from file system
-                img = Image.open(img_path).convert('RGB')
+            img = Image.open(img_path).convert('RGB')
 
             transformed_img, cropped_width, cropped_height, anchor_x, anchor_y = self.transform_image(
                 img, ann['bbox'])
@@ -257,9 +248,9 @@ class DataGenerator(Sequence):
 
         return X
 
-## taking pred of movenet and translate back keypoints(along with person) to original coco image dims
-class MoveNetCoco:
 
+class MoveNetCoco:
+    ## taking pred of movenet and translate back keypoints(along with person) to original coco image dims
     def __call__(self, metadata, untransformed_predictions):
         metadata = self._undo_bounding_box_transformations(metadata, untransformed_predictions)
         oks = self._create_oks_obj(metadata)
@@ -271,19 +262,22 @@ class MoveNetCoco:
       predicted_x = round(untransformed_x * metadata['cropped_width'] / metadata['input_dim'][0] + metadata['anchor_x'])
       return round(predicted_x)
 
-    """
+    
+    def _undo_y(self, metadata, untransformed_y):
+        """
         Parameters
         ----------
         metadata : object
         should be metadata associated to a single image
         untransformed_y : int
         x coordinate to
-    """
-    def _undo_y(self, metadata, untransformed_y):
-      predicted_y = round(untransformed_y * metadata['cropped_height'] / metadata['input_dim'][1] + metadata['anchor_y'])
-      return round(predicted_y)
+        """
+        predicted_y = round(untransformed_y * metadata['cropped_height'] / metadata['input_dim'][1] + metadata['anchor_y'])
+        return round(predicted_y)
 
-    """
+    
+    def _undo_bounding_box_transformations(self, metadata, untransformed_predictions):
+        """
         Parameters
         ----------
         metadata : object
@@ -291,10 +285,9 @@ class MoveNetCoco:
         untransformed_predictions : list
         a list of precitions that need to be transformed
         Example:  [1,2,0,1,4,666,32...]
-    """
-    def _undo_bounding_box_transformations(self, metadata, untransformed_predictions):
+        """
+
         untransformed_predictions = untransformed_predictions.flatten()
-        
         NUM_COCO_KEYPOINTS = 17 # Number of joints to detect
         NUM_COCO_KP_ATTRBS = 3 # (x,y,v) * 17 keypoints
         predicted_labels = np.zeros(NUM_COCO_KEYPOINTS * NUM_COCO_KP_ATTRBS)
