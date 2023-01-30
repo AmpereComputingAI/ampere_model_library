@@ -69,13 +69,14 @@ class PyTorchRunner:
         """
 
         def runner_func(model):
-            if isinstance(input, tuple):
+            if False:
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
-            elif isinstance(input, dict):
+            elif True:
+                print("hello")
                 start = time.time()
-                output = model(**input)
+                output = model(**input, labels=input["input_ids"])
                 finish = time.time()
             else:
                 start = time.time()
