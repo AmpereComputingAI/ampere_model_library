@@ -56,26 +56,9 @@ log "done.\n"
 
 log "Installing python dependencies ..."
 sleep 1
-if [ "${ARCH}" == "aarch64" ]; then
-   PYTHON3_VERSION=$( pip3 --version )
-   if echo "$PYTHON3_VERSION" | grep -q "(python 3.8)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl
-   elif echo "$PYTHON3_VERSION" | grep -q "(python 3.9)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp39-cp39-linux_aarch64.whl
-   elif echo "$PYTHON3_VERSION" | grep -q "(python 3.10)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64_precompiled-2.1.1-cp310-cp310-linux_aarch64.whl
-   else
-      log "\nThis script requires python >=3.8! Quitting."
-      exit 1
-   fi
-else
-   pip3 install --no-deps --upgrade SimpleITK==2.1.1
-fi
 # direct dependencies
 pip3 install --no-deps --upgrade \
+   SimpleITK==2.2.1 \
    batchgenerators==0.21 \
    medpy==0.4.0 \
    nibabel==3.2.2 \
