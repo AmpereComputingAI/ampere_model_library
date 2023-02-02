@@ -41,7 +41,9 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip ffmpeg libsm6 libxext6 wget
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget
+PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
+apt-get -y install python${PYTHON_VERSION}-dev
 log "done.\n"
 
 log "Setup LD_PRELOAD ..."
