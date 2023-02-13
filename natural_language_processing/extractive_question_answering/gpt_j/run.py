@@ -71,9 +71,9 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-        inputs = tokenizer("Hello, my name is prince", return_tensors="pt")
+        inputs = {name: tensor.cuda() for name, tensor in tokenizer("Hello, my name is prince", return_tensors="pt").items()}
         output = pytorch_runner.run(inputs)
-        print(output)
+        #print(output)
 
         #for i in range(batch_size):
         #    answer_start_id = output[0][i].argmax()
@@ -84,7 +84,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
         #    )
 
     tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
-    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B")
+    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B").cuda()
 
     def tokenize(question, text):
         return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")

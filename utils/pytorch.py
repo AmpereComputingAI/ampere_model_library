@@ -74,7 +74,7 @@ class PyTorchRunner:
                 output = model(*input)
                 finish = time.time()
             elif True:
-                print("hello")
+                #print("hello")
                 start = time.time()
                 output = model(**input, labels=input["input_ids"])
                 finish = time.time()
