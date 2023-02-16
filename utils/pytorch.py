@@ -60,7 +60,7 @@ class PyTorchRunner:
 
         if self.__func is not None:
             self.__model = getattr(self.__model, self.__func)
-        self.__model.cuda()
+        self.__model = self.__model.cuda()
 
         self.__times_invoked = 0
         self.__start_times = list()
