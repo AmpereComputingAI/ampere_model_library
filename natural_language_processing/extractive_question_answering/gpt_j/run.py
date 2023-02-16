@@ -5,7 +5,7 @@ import argparse
 
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForQuestionAnswering, TFAutoModelForQuestionAnswering
-
+import torch
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
@@ -84,7 +84,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
         #    )
 
     tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
-    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B").cuda()
+    model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", revision="float16", torch_dtype=torch.float16).cuda()
 
     def tokenize(question, text):
         return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
