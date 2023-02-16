@@ -27,7 +27,7 @@ class PyTorchRunner:
             AIO = False
 
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
-        self.__model = model
+        self.__model = model.cuda()
         self.__func = func
         self.__model.eval()
         self.__frozen_script = None
@@ -84,9 +84,6 @@ class PyTorchRunner:
                 finish = time.time()
             elif isinstance(input, dict):
                 input_tensor = {name: val.cuda() for name, val in input.items()}
-                print(input_tensor)
-                print(model)
-                dfgf
                 start = time.time()
                 output = model(**input_tensor)#, labels=input["input_ids"])
                 finish = time.time()
