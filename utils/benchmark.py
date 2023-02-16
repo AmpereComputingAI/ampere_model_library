@@ -94,6 +94,10 @@ def benchmark_func(func, num_runs, timeout, warm_up=True):
     return sum(latencies) / i
 
 
+start_times = []
+finish_times = []
+
+
 def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     """
     A function running model in unified way.
@@ -113,6 +117,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
+    global start_times, finish_times
     if num_runs is not None:
         requested_instances_num = num_runs * batch_size
         if dataset.available_instances < requested_instances_num:
@@ -120,8 +125,6 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
-    start_times = []
-    finish_times = []
     start_general = time.time()
     try:
         if os.environ.get("WARM_UP_ONLY") == "1":
