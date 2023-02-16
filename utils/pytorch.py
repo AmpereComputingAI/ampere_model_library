@@ -124,7 +124,7 @@ class PyTorchRunner:
         if dump_dir is not None and len(self.__start_times) > 2:
             with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
                 json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+            with open(f"{dump_dir}/{os.getpid()}_gpu.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times[2:])
                 writer.writerow(self.__finish_times[2:])
