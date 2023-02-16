@@ -84,6 +84,9 @@ class PyTorchRunner:
                 finish = time.time()
             elif isinstance(input, dict):
                 input_tensor = {name: val.cuda() for name, val in input.items()}
+                print(input_tensor)
+                print(model)
+                dfgf
                 start = time.time()
                 output = model(**input_tensor)#, labels=input["input_ids"])
                 finish = time.time()
