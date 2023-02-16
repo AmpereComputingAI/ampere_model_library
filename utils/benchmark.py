@@ -122,7 +122,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
 
     start_times = []
     finish_times = []
-    start = time.time()
+    start_general = time.time()
     try:
         if os.environ.get("WARM_UP_ONLY") == "1":
             single_pass_func(runner, dataset)
@@ -134,7 +134,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
             finish = time.time()
             start_times.append(start)
             finish_times.append(finish)
-            while time.time() - start < timeout:
+            while time.time() - start_general < timeout:
                 start = time.time()
                 single_pass_func(runner, dataset)
                 finish = time.time()
@@ -151,7 +151,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
             if dataset.reset():
                 return run_model(
-                    single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
+                    single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start_general))
 
     dump_dir = os.environ.get("RESULTS_DIR")
     if dump_dir is not None and len(start_times) > 0:
