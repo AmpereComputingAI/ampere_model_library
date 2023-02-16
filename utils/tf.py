@@ -93,7 +93,8 @@ class TFFrozenModelRunner:
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+        with tf.device('/gpu:0'):
+            self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = tf.Variable(input_array)
 
     def run(self):
         """
@@ -127,7 +128,7 @@ class TFFrozenModelRunner:
         if dump_dir is not None and len(self.__start_times) > 2:
             with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
                 json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+            with open(f"{dump_dir}/{os.getpid()}_gpu.csv", "w") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times[2:])
                 writer.writerow(self.__finish_times[2:])

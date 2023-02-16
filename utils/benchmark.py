@@ -3,6 +3,7 @@
 
 import os
 import sys
+import csv
 import time
 import statistics
 import numpy as np
@@ -119,6 +120,8 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
+    start_times = []
+    finish_times = []
     start = time.time()
     try:
         if os.environ.get("WARM_UP_ONLY") == "1":
@@ -126,17 +129,36 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
             sys.exit(0)
 
         if num_runs is None:
+            start = time.time()
             single_pass_func(runner, dataset)
+            finish = time.time()
+            start_times.append(start)
+            finish_times.append(finish)
             while time.time() - start < timeout:
+                start = time.time()
                 single_pass_func(runner, dataset)
+                finish = time.time()
+                start_times.append(start)
+                finish_times.append(finish)
         else:
             for _ in tqdm(range(num_runs)):
+                start = time.time()
                 single_pass_func(runner, dataset)
+                finish = time.time()
+                start_times.append(start)
+                finish_times.append(finish)
     except utils.OutOfInstances:
         if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
             if dataset.reset():
                 return run_model(
                     single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
+
+    dump_dir = os.environ.get("RESULTS_DIR")
+    if dump_dir is not None and len(start_times) > 0:
+        with open(f"{dump_dir}/{os.getpid()}_pipeline.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(start_times)
+            writer.writerow(finish_times)
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
