@@ -93,8 +93,7 @@ class TFFrozenModelRunner:
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        with tf.device('/gpu:0'):
-            self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = tf.Variable(input_array)
+        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
 
     def run(self):
         """
