@@ -62,7 +62,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     dataset = OpenImagesDataset(batch_size, "RGB", images_path, anno_path,
                                 pre_processing="YOLO", sort_ascending=True, order="NCHW")
     model = torch.jit.load(model_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze)
+    runner = PyTorchRunner(model, disable_jit_freeze=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

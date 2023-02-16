@@ -93,7 +93,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
 
     runner = PyTorchRunner(model,
-                           disable_jit_freeze=disable_jit_freeze,
+                           disable_jit_freeze=True,
                            example_inputs=[val for val in dataset.get_input_arrays().values()])
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)

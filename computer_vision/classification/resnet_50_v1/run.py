@@ -64,7 +64,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
     runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True),
-                           disable_jit_freeze=disable_jit_freeze)
+                           disable_jit_freeze=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
