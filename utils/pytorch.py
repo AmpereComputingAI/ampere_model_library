@@ -65,6 +65,8 @@ class PyTorchRunner:
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
+        self._mem_start_times = list()
+        self._mem_finish_times = list()
 
         print("\nRunning with PyTorch\n")
 
@@ -77,24 +79,29 @@ class PyTorchRunner:
 
         def runner_func(model):
             if isinstance(input, tuple):
-                print(input)
-                sfddfs
+                fhfh
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
             elif isinstance(input, dict):
+                start_mem = time.time()
                 input_tensor = {name: val.cuda() for name, val in input.items()}
+                finish_mem = time.time()
                 start = time.time()
                 output = model(**input_tensor)#, labels=input["input_ids"])
                 finish = time.time()
             else:
+                start_mem = time.time()
                 input_tensor = input.cuda()
+                finish_mem = time.time()
                 start = time.time()
                 output = model(input_tensor)
                 finish = time.time()
 
             self.__start_times.append(start)
             self.__finish_times.append(finish)
+            self._mem_start_times.append(start_mem)
+            self._mem_finish_times.append(finish_mem)
             self.__times_invoked += 1
 
             return output
@@ -121,6 +128,10 @@ class PyTorchRunner:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times[2:])
                 writer.writerow(self.__finish_times[2:])
+            with open(f"{dump_dir}/{os.getpid()}_mem.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(self._mem_start_times[2:])
+                writer.writerow(self._mem_finish_times[2:])
 
         if self.__is_profiling:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
