@@ -55,6 +55,13 @@ class PyTorchRunner:
 
         self.__is_profiling = aio_profiler_enabled()
 
+        if self.__frozen_script is not None:
+            self.__model = self.__frozen_script
+
+        if self.__func is not None:
+            self.__model = getattr(self.__model, self.__func)
+        self.__model.cuda()
+
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
@@ -69,19 +76,21 @@ class PyTorchRunner:
         """
 
         def runner_func(model):
-            print(input)
-            sdf
             if isinstance(input, tuple):
+                print(input)
+                sfddfs
                 start = time.time()
                 output = model(*input)
                 finish = time.time()
             elif isinstance(input, dict):
+                input_tensor = {name: val.cuda() for name, val in input.items()}
                 start = time.time()
-                output = model(**input, labels=input["input_ids"])
+                output = model(**input_tensor)#, labels=input["input_ids"])
                 finish = time.time()
             else:
+                input_tensor = input.cuda()
                 start = time.time()
-                output = model(input)
+                output = model(input_tensor)
                 finish = time.time()
 
             self.__start_times.append(start)
@@ -91,18 +100,11 @@ class PyTorchRunner:
             return output
 
         with torch.no_grad():
-            if self.__frozen_script is None:
-                model = self.__model
-            else:
-                model = self.__frozen_script
-            if self.__func is not None:
-                model = getattr(model, self.__func)
-
             if self.__is_profiling:
                 with profile() as self.__profile:
-                    output_tensor = runner_func(model)
+                    output_tensor = runner_func(self.__model)
             else:
-                output_tensor = runner_func(model)
+                output_tensor = runner_func(self.__model)
 
         return output_tensor
 
