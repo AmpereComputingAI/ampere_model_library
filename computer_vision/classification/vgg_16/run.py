@@ -88,17 +88,29 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
     from utils.pytorch import PyTorchRunner
+    import time
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape))).cpu()
-
+        a = time.time()
+        tensor = imagenet.get_input_array(shape)
+        b = time.time()
+        print(b-a)
+        tensor = torch.from_numpy(tensor)
+        c = time.time()
+        print(c-b)
+        output = pytorch_runner.run()
+        d = time.time()
+        print(d-c)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
                 imagenet.extract_top1(output[i]),
                 imagenet.extract_top5(output[i])
             )
+        e = time.time()
+        print(e-d)
+        print("-----")
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')

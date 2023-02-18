@@ -72,12 +72,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     import time
 
     def run_single_pass(pytorch_runner, squad):
-        a = time.time()
         inputs = {name: tensor for name, tensor in tokenizer("Hello, my name is prince", return_tensors="pt").items()}
-        b = time.time()
-        print(b - a)
         output = pytorch_runner.run(inputs)
-        print(time.time()-b)
         #print(output)
 
         #for i in range(batch_size):
