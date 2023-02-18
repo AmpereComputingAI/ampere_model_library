@@ -103,6 +103,8 @@ class PyTorchRunner:
                 finish = time.time()
 
             print(type(output))
+            print(output)
+            output = [out.cpu() for out in output]
             dsf
             try:
                 if type(output) is tuple:
