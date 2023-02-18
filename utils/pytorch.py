@@ -98,10 +98,14 @@ class PyTorchRunner:
                 output = model(input_tensor)
                 finish = time.time()
 
+            a = time.time()
+            output = output.cpu()
+            b = time.time()
+
             self.__start_times.append(start)
             self.__finish_times.append(finish)
-            self._mem_start_times.append(start_mem)
-            self._mem_finish_times.append(finish_mem)
+            self._mem_start_times.append(a-(finish_mem-start_mem))
+            self._mem_finish_times.append(b)
             self.__times_invoked += 1
 
             return output
