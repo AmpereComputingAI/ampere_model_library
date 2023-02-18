@@ -102,6 +102,8 @@ class PyTorchRunner:
                 torch.cuda.synchronize()
                 finish = time.time()
 
+            print(output)
+            dfgdg
             try:
                 if type(output) is tuple:
                     a = time.time()
