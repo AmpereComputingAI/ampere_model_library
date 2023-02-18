@@ -99,7 +99,7 @@ class ImageNet(ImageDataset):
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
         for i in range(self.__batch_size):
-            self.path_to_latest_image = self.__get_path_to_img()
+            #self.path_to_latest_image = self.__get_path_to_img()
             input_array[i] = np.random.rand(*target_shape)
 
         if self.__pre_processing:
