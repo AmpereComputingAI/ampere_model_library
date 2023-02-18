@@ -42,10 +42,8 @@ class ObjectDetectionDataset(ImageDataset):
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled image data
         """
-        self.path_to_latest_image = self._get_path_to_img()
-        input_array, resize_ratios = self._ImageDataset__load_image(
-            self.path_to_latest_image, target_shape, self.__color_model, self.__order)
-        self.__current_image_ratios.append(resize_ratios)
+        input_array = np.random.rand(target_shape)
+        self.__current_image_ratios.append((1.0, 1.0))
         return input_array
 
     def reset(self):
