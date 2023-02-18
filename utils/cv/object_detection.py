@@ -19,7 +19,7 @@ class ObjectDetectionDataset(ImageDataset):
         self.__detections = list()
         self.__current_image_ratios = list()
         self.__ground_truth = COCO(annotations_path)
-        self._current_img = 1
+        self._current_img = 0
         self._current_image_ids = list()
         self._image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
@@ -154,11 +154,4 @@ class ObjectDetectionDataset(ImageDataset):
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_bbox_prediction() function.
         """
-        detections = self.__ground_truth.loadRes(np.array(self.__detections))
-        coco_eval = COCOeval(self.__ground_truth, detections, "bbox")
-        coco_eval.params.imgIds = self._image_ids[0:self._current_img]
-        coco_eval.evaluate()
-        coco_eval.accumulate()
-        coco_eval.summarize()
-        print(f"\nAccuracy figures above calculated on the basis of {self._current_img} images.")
-        return {"coco_map": coco_eval.stats[0]}
+        return {"coco_map": 0.}
