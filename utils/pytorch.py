@@ -102,9 +102,14 @@ class PyTorchRunner:
                 torch.cuda.synchronize()
                 finish = time.time()
 
-            a = time.time()
-            output = output.cpu()
-            b = time.time()
+            try:
+                a = time.time()
+                output = output.cpu()
+                b = time.time()
+            except AttributeError:
+                a = time.time()
+                output = output.logits.cpu()
+                b = time.time()
 
             self.__start_times.append(start)
             self.__finish_times.append(finish)
