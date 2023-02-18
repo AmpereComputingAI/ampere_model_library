@@ -19,7 +19,7 @@ class ObjectDetectionDataset(ImageDataset):
         self.__detections = list()
         self.__current_image_ratios = list()
         self.__ground_truth = COCO(annotations_path)
-        self._current_img = 0
+        self._current_img = 1
         self._current_image_ids = list()
         self._image_ids = self.__ground_truth.getImgIds()
         if sort_ascending:
