@@ -139,7 +139,7 @@ class ObjectDetectionDataset(ImageDataset):
         :return:
         """
         instance = list()
-        instance.append(self._current_image_ids[id_in_batch])
+        instance.append(10)
         instance += self.rescale_bbox(id_in_batch, bbox)
         instance.append(score)
         instance.append(category)
