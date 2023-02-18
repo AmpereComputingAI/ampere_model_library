@@ -86,16 +86,20 @@ class PyTorchRunner:
             elif isinstance(input, dict):
                 start_mem = time.time()
                 input_tensor = {name: val.cuda() for name, val in input.items()}
+                torch.cuda.synchronize()
                 finish_mem = time.time()
                 start = time.time()
                 output = model(**input_tensor)#, labels=input["input_ids"])
+                torch.cuda.synchronize()
                 finish = time.time()
             else:
                 start_mem = time.time()
                 input_tensor = input.cuda()
+                torch.cuda.synchronize()
                 finish_mem = time.time()
                 start = time.time()
                 output = model(input_tensor)
+                torch.cuda.synchronize()
                 finish = time.time()
 
             a = time.time()
