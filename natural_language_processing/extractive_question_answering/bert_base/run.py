@@ -62,7 +62,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
     runner = TFSavedModelRunner()
-    runner.model = tf.function(TFAutoModelForQuestionAnswering.from_pretrained(model_name))
+    runner.model = TFAutoModelForQuestionAnswering.from_pretrained(model_name)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
