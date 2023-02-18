@@ -102,10 +102,6 @@ class PyTorchRunner:
                 torch.cuda.synchronize()
                 finish = time.time()
 
-            print(type(output))
-            print(output)
-            output = [out.cpu() for out in output]
-            dsf
             try:
                 if type(output) is tuple:
                     a = time.time()
@@ -113,7 +109,7 @@ class PyTorchRunner:
                     b = time.time()
                 elif type(output) is list:
                     a = time.time()
-                    output = [out.cpu() for out in output]
+                    output = [{name: val.cpu() for name, val in out.items()} for out in output]
                     b = time.time()
                 else:
                     a = time.time()
