@@ -102,12 +102,10 @@ class PyTorchRunner:
                 torch.cuda.synchronize()
                 finish = time.time()
 
-            print(output)
-            dfgdg
             try:
                 if type(output) is tuple:
                     a = time.time()
-                    output = (out.cpu() for out in output)
+                    output = tuple([out.cpu() for out in output])
                     b = time.time()
                 elif type(output) is list:
                     a = time.time()
