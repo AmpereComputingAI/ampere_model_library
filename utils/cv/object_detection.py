@@ -42,7 +42,7 @@ class ObjectDetectionDataset(ImageDataset):
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled image data
         """
-        input_array = np.random.rand(target_shape)
+        input_array = np.random.rand(*target_shape)
         self.__current_image_ratios.append((1.0, 1.0))
         return input_array
 
