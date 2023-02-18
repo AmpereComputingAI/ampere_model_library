@@ -42,7 +42,7 @@ def run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, imagenet):
-        shape = (224, 224, 3)
+        shape = (224, 224)
         tf_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
         output = tf_runner.run()
         for i in range(batch_size):

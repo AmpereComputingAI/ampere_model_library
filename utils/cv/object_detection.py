@@ -42,9 +42,8 @@ class ObjectDetectionDataset(ImageDataset):
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array containing rescaled image data
         """
-        input_array = np.random.rand(*target_shape)
-        self.__current_image_ratios.append((1.0, 1.0))
-        return input_array
+
+        return None
 
     def reset(self):
         self._current_img = 0
@@ -62,10 +61,15 @@ class ObjectDetectionDataset(ImageDataset):
 
         if self.__order == 'NCHW':
             input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
+            for i in range(self.__batch_size):
+                self.__current_image_ratios.append((1.0, 1.0))
+                input_array[i] = np.random.rand(*target_shape)
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
-        for i in range(self.__batch_size):
-            input_array[i] = self.__load_image_and_store_ratios(target_shape)
+            for i in range(self.__batch_size):
+                self.__current_image_ratios.append((1.0, 1.0))
+                input_array[i] = np.random.rand(*target_shape, 3)
+
 
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model)

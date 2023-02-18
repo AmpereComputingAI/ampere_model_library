@@ -45,7 +45,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, coco):
-        shape = (300, 300, 3)
+        shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
         output = tf_runner.run()
         for i in range(batch_size):

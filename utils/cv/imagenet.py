@@ -96,11 +96,14 @@ class ImageNet(ImageDataset):
         """
         if self.__order == 'NCHW':
             input_array = np.empty([self.__batch_size, 3, *target_shape])  # NCHW order
+            for i in range(self.__batch_size):
+                # self.path_to_latest_image = self.__get_path_to_img()
+                input_array[i] = np.random.rand(*target_shape)
         else:
             input_array = np.empty([self.__batch_size, *target_shape, 3])  # NHWC order
-        for i in range(self.__batch_size):
-            #self.path_to_latest_image = self.__get_path_to_img()
-            input_array[i] = np.random.rand(*target_shape)
+            for i in range(self.__batch_size):
+                # self.path_to_latest_image = self.__get_path_to_img()
+                input_array[i] = np.random.rand(*target_shape, 3)
 
         if self.__pre_processing:
             input_array = pp.pre_process(input_array, self.__pre_processing, self.__color_model, self.__order)
