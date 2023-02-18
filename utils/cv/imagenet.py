@@ -30,7 +30,7 @@ class ImageNet(ImageDataset):
         self.__images_filename_extension = ".JPEG"
         self.__images_path = images_path
         self.__pre_processing = pre_processing
-        self.__current_img = 0
+        self.__current_img = 1
         self.__file_names, self.__labels = self.__parse_val_file(labels_path, is1001classes)
         self.available_instances = len(self.__file_names)
         self.__top_1_count = 0
