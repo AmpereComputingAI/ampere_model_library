@@ -103,9 +103,18 @@ class PyTorchRunner:
                 finish = time.time()
 
             try:
-                a = time.time()
-                output = output.cpu()
-                b = time.time()
+                if type(output) is tuple:
+                    a = time.time()
+                    output = (out.cpu() for out in output)
+                    b = time.time()
+                elif type(output) is list:
+                    a = time.time()
+                    output = [out.cpu() for out in output]
+                    b = time.time()
+                else:
+                    a = time.time()
+                    output = output.cpu()
+                    b = time.time()
             except AttributeError:
                 a = time.time()
                 output = output.logits.cpu()
