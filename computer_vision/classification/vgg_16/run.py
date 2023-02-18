@@ -99,7 +99,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
         tensor = torch.from_numpy(tensor)
         c = time.time()
         print(c-b)
-        output = pytorch_runner.run(tensor)
+        output = pytorch_runner.run(tensor).cpu()
         d = time.time()
         print(d-c)
         for i in range(batch_size):
