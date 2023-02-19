@@ -11,7 +11,7 @@ import tensorflow as tf
 
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
-
+tf.config.experimental.set_synchronous_execution(True)
 
 class TFProfiler:
     def __init__(self):
