@@ -15,7 +15,7 @@ class Squad_v1_1:
     A class providing facilities for preprocessing and postprocessing of Squad v1.1 validation dataset.
     """
 
-    def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=None, dataset_path=None):
+    def __init__(self, batch_size: int, tokenize_func, detokenize_func, target_seq_size=256, dataset_path=None):
 
         if dataset_path is None:
             env_var = "SQUAD_V1_1_PATH"
