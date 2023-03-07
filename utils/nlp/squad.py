@@ -154,6 +154,16 @@ class Squad_v1_1:
     def get_token_type_ids_array(self):
         return self.__get_input_array("token_type_ids")
 
+    def generate_warmup_runs(self, pad_to_multiple_of, model_max_length):
+        """
+        A function returning warmup inputs for the NLP model.
+
+        :param pad_to_multiple_of: int, same value as passed to the tokenizer
+        :param model_max_length: int, maximum length of input a model can take, value of tokenizer.model_max_length
+        :return: list, list containing inputs in various shapes for model warmup
+        """
+        return [np.zeros(shape=(self.__batch_size, padding), dtype=np.int32) for padding in range(pad_to_multiple_of, model_max_length, pad_to_multiple_of)]
+
     def extract_answer(self, id_in_batch: int, answer_start_id: int, answer_end_id: int):
         """
         A function extracting the answering part of context and applying the provided detokenization function on it.
