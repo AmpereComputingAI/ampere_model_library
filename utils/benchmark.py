@@ -181,6 +181,8 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
     if num_runs <= warm_up_runs:
+        if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
+            sys.exit(0)
         utils.print_goodbye_message_and_die(
             "Cannot print performance data as only warm-up run(s) have been completed! Increase the timeout.")
     else:

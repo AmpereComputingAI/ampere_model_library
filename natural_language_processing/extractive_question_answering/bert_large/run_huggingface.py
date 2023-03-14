@@ -63,6 +63,9 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     runner = TFSavedModelRunner()
     runner.model = tf.function(TFAutoModelForQuestionAnswering.from_pretrained(model_name))
 
+    for warmup_input in dataset.generate_warmup_runs(64, tokenizer.model_max_length):
+        runner.model(warmup_input)
+
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
