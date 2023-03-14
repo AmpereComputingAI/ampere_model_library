@@ -53,16 +53,6 @@ DecisionTreeClassifier
 
 Model description can be found here : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html for all the models.
 
-Models can be downloaded from here:
-```
- https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/
-
-```
-Link for particular model is for ex: 
-```
-https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/DecisionTreeRegressor_model.onnx
-
-```
 
 ### Running instructions
 
