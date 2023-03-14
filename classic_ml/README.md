@@ -4,9 +4,19 @@ This folder contains the script to run Traditional ML models from scikit-learn u
 
 Each model has been trained on specific dataset and it should be tested using only that specific dataset. For ex Regression models are using diabetes dataset and classification models are using iris dataset.
 
+Models can be downloaded from here:
+
+```
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/DecisionTreeRegressor_model.onnx
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/linear_regression_model.onnx
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/logistic_regression_model.onnx
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/DecisionTreeClassifier_model.onnx
+```
+
 Dataset can be downloaded from here:
 ```
-https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/*.csv
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/diabetes_test.csv
+https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/iris_test.csv
 
 ```
 
