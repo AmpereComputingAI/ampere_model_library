@@ -9,7 +9,7 @@ We have two versions of the model, one is the regular sklearn model and the othe
 ```
 https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/linear_regression_optimized.joblib
 https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/linear_regression_sklearn.joblib
-
+```
 
 Dataset can be downloaded from here:
 ```
@@ -22,17 +22,15 @@ https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/iris_test.cs
 
 Linear Regression with sklearn
 
- ```
-                               mean           median       90th-percentile
+```
+                              mean           median       90th-percentile
   Latency           [ms]:       0.05  /        0.04  /        0.07
  Throughput [samples/s]:   19170.11  /    22429.43  /    13400.33
-
  ```
 
 Linear Regression with optimized sklearn
-
- ```                            
-                                mean  /      median  / 90th-percentile
+```
+                               mean  /      median  / 90th-percentile
  Latency           [ms]:       0.01  /        0.01  /        0.01
  Throughput [samples/s]:  144860.55  /   167772.16  /   155344.59
 
