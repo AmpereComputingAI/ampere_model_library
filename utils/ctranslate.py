@@ -26,17 +26,25 @@ class CTranslateRunner:
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
+        self.__first_run = True
 
         print("\nRunning with CTranslate2\n")
+        print("First run is warm up and it's not profiled.")
 
     def run(self, input):
-        start = time.time()
-        outputs = self.translator.translate_batch(input)
-        finish = time.time()
 
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
-        self.__times_invoked += 1
+        if self.__first_run == False:
+            start = time.time()
+            outputs = self.translator.translate_batch(input)
+            finish = time.time()
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
+            self.__times_invoked += 1
+        else :
+            self.__first_run = False
+            outputs = self.translator.translate_batch(input)
+            self.translator.init_profiling("cpu") 
+
 
         return outputs
 
@@ -45,6 +53,8 @@ class CTranslateRunner:
         A function printing performance metrics on runs executed by the runner so far.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
+        self.translator.dump_profiling()
+
         perf = bench_utils.print_performance_metrics(
             self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
 
