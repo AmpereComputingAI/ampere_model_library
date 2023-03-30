@@ -8,6 +8,7 @@ import sentencepiece
 
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
+from utils.profiling import aio_profiler_enabled
 
 class CTranslateRunner:
     """
@@ -26,17 +27,25 @@ class CTranslateRunner:
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
+        self.__is_profiling = aio_profiler_enabled()
+        self.__first_run = True
 
         print("\nRunning with CTranslate2\n")
 
     def run(self, input):
-        start = time.time()
-        outputs = self.translator.translate_batch(input)
-        finish = time.time()
+        if self.__first_run:
+            self.__first_run = False
+            outputs = self.translator.translate_batch(input)
+            if self.__is_profiling:
+                self.translator.init_profiling("cpu")
+        else:
+            start = time.time()
+            outputs = self.translator.translate_batch(input)
+            finish = time.time()
 
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
-        self.__times_invoked += 1
+            self.__start_times.append(start)
+            self.__finish_times.append(finish)
+            self.__times_invoked += 1
 
         return outputs
 
@@ -56,5 +65,8 @@ class CTranslateRunner:
                 writer = csv.writer(f)
                 writer.writerow(self.__start_times[2:])
                 writer.writerow(self.__finish_times[2:])
+        
+        if self.__is_profiling:
+            self.translator.dump_profiling()
 
         return perf
