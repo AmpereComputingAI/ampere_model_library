@@ -8,9 +8,11 @@ import utils.misc as utils
 import time
 import utils.benchmark as bench_utils
 import hashlib
+import pkg_resources
 from utils.profiling import *
 from torch.autograd.profiler import profile
 from pathlib import Path
+from packaging import version
 
 
 class PyTorchRunner:
@@ -42,14 +44,17 @@ class PyTorchRunner:
                 self.__frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
             else:
-                try:
-                    if skip_script:
-                        raise SkipScript 
-                    self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
-                except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
-                    self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
-                if not cached_dir.exists():
-                    cached_dir.mkdir()
+                if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.0"):
+                    self.__frozen_script = torch.compile(self.__model)
+                else:
+                    try:
+                        if skip_script:
+                            raise SkipScript
+                        self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+                    except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
+                        self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
+                    if not cached_dir.exists():
+                        cached_dir.mkdir()
                 torch.jit.save(self.__frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
 
