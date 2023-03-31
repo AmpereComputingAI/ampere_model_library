@@ -27,25 +27,20 @@ class CTranslateRunner:
         self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
-        self.__is_profiling = aio_profiler_enabled()
-        self.__first_run = True
+        self.is_profiling = aio_profiler_enabled()
 
         print("\nRunning with CTranslate2\n")
 
     def run(self, input):
-        if self.__first_run:
-            self.__first_run = False
-            outputs = self.translator.translate_batch(input)
-            if self.__is_profiling:
-                self.translator.init_profiling("cpu")
-        else:
-            start = time.time()
-            outputs = self.translator.translate_batch(input)
-            finish = time.time()
+        if self.__times_invoked == 2 and self.is_profiling:
+            self.translator.init_profiling("cpu")
+        start = time.time()
+        outputs = self.translator.translate_batch(input)
+        finish = time.time()
 
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
-            self.__times_invoked += 1
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
+        self.__times_invoked += 1
 
         return outputs
 
@@ -66,7 +61,7 @@ class CTranslateRunner:
                 writer.writerow(self.__start_times[2:])
                 writer.writerow(self.__finish_times[2:])
         
-        if self.__is_profiling:
+        if self.is_profiling:
             self.translator.dump_profiling()
 
         return perf
