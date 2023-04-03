@@ -56,7 +56,6 @@ class PyTorchRunner:
                     cached_dir.mkdir()
                 torch.jit.save(self.__frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
-        print(self.__frozen_script)
         self.__is_profiling = aio_profiler_enabled()
 
         self.__times_invoked = 0
