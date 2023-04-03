@@ -40,24 +40,23 @@ class PyTorchRunner:
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
-            if cached_path.exists():
+            if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.0"):
+                self.__frozen_script = torch.compile(self.__model)
+            elif cached_path.exists():
                 self.__frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
             else:
-                if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.0"):
-                    self.__frozen_script = torch.compile(self.__model)
-                else:
-                    try:
-                        if skip_script:
-                            raise SkipScript
-                        self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
-                    except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
-                        self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
-                    if not cached_dir.exists():
-                        cached_dir.mkdir()
+                try:
+                    if skip_script:
+                        raise SkipScript
+                    self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
+                except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
+                    self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
+                if not cached_dir.exists():
+                    cached_dir.mkdir()
                 torch.jit.save(self.__frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
-
+        print(self.__frozen_script)
         self.__is_profiling = aio_profiler_enabled()
 
         self.__times_invoked = 0
