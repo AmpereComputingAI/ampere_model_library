@@ -41,7 +41,7 @@ class PyTorchRunner:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
             if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.0"):
-                self.__frozen_script = torch.compile(self.__model)
+                self.__frozen_script = torch.compile(self.__model, backend="aio" if AIO else "inductor")
             elif cached_path.exists():
                 self.__frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
