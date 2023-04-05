@@ -34,16 +34,17 @@ class PyTorchRunner:
         self.__func = func
         self.__model.eval()
         self.__frozen_script = None
-        use_torch_compile = True if "TORCH_COMPILE" in os.environ and os.environ["TORCH_COMPILE"] == "1" else False
 
         if disable_jit_freeze:
+            if os.environ.get("TORCH_COMPILE") == "1":
+                utils.print_goodbye_message_and_die(f"disable_jit_freeze={disable_jit_freeze} and TORCH_COMPILE=1 are mutually exclusive.")
             if AIO:
                 utils.print_warning_message(
                     f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
-            if use_torch_compile and version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
+            if os.environ.get("TORCH_COMPILE") == "1" and version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
                 # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
                 self.__frozen_script = torch.compile(self.__model, backend="aio" if AIO else "inductor")
