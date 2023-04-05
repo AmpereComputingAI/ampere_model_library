@@ -3,6 +3,7 @@
 
 import csv
 import json
+import os
 import torch
 import utils.misc as utils
 import time
@@ -33,6 +34,8 @@ class PyTorchRunner:
         self.__func = func
         self.__model.eval()
         self.__frozen_script = None
+        use_torch_compile = True if "TORCH_COMPILE" in os.environ and os.environ["TORCH_COMPILE"] == "1" else False
+
         if disable_jit_freeze:
             if AIO:
                 utils.print_warning_message(
@@ -40,7 +43,9 @@ class PyTorchRunner:
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
-            if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.0"):
+            if use_torch_compile and version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
+                # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
+                # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
                 self.__frozen_script = torch.compile(self.__model, backend="aio" if AIO else "inductor")
             elif cached_path.exists():
                 self.__frozen_script = torch.jit.load(cached_path)
