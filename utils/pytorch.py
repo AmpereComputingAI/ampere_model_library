@@ -58,7 +58,7 @@ class PyTorchRunner:
                     if skip_script:
                         raise SkipScript
                     self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
-                except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
+                except (torch.jit.frontend.UnsupportedNodeError, RuntimeError, SkipScript):
                     self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
                 if not cached_dir.exists():
                     cached_dir.mkdir()
