@@ -73,8 +73,9 @@ The path to model (with a flag "-m") as well as its precision (with a flag "-p")
 
 Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
-Example command for TensorFlow: 
+Example command: 
 
 ```
 python run.py -m /path/to/model.onnx -p fp32 --framework ort --data_path /path/to/*.csv
+python run.py -m /path/to/model.joblib -p fp32 --framework sklearn --data_path /path/to/*.csv
 ```

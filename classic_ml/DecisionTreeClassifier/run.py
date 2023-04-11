@@ -22,7 +22,7 @@ def parse_args():
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["ort"], required=True,
+                        choices=["sklearn","ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -34,9 +34,6 @@ def parse_args():
                         type=str,
                         help="path to csv file containing input data")
     args = parser.parse_args()
-   
-    if args.framework != "onnxrt" and args.model_path is None:
-        parser.error(f"You need to specify the model path when using {args.framework} framework.")
     return args
 
 def run_ort_fp(model_path, batch_size, num_runs, timeout, data_path):
@@ -54,10 +51,24 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, data_path):
     
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+def run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path):
+    from utils.sklearn import SklearnRunner
+
+    def run_single_pass(sklearn_runner, dataset):
+        X, y = next(dataset)
+        y_hat = sklearn_runner.run(X)        
+        dataset.submit_predictions(y, y_hat)
+
+    dataset = TabularDataset(data_path, batch_size=batch_size, task='classification')
+    runner = SklearnRunner(model_path)
+    
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, data_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, data_path)
 
+def run_sklearn_fp32(model_path, batch_size, num_runs, timeout, data_path, **kwargs):
+    return run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path)
 
 def main():
     args = parse_args()
@@ -65,6 +76,13 @@ def main():
     if args.framework == "ort":
         if args.precision == "fp32":
             run_ort_fp32(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    elif args.framework == "sklearn":
+        if args.precision == "fp32":
+            run_sklearn_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

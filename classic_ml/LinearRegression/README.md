@@ -4,7 +4,7 @@ This folder has two versions of running the sklearn model. Profiling the sklearn
 
 Each model has been trained on specific dataset and it should be tested using only that specific dataset. For ex Regression models are using diabetes dataset and classification models are using iris dataset.
 
-We have two versions of the model, one is the regular sklearn model and the other is optimized version of sklearn model meaning it has been saved by overwriting the decision function. Models can be downloaded from here:
+We have two versions of the model, one is the regular sklearn model and the other is optimized version of sklearn model meaning it has been saved by overwriting the decision function. Use --optimized flag to select the model. With Optimized -True we can use linear_regression_optmized.joblib and with --optmized False we can use linear_regression_sklearn.py.Models can be downloaded from here:
 
 ```
 https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/linear_regression_optimized.joblib
@@ -24,7 +24,7 @@ Linear Regression with sklearn
 
 ```
                               mean           median       90th-percentile
-  Latency           [ms]:       0.05  /        0.04  /        0.07
+  Latency           [ms]:       0.03  /        0.04  /        0.07
  Throughput [samples/s]:   19170.11  /    22429.43  /    13400.33
  ```
 
@@ -57,7 +57,9 @@ Please note that the default batch size is 1 and if not specified otherwise the 
 
 Example command for sklearn: 
 
+
+
 ```
-python run.py/run_optimized.py -m /path/to/model.joblib -p fp32 --framework sklearn --data_path /path/to/*.csv
+python run.py -m /path/to/model.joblib -p fp32 --optimized True/False --framework sklearn --data_path /path/to/*.csv
 
 ```
