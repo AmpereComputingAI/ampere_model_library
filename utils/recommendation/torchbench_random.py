@@ -9,8 +9,8 @@ class RandomDataset:
         from utils.recommendation.dlrm.dlrm_data_pytorch import make_random_data_and_loader
         self.train_data, self.train_ld, _, _ = make_random_data_and_loader(opt, opt.ln_emb, opt.m_den)
         self.__predictions = []
-        self.num_available_instances = 1
-    
+        self.available_instances = 2048000
+
     def reset(self):
         return False
 
