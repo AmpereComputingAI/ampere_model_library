@@ -127,7 +127,6 @@ class PyTorchRunnerV2:
 
         torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
         self._model = model
-        self._model.eval()
 
         self._do_profile = aio_profiler_enabled()
 

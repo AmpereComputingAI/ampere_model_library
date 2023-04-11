@@ -1,28 +1,32 @@
-from utils.helpers import DefaultArgParser
+import os
+import sys
+
+
+def single_pass_pytorch(runner, coco):
+    output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
+
+    for i in range(batch_size):
+        imagenet.submit_predictions(
+            i,
+            imagenet.extract_top1(output[i]),
+            imagenet.extract_top5(output[i])
+        )
+
+
+def run_pytorch(model_path, batch_size, num_runs, timeout):
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "segment_anything"))
+    import torch
+    from utils.benchmark import run_model
+    from utils.pytorch import PyTorchRunnerV2
+    from segment_anything import build_sam, SamAutomaticMaskGenerator
+    mask_generator = SamAutomaticMaskGenerator(build_sam(checkpoint=model_path), output_mode="coco_rle")
+    runner = PyTorchRunnerV2(torch.compile(mask_generator.generate))
+
+    return run_model(single_pass_pytorch, runner, dataset, batch_size, num_runs, timeout)
+
 
 if __name__ == "__main__":
+    from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_path()
-    print(parser.parse())
-
-
-def run_pytorch(path_to_model, batch_size, num_runs, timeout):
-    from utils.pytorch import PyTorchRunnerV2
-    from segment_anything.segment_anything import build_sam, SamAutomaticMaskGenerator
-    mask_generator = SamAutomaticMaskGenerator(build_sam(checkpoint=path_to_model))
-    runner = PyTorchRunnerV2(mask_generator)
-
-    # def run_single_pass(pytorch_runner, imagenet):
-    #     masks = mask_generator.generate()
-    #
-    #     shape = (224, 224)
-    #     output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
-    #
-    #     for i in range(batch_size):
-    #         imagenet.submit_predictions(
-    #             i,
-    #             imagenet.extract_top1(output[i]),
-    #             imagenet.extract_top5(output[i])
-    #         )
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+    run_pytorch(**vars(parser.parse()))

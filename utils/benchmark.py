@@ -103,8 +103,8 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     end of dataset.
 
     :param single_pass_func: python function that:
-        1. sets input tensor,
-        2. invokes the run by a call to runner,
+        1. pre_processes input, sets input tensor
+        2. invokes the run by a call to runner
         3. post-processes the output
     :param runner: python class providing the unified runner facilities
     :param dataset: python class providing the unified dataset facilities
@@ -120,21 +120,25 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
+    if os.environ.get("WARM_UP_ONLY") == "1":
+        single_pass_func(runner, dataset)
+        sys.exit(0)
+
     start = time.time()
     try:
-        if os.environ.get("WARM_UP_ONLY") == "1":
-            single_pass_func(runner, dataset)
-            sys.exit(0)
-
         if num_runs is None:
-            single_pass_func(runner, dataset)
+            pbar = tqdm(total=int(timeout))
             while time.time() - start < timeout:
+                pbar.n = (time.time() - start) // timeout
+                pbar.refresh()
                 single_pass_func(runner, dataset)
+            pbar.close()
         else:
             for _ in tqdm(range(num_runs)):
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
+        if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+            assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
             if dataset.reset():
                 return run_model(
                     single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
