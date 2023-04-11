@@ -83,7 +83,7 @@ pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
    filelock==3.6.0 \
    future==0.18.2 \
-   huggingface-hub==0.5.1 \
+   huggingface-hub==0.13.4 \
    joblib==1.1.0 \
    kiwisolver==1.4.2 \
    matplotlib==3.5.1 \
