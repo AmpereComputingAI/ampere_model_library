@@ -74,7 +74,7 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
-   transformers==4.18.0 \
+   transformers==4.27.4 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97
