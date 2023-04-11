@@ -77,7 +77,8 @@ pip3 install --no-deps --upgrade \
    transformers==4.27.4 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
-   sentencepiece==0.1.97
+   sentencepiece==0.1.97 \
+   tiktoken==0.3.3
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
