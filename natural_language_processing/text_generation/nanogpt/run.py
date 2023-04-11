@@ -9,6 +9,7 @@ from utils.nlp.lambada import Lambada
 from nanoGPT.model import GPT
 from utils.misc import print_goodbye_message_and_die
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Run karpathy/nanoGPT with small modifications.")
     parser.add_argument("-m", "--model_name",
@@ -57,8 +58,10 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
     run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze, **kwargs)
+
 
 def main():
     args = parse_args()

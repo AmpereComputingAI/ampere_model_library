@@ -1,8 +1,9 @@
+import re
 import string
 from collections import Counter
 
 import utils.misc as utils
-import re
+
 
 class Lambada:
     """
@@ -34,7 +35,6 @@ class Lambada:
         with open(self.__dataset, encoding="utf-8") as f:
             for line in f:
                 yield line
-
 
     def __load_next_inputs_maybe(self):
         """

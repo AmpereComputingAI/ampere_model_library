@@ -26,7 +26,7 @@ export AIO_NUM_THREADS=1
 For the best experience we also recommend setting environment variables as specified below.
 
 ```
-export LAMBADA_PATH=/path/to/dataset.txt
+export LAMBADA_PATH=/path/to/lambada_test_plain_text.txt
 ```
 
 Now you are able to run the run.py script.
