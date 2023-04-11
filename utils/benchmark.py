@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-
+import csv
+import json
 import os
 import sys
 import time
@@ -155,6 +156,8 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
         utils.print_goodbye_message_and_die(
             "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
+    dump_csv_results(start_times, finish_times, batch_size, warm_up_runs)
+
     if num_runs <= warm_up_runs:
         if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
             sys.exit(0)
@@ -192,3 +195,14 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             "median_throughput": median_throughput,
             "90th_percentile_throughput": percentile_90th_throughput
         }
+
+
+def dump_csv_results(start_times, finish_times, batch_size, warm_up_runs=2):
+    dump_dir = os.environ.get("RESULTS_DIR")
+    if dump_dir is not None and len(start_times) > warm_up_runs:
+        with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
+            json.dump({"batch_size": batch_size}, f)
+        with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(start_times[warm_up_runs:])
+            writer.writerow(finish_times[warm_up_runs:])

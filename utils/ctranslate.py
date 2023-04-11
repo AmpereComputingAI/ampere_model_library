@@ -1,6 +1,3 @@
-import csv
-import json
-import os
 import time
 
 import ctranslate2
@@ -21,7 +18,10 @@ class CTranslateRunner:
         # except AttributeError:
         #     utils.advertise_aio("CTranslate2")
 
-        self.translator = ctranslate2.Translator(model, device='cpu', compute_type=compute_type, inter_threads=1, intra_threads=bench_utils.get_intra_op_parallelism_threads())
+        self.translator = ctranslate2.Translator(
+            model, device='cpu', compute_type=compute_type,
+            inter_threads=1, intra_threads=bench_utils.get_intra_op_parallelism_threads()
+        )
         self.tokenizer = sentencepiece.SentencePieceProcessor(tokenizer)
 
         self.__times_invoked = 0
@@ -49,19 +49,9 @@ class CTranslateRunner:
         A function printing performance metrics on runs executed by the runner so far.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        perf = bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
-
-        dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None and len(self.__start_times) > 2:
-            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
-                json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(self.__start_times[2:])
-                writer.writerow(self.__finish_times[2:])
         
         if self.is_profiling:
             self.translator.dump_profiling()
 
-        return perf
+        return bench_utils.print_performance_metrics(
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)

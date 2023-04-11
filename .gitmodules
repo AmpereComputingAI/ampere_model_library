@@ -4,3 +4,6 @@
 [submodule "utils/recommendation/dlrm"]
 	path = utils/recommendation/dlrm
 	url = https://github.com/AmpereComputingAI/dlrm.git
+[submodule "computer_vision/semantic_segmentation/segment_anything/segment-anything"]
+	path = computer_vision/semantic_segmentation/segment_anything/segment_anything
+	url = https://github.com/facebookresearch/segment-anything.git

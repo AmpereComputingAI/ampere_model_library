@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import csv
-import json
 import torch
 import utils.misc as utils
 import time
@@ -34,7 +32,8 @@ class PyTorchRunner:
         if disable_jit_freeze:
             if AIO:
                 utils.print_warning_message(
-                    f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere optimizations are not expected to work.")
+                    f"Running with disable_jit_freeze={disable_jit_freeze} - "
+                    f"Ampere optimizations are not expected to work.")
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self.__model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
@@ -44,7 +43,7 @@ class PyTorchRunner:
             else:
                 try:
                     if skip_script:
-                        raise SkipScript 
+                        raise SkipScript
                     self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model))
                 except (torch.jit.frontend.UnsupportedNodeError, SkipScript):
                     self.__frozen_script = torch.jit.freeze(torch.jit.trace(self.__model, example_inputs))
@@ -109,19 +108,96 @@ class PyTorchRunner:
             self.__start_times, self.__finish_times, self.__times_invoked, batch_size
         )
 
-        dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None and len(self.__start_times) > 2:
-            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
-                json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(self.__start_times[2:])
-                writer.writerow(self.__finish_times[2:])
+        bench_utils.dump_csv_results(batch_size, self.__start_times, self.__finish_times)
 
         if self.__is_profiling:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
         return perf
+
+
+class PyTorchRunnerV2:
+    def __init__(self, model):
+        try:
+            torch._C._aio_profiler_print()
+            utils.print_warning_message(
+                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+        except AttributeError:
+            utils.advertise_aio("Torch")
+
+        torch.set_num_threads(bench_utils.get_intra_op_parallelism_threads())
+        self._model = model
+        self._model.eval()
+
+        self._do_profile = aio_profiler_enabled()
+
+        self._times_invoked = 0
+        self._start_times = list()
+        self._finish_times = list()
+
+        print("\nRunning with PyTorch\n")
+
+    def run(self, *args, **kwargs):
+        """
+        A function assigning values to input tensor, executing single pass over the network, measuring the time needed
+        and finally returning the output.
+        :return: dict, output dictionary with tensor names and corresponding output
+        """
+
+        def runner_func():
+            start = time.time()
+            output = self._model(*args, **kwargs)
+            finish = time.time()
+
+            self._start_times.append(start)
+            self._finish_times.append(finish)
+            self._times_invoked += 1
+
+            return output
+
+        with torch.no_grad():
+            if self._do_profile:
+                with profile() as self._profile:
+                    return runner_func()
+            else:
+                return runner_func()
+
+    def print_performance_metrics(self, batch_size):
+        if self._do_profile:
+            print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
+            torch._C._aio_profiler_print()
+        return bench_utils.print_performance_metrics(
+            self._start_times, self._finish_times, self._times_invoked, batch_size
+        )
+
+
+def check_if_cached(model):
+    cached_dir = Path(os.path.dirname(os.path.realpath(__file__)), "torch_jit_cache")
+    if not cached_dir.exists():
+        cached_dir.mkdir()
+    cached_path = cached_dir / f"{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
+    return cached_path.exists(), cached_path
+
+
+def load_from_cache_or_apply(model, conversion):
+    is_cached, cached_path = check_if_cached(model)
+    if is_cached:
+        print(f"Loading from cache ...")
+        return torch.jit.load(cached_path)
+    else:
+        model = torch.jit.freeze(conversion())
+        torch.jit.save(model, cached_path)
+        print(f"Cached at {cached_path}")
+        return model
+
+
+def apply_jit_script(model):
+    return load_from_cache_or_apply(model, lambda: torch.jit.script(model))
+
+
+def apply_jit_trace(model, example_inputs):
+    return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
+
 
 class SkipScript(Exception):
     pass

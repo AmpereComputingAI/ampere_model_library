@@ -2,10 +2,8 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
-import csv
 import onnxruntime as ort
 import time
-import json
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
 
@@ -57,8 +55,6 @@ class OrtRunner:
         A function printing performance metrics on runs executed by the runner so far.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        perf = bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
@@ -67,13 +63,5 @@ class OrtRunner:
                 os.makedirs("profiler_output/ort/")
             os.replace(prof, f"profiler_output/ort/{prof}")
 
-        dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None and len(self.__start_times) > 2:
-            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
-                json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(self.__start_times[2:])
-                writer.writerow(self.__finish_times[2:])
-
-        return perf
+        return bench_utils.print_performance_metrics(
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
