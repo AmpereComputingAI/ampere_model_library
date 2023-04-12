@@ -7,3 +7,6 @@
 [submodule "computer_vision/semantic_segmentation/segment_anything/segment-anything"]
 	path = computer_vision/semantic_segmentation/segment_anything/segment_anything
 	url = https://github.com/facebookresearch/segment-anything.git
+[submodule "natural_language_processing/text_generation/nanogpt/nanoGPT"]
+	path = natural_language_processing/text_generation/nanogpt/nanoGPT
+	url = git@github.com:dkupnicki/nanoGPT.git

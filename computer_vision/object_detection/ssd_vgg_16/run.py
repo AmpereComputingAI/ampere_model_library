@@ -51,7 +51,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
     def run_single_pass(pytorch_runner, coco):
         shape = (300, 300)
         output = pytorch_runner.run(coco.get_input_array(shape))
-        if not disable_jit_freeze:
+        if not disable_jit_freeze and not os.environ.get("TORCH_COMPILE") == "1":
             output = output[1]
 
         for i in range(batch_size):
