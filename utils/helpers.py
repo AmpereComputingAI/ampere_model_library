@@ -20,6 +20,9 @@ class DefaultArgParser:
         self.parser.add_argument("--num_runs", type=int,
                                  help="number of inference calls to execute")
 
+    def add_argument(self, *args, **kwargs):
+        self.parser.add_argument(*args, **kwargs)
+
     def require_model_path(self):
         self.parser.add_argument("-m", "--model_path", type=str, required=True)
 

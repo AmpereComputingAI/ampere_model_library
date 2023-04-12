@@ -129,7 +129,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         if num_runs is None:
             pbar = tqdm(total=int(timeout))
             while time.time() - start < timeout:
-                pbar.n = (time.time() - start) // timeout
+                pbar.n = int(time.time() - start)
                 pbar.refresh()
                 single_pass_func(runner, dataset)
             pbar.close()

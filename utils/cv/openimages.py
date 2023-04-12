@@ -4,10 +4,10 @@
 import json
 import pathlib
 import utils.misc as utils
-from utils.cv.object_detection import ObjectDetectionDataset
+from utils.cv.coco import COCOBaseDataset
 
 
-class OpenImagesDataset(ObjectDetectionDataset):
+class OpenImagesDataset(COCOBaseDataset):
     """
     A class providing facilities to measure accuracy of object detection models trained on OpenImages dataset.
     """
