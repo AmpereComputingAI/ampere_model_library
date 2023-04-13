@@ -41,48 +41,50 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip ffmpeg libsm6 libxext6 wget
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget
+PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
+PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
+if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
+	apt-get -y install "python${PYTHON_VERSION}-dev"
+fi
+log "done.\n"
+
+log "Setup LD_PRELOAD ..."
+sleep 1
+if [ "${ARCH}" = "aarch64" ]; then
+   python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
+   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
+   echo "LD_PRELOAD=$LD_PRELOAD"
+fi
+export LD_PRELOAD=$LD_PRELOAD
 log "done.\n"
 
 log "Installing python dependencies ..."
 sleep 1
-if [ "${ARCH}" == "aarch64" ]; then
-   PYTHON3_VERSION=$( pip3 --version )
-   if echo "$PYTHON3_VERSION" | grep -q "(python 3.8)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp38-cp38-linux_aarch64.whl
-   elif echo "$PYTHON3_VERSION" | grep -q "(python 3.9)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64-2.1.1-cp39-cp39-linux_aarch64.whl
-   elif echo "$PYTHON3_VERSION" | grep -q "(python 3.10)"; then
-      pip3 install --no-deps --upgrade \
-         https://nexusai.amperecomputing.com/repository/pypi-public/packages/simpleitk-aarch64/2.1.1/SimpleITK_aarch64_precompiled-2.1.1-cp310-cp310-linux_aarch64.whl
-   else
-      log "\nThis script requires python >=3.8! Quitting."
-      exit 1
-   fi
-else
-   pip3 install --no-deps --upgrade SimpleITK==2.1.1
-fi
 # direct dependencies
 pip3 install --no-deps --upgrade \
+   SimpleITK==2.2.1 \
    batchgenerators==0.21 \
    medpy==0.4.0 \
    nibabel==3.2.2 \
-   "numpy>=1.22.3" \
+   "numpy<1.24.0" \
    opencv-python==4.5.5.64 \
    pandas==1.4.2 \
    pycocotools==2.0.4 \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
-   transformers==4.18.0 \
-   tqdm==4.64.0
+   tifffile==2023.1.23.1 \
+   transformers==4.27.4 \
+   tqdm==4.64.0 \
+   sacrebleu==2.3.1 \
+   sentencepiece==0.1.97 \
+   tiktoken==0.3.3
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
    filelock==3.6.0 \
    future==0.18.2 \
-   huggingface-hub==0.5.1 \
+   huggingface-hub==0.13.4 \
    joblib==1.1.0 \
    kiwisolver==1.4.2 \
    matplotlib==3.5.1 \
@@ -98,7 +100,13 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.12.1
+   tokenizers==0.12.1 \
+   tabulate==0.9.0 \
+   regex==2022.3.15 \
+   portalocker==2.6.0 \
+   lxml==4.9.2 \
+   colorama==0.4.6
+
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
 

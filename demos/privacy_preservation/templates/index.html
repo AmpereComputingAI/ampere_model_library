@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <title>Privacy Preservation with People and Face Tracking</title>
+</head>
+<body>
+    <img src="{{url_for('static', filename='ampere_logo_®_primary_stacked_rgb 200x30.jpg')}}" width="300" style="float:right">
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8  offset-lg-2">
+            <h3 class="mt-5">Privacy Preservation with People and Face Tracking</h3>
+            <img src="{{ url_for('video_feed') }}" width=720>
+        </div>
+        <form action="/getfile" method="POST" enctype="multipart/form-data">
+            <input type="file" name="videoSrc" accept="video/*"><br>
+            <input type="submit" value="Submit" name="getfile">
+        </form>
+        <div>
+            <form action="/webcam" method="post">
+                <button name="webcamBtn" type="submit">Webcam</button>
+            </form>
+            <form action="/reset" method="post">
+                <button name="resetBtn" type="submit">Reset</button>
+            </form>
+        </div>
+        <div>
+            <form action="/faces" method="post">
+                <button name="facesBtn" type="submit">Change Mode</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div style="text-align: center;">
+    <img src="{{url_for('static', filename='demo_banner.png')}}" width="800">
+</div>
+</body>
+</html>
