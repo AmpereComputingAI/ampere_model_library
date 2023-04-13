@@ -12,9 +12,8 @@ from google.protobuf import text_format
 from tensorflow.python.framework import ops
 from tensorflow.core.framework import graph_pb2
 
-import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
-# tf.compat.v1.disable_eager_execution()
+import utils.benchmark as bench_utils
 
 
 class TFProfiler:
@@ -108,10 +107,7 @@ class TFFrozenModelRunner:
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        if isinstance(input_name, str):
-            self.__feed_dict[self.graph.get_tensor_by_name(input_name)] = input_array
-        elif isinstance(input_name, list):
-            self.__feed_dict = dict(zip([self.graph.get_tensor_by_name(name) for name in input_name], input_array))
+        self.__feed_dict[self.graph.get_tensor_by_name(input_name)] = input_array
 
     def run(self):
         """
