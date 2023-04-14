@@ -16,7 +16,7 @@ log "Checking if setup has been completed ..."
 sleep 1
 if ! [ -f "$SCRIPT_DIR/.setup_completed" ]; then
    log "\nPlease complete setup first by running: 'bash setup_deb.sh'! Quitting."
-   exit 1
+   return
 fi
 log "done.\n"
 
