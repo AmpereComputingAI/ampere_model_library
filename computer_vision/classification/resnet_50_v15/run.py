@@ -5,7 +5,7 @@ import argparse
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
@@ -14,7 +14,7 @@ def parse_args():
                         type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32", "fp16", "int8"], required=True,
+                        type=str, choices=["fp32", "bf16", "fp16", "int8"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -38,7 +38,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, imagenet):
@@ -79,8 +79,8 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
-  
-  
+
+
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.ort import OrtRunner
 
@@ -104,23 +104,29 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 
 def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+    return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+    return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+
+
+def run_tf_bf16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
-  
+
 def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
@@ -130,6 +136,8 @@ def main():
             run_tf_fp32(**vars(args))
         elif args.precision == "fp16":
             run_tf_fp16(**vars(args))
+        elif args.precision == "bf16":
+            run_tf_bf16(**vars(args))
         elif args.precision == "int8":
             run_tflite_int8(**vars(args))
         else:
@@ -140,13 +148,13 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
-            
+
         if args.precision == "fp16":
             run_ort_fp16(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
-            
+
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

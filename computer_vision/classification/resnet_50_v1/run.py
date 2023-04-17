@@ -11,7 +11,7 @@ from tensorflow.python.saved_model import tag_constants
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
@@ -154,13 +154,25 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
 
-        if args.precision == "fp32":
+        elif args.precision == "fp32":
             run_tf_fp32(**vars(args))
+        elif args.precision == "int8":
+            run_tflite_int8(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    if args.framework == "tflite":
+        if args.model_path is None:
+            print_goodbye_message_and_die(
+                "a path to model is unspecified!")
         elif args.precision == "int8":
             run_tflite_int8(**vars(args))
         else:

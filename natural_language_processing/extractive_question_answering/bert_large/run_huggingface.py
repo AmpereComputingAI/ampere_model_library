@@ -9,13 +9,14 @@ from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
 
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
-                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad"], required=True,
+                        type=str, choices=["bert-large-uncased-whole-word-masking-finetuned-squad",
+                                           "bert-large-cased-whole-word-masking-finetuned-squad"], required=True,
                         help="name of the model")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
@@ -53,7 +54,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def tokenize(question, text):
-        return tokenizer(question, text, add_special_tokens=True)
+        return tokenizer(question, text, padding=True, pad_to_multiple_of=64, truncation=True)
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
@@ -62,11 +63,18 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     runner = TFSavedModelRunner()
     runner.model = tf.function(TFAutoModelForQuestionAnswering.from_pretrained(model_name))
 
+    for warmup_input in dataset.generate_warmup_runs(64, tokenizer.model_max_length):
+        runner.model(warmup_input)
+
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+    return run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
 
 def main():
     args = parse_args()
+    download_squad_1_1_dataset()
+
     if args.framework == "tf":
         run_tf(**vars(args))
     else:

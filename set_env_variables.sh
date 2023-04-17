@@ -16,7 +16,7 @@ log "Checking if setup has been completed ..."
 sleep 1
 if ! [ -f "$SCRIPT_DIR/.setup_completed" ]; then
    log "\nPlease complete setup first by running: 'bash setup_deb.sh'! Quitting."
-   exit 1
+   return
 fi
 log "done.\n"
 
@@ -34,10 +34,10 @@ sleep 1
 ARCH=$( uname -m )
 if [ "${ARCH}" = "aarch64" ]; then
    python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=$(<$SCRIPT_DIR/utils/setup/.ld_preload)
-   export LD_PRELOAD=$LD_PRELOAD
+   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
+export LD_PRELOAD=$LD_PRELOAD
 export PYTHONPATH=$SCRIPT_DIR
 echo "PYTHONPATH=$PYTHONPATH"
 log "done.\n"

@@ -1,6 +1,9 @@
 [submodule "utils/cv/nnUNet"]
 	path = utils/cv/nnUNet
-	url = git@github.com:MIC-DKFZ/nnUNet.git
+	url = https://github.com/MIC-DKFZ/nnUNet.git
 [submodule "utils/recommendation/dlrm"]
 	path = utils/recommendation/dlrm
-	url = git@github.com:OnSpecta/dlrm.git
+	url = https://github.com/AmpereComputingAI/dlrm.git
+[submodule "natural_language_processing/text_generation/nanogpt/nanoGPT"]
+	path = natural_language_processing/text_generation/nanogpt/nanoGPT
+	url = git@github.com:dkupnicki/nanoGPT.git

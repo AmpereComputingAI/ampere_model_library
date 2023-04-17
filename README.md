@@ -28,10 +28,9 @@ docker image ls -a
 ## AML setup
 
 ```bash
-git clone git@github.com:AmpereComputingAI/ampere_model_library.git
+git clone --recursive https://github.com/AmpereComputingAI/ampere_model_library.git
 cd ampere_model_library
-git submodule update --init --recursive
-docker run --privileged=true --name ampere_framework -v ./:/aml -it ampere_framework_image
+docker run --privileged=true --name ampere_framework -v $PWD/:/aml -it ampere_framework_image
 ```
 
 Now you should be inside the docker, to setup AML please run:

@@ -2,7 +2,10 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
+import sys
 import time
+import statistics
+import numpy as np
 import utils.misc as utils
 from tqdm.auto import tqdm
 
@@ -118,6 +121,10 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
 
     start = time.time()
     try:
+        if os.environ.get("WARM_UP_ONLY") == "1":
+            single_pass_func(runner, dataset)
+            sys.exit(0)
+
         if num_runs is None:
             single_pass_func(runner, dataset)
             while time.time() - start < timeout:
@@ -134,27 +141,54 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
 
-def print_performance_metrics(
-        warm_up_run_latency: float, total_inference_time: float, num_runs: int, batch_size: int):
+def print_performance_metrics(start_times: list, finish_times: list, num_runs: int, batch_size: int, warm_up_runs=2):
     """
     A function printing two performance metrics: latency and throughput.
 
-    :param warm_up_run_latency: float, warm up latency expressed in seconds
-    :param total_inference_time: float, total inference time expressed in seconds
+    :param start_times: list, list with timestamps at which inference was called
+    :param finish_times: list, list with timestamps at which results of inference were returned
     :param num_runs: int, number of runs completed
     :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
+    :param warm_up_runs: int, number of warm-up runs to exclude from final metrics
     """
     if num_runs == 0:
-        utils.print_goodbye_message_and_die("Cannot print performance data as not a single run has been completed!")
+        utils.print_goodbye_message_and_die(
+            "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
-    if num_runs == 1:
-        utils.print_warning_message("Printing performance data based just on a single (warm-up) run!")
-        latency_in_seconds = warm_up_run_latency
+    if num_runs <= warm_up_runs:
+        if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
+            sys.exit(0)
+        utils.print_goodbye_message_and_die(
+            "Cannot print performance data as only warm-up run(s) have been completed! Increase the timeout.")
     else:
-        latency_in_seconds = (total_inference_time - warm_up_run_latency) / (num_runs - 1)
+        assert len(start_times) == len(finish_times) == num_runs
 
-    latency_in_ms = latency_in_seconds * 1000
-    instances_per_second = batch_size / latency_in_seconds
-    print("\n Latency: {:.0f} ms".format(latency_in_ms))
-    print(" Throughput: {:.2f} ips\n".format(instances_per_second))
-    return {"lat_ms": latency_in_ms, "throughput": instances_per_second}
+        latencies = []
+        for i in range(warm_up_runs, num_runs):
+            latencies.append(finish_times[i] - start_times[i])
+
+        mean_latency_sec = statistics.mean(latencies)
+        median_latency_sec = statistics.median(latencies)
+        percentile_90th_latency_sec = np.percentile(latencies, 90)
+
+        mean_latency_ms = mean_latency_sec * 1000
+        median_latency_ms = median_latency_sec * 1000
+        percentile_90th_latency_ms = percentile_90th_latency_sec * 1000
+        mean_throughput = batch_size / mean_latency_sec
+        median_throughput = batch_size / median_latency_sec
+        percentile_90th_throughput = batch_size / percentile_90th_latency_sec
+
+        print("\n                               mean  /      median  / 90th-percentile")
+        print(" Latency           [ms]: {:>10.2f}  /  {:>10.2f}  /  {:>10.2f}".format(
+            mean_latency_ms, median_latency_ms, percentile_90th_latency_ms))
+        print(" Throughput [samples/s]: {:>10.2f}  /  {:>10.2f}  /  {:>10.2f}\n".format(
+            mean_throughput, median_throughput, percentile_90th_throughput))
+
+        return {
+            "mean_lat_ms": mean_latency_ms,
+            "median_lat_ms": median_latency_ms,
+            "90th_percentile_lat_ms": percentile_90th_latency_ms,
+            "mean_throughput": mean_throughput,
+            "median_throughput": median_throughput,
+            "90th_percentile_throughput": percentile_90th_throughput
+        }

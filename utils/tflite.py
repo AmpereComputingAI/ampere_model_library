@@ -4,6 +4,7 @@
 import os
 import csv
 import time
+import json
 import tensorflow as tf
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
@@ -13,6 +14,7 @@ class TFLiteRunner:
     """
     A class providing facilities to run TensorFlow Lite model (in .tflite format).
     """
+
     def __init__(self, path_to_model: str):
         """
         A function initializing runner.
@@ -30,10 +32,8 @@ class TFLiteRunner:
         self.__interpreter.allocate_tensors()
         self.input_details = self.__interpreter.get_input_details()
         self.output_details = self.__interpreter.get_output_details()
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
-        self.__times_invoked = 0
 
+        self.__times_invoked = 0
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -66,13 +66,10 @@ class TFLiteRunner:
         start = time.time()
         self.__interpreter.invoke()
         finish = time.time()
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+
         self.__times_invoked += 1
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
 
     def print_performance_metrics(self, batch_size):
         """
@@ -81,15 +78,17 @@ class TFLiteRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
 
         dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None:
+        if dump_dir is not None and len(self.__start_times) > 2:
+            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
-                writer.writerow(self.__start_times)
-                writer.writerow(self.__finish_times)
+                writer.writerow(self.__start_times[2:])
+                writer.writerow(self.__finish_times[2:])
 
         return perf

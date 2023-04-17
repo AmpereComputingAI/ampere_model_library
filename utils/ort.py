@@ -5,6 +5,7 @@ import os
 import csv
 import onnxruntime as ort
 import time
+import json
 import utils.benchmark as bench_utils
 from utils.misc import advertise_aio
 
@@ -30,10 +31,7 @@ class OrtRunner:
         self.__feed_dict = dict()
         self.__output_names = [output.name for output in self.session.get_outputs()]
 
-        self.__warm_up_run_latency = 0.0
-        self.__total_inference_time = 0.0
         self.__times_invoked = 0
-
         self.__start_times = list()
         self.__finish_times = list()
 
@@ -45,12 +43,8 @@ class OrtRunner:
         outputs = self.session.run(self.__output_names, self.__feed_dict)
         finish = time.time()
 
-        self.__total_inference_time += finish - start
-        if self.__times_invoked == 0:
-            self.__warm_up_run_latency += finish - start
-        else:
-            self.__start_times.append(start)
-            self.__finish_times.append(finish)
+        self.__start_times.append(start)
+        self.__finish_times.append(finish)
         self.__times_invoked += 1
 
         return outputs
@@ -64,7 +58,7 @@ class OrtRunner:
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         perf = bench_utils.print_performance_metrics(
-            self.__warm_up_run_latency, self.__total_inference_time, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
@@ -74,10 +68,12 @@ class OrtRunner:
             os.replace(prof, f"profiler_output/ort/{prof}")
 
         dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None:
+        if dump_dir is not None and len(self.__start_times) > 2:
+            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
+                json.dump({"batch_size": batch_size}, f)
             with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
                 writer = csv.writer(f)
-                writer.writerow(self.__start_times)
-                writer.writerow(self.__finish_times)
+                writer.writerow(self.__start_times[2:])
+                writer.writerow(self.__finish_times[2:])
 
         return perf

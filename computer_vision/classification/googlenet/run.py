@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
+import os
 import warnings
 
 import torch
@@ -9,7 +10,7 @@ import torchvision
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die
+from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 warnings.filterwarnings("ignore")
 
 
@@ -48,7 +49,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
         output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
-        if not disable_jit_freeze:
+        if not disable_jit_freeze and not os.environ.get("TORCH_COMPILE") == "1":
             output = output[0]
 
         for i in range(batch_size):
@@ -72,6 +73,9 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, lab
 
 def main():
     args = parse_args()
+    download_ampere_imagenet()
+
+
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(model_name="googlenet", **vars(args))
