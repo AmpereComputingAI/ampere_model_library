@@ -157,11 +157,7 @@ def main():
     download_ampere_imagenet()
 
     if args.framework == "tf":
-        if args.model_path is None:
-            print_goodbye_message_and_die(
-                "a path to model is unspecified!")
-
-        elif args.precision == "fp32":
+        if args.precision == "fp32":
             run_tf_fp32(**vars(args))
         elif args.precision == "int8":
             run_tflite_int8(**vars(args))
