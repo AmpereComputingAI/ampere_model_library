@@ -151,3 +151,29 @@ def download_ampere_imagenet():
 
     os.environ["IMAGENET_IMG_PATH"] = str(dataset)
     os.environ["IMAGENET_LABELS_PATH"] = str(labels)
+
+
+def download_coco_dataset():
+    from utils.downloads.utils import get_downloads_path
+    labels_link = "http://images.cocodataset.org/annotations/annotations_trainval2014.zip"
+    images_link = "http://images.cocodataset.org/zips/val2014.zip"
+    coco_data = pathlib.Path(get_downloads_path(), "coco")
+
+    if not pathlib.Path(coco_data).is_dir():
+        try:
+            subprocess.run(["wget", labels_link])
+            subprocess.run(["wget", images_link])
+            subprocess.run(["mkdir", coco_data])
+            subprocess.run(["unzip", 'annotations_trainval2014.zip', '-d', coco_data])
+            subprocess.run(["unzip", 'val2014.zip', '-d', coco_data])
+        except KeyboardInterrupt:
+            subprocess.run(["rm", 'val2014.zip'])
+            subprocess.run(["rm", 'annotations_trainval2014.zip'])
+    else:
+        pass
+
+    dataset = pathlib.Path(coco_data, 'val2014')
+    labels = pathlib.Path(coco_data, 'annotations', 'instances_val2014.json')
+
+    os.environ["COCO_IMG_PATH"] = str(dataset)
+    os.environ["COCO_ANNO_PATH"] = str(labels)
