@@ -4,7 +4,7 @@
 import argparse
 
 from utils.benchmark import run_model
-from utils.recommendation.widedeep import WideDeep
+from recommendation.widedeep.widedeep import WideDeep
 from utils.misc import print_goodbye_message_and_die
 from recommendation.widedeep.dataset import download_widedeep_processed_data
 
