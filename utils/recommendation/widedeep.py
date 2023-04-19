@@ -33,14 +33,16 @@ class WideDeep:
                     env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
 
         self.tfrecords_path = tfrecords_path
-        self.dataset_path = dataset_path
+        # self.dataset_path = dataset_path
+        self.dataset_path = self.unpickle(dataset_path)
         self.current_feature = 0
         self.correct = 0
         self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(
             self.tfrecords_path))
 
+        # assert self.dataset_path is not None, f"path to dataset is None"
         if self.batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
-            self.features_list = self.unpickle()
+            self.features_list = self.dataset_path
 
         else:
             self.no_of_batches = math.ceil(float(self.available_instances / self.batch_size))
@@ -96,8 +98,8 @@ class WideDeep:
 
         return features_list
 
-    def unpickle(self):
-        file = bz2.BZ2File(self.dataset_path, 'rb')
+    def unpickle(self, dataset_path):
+        file = bz2.BZ2File(dataset_path, 'rb')
         features_list = pickle.load(file)
         file.close()
         return features_list
