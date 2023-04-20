@@ -3,9 +3,13 @@
 
 import argparse
 
+import tensorflow as tf
+from tensorflow.python.framework import ops
+from tensorflow.core.framework import graph_pb2
+
 from utils.benchmark import run_model
-from recommendation.widedeep.widedeep import WideDeep
 from utils.misc import print_goodbye_message_and_die
+from recommendation.widedeep.widedeep import WideDeep
 from recommendation.widedeep.dataset import download_widedeep_processed_data
 
 
@@ -37,10 +41,31 @@ def parse_args():
     parser.add_argument("--tfrecords_path",
                         type=str,
                         help="path to a tfrecords file")
+    args = parser.parse_args()
+    if args.framework == "tf" and args.model_path is None:
+        parser.error(f"You need to specify the model path when using {args.framework} framework.")
     return parser.parse_args()
 
 
-def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path):
+def initialize_graph(path_to_model: str):
+    """
+    A function initializing TF graph from frozen .pb model.
+    :param path_to_model: str
+    :return: TensorFlow graph
+    """
+
+    graph = ops.Graph()
+    graph_def = graph_pb2.GraphDef()
+
+    with graph.as_default():
+        with tf.compat.v1.gfile.GFile(path_to_model, 'rb') as fid:
+            serialized_graph = fid.read()
+            graph_def.ParseFromString(serialized_graph)
+            tf.import_graph_def(graph_def)
+    return graph
+
+
+def run_tf_fp(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path):
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, widedeep):
@@ -49,15 +74,15 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords
         output = tf_runner.run()
         widedeep.submit_predictions(output)
 
-    runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], True)
+    runner = TFFrozenModelRunner(model_path, ["import/import/head/predictions/probabilities:0"], graph)
     dataset = WideDeep(batch_size=batch_size, config=runner.config, runner=runner.graph,
                        dataset_path=dataset_path, tfrecords_path=tfrecords_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path, **kwargs):
-    return run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path)
+def run_tf_fp32(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path, **kwargs):
+    return run_tf_fp(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path)
 
 
 def main():
@@ -70,7 +95,7 @@ def main():
                 "a path to model is unspecified!")
 
         if args.precision == "fp32":
-            run_tf_fp32(**vars(args))
+            run_tf_fp32(initialize_graph(args.model_path), **vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

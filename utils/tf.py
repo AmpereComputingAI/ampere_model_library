@@ -8,9 +8,6 @@ import json
 from datetime import datetime
 
 import tensorflow as tf
-from google.protobuf import text_format
-from tensorflow.python.framework import ops
-from tensorflow.core.framework import graph_pb2
 
 from utils.misc import advertise_aio
 import utils.benchmark as bench_utils
@@ -34,7 +31,7 @@ class TFFrozenModelRunner:
     """
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
     """
-    def __init__(self, path_to_model: str, output_names: list, use_opsgraph=False):
+    def __init__(self, path_to_model: str, output_names: list, graph=None):
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
         Netron app).
@@ -46,7 +43,11 @@ class TFFrozenModelRunner:
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        self.graph = self.__initialize_graph(path_to_model, use_opsgraph)
+        if graph is not None:
+            self.graph = graph
+        else:
+            self.graph = self.__initialize_graph(path_to_model)
+
         self.config = self.__create_config(bench_utils.get_intra_op_parallelism_threads())
         self.__sess = tf.compat.v1.Session(
             config=self.config,
@@ -82,23 +83,14 @@ class TFFrozenModelRunner:
         :param path_to_model: str
         :return: TensorFlow graph
         """
-        if use_opsgraph:
-            graph = ops.Graph()
-            graph_def = graph_pb2.GraphDef()
 
-        else:
-            graph = tf.compat.v1.Graph()
-            graph_def = tf.compat.v1.GraphDef()
-
+        graph = tf.compat.v1.Graph()
         with graph.as_default():
+            graph_def = tf.compat.v1.GraphDef()
             with tf.compat.v1.gfile.GFile(path_to_model, 'rb') as fid:
                 serialized_graph = fid.read()
                 graph_def.ParseFromString(serialized_graph)
-                if use_opsgraph:
-                    tf.import_graph_def(graph_def)
-                else:
-                    tf.compat.v1.import_graph_def(graph_def, name="")
-
+                tf.compat.v1.import_graph_def(graph_def, name="")
         return graph
 
     def set_input_tensor(self, input_name, input_array):
