@@ -9,39 +9,39 @@ The original documentation of the model is available here: https://docs.ultralyt
 
 ### Metrics
 
-Based on 1000 images from COCO Dataset for YOLOv5n model in ONNX Runtime framework in fp32 precision
+Based on 1000 images from COCO Dataset for YOLOv5s model in PyTorch framework in fp32 precision
 
 | Metric                  | IoU       | Area   | maxDets |Score  |
 |:---:                    |:---:      |:---:   |:---:    |:---:  |
-| Average Precision  (AP) |0.50:0.95 |    all | 100 | |
-| Average Precision  (AP) |0.50      |    all | 100 | |
-| Average Precision  (AP) |0.75      |    all | 100 | |
-| Average Precision  (AP) |0.50:0.95 |  small | 100 | |
-| Average Precision  (AP) |0.50:0.95 | medium | 100 | |
-| Average Precision  (AP) |0.50:0.95 |  large | 100 | |
-| Average Recall     (AR) |0.50:0.95 |    all |   1 | |
-| Average Recall     (AR) |0.50:0.95 |    all |  10 | |
-| Average Recall     (AR) |0.50:0.95 |    all | 100 | |
-| Average Recall     (AR) |0.50:0.95 |  small | 100 | |
-| Average Recall     (AR) |0.50:0.95 | medium | 100 | |
-| Average Recall     (AR) |0.50:0.95 |  large | 100 | |
+| Average Precision  (AP) |0.50:0.95 |    all | 100 | 0.367 |
+| Average Precision  (AP) |0.50      |    all | 100 | 0.528 |
+| Average Precision  (AP) |0.75      |    all | 100 | 0.406 |
+| Average Precision  (AP) |0.50:0.95 |  small | 100 | 0.206 |
+| Average Precision  (AP) |0.50:0.95 | medium | 100 | 0.421 |
+| Average Precision  (AP) |0.50:0.95 |  large | 100 | 0.473 |
+| Average Recall     (AR) |0.50:0.95 |    all |   1 | 0.276 |
+| Average Recall     (AR) |0.50:0.95 |    all |  10 | 0.409 |
+| Average Recall     (AR) |0.50:0.95 |    all | 100 | 0.417 |
+| Average Recall     (AR) |0.50:0.95 |  small | 100 | 0.225 |
+| Average Recall     (AR) |0.50:0.95 | medium | 100 | 0.470 |
+| Average Recall     (AR) |0.50:0.95 |  large | 100 | 0.530 |
 
-Based on 1000 images from COCO Dataset for YOLOv5x model in ONNX Runtime framework in fp32 precision
+Based on 1000 images from COCO Dataset for YOLOv5s model in ONNX Runtime framework in fp32 precision
 
 | Metric                  | IoU       | Area   | maxDets |Score  |
 |:---:                    |:---:      |:---:   |:---:    |:---:  |
-| Average Precision  (AP) |0.50:0.95 |    all | 100 | |
-| Average Precision  (AP) |0.50      |    all | 100 | |
-| Average Precision  (AP) |0.75      |    all | 100 | |
-| Average Precision  (AP) |0.50:0.95 |  small | 100 | |
-| Average Precision  (AP) |0.50:0.95 | medium | 100 | |
-| Average Precision  (AP) |0.50:0.95 |  large | 100 | |
-| Average Recall     (AR) |0.50:0.95 |    all |   1 | |
-| Average Recall     (AR) |0.50:0.95 |    all |  10 | |
-| Average Recall     (AR) |0.50:0.95 |    all | 100 | |
-| Average Recall     (AR) |0.50:0.95 |  small | 100 | |
-| Average Recall     (AR) |0.50:0.95 | medium | 100 | |
-| Average Recall     (AR) |0.50:0.95 |  large | 100 | |
+| Average Precision  (AP) |0.50:0.95 |    all | 100 | 0.367 |
+| Average Precision  (AP) |0.50      |    all | 100 | 0.528 |
+| Average Precision  (AP) |0.75      |    all | 100 | 0.406 |
+| Average Precision  (AP) |0.50:0.95 |  small | 100 | 0.206 |
+| Average Precision  (AP) |0.50:0.95 | medium | 100 | 0.421 |
+| Average Precision  (AP) |0.50:0.95 |  large | 100 | 0.473 |
+| Average Recall     (AR) |0.50:0.95 |    all |   1 | 0.276 |
+| Average Recall     (AR) |0.50:0.95 |    all |  10 | 0.409 |
+| Average Recall     (AR) |0.50:0.95 |    all | 100 | 0.417 |
+| Average Recall     (AR) |0.50:0.95 |  small | 100 | 0.225 |
+| Average Recall     (AR) |0.50:0.95 | medium | 100 | 0.470 |
+| Average Recall     (AR) |0.50:0.95 |  large | 100 | 0.530 |
 
 
 ### Dataset and model
