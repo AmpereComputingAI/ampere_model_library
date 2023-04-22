@@ -3,7 +3,6 @@
 
 import argparse
 import numpy as np
-# from sklearn.linear_model._base import safe_sparse_dot
 from utils.benchmark import run_model
 from classic_ml.tabular_dataset import TabularDataset
 from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
@@ -55,7 +54,7 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, data_path):
     
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path, optimized):
+def run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path, optimized=False):
     global LinearRegression
     if optimized:
         print('Running in Optimized Mode')
@@ -86,8 +85,8 @@ def run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path, optimiz
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, data_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, data_path)
 
-def run_sklearn_fp32(model_path, batch_size, num_runs, timeout, data_path, optimized, **kwargs):
-    return run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path, optimized)
+def run_sklearn_fp32(model_path, batch_size, num_runs, timeout, data_path, **kwargs):
+    return run_sklearn_fp(model_path, batch_size, num_runs, timeout, data_path, **kwargs)
 
 
 
