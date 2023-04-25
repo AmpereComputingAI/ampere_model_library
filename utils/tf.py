@@ -77,7 +77,7 @@ class TFFrozenModelRunner:
         config.inter_op_parallelism_threads = inter_threads
         return config
 
-    def __initialize_graph(self, path_to_model: str, use_opsgraph=False):
+    def __initialize_graph(self, path_to_model: str):
         """
         A function initializing TF graph from frozen .pb model.
         :param path_to_model: str
