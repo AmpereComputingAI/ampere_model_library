@@ -86,7 +86,6 @@ def run_tf_fp32(graph, model_path, batch_size, num_runs, timeout, dataset_path, 
 
 def main():
     args = parse_args()
-    download_widedeep_processed_data(args.batch_size)
 
     if args.framework == "tf":
         if args.model_path is None:
