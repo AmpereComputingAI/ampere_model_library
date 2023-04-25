@@ -27,7 +27,7 @@ def parse_args():
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["tf", "pytorch", "ort"], required=True,
+                        choices=["tf", "tflite", "pytorch", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -165,7 +165,7 @@ def main():
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
 
-    if args.framework == "tflite":
+    elif args.framework == "tflite":
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
