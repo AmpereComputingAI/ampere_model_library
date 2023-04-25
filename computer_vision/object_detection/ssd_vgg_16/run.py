@@ -77,7 +77,9 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, anno_path, disa
 
 def main():
     args = parse_args()
-    download_coco_dataset()
+
+    if "COCO_IMG_PATH" or "COCO_ANNO_PATH" not in os.environ:
+        download_coco_dataset()
 
     if args.framework == "pytorch":
         if args.precision == "fp32":

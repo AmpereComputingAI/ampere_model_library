@@ -121,7 +121,9 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-    download_coco_dataset()
+
+    if "COCO_IMG_PATH" or "COCO_ANNO_PATH" not in os.environ:
+        download_coco_dataset()
 
     if args.framework == "tf":
         if args.precision == "fp32":
