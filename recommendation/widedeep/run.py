@@ -10,7 +10,6 @@ from tensorflow.core.framework import graph_pb2
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from recommendation.widedeep.widedeep import WideDeep
-from recommendation.widedeep.dataset import download_widedeep_processed_data
 
 
 def parse_args():
