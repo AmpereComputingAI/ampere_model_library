@@ -175,5 +175,8 @@ def download_coco_dataset():
     dataset = pathlib.Path(coco_data, 'val2014')
     labels = pathlib.Path(coco_data, 'annotations', 'instances_val2014.json')
 
-    os.environ["COCO_IMG_PATH"] = str(dataset)
-    os.environ["COCO_ANNO_PATH"] = str(labels)
+    if "COCO_IMG_PATH" not in os.environ:
+        os.environ["COCO_IMG_PATH"] = str(dataset)
+
+    if "COCO_ANNO_PATH" not in os.environ:
+        os.environ["COCO_ANNO_PATH"] = str(labels)
