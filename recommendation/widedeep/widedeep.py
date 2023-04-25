@@ -28,16 +28,10 @@ class WideDeep:
         self.available_instances = sum(1 for _ in tf.compat.v1.python_io.tf_record_iterator(
             self.tfrecords_path))
 
+        self.dataset_path = dataset_path
         self.batch_size = batch_size
-        if self.batch_size in [1, 2, 4, 8, 16, 32, 50, 64, 100, 128, 200, 256]:
-            if dataset_path is None:
-                env_var = "WIDEDEEP_DATASET_PATH"
-                dataset_path = utils.get_env_variable(
-                    env_var, f"Path to widedeep dataset has not been specified with {env_var} flag")
-                self.features_list = self.unpickle(dataset_path)
-        else:
-            self.no_of_batches = math.ceil(float(self.available_instances // self.batch_size))
-            self.features_list = self.get_features_list(config, runner, self.no_of_batches)
+        self.no_of_batches = math.ceil(float(self.available_instances // self.batch_size))
+        self.features_list = self.get_features_list(config, runner, self.no_of_batches)
 
         self.current_feature = 0
         self.correct = 0
