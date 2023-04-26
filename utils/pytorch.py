@@ -117,16 +117,12 @@ class PyTorchRunner:
         return output_tensor
 
     def print_performance_metrics(self, batch_size):
-        perf = bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size
-        )
-
-        bench_utils.dump_csv_results(batch_size, self.__start_times, self.__finish_times)
-
         if self.__is_profiling:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
-        return perf
+        return bench_utils.print_performance_metrics(
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size
+        )
 
 
 class PyTorchRunnerV2:
