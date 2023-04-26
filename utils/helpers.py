@@ -1,11 +1,12 @@
 import argparse
+from typing import List
 
 
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 
 class DefaultArgParser:
-    def __init__(self, supported_frameworks: list[str]):
+    def __init__(self, supported_frameworks: List[str]):
         self.parser = argparse.ArgumentParser(prog=f"AML model-dedicated runner")
 
         if len(supported_frameworks) >= 2:
