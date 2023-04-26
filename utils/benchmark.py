@@ -127,12 +127,11 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     start = time.time()
     try:
         if num_runs is None:
-            pbar = tqdm(total=int(timeout))
-            while time.time() - start < timeout:
-                single_pass_func(runner, dataset)
-                pbar.n = int(min(time.time() - start, timeout))
-                pbar.refresh()
-            pbar.close()
+            with tqdm(total=int(timeout)) as pbar:
+                while time.time() - start < timeout:
+                    single_pass_func(runner, dataset)
+                    pbar.n = int(min(time.time() - start, timeout))
+                    pbar.refresh()
         else:
             for _ in tqdm(range(num_runs)):
                 single_pass_func(runner, dataset)
