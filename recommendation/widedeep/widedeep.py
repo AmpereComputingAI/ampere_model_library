@@ -94,6 +94,8 @@ class WideDeep:
     def get_input_array(self):
 
         try:
+            # self.features_list[self.current_feature] is a tuple object containing input sample and ground truth
+            # :2 indexing is used to extract just the input sample and index 2 contains ground truths.
             input_array = self.features_list[self.current_feature][:2]
         except IndexError:
             raise utils.OutOfInstances("no more features to process")
@@ -113,6 +115,6 @@ class WideDeep:
         run_instances = self.current_feature * self.batch_size
         accuracy = float(self.correct) / float(run_instances)
 
-        print("accuracy = {:.3f}".format(round((accuracy * 100), 4)))
+        print("accuracy = {:.3f}".format((accuracy * 100), 4))
         print("correct predictions = {:.3f}".format(self.correct))
         print("total predictions = {:.3f}".format(run_instances))
