@@ -64,8 +64,9 @@ def initialize_graph(path_to_model: str):
     return graph
 
 
-def run_tf_fp(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path):
+def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path):
     from utils.tf import TFFrozenModelRunner
+    graph = initialize_graph(model_path)
 
     def run_single_pass(tf_runner, widedeep):
         tf_runner.set_input_tensor('import/new_numeric_placeholder:0', widedeep.get_input_array()[0])
@@ -80,8 +81,8 @@ def run_tf_fp(graph, model_path, batch_size, num_runs, timeout, dataset_path, tf
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path, **kwargs):
-    return run_tf_fp(graph, model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path)
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords_path)
 
 
 def main():
@@ -93,7 +94,7 @@ def main():
                 "a path to model is unspecified!")
 
         if args.precision == "fp32":
-            run_tf_fp32(initialize_graph(args.model_path), **vars(args))
+            run_tf_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)

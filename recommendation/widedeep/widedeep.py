@@ -107,9 +107,10 @@ class WideDeep:
         return True
 
     def submit_predictions(self, output_array):
-        predicted_labels = np.argmax(output_array['import/import/head/predictions/probabilities:0'], 1)
-        # self.correct = self.correct + np.sum(self.features_list[self.current_feature][2] == predicted_labels)
-        self.correct += int(self.features_list[self.current_feature][2] == predicted_labels)
+        top_1 = np.argmax(output_array['import/import/head/predictions/probabilities:0'], 1)
+        # self.features_list[self.current_feature] is a tuple object containing input sample and ground truth
+        # :2 indexing is used to extract just the input sample and index 2 contains ground truths.
+        self.correct += np.sum(self.features_list[self.current_feature][2] == top_1)
         self.current_feature += 1
 
     def summarize_accuracy(self):
