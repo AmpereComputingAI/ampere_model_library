@@ -79,11 +79,9 @@ class WideDeep:
             res_dataset = self.input_fn(False)
             iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
             next_element = iterator.get_next()
-            for elem in tf.compat.v1.data.make_one_shot_iterator(res_dataset):
-                features_list.append(sess.run(elem))
-            # for _ in range(no_of_batches):
-            #     batch = sess.run(next_element)
-            #     features_list.append(batch)
+            for _ in range(no_of_batches):
+                batch = sess.run(next_element)
+                features_list.append(batch)
 
         return features_list
 
