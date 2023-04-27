@@ -9,6 +9,23 @@ The original documentation of the model is available here: https://docs.ultralyt
 
 ### Metrics
 
+Based on 1000 images from COCO Dataset for YOLOv8n model in PyTorch framework in fp32 precision
+
+| Metric                  | IoU       | Area   | maxDets |Score  |
+|:---:                    |:---:      |:---:   |:---:    |:---:  |
+| Average Precision  (AP) |0.50:0.95 |    all | 100 | 0.338 |
+| Average Precision  (AP) |0.50      |    all | 100 | 0.452 |
+| Average Precision  (AP) |0.75      |    all | 100 | 0.370 |
+| Average Precision  (AP) |0.50:0.95 |  small | 100 | 0.122 |
+| Average Precision  (AP) |0.50:0.95 | medium | 100 | 0.351 |
+| Average Precision  (AP) |0.50:0.95 |  large | 100 | 0.504 |
+| Average Recall     (AR) |0.50:0.95 |    all |   1 | 0.265 |
+| Average Recall     (AR) |0.50:0.95 |    all |  10 | 0.375 |
+| Average Recall     (AR) |0.50:0.95 |    all | 100 | 0.381 |
+| Average Recall     (AR) |0.50:0.95 |  small | 100 | 0.133 |
+| Average Recall     (AR) |0.50:0.95 | medium | 100 | 0.385 |
+| Average Recall     (AR) |0.50:0.95 |  large | 100 | 0.569 |
+
 Based on 1000 images from COCO Dataset for YOLOv8n model in ONNX Runtime framework in fp32 precision
 
 | Metric                  | IoU       | Area   | maxDets |Score  |
@@ -57,15 +74,7 @@ wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt
 wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt
 ```
 
-You can export a PyTorch model to Torchscript model using following Python code:
-
-```python
-from ultralytics import YOLO
-model = YOLO('/path/to/yolov8n.pt')
-model.export(format='torchscript')
-```
-
-You can export a PyTorch model to ONNX Runtime model using following Python code:
+You can export a PyTorch model to ONNX Runtime model using the following Python code:
 
 ```python
 from ultralytics import YOLO
@@ -105,5 +114,5 @@ python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
 ```
 
 ```
-python3 run.py -m /path/to/model.torchscript -p fp32 --framework pytorch
+python3 run.py -m /path/to/model.pt -p fp32 --framework pytorch
 ```

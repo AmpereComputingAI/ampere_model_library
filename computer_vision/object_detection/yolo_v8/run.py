@@ -4,6 +4,8 @@
 import argparse
 
 import torch
+import os
+os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False") # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to set it to True if needed
 from ultralytics.yolo.utils import ops
 
 from utils.cv.coco import COCODataset
@@ -91,8 +93,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
     
+    from ultralytics import YOLO
+    model = YOLO(model_path)
+    torchscript_model = model.export(format="torchscript")
 
-    runner = PyTorchRunner(torch.jit.load(model_path),
+    runner = PyTorchRunner(torch.jit.load(torchscript_model),
                            disable_jit_freeze=disable_jit_freeze,
                            example_inputs=torch.stack(dataset.get_input_array((640, 640))))
 
