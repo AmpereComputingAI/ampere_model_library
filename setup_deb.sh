@@ -107,7 +107,8 @@ pip3 install --no-deps --upgrade \
    portalocker==2.6.0 \
    lxml==4.9.2 \
    colorama==0.4.6 \
-   thop>=0.1.1
+   thop>=0.1.1 \
+   psutil==5.9.5
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
