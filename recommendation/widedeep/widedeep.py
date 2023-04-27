@@ -36,7 +36,6 @@ class WideDeep:
         self.current_feature = 0
         self.correct = 0
 
-        super().__init__()
 
     def input_fn(self, shuffle):
         """Generate an input function for the Estimator."""
