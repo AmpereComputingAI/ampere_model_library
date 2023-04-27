@@ -130,9 +130,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
 
 def main():
     args = parse_args()
-
-    if "COCO_IMG_PATH" or "COCO_ANNO_PATH" not in os.environ:
-        download_coco_dataset()
+    download_coco_dataset()
 
     if args.framework == "tf":
         if args.model_path is None:
