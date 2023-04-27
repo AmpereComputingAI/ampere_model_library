@@ -30,7 +30,7 @@ class WideDeep:
 
         self.dataset_path = dataset_path
         self.batch_size = batch_size
-        self.no_of_batches = math.ceil(float(self.available_instances // self.batch_size))
+        self.no_of_batches = self.available_instances // self.batch_size
         self.features_list = self.get_features_list(config, runner, self.no_of_batches)
 
         self.current_feature = 0
@@ -79,9 +79,11 @@ class WideDeep:
             res_dataset = self.input_fn(False)
             iterator = tf.compat.v1.data.make_one_shot_iterator(res_dataset)
             next_element = iterator.get_next()
-            for i in range(int(no_of_batches)):
-                batch = sess.run(next_element)
-                features_list.append(batch)
+            for elem in tf.compat.v1.data.make_one_shot_iterator(res_dataset):
+                features_list.append(sess.run(elem))
+            # for _ in range(no_of_batches):
+            #     batch = sess.run(next_element)
+            #     features_list.append(batch)
 
         return features_list
 
