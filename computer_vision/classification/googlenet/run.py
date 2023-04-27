@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
+import os
 import warnings
 
 import torch
@@ -48,7 +49,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
         output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
-        if not disable_jit_freeze:
+        if not disable_jit_freeze and not os.environ.get("TORCH_COMPILE") == "1":
             output = output[0]
 
         for i in range(batch_size):
