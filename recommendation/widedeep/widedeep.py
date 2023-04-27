@@ -69,8 +69,9 @@ class WideDeep:
         if shuffle:
             dataset = dataset.shuffle(buffer_size=20000)
         dataset = dataset.batch(self.batch_size)
-        dataset = dataset.map(_parse_function, num_parallel_calls=28)
-        dataset = dataset.prefetch(self.batch_size * 10)
+        # If the value tf.data.AUTOTUNE is used, then the number of parallel calls is set dynamically based on CPU.
+        dataset = dataset.map(_parse_function, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return dataset
 
     def get_features_list(self, config, graph, no_of_batches):

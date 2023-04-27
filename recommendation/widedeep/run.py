@@ -69,8 +69,9 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, dataset_path, tfrecords
     graph = initialize_graph(model_path)
 
     def run_single_pass(tf_runner, widedeep):
-        tf_runner.set_input_tensor('import/new_numeric_placeholder:0', widedeep.get_input_array()[0])
-        tf_runner.set_input_tensor('import/new_categorical_placeholder:0', widedeep.get_input_array()[1])
+        input_arrays = widedeep.get_input_array()
+        tf_runner.set_input_tensor('import/new_numeric_placeholder:0', input_arrays[0])
+        tf_runner.set_input_tensor('import/new_categorical_placeholder:0', input_arrays[1])
         output = tf_runner.run()
         widedeep.submit_predictions(output)
 
