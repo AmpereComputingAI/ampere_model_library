@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-
+import csv
+import json
 import os
 import sys
 import time
@@ -102,8 +103,8 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     end of dataset.
 
     :param single_pass_func: python function that:
-        1. sets input tensor,
-        2. invokes the run by a call to runner,
+        1. pre_processes input, sets input tensor
+        2. invokes the run by a call to runner
         3. post-processes the output
     :param runner: python class providing the unified runner facilities
     :param dataset: python class providing the unified dataset facilities
@@ -119,21 +120,24 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
+    if os.environ.get("WARM_UP_ONLY") == "1":
+        single_pass_func(runner, dataset)
+        sys.exit(0)
+
     start = time.time()
     try:
-        if os.environ.get("WARM_UP_ONLY") == "1":
-            single_pass_func(runner, dataset)
-            sys.exit(0)
-
         if num_runs is None:
-            single_pass_func(runner, dataset)
-            while time.time() - start < timeout:
-                single_pass_func(runner, dataset)
+            with tqdm(total=int(timeout)) as pbar:
+                while time.time() - start < timeout:
+                    single_pass_func(runner, dataset)
+                    pbar.n = int(min(time.time() - start, timeout))
+                    pbar.refresh()
         else:
             for _ in tqdm(range(num_runs)):
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
+        if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+            assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
             if dataset.reset():
                 return run_model(
                     single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
@@ -154,6 +158,8 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
     if num_runs == 0:
         utils.print_goodbye_message_and_die(
             "Cannot print performance data as not a single run has been completed! Increase the timeout.")
+
+    dump_csv_results(start_times, finish_times, batch_size, warm_up_runs)
 
     if num_runs <= warm_up_runs:
         if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
@@ -192,3 +198,14 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             "median_throughput": median_throughput,
             "90th_percentile_throughput": percentile_90th_throughput
         }
+
+
+def dump_csv_results(start_times, finish_times, batch_size, warm_up_runs=2):
+    dump_dir = os.environ.get("RESULTS_DIR")
+    if dump_dir is not None and len(start_times) > warm_up_runs:
+        with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
+            json.dump({"batch_size": batch_size}, f)
+        with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(start_times[warm_up_runs:])
+            writer.writerow(finish_times[warm_up_runs:])

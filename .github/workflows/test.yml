@@ -8,8 +8,8 @@ on:
 
 jobs:
   test_setup:
-    runs-on: ubuntu-20.04
-    name: Ubuntu 20.04 x86-64 AML test
+    runs-on: ubuntu-22.04
+    name: Ubuntu 22.04 x86-64 AML test
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -42,4 +42,3 @@ jobs:
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
-          
