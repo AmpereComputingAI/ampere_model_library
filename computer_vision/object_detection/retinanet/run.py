@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
+import imageio
 
 from utils.cv.openimages import OpenImagesDataset
 from utils.benchmark import run_model
@@ -43,14 +44,31 @@ def parse_args():
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
     import torch
     import torchvision
+    import matplotlib.pyplot as plt
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, openimages):
         shape = (800, 800)
-        x = torch.tensor(openimages.get_input_array(shape))
+        images = openimages.get_input_array(shape)
+        x = torch.tensor(images)
         output = pytorch_runner.run(x)
 
         for i in range(batch_size):
+            input_image = images[i]
+            input_image *= 255.0
+            input_image = input_image.astype("uint8")
+
+            bboxes = [torch.reshape(output[i]['boxes'][bb], (1, 4)) for bb in range(
+                output[i]['boxes'].shape[0]) if output[i]['scores'][bb] > 0.70]
+            bboxes = torch.cat(bboxes) if len(
+                bboxes) > 0 else torch.empty((0, 4))
+
+            file = torchvision.utils.draw_bounding_boxes(
+                torch.tensor(input_image), bboxes)
+            # imageio.imwrite("output_file.png", file)
+            file = file.permute(1, 2, 0)
+            plt.imsave("output_file.png", file.numpy())
+
             for d in range(output[i]['boxes'].shape[0]):
                 openimages.submit_bbox_prediction(
                     i,
