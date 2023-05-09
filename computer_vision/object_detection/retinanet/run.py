@@ -61,7 +61,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
 
     dataset = OpenImagesDataset(batch_size, "RGB", images_path, anno_path,
                                 pre_processing="YOLO", sort_ascending=True, order="NCHW")
-    runner = PyTorchRunner(torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True),
+    runner = PyTorchRunner(torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT, pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
