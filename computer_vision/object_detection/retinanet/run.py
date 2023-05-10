@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
+import os
 
 from utils.cv.coco import COCODataset
 from utils.cv.openimages import OpenImagesDataset
@@ -46,23 +47,26 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
     import torchvision
     from utils.pytorch import PyTorchRunner
 
+    use_torch_compile = os.environ.get("TORCH_COMPILE") == "1"
+
     def run_single_pass(pytorch_runner, coco):
         shape = (800, 800)
         images = coco.get_input_array(shape)
         x = torch.tensor(images)
-        output = pytorch_runner.run(list(x))[1]
+        output = pytorch_runner.run(x) if use_torch_compile else pytorch_runner.run(list(x))[1]
 
         for i in range(batch_size):
             for d in range(output[i]['boxes'].shape[0]):
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i]['boxes'][d].tolist()),
+                    coco.convert_bbox_to_coco_order(
+                        output[i]['boxes'][d].tolist()),
                     output[i]['scores'][d].item(),
                     output[i]['labels'][d].item()
                 )
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
-                                pre_processing="YOLO", sort_ascending=True, order="NCHW")
+                          pre_processing="YOLO", sort_ascending=True, order="NCHW")
     runner = PyTorchRunner(torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT, pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 
