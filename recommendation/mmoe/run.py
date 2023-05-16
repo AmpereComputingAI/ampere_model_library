@@ -22,6 +22,5 @@ def run_tf(batch_size, num_runs, timeout):
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
-
-    parser = DefaultArgParser(["tf"])
+    parser = DefaultArgParser(["tf"], default_batch_size=256)
     run_tf(**vars(parser.parse()))
