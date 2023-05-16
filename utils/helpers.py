@@ -33,13 +33,13 @@ class DefaultArgParser:
 
 class DatasetStub:
     def reset(self):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def get_inputs(self):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def submit_predictions(self):
-        raise NotImplemented()
+        raise NotImplementedError
 
     def summarize_accuracy(self):
-        raise NotImplemented()
+        raise NotImplementedError
