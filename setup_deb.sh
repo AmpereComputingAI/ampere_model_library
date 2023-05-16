@@ -78,7 +78,8 @@ pip3 install --no-deps --upgrade \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
-   tiktoken==0.3.3
+   tiktoken==0.3.3 \
+   ultralytics==8.0.75
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
@@ -105,7 +106,9 @@ pip3 install --no-deps --upgrade \
    regex==2022.3.15 \
    portalocker==2.6.0 \
    lxml==4.9.2 \
-   colorama==0.4.6
+   colorama==0.4.6 \
+   thop>=0.1.1 \
+   psutil==5.9.5
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
