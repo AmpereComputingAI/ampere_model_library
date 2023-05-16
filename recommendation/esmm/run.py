@@ -7,11 +7,11 @@ def run_tf(batch_size, num_runs, timeout):
     from utils.tf import TFSavedModelRunner
     from utils.benchmark import run_model
     from utils.recommendation.census_income import CensusIncome
-    from utils.recommendation.DeepCTR.deepctr.models import MMOE
+    from utils.recommendation.DeepCTR.deepctr.models import ESMM
 
     runner = TFSavedModelRunner()
     ds = CensusIncome(batch_size)
-    model = MMOE(ds.get_dnn_feature_columns(),
+    model = ESMM(ds.get_dnn_feature_columns(),
                  tower_dnn_hidden_units=[],
                  task_types=['binary', 'binary'],
                  task_names=['label_income', 'label_marital'])
