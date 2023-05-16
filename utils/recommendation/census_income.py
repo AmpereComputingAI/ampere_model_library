@@ -2,6 +2,8 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import os
+
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
@@ -53,7 +55,14 @@ class CensusIncome(DatasetStub):
         self._dnn_feature_columns = fixlen_feature_columns
         linear_feature_columns = fixlen_feature_columns
         feature_names = get_feature_names(linear_feature_columns + self._dnn_feature_columns)
-        self._data = {name: data[name] for name in feature_names}
+
+        instance_count = len(data[feature_names[0]])
+        self._data = {}
+        for name in feature_names:
+            assert len(data[name]) == instance_count
+            n, r = batch_size // instance_count, batch_size % instance_count
+            array = data[name].to_numpy()
+            self._data[name] = np.concatenate([array for _ in range(n)] + [array[:r]])
 
     def get_dnn_feature_columns(self):
         return self._dnn_feature_columns
