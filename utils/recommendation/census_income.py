@@ -3,11 +3,10 @@
 
 import os
 import pandas as pd
-from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 from utils.helpers import DatasetStub
+from utils.misc import print_warning_message
 from utils.recommendation.DeepCTR.deepctr.feature_column import SparseFeat, DenseFeat, get_feature_names
 
 
@@ -61,3 +60,6 @@ class CensusIncome(DatasetStub):
 
     def get_inputs(self):
         return self._data
+
+    def summarize_accuracy(self):
+        print_warning_message("Accuracy testing unavailable for the Census Income dataset.")

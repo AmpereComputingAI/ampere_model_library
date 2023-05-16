@@ -35,11 +35,5 @@ class DatasetStub:
     def reset(self):
         raise NotImplementedError
 
-    def get_inputs(self):
-        raise NotImplementedError
-
-    def submit_predictions(self):
-        raise NotImplementedError
-
     def summarize_accuracy(self):
         raise NotImplementedError
