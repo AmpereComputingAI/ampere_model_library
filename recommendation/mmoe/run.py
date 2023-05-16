@@ -2,7 +2,7 @@ def single_pass_tf(tf_runner, dataset):
     tf_runner.run(dataset.get_inputs())
 
 
-def run_tf(model_path, batch_size, num_runs, timeout):
+def run_tf(batch_size, num_runs, timeout):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
     from utils.benchmark import run_model
@@ -24,5 +24,4 @@ if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
 
     parser = DefaultArgParser(["tf"])
-    parser.require_model_path()
     run_tf(**vars(parser.parse()))
