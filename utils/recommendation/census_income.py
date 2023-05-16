@@ -14,6 +14,7 @@ from utils.recommendation.DeepCTR.deepctr.feature_column import SparseFeat, Dens
 
 class CensusIncome(DatasetStub):
     def __init__(self, batch_size: int):
+        self.available_instances = float("inf")
         self._batch_size = batch_size
         column_names = ['age', 'class_worker', 'det_ind_code', 'det_occ_code', 'education', 'wage_per_hour',
                         'hs_college', 'marital_stat', 'major_ind_code', 'major_occ_code', 'race', 'hisp_origin', 'sex',

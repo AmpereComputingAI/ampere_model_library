@@ -1,7 +1,6 @@
 import argparse
 from typing import List
 
-
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 
@@ -32,6 +31,8 @@ class DefaultArgParser:
 
 
 class DatasetStub:
+    available_instances = None
+
     def reset(self):
         raise NotImplementedError
 
