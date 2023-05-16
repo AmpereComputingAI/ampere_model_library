@@ -21,7 +21,7 @@ def run_tf(model_path, batch_size, num_runs, timeout):
     #             task_names=['label_income', 'label_marital'])
     #model.compile()
     #model.save("test")
-    model = tf.keras.saving.load_model("test")
+    model = tf.keras.models.load_model("test")
     model = tf.function(model)
     print(model(CensusIncome(batch_size).get_inputs()))
     fds
