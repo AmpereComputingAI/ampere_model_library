@@ -10,3 +10,6 @@
 [submodule "natural_language_processing/text_generation/nanogpt/nanoGPT"]
 	path = natural_language_processing/text_generation/nanogpt/nanoGPT
 	url = git@github.com:dkupnicki/nanoGPT.git
+[submodule "utils/recommendation/DeepCTR"]
+	path = utils/recommendation/DeepCTR
+	url = https://github.com/shenweichen/DeepCTR.git

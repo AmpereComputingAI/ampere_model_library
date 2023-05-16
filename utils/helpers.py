@@ -29,3 +29,17 @@ class DefaultArgParser:
 
     def parse(self):
         return self.parser.parse_args()
+
+
+class DatasetStub:
+    def reset(self):
+        raise NotImplemented
+
+    def get_inputs(self):
+        raise NotImplemented
+
+    def submit_predictions(self, prediction):
+        raise NotImplemented
+
+    def summarize_accuracy(self):
+        raise NotImplemented
