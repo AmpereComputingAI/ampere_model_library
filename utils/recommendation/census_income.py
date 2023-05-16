@@ -60,25 +60,4 @@ class CensusIncome(DatasetStub):
         return self._dnn_feature_columns
 
     def get_inputs(self):
-        print(type(self._data))
         return self._data
-
-
-
-
-
-
-
-    # # 4.Define Model,train,predict and evaluate
-    # model = ESMM(dnn_feature_columns, tower_dnn_hidden_units=[], task_types=['binary', 'binary'],
-    #              task_names=['label_income', 'label_marital'])
-    # model.compile("adam", loss=["binary_crossentropy", "binary_crossentropy"],
-    #               metrics=['binary_crossentropy'], )
-    #
-    # history = model.fit(train_model_input, [train['label_income'].values, train['label_marital'].values],
-    #                     batch_size=256, epochs=10, verbose=2, validation_split=0.2)
-    # model.save("esmm")
-    # pred_ans = model.predict(test_model_input, batch_size=256)
-    #
-    # print("test income AUC", round(roc_auc_score(test['label_income'], pred_ans[0]), 4))
-    # print("test marital AUC", round(roc_auc_score(test['label_marital'], pred_ans[1]), 4))

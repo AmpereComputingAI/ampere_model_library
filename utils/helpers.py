@@ -38,7 +38,7 @@ class DatasetStub:
     def get_inputs(self):
         raise NotImplemented
 
-    def submit_predictions(self, prediction):
+    def submit_predictions(self):
         raise NotImplemented
 
     def summarize_accuracy(self):
