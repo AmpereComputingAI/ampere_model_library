@@ -125,23 +125,27 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         single_pass_func(runner, dataset)
         sys.exit(0)
 
+    if num_runs is None:
+        timeout_pbar = tqdm(total=int(timeout))
     start = time.time()
-    try:
-        if num_runs is None:
-            with tqdm(total=int(timeout)) as pbar:
+    while True:
+        try:
+            if num_runs is None:
                 while time.time() - start < timeout:
                     single_pass_func(runner, dataset)
-                    pbar.n = int(min(time.time() - start, timeout))
-                    pbar.refresh()
-        else:
-            for _ in tqdm(range(num_runs)):
-                single_pass_func(runner, dataset)
-    except utils.OutOfInstances:
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
-            assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
-            if dataset.reset():
-                return run_model(
-                    single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
+                    timeout_pbar.n = int(min(time.time() - start, timeout))
+                    timeout_pbar.refresh()
+            else:
+                for _ in tqdm(range(num_runs)):
+                    single_pass_func(runner, dataset)
+        except utils.OutOfInstances:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
+                if dataset.reset():
+                    continue
+        break
+    if num_runs is None:
+        timeout_pbar.close()
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
@@ -217,7 +221,7 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
                   + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
 
-        print(f"\n{indent}Performance results above are based on {len(latencies)} samples.")
+        print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
         print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
         return results
 

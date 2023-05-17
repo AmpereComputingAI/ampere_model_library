@@ -33,8 +33,8 @@ class DefaultArgParser:
 class DatasetStub:
     available_instances = None
 
-    def reset(self):
+    def reset(self) -> bool:
         raise NotImplementedError
 
-    def summarize_accuracy(self):
+    def summarize_accuracy(self) -> dict:
         raise NotImplementedError

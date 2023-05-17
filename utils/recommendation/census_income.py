@@ -5,39 +5,28 @@ import os
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 from utils.helpers import DatasetStub
-from utils.misc import print_warning_message
+from utils.misc import print_warning_message, OutOfInstances
 from utils.recommendation.DeepCTR.deepctr.feature_column import SparseFeat, DenseFeat, get_feature_names
 
 
 class CensusIncome(DatasetStub):
-    def __init__(self, batch_size: int):
-        self.available_instances = float("inf")
+    def __init__(self, batch_size: int, dataset_path):
         self._batch_size = batch_size
-        column_names = ['age', 'class_worker', 'det_ind_code', 'det_occ_code', 'education', 'wage_per_hour',
-                        'hs_college', 'marital_stat', 'major_ind_code', 'major_occ_code', 'race', 'hisp_origin', 'sex',
-                        'union_member', 'unemp_reason', 'full_or_part_emp', 'capital_gains', 'capital_losses',
-                        'stock_dividends', 'tax_filer_stat', 'region_prev_res', 'state_prev_res', 'det_hh_fam_stat',
-                        'det_hh_summ', 'instance_weight', 'mig_chg_msa', 'mig_chg_reg', 'mig_move_reg', 'mig_same',
-                        'mig_prev_sunbelt', 'num_emp', 'fam_under_18', 'country_father', 'country_mother',
-                        'country_self', 'citizenship', 'own_or_self', 'vet_question', 'vet_benefits', 'weeks_worked',
-                        'year', 'income_50k']
-        data = pd.read_csv(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "DeepCTR/examples/census-income.sample"),
-            header=None, names=column_names
-        )
-        data['label_income'] = data['income_50k'].map({' - 50000.': 0, ' 50000+.': 1})
-        data['label_marital'] = data['marital_stat'].apply(lambda x: 1 if x == ' Never married' else 0)
-        data.drop(labels=['income_50k', 'marital_stat'], axis=1, inplace=True)
+        data = pd.read_csv(dataset_path)
+
+        data['label_income'] = data['income'].map({'<=50K': 0, '>50K': 1})
+        data['label_marital'] = data['marital.status'].apply(lambda x: 1 if x == 'Never-married' else 0)
+        data.drop(labels=['income', 'marital.status'], axis=1, inplace=True)
+
         columns = data.columns.values.tolist()
-        sparse_features = ['class_worker', 'det_ind_code', 'det_occ_code', 'education', 'hs_college', 'major_ind_code',
-                           'major_occ_code', 'race', 'hisp_origin', 'sex', 'union_member', 'unemp_reason',
-                           'full_or_part_emp', 'tax_filer_stat', 'region_prev_res', 'state_prev_res', 'det_hh_fam_stat',
-                           'det_hh_summ', 'mig_chg_msa', 'mig_chg_reg', 'mig_move_reg', 'mig_same', 'mig_prev_sunbelt',
-                           'fam_under_18', 'country_father', 'country_mother', 'country_self', 'citizenship',
-                           'vet_question']
+        sparse_features = [
+            'workclass', 'fnlwgt', 'education', 'occupation', 'relationship', 'race', 'sex', 'native.country'
+        ]
         dense_features = [col for col in columns if
                           col not in sparse_features and col not in ['label_income', 'label_marital']]
 
@@ -53,23 +42,53 @@ class CensusIncome(DatasetStub):
         fixlen_feature_columns = [SparseFeat(feat, data[feat].max() + 1, embedding_dim=4) for feat in sparse_features] \
                                  + [DenseFeat(feat, 1, ) for feat in dense_features]
 
-        self._dnn_feature_columns = fixlen_feature_columns
+        self.dnn_feature_columns = fixlen_feature_columns
         linear_feature_columns = fixlen_feature_columns
-        feature_names = get_feature_names(linear_feature_columns + self._dnn_feature_columns)
 
-        instance_count = len(data[feature_names[0]])
-        self._data = {}
-        for name in feature_names:
-            assert len(data[name]) == instance_count
-            n, r = batch_size // instance_count, batch_size % instance_count
-            array = data[name].to_numpy()
-            self._data[name] = np.concatenate([array for _ in range(n)] + [array[:r]])
+        feature_names = get_feature_names(linear_feature_columns + self.dnn_feature_columns)
 
-    def get_dnn_feature_columns(self):
-        return self._dnn_feature_columns
+        self.train_set, self.test_set = train_test_split(data, test_size=0.2, random_state=2020)
+        self.train_model_input = {name: self.train_set[name] for name in feature_names}
+        self.test_model_input = {name: self.test_set[name] for name in feature_names}
+
+        self.available_instances = len(self.test_model_input[feature_names[0]])
+        self._current_instance = 0
+        self._results = {}
 
     def get_inputs(self):
-        return self._data
+        if self._current_instance + self._batch_size > self.available_instances:
+            raise OutOfInstances
+        inputs = {}
+        for key, val in self.test_model_input.items():
+            if val.dtype == "int64":
+                inputs[key] = np.expand_dims(
+                    val[self._current_instance:self._current_instance+self._batch_size].astype("int32"), axis=1)
+            elif val.dtype == "float64":
+                inputs[key] = np.expand_dims(
+                    val[self._current_instance:self._current_instance+self._batch_size].astype("float32"), axis=1)
+            else:
+                raise TypeError(f"unexpected dtype -> {val.dtype}")
+        self._current_instance += self._batch_size
+        return inputs
+
+    def submit_results(self, results):
+        for label in ["label_marital", "label_income"]:
+            if label in self._results.keys():
+                self._results[label] = np.concatenate((self._results[label], results[label]))
+            else:
+                self._results[label] = results[label]
+
+    def reset(self):
+        self._current_instance = 0
+        self._results = {}
+        return True
 
     def summarize_accuracy(self):
-        print_warning_message("Accuracy testing unavailable for the Census Income dataset.")
+        summary = ""
+        metrics = {}
+        for label, metric in [("label_marital", "marital AUC"), ("label_income", "income AUC")]:
+            metrics[metric] = roc_auc_score(self.test_set[label][:self._current_instance], self._results[label])
+            summary += "\n {:<11} = {:.3f}".format(metric, metrics[metric])
+        print(summary)
+        print(f"\nAccuracy figures above calculated on the basis of {self._current_instance} samples.")
+        return metrics
