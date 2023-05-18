@@ -178,10 +178,3 @@ def download_coco_dataset():
 
         os.environ["COCO_IMG_PATH"] = str(dataset)
         os.environ["COCO_ANNO_PATH"] = str(labels)
-
-    else:
-        if "COCO_IMG_PATH" not in os.environ:
-            print("COCO_IMG_PATH variable must be set along with COCO_ANNO_PATH!")
-
-        elif "COCO_ANNO_PATH" not in os.environ:
-            print("COCO_ANNO_PATH variable must be set along with COCO_IMG_PATH!")
