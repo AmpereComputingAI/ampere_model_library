@@ -167,11 +167,11 @@ def download_coco_dataset():
                 subprocess.run(["mkdir", coco_data])
                 subprocess.run(["unzip", 'annotations_trainval2014.zip', '-d', coco_data])
                 subprocess.run(["unzip", 'val2014.zip', '-d', coco_data])
+                subprocess.run(["rm", 'annotations_trainval2014.zip'])
+                subprocess.run(["rm", 'val2014.zip'])
             except KeyboardInterrupt:
                 subprocess.run(["rm", 'val2014.zip'])
                 subprocess.run(["rm", 'annotations_trainval2014.zip'])
-        else:
-            pass
 
         dataset = pathlib.Path(coco_data, 'val2014')
         labels = pathlib.Path(coco_data, 'annotations', 'instances_val2014.json')
