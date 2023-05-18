@@ -6,6 +6,8 @@ import argparse
 import torch
 import torchvision
 import numpy as np
+import tensorflow as tf
+from tensorflow.python.saved_model import tag_constants
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
@@ -18,14 +20,14 @@ def parse_args():
                         type=str,
                         help="path to the model")
     parser.add_argument("-p", "--precision",
-                        type=str, choices=["fp32"], required=True,
+                        type=str, choices=["fp32", "int8"], required=True,
                         help="precision of the model provided")
     parser.add_argument("-b", "--batch_size",
                         type=int, default=1,
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["pytorch", "ort"], required=True,
+                        choices=["tf", "tflite", "pytorch", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -45,6 +47,50 @@ def parse_args():
     if args.framework != "pytorch" and args.model_path is None:
         parser.error(f"You need to specify the model path when using {args.framework} framework.")
     return args
+
+
+def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.tf import TFSavedModelRunner
+
+    def run_single_pass(tf_runner, imagenet):
+        shape = (224, 224)
+        output = tf_runner.run(tf.constant(imagenet.get_input_array(shape)))
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output['predictions'].numpy()[i]),
+                imagenet.extract_top5(output['predictions'].numpy()[i])
+            )
+
+    dataset = ImageNet(batch_size, "BGR", images_path, labels_path,
+                       pre_processing="VGG", is1001classes=False)
+    runner = TFSavedModelRunner()
+    saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
+    runner.model = saved_model_loaded.signatures['serving_default']
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
+def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.tflite import TFLiteRunner
+
+    def run_single_pass(tflite_runner, imagenet):
+        shape = (224, 224)
+        tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
+        tflite_runner.run()
+        output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output_tensor[i]),
+                imagenet.extract_top5(output_tensor[i])
+            )
+
+    dataset = ImageNet(batch_size, "BGR", images_path, labels_path,
+                       pre_processing="VGG", is1001classes=False)
+    runner = TFLiteRunner(model_path)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
@@ -90,6 +136,14 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+
+
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+    return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
+
+
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
 
@@ -102,7 +156,21 @@ def main():
     args = parse_args()
     download_ampere_imagenet()
 
-    if args.framework == "pytorch":
+    if args.framework == "tf":
+        if args.precision == "fp32":
+            run_tf_fp32(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    elif args.framework == "tflite":
+        if args.precision == "int8":
+            run_tflite_int8(**vars(args))
+        else:
+            print_goodbye_message_and_die(
+                "this model seems to be unsupported in a specified precision: " + args.precision)
+
+    elif args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(model_name="resnet50", **vars(args))
         else:
