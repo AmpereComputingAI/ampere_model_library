@@ -54,7 +54,7 @@ class PyTorchRunner:
             else:
                 try:
                     if skip_script:
-                        raise SkipScript 
+                        raise SkipScript
                     if func:
                         self.__frozen_script = torch.jit.freeze(torch.jit.script(self.__model), preserved_attrs=[func])
                     else:
