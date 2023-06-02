@@ -42,7 +42,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     append_dlrm_to_pypath()
     from utils.recommendation.dlrm.dlrm_s_pytorch import DLRM_Net
 
-    arch_embedding_size = "1000000-1000000-1000000-1000000-1000000-1000000-1000000-1000000"
+    arch_embedding_size =  "1000000-1000000-1000000-1000000-1000000-1000000-1000000-1000000"
     arch_sparse_feature_size = 64
     arch_mlp_bot = "512-512-64"
     arch_mlp_top = "1024-1024-1024-1"
@@ -63,9 +63,9 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
             'sync_dense_params': True,
             'loss_threshold': 0.0,
             'ndevices': -1,
-            'qr_flag': False,
+            'qr_flag': True,
             'qr_operation': "mult",
-            'qr_collisions': 0,
+            'qr_collisions': 64,
             'qr_threshold': 200,
             'md_flag': False,
             'md_threshold': 200,
