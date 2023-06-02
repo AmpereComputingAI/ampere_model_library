@@ -5,6 +5,7 @@ import argparse
 
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TFAutoModelForQuestionAnswering
+from optimum.bettertransformer import BetterTransformer
 
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
@@ -93,6 +94,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
 
     model = AutoModelForQuestionAnswering.from_pretrained(model_name, torchscript=True)
+    model = BetterTransformer.transform(model, keep_original_model=True)
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
 
     runner = PyTorchRunner(model,
