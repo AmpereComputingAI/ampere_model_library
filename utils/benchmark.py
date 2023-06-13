@@ -134,6 +134,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 single_pass_func(runner, dataset)
     except utils.OutOfInstances:
         if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and num_runs is None:
+            #print(os.environ.get("IGNORE_DATASET_LIMITS"))
             if dataset.reset():
                 return run_model(
                     single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
@@ -156,6 +157,7 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
     if num_runs <= warm_up_runs:
+        print("num of runs",num_runs)
         if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
             sys.exit(0)
         utils.print_goodbye_message_and_die(

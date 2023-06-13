@@ -37,13 +37,14 @@ class ImageDataset:
         """
         if color_model not in ["RGB", "BGR"]:
             utils.print_goodbye_message_and_die(f"Color model {color_model} is not supported.")
-
         image_array = cv2.imread(str(image_path))
+        resize_ratios = 1
         if image_array is None:
             utils.print_goodbye_message_and_die(f"Image not found under path {str(image_path)}!")
         if color_model == "RGB":
             image_array = image_array[:, :, [2, 1, 0]]  # cv2 loads images in BGR order
-        image_array, resize_ratios = self.__resize_image(image_array, target_shape)
+        if target_shape:
+            image_array, resize_ratios = self.__resize_image(image_array, target_shape)
         image = np.expand_dims(image_array, axis=0)
 
         if order == 'NCHW':
