@@ -4,9 +4,9 @@
 import argparse
 import numpy
 import pickle
-import tensorflow
 import torch
 import torchvision
+import tensorflow
 
 from tensorflow.python.saved_model import tag_constants
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TFAutoModelForQuestionAnswering
