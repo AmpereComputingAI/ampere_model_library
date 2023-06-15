@@ -3,11 +3,7 @@
 
 import argparse
 
-import torch
-import torchvision
 import numpy as np
-import tensorflow as tf
-from tensorflow.python.saved_model import tag_constants
 
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
@@ -51,6 +47,8 @@ def parse_args():
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.tf import TFSavedModelRunner
+    import tensorflow as tf
+    from tensorflow.python.saved_model import tag_constants
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
@@ -95,6 +93,8 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
     from utils.pytorch import PyTorchRunner
+    import torch
+    import torchvision
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
