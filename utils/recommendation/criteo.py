@@ -84,7 +84,10 @@ class Criteo:
         """
         A function returning input arrays for DLRM network.
         """
-        val = next(self.dataset_iterator)
+        try:
+            val = next(self.dataset_iterator)
+        except StopIteration:
+            raise utils.OutOfInstances("No more Criteo samples to process in the directory provided")
         self.__single_input =  val[0], val[1], val[2]
         self.__labels = val[3]
         return self.__single_input
