@@ -67,7 +67,7 @@ class Criteo:
             drop_last=False
         )
 
-        self.available_instances = len(self.__test_loader)
+        self.available_instances = len(self.__test_loader) * self.__test_loader.batch_size
         self.dataset_iterator = self._generate_input()
         self.correct_count = 0
         self.total_count = 0
