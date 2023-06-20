@@ -101,4 +101,4 @@ class Criteo:
 
         print("\n Accuracy = {:.3f}".format(accuracy.item()))
         print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
-        return accuracy
+        return {"accuracy": accuracy}
