@@ -8,7 +8,7 @@ def single_pass_pytorch(runner, coco):
     image = np.squeeze(coco.get_input_array().astype("uint8"))
     path =  str(coco.path_to_latest_image).split('/')[-1]
     _ = runner.run(path)
-
+#custom class
 class SamMaskGenerator:
     def __init__(self, predictor, embedding):
         self.predictor = predictor
@@ -66,7 +66,10 @@ def run_pytorch(model_path, batch_size, num_runs, timeout, images_path, anno_pat
     except AttributeError:        
         AIO = False
     print('AIO = ', AIO)
-    sam = torch.compile(sam, backend="aio" if AIO else "inductor")
+    #sam = torch.compile(sam, backend="aio" if AIO else "inductor")
+    sam.image_encoder = torch.compile(sam.image_encoder, backend="aio" if AIO else "inductor")
+    sam.prompt_encoder = torch.compile(sam.prompt_encoder, backend="aio" if AIO else "inductor")
+    sam.mask_decoder = torch.compile(sam.mask_decoder, backend="aio" if AIO else "inductor")
     predictor = SamPredictor(sam)    
     mask_generator = SamMaskGenerator(predictor, embedding)
     runner = PyTorchRunnerV2(mask_generator)
