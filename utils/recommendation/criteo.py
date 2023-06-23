@@ -4,7 +4,6 @@
 import os
 import sys
 import torch
-import argparse
 import numpy as np
 from pathlib import Path
 
@@ -29,7 +28,6 @@ class Criteo:
                 env_var, f"Path to Criteo dataset directory has not been specified with {env_var} flag")
 
         self.__max_batch_size = max_batch_size
-        self.__predictions = []
 
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import CriteoDataset, collate_wrapper_criteo_offset
@@ -69,22 +67,38 @@ class Criteo:
             drop_last=False
         )
 
-        for val in self.__test_loader:
-            self.__single_input = val[0], val[1], val[2]
-
-        self.available_instances = 1
+        self.available_instances = len(self.__test_loader) * self.__test_loader.batch_size
+        self.dataset_iterator = self._generate_input()
+        self.correct_count = 0
+        self.total_count = 0
 
     def reset(self):
         return False
+    
+    def _generate_input(self):
+        for val in self.__test_loader:
+            yield val
 
     def get_inputs(self):
         """
         A function returning input arrays for DLRM network.
         """
+        try:
+            val = next(self.dataset_iterator)
+        except StopIteration:
+            raise utils.OutOfInstances("No more Criteo samples to process in the directory provided")
+        self.__single_input =  val[0], val[1], val[2]
+        self.__labels = val[3]
         return self.__single_input
 
     def submit_predictions(self, prediction):
-        self.__predictions.append(prediction)
+        result = (prediction >= 0.5) == self.__labels
+        self.total_count += len(prediction)
+        self.correct_count += sum(result)
 
     def summarize_accuracy(self):
-        return self.__predictions
+        accuracy = self.correct_count / self.total_count
+
+        print("\n Accuracy = {:.3f}".format(accuracy.item()))
+        print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
+        return {"accuracy": accuracy}
