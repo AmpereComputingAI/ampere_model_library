@@ -71,6 +71,7 @@ def benchmark_func(func, num_runs, timeout, warm_up=True):
 
     :return: latency in seconds
     """
+
     def benchmark(function):
         start = time.time()
         function()
@@ -124,23 +125,27 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         single_pass_func(runner, dataset)
         sys.exit(0)
 
+    if num_runs is None:
+        timeout_pbar = tqdm(total=int(timeout))
     start = time.time()
-    try:
-        if num_runs is None:
-            with tqdm(total=int(timeout)) as pbar:
+    while True:
+        try:
+            if num_runs is None:
                 while time.time() - start < timeout:
                     single_pass_func(runner, dataset)
-                    pbar.n = int(min(time.time() - start, timeout))
-                    pbar.refresh()
-        else:
-            for _ in tqdm(range(num_runs)):
-                single_pass_func(runner, dataset)
-    except utils.OutOfInstances:
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
-            assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
-            if dataset.reset():
-                return run_model(
-                    single_pass_func, runner, dataset, batch_size, num_runs, timeout - (time.time() - start))
+                    timeout_pbar.n = int(min(time.time() - start, timeout))
+                    timeout_pbar.refresh()
+            else:
+                for _ in tqdm(range(num_runs)):
+                    single_pass_func(runner, dataset)
+        except utils.OutOfInstances:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
+                if dataset.reset():
+                    continue
+        break
+    if num_runs is None:
+        timeout_pbar.close()
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
 
@@ -176,28 +181,49 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
         mean_latency_sec = statistics.mean(latencies)
         median_latency_sec = statistics.median(latencies)
         percentile_90th_latency_sec = np.percentile(latencies, 90)
+        percentile_99th_latency_sec = np.percentile(latencies, 99)
+        percentile_999th_latency_sec = np.percentile(latencies, 99.9)
 
-        mean_latency_ms = mean_latency_sec * 1000
-        median_latency_ms = median_latency_sec * 1000
-        percentile_90th_latency_ms = percentile_90th_latency_sec * 1000
-        mean_throughput = batch_size / mean_latency_sec
-        median_throughput = batch_size / median_latency_sec
-        percentile_90th_throughput = batch_size / percentile_90th_latency_sec
-
-        print("\n                               mean  /      median  / 90th-percentile")
-        print(" Latency           [ms]: {:>10.2f}  /  {:>10.2f}  /  {:>10.2f}".format(
-            mean_latency_ms, median_latency_ms, percentile_90th_latency_ms))
-        print(" Throughput [samples/s]: {:>10.2f}  /  {:>10.2f}  /  {:>10.2f}\n".format(
-            mean_throughput, median_throughput, percentile_90th_throughput))
-
-        return {
-            "mean_lat_ms": mean_latency_ms,
-            "median_lat_ms": median_latency_ms,
-            "90th_percentile_lat_ms": percentile_90th_latency_ms,
-            "mean_throughput": mean_throughput,
-            "median_throughput": median_throughput,
-            "90th_percentile_throughput": percentile_90th_throughput
+        ms_in_sec = 1000
+        results = {
+            "mean_lat_ms": mean_latency_sec * ms_in_sec,
+            "median_lat_ms": median_latency_sec * ms_in_sec,
+            "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
+            "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
+            "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
+            "mean_throughput": batch_size / mean_latency_sec,
+            "median_throughput": batch_size / median_latency_sec,
+            "90th_percentile_throughput": batch_size / percentile_90th_latency_sec,
+            "99th_percentile_throughput": batch_size / percentile_99th_latency_sec,
+            "99.9th_percentile_throughput": batch_size / percentile_999th_latency_sec
         }
+
+        metrics = ["mean", "median", "p90", "p99", "p99.9"]
+        metrics_lat = {"mean": "mean_lat_ms",
+                       "median": "median_lat_ms",
+                       "p90": "90th_percentile_lat_ms",
+                       "p99": "99th_percentile_lat_ms",
+                       "p99.9": "99.9th_percentile_lat_ms"}
+        metrics_throughput = {"mean": "mean_throughput",
+                              "median": "median_throughput",
+                              "p90": "90th_percentile_throughput",
+                              "p99": "99th_percentile_throughput",
+                              "p99.9": "99.9th_percentile_throughput"}
+        max_len = max([len(metric) for metric in metrics])
+        indent = 2 * " "
+        print(f"\n{indent}LATENCY")
+        for metric in metrics:
+            print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
+                  + "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
+
+        print(f"\n{indent}THROUGHPUT")
+        for metric in metrics:
+            print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
+                  + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
+
+        print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
+        print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
+        return results
 
 
 def dump_csv_results(start_times, finish_times, batch_size, warm_up_runs=2):

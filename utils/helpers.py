@@ -1,12 +1,11 @@
 import argparse
 from typing import List
 
-
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 
 class DefaultArgParser:
-    def __init__(self, supported_frameworks: List[str]):
+    def __init__(self, supported_frameworks: List[str], default_batch_size=1, default_timeout=60.):
         self.parser = argparse.ArgumentParser(prog=f"AML model-dedicated runner")
 
         if len(supported_frameworks) >= 2:
@@ -14,9 +13,9 @@ class DefaultArgParser:
                 assert framework in SUPPORTED_FRAMEWORKS, \
                     f"{framework} is not listed as globally supported [{SUPPORTED_FRAMEWORKS}]"
             self.parser.add_argument("-f", "--framework", type=str, choices=supported_frameworks, required=True)
-        self.parser.add_argument("-b", "--batch_size", type=int, default=1,
+        self.parser.add_argument("-b", "--batch_size", type=int, default=default_batch_size,
                                  help="batch size to feed the model with")
-        self.parser.add_argument("--timeout", type=float, default=60.0,
+        self.parser.add_argument("--timeout", type=float, default=default_timeout,
                                  help="timeout in seconds")
         self.parser.add_argument("--num_runs", type=int,
                                  help="number of inference calls to execute")
@@ -29,3 +28,13 @@ class DefaultArgParser:
 
     def parse(self):
         return self.parser.parse_args()
+
+
+class DatasetStub:
+    available_instances = None
+
+    def reset(self) -> bool:
+        raise NotImplementedError
+
+    def summarize_accuracy(self) -> dict:
+        raise NotImplementedError

@@ -148,14 +148,14 @@ class TFSavedModelRunner:
 
         print("\nRunning with TensorFlow\n")
 
-    def run(self, input):
+    def run(self, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
         start = time.time()
-        output = self.model(input)
+        output = self.model(*args, **kwargs)
         finish = time.time()
 
         self.__start_times.append(start)
