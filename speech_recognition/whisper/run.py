@@ -15,7 +15,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout):
 
     def single_pass_pytorch(_runner, _librispeech):
         array = _librispeech.get_input_array()
-        variable_input_lengths.append(array.shape)
+        variable_input_lengths.append(array.shape[0])
         print(variable_input_lengths)
         audio = torch.from_numpy(array.astype("float32"))
         _librispeech.submit_transcription(_runner.run(audio)["text"].lstrip().replace(".", "").upper())
