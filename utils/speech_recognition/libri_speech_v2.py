@@ -12,7 +12,7 @@ class LibriSpeech(DatasetStub):
 
     def get_input_array(self):
         try:
-            return self._librispeech["audio"]["array"][self._idx]
+            return self._librispeech["audio"][self._idx]["array"]
         except IndexError:
             raise OutOfInstances
 
