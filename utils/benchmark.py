@@ -96,7 +96,7 @@ def benchmark_func(func, num_runs, timeout, warm_up=True):
 
 
 def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
-              variable_input_lengths: list[int] = None):
+              variable_input_lengths=None):
     """
     A function running model in unified way.
 
@@ -154,7 +154,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
 
 def print_performance_metrics(
         start_times: list, finish_times: list, num_runs: int, batch_size: int, warm_up_runs=2,
-        variable_input_lengths: list[int] = None):
+        variable_input_lengths=None):
     """
     A function printing two performance metrics: latency and throughput.
 
