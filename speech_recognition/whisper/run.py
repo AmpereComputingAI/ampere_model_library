@@ -6,6 +6,7 @@ import torch
 def run_pytorch(model_name, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
+    from utils.misc import print_warning_message
     from utils.pytorch import PyTorchRunnerV2
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
     from speech_recognition.whisper.whisper.whisper import load_model
@@ -16,7 +17,6 @@ def run_pytorch(model_name, batch_size, num_runs, timeout):
     def single_pass_pytorch(_runner, _librispeech):
         array = _librispeech.get_input_array()
         variable_input_lengths.append(array.shape[0])
-        print(variable_input_lengths)
         audio = torch.from_numpy(array.astype("float32"))
         _librispeech.submit_transcription(_runner.run(audio)["text"].lstrip().replace(".", "").upper())
 
@@ -26,6 +26,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout):
     runner = PyTorchRunnerV2(transcribe_wrapper)
     librispeech = LibriSpeech()
     variable_input_lengths = []
+    print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
+                          "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout, variable_input_lengths)
 
 

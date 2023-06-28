@@ -5,6 +5,8 @@ from utils.helpers import DatasetStub
 
 
 class LibriSpeech(DatasetStub):
+    sampling_rate = 16000
+
     def __init__(self):
         self._librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
         self.available_instances = len(self._librispeech["audio"])
