@@ -182,6 +182,7 @@ def print_performance_metrics(
         average_input_length = 1.0
         if variable_input_lengths is not None:
             utils.print_warning_message("Performance results will be normalized due to variable input length")
+            assert num_runs == len(variable_input_lengths)
             average_input_length = statistics.mean(variable_input_lengths)
             input_length_factors = [input_length / average_input_length for input_length in variable_input_lengths]
 
