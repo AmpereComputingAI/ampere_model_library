@@ -15,8 +15,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout):
     from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
-    from whisper.whisper import load_model
-    from whisper.whisper.transcribe import transcribe
+    from speech_recognition.whisper.whisper.whisper import load_model
+    from speech_recognition.whisper.whisper.whisper.transcribe import transcribe
     model = load_model(model_name)
     model.eval()
 
