@@ -95,7 +95,8 @@ def benchmark_func(func, num_runs, timeout, warm_up=True):
     return sum(latencies) / i
 
 
-def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
+def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
+              variable_input_lengths: list[int] = None):
     """
     A function running model in unified way.
 
@@ -112,6 +113,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     :param batch_size: int, batch size
     :param num_runs: int, number of times that single_pass_func should be executed
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
+    :param variable_input_lengths: list[int], variable lengths of input tensors in the order of execution
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
     if num_runs is not None:
@@ -147,10 +149,12 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     if num_runs is None:
         timeout_pbar.close()
 
-    return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size)
+    return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size, variable_input_lengths)
 
 
-def print_performance_metrics(start_times: list, finish_times: list, num_runs: int, batch_size: int, warm_up_runs=2):
+def print_performance_metrics(
+        start_times: list, finish_times: list, num_runs: int, batch_size: int, warm_up_runs=2,
+        variable_input_lengths: list[int] = None):
     """
     A function printing two performance metrics: latency and throughput.
 
@@ -159,6 +163,7 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
     :param num_runs: int, number of runs completed
     :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
     :param warm_up_runs: int, number of warm-up runs to exclude from final metrics
+    :param variable_input_lengths: list[int], variable lengths of input tensors in the order of execution
     """
     if num_runs == 0:
         utils.print_goodbye_message_and_die(
@@ -174,9 +179,18 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
     else:
         assert len(start_times) == len(finish_times) == num_runs
 
+        average_input_length = 1.0
+        if variable_input_lengths is not None:
+            utils.print_warning_message("Performance results will be normalized due to variable input length")
+            average_input_length = statistics.mean(variable_input_lengths)
+            input_length_factors = [input_length / average_input_length for input_length in variable_input_lengths]
+
         latencies = []
         for i in range(warm_up_runs, num_runs):
-            latencies.append(finish_times[i] - start_times[i])
+            latency_sec = finish_times[i] - start_times[i]
+            if variable_input_lengths is not None:
+                latency_sec /= input_length_factors[i]
+            latencies.append(latency_sec)
 
         mean_latency_sec = statistics.mean(latencies)
         median_latency_sec = statistics.median(latencies)
@@ -191,11 +205,11 @@ def print_performance_metrics(start_times: list, finish_times: list, num_runs: i
             "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
             "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
             "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "mean_throughput": batch_size / mean_latency_sec,
-            "median_throughput": batch_size / median_latency_sec,
-            "90th_percentile_throughput": batch_size / percentile_90th_latency_sec,
-            "99th_percentile_throughput": batch_size / percentile_99th_latency_sec,
-            "99.9th_percentile_throughput": batch_size / percentile_999th_latency_sec
+            "mean_throughput": average_input_length * batch_size / mean_latency_sec,
+            "median_throughput": average_input_length * batch_size / median_latency_sec,
+            "90th_percentile_throughput": average_input_length * batch_size / percentile_90th_latency_sec,
+            "99th_percentile_throughput": average_input_length * batch_size / percentile_99th_latency_sec,
+            "99.9th_percentile_throughput": average_input_length * batch_size / percentile_999th_latency_sec
         }
 
         metrics = ["mean", "median", "p90", "p99", "p99.9"]
