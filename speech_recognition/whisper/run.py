@@ -4,7 +4,7 @@ import torch
 
 
 def single_pass_pytorch(runner, librispeech):
-    audio = torch.from_numpy(librispeech.get_input_array())
+    audio = torch.from_numpy(librispeech.get_input_array().astype("float32"))
     transcription = runner.run(audio)
     print(transcription)
     dsf
