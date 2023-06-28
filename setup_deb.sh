@@ -83,7 +83,8 @@ pip3 install --no-deps --upgrade \
    evaluate==0.4.0 \
    datasets==2.13.1 \
    soundfile==0.12.1 \
-   librosa==0.10.0.post2
+   librosa==0.10.0.post2 \
+   numba==0.57.1
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
@@ -130,7 +131,8 @@ pip3 install --no-deps --upgrade \
    msgpack==1.0.5 \
    jiwer==3.0.2 \
    click==8.1.3 \
-   rapidfuzz==2.13.7
+   rapidfuzz==2.13.7 \
+   llvmlite==0.40.1
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
