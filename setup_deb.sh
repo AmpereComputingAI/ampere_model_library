@@ -127,7 +127,10 @@ pip3 install --no-deps --upgrade \
    lazy_loader==0.2 \
    audioread==3.0.0 \
    soxr==0.3.5 \
-   msgpack==1.0.5
+   msgpack==1.0.5 \
+   jiwer==3.0.2 \
+   click==8.1.3 \
+   rapidfuzz==2.13.7
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
