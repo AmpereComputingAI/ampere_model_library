@@ -69,7 +69,7 @@ class TFLiteRunner:
         self.__start_times.append(start)
         self.__finish_times.append(finish)
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self, batch_size, variable_input_lengths):
         """
         A function printing performance metrics on runs executed by the runner so far.
 
@@ -79,4 +79,6 @@ class TFLiteRunner:
             tf.AIO.print_profile_data()
 
         return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
+            variable_input_lengths=variable_input_lengths
+        )

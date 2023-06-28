@@ -116,12 +116,13 @@ class PyTorchRunner:
 
         return output_tensor
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self, batch_size, variable_input_lengths):
         if self.__is_profiling:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
         return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
+            variable_input_lengths=variable_input_lengths
         )
 
 
@@ -170,12 +171,13 @@ class PyTorchRunnerV2:
             else:
                 return runner_func()
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self, batch_size, variable_input_lengths):
         if self._do_profile:
             print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
         return bench_utils.print_performance_metrics(
-            self._start_times, self._finish_times, self._times_invoked, batch_size
+            self._start_times, self._finish_times, self._times_invoked, batch_size,
+            variable_input_lengths=variable_input_lengths
         )
 
 

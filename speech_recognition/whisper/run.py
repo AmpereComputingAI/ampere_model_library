@@ -3,11 +3,6 @@ import sys
 import torch
 
 
-def single_pass_pytorch(runner, librispeech):
-    audio = torch.from_numpy(librispeech.get_input_array().astype("float32"))
-    librispeech.submit_transcription(runner.run(audio)["text"].lstrip().replace(".", "").upper())
-
-
 def run_pytorch(model_name, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -18,12 +13,20 @@ def run_pytorch(model_name, batch_size, num_runs, timeout):
     model = load_model(model_name)
     model.eval()
 
+    def single_pass_pytorch(_runner, _librispeech):
+        array = _librispeech.get_input_array()
+        variable_input_lengths.append(array.shape)
+        print(variable_input_lengths)
+        audio = torch.from_numpy(array.astype("float32"))
+        _librispeech.submit_transcription(_runner.run(audio)["text"].lstrip().replace(".", "").upper())
+
     def transcribe_wrapper(audio):
         return transcribe(model, audio, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper)
     librispeech = LibriSpeech()
-    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
+    variable_input_lengths = []
+    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout, variable_input_lengths)
 
 
 if __name__ == "__main__":
