@@ -26,6 +26,9 @@ class DefaultArgParser:
     def require_model_path(self):
         self.parser.add_argument("-m", "--model_path", type=str, required=True)
 
+    def require_model_name(self):
+        self.parser.add_argument("-m", "--model_name", type=str, required=True)
+
     def parse(self):
         return self.parser.parse_args()
 

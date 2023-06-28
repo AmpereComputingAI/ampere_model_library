@@ -13,3 +13,6 @@
 [submodule "utils/recommendation/DeepCTR"]
 	path = utils/recommendation/DeepCTR
 	url = https://github.com/shenweichen/DeepCTR.git
+[submodule "speech_recognition/whisper/whisper"]
+	path = speech_recognition/whisper/whisper
+	url = git@github.com:AmpereComputingAI/whisper.git
