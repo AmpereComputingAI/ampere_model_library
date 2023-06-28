@@ -36,9 +36,8 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null 2>&1
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
-          tar -xvf yolo_v4_tiny_tf_fp32.tar.gz > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v4_tiny/run.py -m yolo_v4_tiny_tf_fp32 -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
