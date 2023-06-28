@@ -8,7 +8,7 @@ class LibriSpeech(DatasetStub):
     def __init__(self):
         self._librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
         self._idx = 0
-        self._transcriptions = {}
+        self._transcriptions = []
 
     def get_input_array(self):
         try:
@@ -17,12 +17,12 @@ class LibriSpeech(DatasetStub):
             raise OutOfInstances
 
     def submit_transcription(self, text: str):
-        self._transcriptions[self._idx] = text
+        self._transcriptions.append(text)
         self._idx += 1
 
     def reset(self):
         self._idx = 0
-        self._transcriptions = {}
+        self._transcriptions = []
         return True
 
     def summarize_accuracy(self):
