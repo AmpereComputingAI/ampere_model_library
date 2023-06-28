@@ -132,7 +132,8 @@ pip3 install --no-deps --upgrade \
    jiwer==3.0.2 \
    click==8.1.3 \
    rapidfuzz==2.13.7 \
-   llvmlite==0.40.1
+   llvmlite==0.40.1 \
+   decorator==5.1.1
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
