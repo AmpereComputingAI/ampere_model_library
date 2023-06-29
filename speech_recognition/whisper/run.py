@@ -3,7 +3,8 @@ import sys
 import torch
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout):
+def run_pytorch(model_name, num_runs, timeout):
+    batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
     from utils.misc import print_warning_message
