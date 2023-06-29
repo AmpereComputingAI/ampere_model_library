@@ -9,10 +9,10 @@
 	url = https://github.com/facebookresearch/segment-anything.git
 [submodule "natural_language_processing/text_generation/nanogpt/nanoGPT"]
 	path = natural_language_processing/text_generation/nanogpt/nanoGPT
-	url = git@github.com:dkupnicki/nanoGPT.git
+	url = https://github.com/dkupnicki/nanoGPT.git
 [submodule "utils/recommendation/DeepCTR"]
 	path = utils/recommendation/DeepCTR
 	url = https://github.com/shenweichen/DeepCTR.git
 [submodule "speech_recognition/whisper/whisper"]
 	path = speech_recognition/whisper/whisper
-	url = git@github.com:AmpereComputingAI/whisper.git
+	url = https://github.com/AmpereComputingAI/whisper.git
