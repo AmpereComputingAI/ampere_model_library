@@ -5,7 +5,7 @@ SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 
 class DefaultArgParser:
-    def __init__(self, supported_frameworks: List[str], default_batch_size=1, default_timeout=60.):
+    def __init__(self, supported_frameworks: List[str], default_timeout=60.):
         self.parser = argparse.ArgumentParser(prog=f"AML model-dedicated runner")
 
         if len(supported_frameworks) >= 2:
@@ -13,8 +13,6 @@ class DefaultArgParser:
                 assert framework in SUPPORTED_FRAMEWORKS, \
                     f"{framework} is not listed as globally supported [{SUPPORTED_FRAMEWORKS}]"
             self.parser.add_argument("-f", "--framework", type=str, choices=supported_frameworks, required=True)
-        self.parser.add_argument("-b", "--batch_size", type=int, default=default_batch_size,
-                                 help="batch size to feed the model with")
         self.parser.add_argument("--timeout", type=float, default=default_timeout,
                                  help="timeout in seconds")
         self.parser.add_argument("--num_runs", type=int,
@@ -22,6 +20,10 @@ class DefaultArgParser:
 
     def add_argument(self, *args, **kwargs):
         self.parser.add_argument(*args, **kwargs)
+
+    def ask_for_batch_size(self, default_batch_size=1):
+        self.parser.add_argument("-b", "--batch_size", type=int, default=default_batch_size,
+                                 help="batch size to feed the model with")
 
     def require_model_path(self):
         self.parser.add_argument("-m", "--model_path", type=str, required=True)

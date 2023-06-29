@@ -35,6 +35,7 @@ def run_pytorch(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
+    parser.ask_for_batch_size()
     parser.require_model_path()
     parser.add_argument("--images_path",
                         type=str,
