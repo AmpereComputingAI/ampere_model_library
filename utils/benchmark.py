@@ -185,10 +185,10 @@ def print_performance_metrics(
         if variable_input_lengths is not None:
             min_input_length, max_input_length = \
                 min(variable_input_lengths[warm_up_runs:]), max(variable_input_lengths[warm_up_runs:])
-            utils.print_warning_message(
-                f"Latency results will be normalized due to variable input shape "
-                f"(min = {min_input_length} ; max = {max_input_length}), to disable normalization run with "
-                f"DISABLE_NORMALIZATION=1")
+            if os.environ.get("DISABLE_NORMALIZATION") != "1":
+                utils.print_warning_message(
+                    f"Latency results will be normalized due to variable input shape (min = {min_input_length} ; max = "
+                    f"{max_input_length}), to disable normalization run with DISABLE_NORMALIZATION=1")
             assert num_runs == len(variable_input_lengths)
             average_input_length = statistics.mean(variable_input_lengths)
             input_length_factors = [input_length / average_input_length for input_length in variable_input_lengths]
