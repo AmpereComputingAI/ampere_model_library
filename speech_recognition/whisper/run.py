@@ -3,7 +3,7 @@ import sys
 import torch
 
 
-def run_pytorch(model_name, num_runs, timeout):
+def run_pytorch_fp32(model_name, num_runs, timeout):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -37,4 +37,4 @@ if __name__ == "__main__":
 
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name()
-    run_pytorch(**vars(parser.parse()))
+    run_pytorch_fp32(**vars(parser.parse()))
