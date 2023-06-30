@@ -123,6 +123,10 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
+    if variable_input_lengths is not None:
+        utils.print_warning_message(
+            "Input has variable shape, it is recommended to run this benchmark for a fixed number of runs")
+
     if os.environ.get("WARM_UP_ONLY") == "1":
         single_pass_func(runner, dataset)
         sys.exit(0)
@@ -169,8 +173,6 @@ def print_performance_metrics(
         utils.print_goodbye_message_and_die(
             "Cannot print performance data as not a single run has been completed! Increase the timeout.")
 
-    dump_csv_results(start_times, finish_times, batch_size, warm_up_runs)
-
     if num_runs <= warm_up_runs:
         if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
             sys.exit(0)
@@ -179,12 +181,13 @@ def print_performance_metrics(
     else:
         assert len(start_times) == len(finish_times) == num_runs
 
-        average_input_length = 1.0
+        variable_input_lengths_sum = 1
         if variable_input_lengths is not None:
-            utils.print_warning_message("Performance results will be normalized due to variable input length")
+            utils.print_warning_message("Performance results will be normalized due to variable input shape")
             assert num_runs == len(variable_input_lengths)
             average_input_length = statistics.mean(variable_input_lengths)
             input_length_factors = [input_length / average_input_length for input_length in variable_input_lengths]
+            variable_input_lengths_sum = sum(variable_input_lengths[warm_up_runs:])
 
         latencies = []
         for i in range(warm_up_runs, num_runs):
@@ -206,47 +209,48 @@ def print_performance_metrics(
             "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
             "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
             "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "mean_throughput": average_input_length * batch_size / mean_latency_sec,
-            "median_throughput": average_input_length * batch_size / median_latency_sec,
-            "90th_percentile_throughput": average_input_length * batch_size / percentile_90th_latency_sec,
-            "99th_percentile_throughput": average_input_length * batch_size / percentile_99th_latency_sec,
-            "99.9th_percentile_throughput": average_input_length * batch_size / percentile_999th_latency_sec
+            "observed_throughput": batch_size * variable_input_lengths_sum * len(latencies) / sum(latencies)
         }
 
-        metrics = ["mean", "median", "p90", "p99", "p99.9"]
         metrics_lat = {"mean": "mean_lat_ms",
                        "median": "median_lat_ms",
                        "p90": "90th_percentile_lat_ms",
                        "p99": "99th_percentile_lat_ms",
                        "p99.9": "99.9th_percentile_lat_ms"}
-        metrics_throughput = {"mean": "mean_throughput",
-                              "median": "median_throughput",
-                              "p90": "90th_percentile_throughput",
-                              "p99": "99th_percentile_throughput",
-                              "p99.9": "99.9th_percentile_throughput"}
-        max_len = max([len(metric) for metric in metrics])
+        max_len = max([len(metric) for metric in metrics_lat.keys()])
         indent = 2 * " "
         print(f"\n{indent}LATENCY")
-        for metric in metrics:
+        for metric in metrics_lat.keys():
             print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
                   + "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
 
+        metrics_throughput = {"observed": "observed_throughput"}
         print(f"\n{indent}THROUGHPUT")
-        for metric in metrics:
+        for metric in metrics_throughput.keys():
             print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
                   + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
 
         print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
         print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
+
+        if variable_input_lengths is None:
+            variable_input_sizes = [batch_size for _ in range(num_runs)]
+        else:
+            variable_input_sizes = [batch_size * variable_input_lengths[i] for i in range(num_runs)]
+
+        dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
         return results
 
 
-def dump_csv_results(start_times, finish_times, batch_size, warm_up_runs=2):
+def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs=2):
+    # variable input sizes mean the size of input tensors along dimensions that are configurable by user in the order
+    # of execution, e.g. input sizes for 2 runs of NLP model with bs=8 and seq_sizes of [384, 512] across two subsequent
+    # runs would be [8*384, 8*512]
     dump_dir = os.environ.get("RESULTS_DIR")
     if dump_dir is not None and len(start_times) > warm_up_runs:
-        with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
-            json.dump({"batch_size": batch_size}, f)
-        with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
-            writer = csv.writer(f)
-            writer.writerow(start_times[warm_up_runs:])
-            writer.writerow(finish_times[warm_up_runs:])
+        with open(f"{dump_dir}/{os.getpid()}.json", "w") as f:
+            json.dump({
+                "input_sizes": variable_input_sizes,
+                "start_times": start_times[warm_up_runs:],
+                "finish_times": finish_times[warm_up_runs:]
+            }, f)
