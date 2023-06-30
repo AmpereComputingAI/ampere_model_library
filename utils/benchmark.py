@@ -250,7 +250,7 @@ def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm
     if dump_dir is not None and len(start_times) > warm_up_runs:
         with open(f"{dump_dir}/{os.getpid()}.json", "w") as f:
             json.dump({
-                "input_sizes": variable_input_sizes,
+                "input_sizes": variable_input_sizes[warm_up_runs:],
                 "start_times": start_times[warm_up_runs:],
                 "finish_times": finish_times[warm_up_runs:]
             }, f)
