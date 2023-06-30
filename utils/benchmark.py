@@ -181,7 +181,7 @@ def print_performance_metrics(
     else:
         assert len(start_times) == len(finish_times) == num_runs
 
-        variable_input_lengths_sum = 1
+        variable_input_lengths_sum = num_runs - warm_up_runs
         if variable_input_lengths is not None:
             utils.print_warning_message("Performance results will be normalized due to variable input shape")
             assert num_runs == len(variable_input_lengths)
@@ -209,7 +209,7 @@ def print_performance_metrics(
             "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
             "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
             "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "observed_throughput": batch_size * variable_input_lengths_sum * len(latencies) / sum(latencies)
+            "observed_throughput": batch_size * variable_input_lengths_sum / sum(latencies)
         }
 
         metrics_lat = {"mean": "mean_lat_ms",
