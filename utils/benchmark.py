@@ -259,3 +259,4 @@ def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm
                 "start_times": start_times[warm_up_runs:],
                 "finish_times": finish_times[warm_up_runs:]
             }, f)
+        print(f"\n  Results have been dumped to {dump_dir}/{os.getpid()}.json")
