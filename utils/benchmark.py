@@ -228,24 +228,20 @@ def print_performance_metrics(
                 output += " [NORMALIZED]"
             print(output)
 
-        metrics_throughput = {"observed": "observed_throughput_ips",
-                              "inverted": "inverted_throughput_ms"}
         print(f"\n{indent}THROUGHPUT")
-        metric = "observed"
-        print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
-              + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
-        metric = "inverted"
-        print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
-              + "{:>10.2f} [ms]".format(results[metrics_throughput[metric]]))
+        print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}"
+              + "{:>10.2f} [samples/s]".format(results["observed_throughput_ips"]))
+        print(f"{3 * indent}inverted{(max_len - len('inverted')) * ' '}{3 * indent}"
+              + "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
 
         print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
         print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
 
         if variable_input_lengths is None:
             variable_input_sizes = [batch_size for _ in range(num_runs)]
+        else:
             utils.print_warning_message(
                 "Input has variable shape, it is recommended to run this benchmark for a fixed number of runs")
-        else:
             variable_input_sizes = [batch_size * variable_input_lengths[i] for i in range(num_runs)]
 
         dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
