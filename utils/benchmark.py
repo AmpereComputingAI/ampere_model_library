@@ -123,10 +123,6 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
                 f"Number of runs requested exceeds number of instances available in dataset! "
                 f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
-    if variable_input_lengths is not None:
-        utils.print_warning_message(
-            "Input has variable shape, it is recommended to run this benchmark for a fixed number of runs")
-
     if os.environ.get("WARM_UP_ONLY") == "1":
         single_pass_func(runner, dataset)
         sys.exit(0)
@@ -213,7 +209,8 @@ def print_performance_metrics(
             "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
             "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
             "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "observed_throughput": observed_throughput
+            "observed_throughput_ips": observed_throughput,
+            "inverted_throughput_ms": ms_in_sec / observed_throughput
         }
 
         metrics_lat = {"mean": "mean_lat_ms",
@@ -231,17 +228,23 @@ def print_performance_metrics(
                 output += " [NORMALIZED]"
             print(output)
 
-        metrics_throughput = {"observed": "observed_throughput"}
+        metrics_throughput = {"observed": "observed_throughput_ips",
+                              "inverted": "inverted_throughput_ms"}
         print(f"\n{indent}THROUGHPUT")
-        for metric in metrics_throughput.keys():
-            print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
-                  + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
+        metric = "observed"
+        print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
+              + "{:>10.2f} [samples/s]".format(results[metrics_throughput[metric]]))
+        metric = "inverted"
+        print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
+              + "{:>10.2f} [ms]".format(results[metrics_throughput[metric]]))
 
         print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
         print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
 
         if variable_input_lengths is None:
             variable_input_sizes = [batch_size for _ in range(num_runs)]
+            utils.print_warning_message(
+                "Input has variable shape, it is recommended to run this benchmark for a fixed number of runs")
         else:
             variable_input_sizes = [batch_size * variable_input_lengths[i] for i in range(num_runs)]
 
