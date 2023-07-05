@@ -213,12 +213,12 @@ def print_performance_metrics(
             "inverted_throughput_ms": ms_in_sec / observed_throughput
         }
 
+        max_len = 10
         metrics_lat = {"mean": "mean_lat_ms",
                        "median": "median_lat_ms",
                        "p90": "90th_percentile_lat_ms",
                        "p99": "99th_percentile_lat_ms",
                        "p99.9": "99.9th_percentile_lat_ms"}
-        max_len = max([len(metric) for metric in metrics_lat.keys()])
         indent = 2 * " "
         print(f"\n{indent}LATENCY")
         for metric in metrics_lat.keys():
