@@ -235,7 +235,7 @@ def print_performance_metrics(
               + "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
 
         print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
-        print(f"{indent}{warm_up_runs} warm-up runs have not been considered.\n")
+        print(f"{indent}{warm_up_runs} warm-up runs have not been considered.")
 
         if variable_input_lengths is None:
             variable_input_sizes = [batch_size for _ in range(num_runs)]
@@ -261,4 +261,4 @@ def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm
                 "start_times": start_times[warm_up_runs:],
                 "finish_times": finish_times[warm_up_runs:]
             }, f)
-        print(f"  Results have been dumped to {dump_path}\n")
+        print(f"\n  Results have been dumped to {dump_path}\n")
