@@ -34,7 +34,8 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
-
+    whisper_variants = ["tiny", "base", "small", "medium", "large"]
+    whisper_variants = whisper_variants + [f"{name}.en" for name in whisper_variants[:4]]
     parser = DefaultArgParser(["pytorch"])
-    parser.require_model_name()
+    parser.require_model_name(whisper_variants)
     run_pytorch_fp32(**vars(parser.parse()))
