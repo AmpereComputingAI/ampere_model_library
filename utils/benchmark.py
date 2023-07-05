@@ -185,21 +185,20 @@ def print_performance_metrics(
         if variable_input_lengths is not None:
             min_input_length, max_input_length = \
                 min(variable_input_lengths[warm_up_runs:]), max(variable_input_lengths[warm_up_runs:])
-            if os.environ.get("DISABLE_NORMALIZATION") != "1":
+            if os.environ.get("ENABLE_NORMALIZATION") != "1":
                 utils.print_warning_message(
-                    f"Latency results will be normalized due to variable input shape (min = {min_input_length} ; max = "
-                    f"{max_input_length}), to disable normalization run with DISABLE_NORMALIZATION=1")
+                    f"Variable input size (min = {min_input_length} ; max = {max_input_length}), results can be "
+                    f"normalized with ENABLE_NORMALIZATION=1")
             assert num_runs == len(variable_input_lengths)
             average_input_length = statistics.mean(variable_input_lengths[warm_up_runs:])
-            input_length_factors = [input_length / average_input_length for input_length in variable_input_lengths]
+            input_length_factors = [input_length / average_input_length
+                                    for input_length in variable_input_lengths[warm_up_runs:]]
             variable_input_lengths_sum = sum(variable_input_lengths[warm_up_runs:])
 
-        latencies = []
-        for i in range(warm_up_runs, num_runs):
-            latency_sec = finish_times[i] - start_times[i]
-            if variable_input_lengths is not None and os.environ.get("DISABLE_NORMALIZATION") != "1":
-                latency_sec /= input_length_factors[i]
-            latencies.append(latency_sec)
+        latencies = [finish_times[i] - start_times[i] for i in range(warm_up_runs, num_runs)]
+        observed_throughput = batch_size * variable_input_lengths_sum / sum(latencies)
+        if variable_input_lengths is not None and os.environ.get("ENABLE_NORMALIZATION") == "1":
+            latencies = [latency / factor for latency, factor in zip(latencies, input_length_factors)]
 
         mean_latency_sec = statistics.mean(latencies)
         median_latency_sec = statistics.median(latencies)
@@ -214,7 +213,7 @@ def print_performance_metrics(
             "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
             "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
             "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "observed_throughput": batch_size * variable_input_lengths_sum / sum(latencies)
+            "observed_throughput": observed_throughput
         }
 
         metrics_lat = {"mean": "mean_lat_ms",
@@ -226,8 +225,11 @@ def print_performance_metrics(
         indent = 2 * " "
         print(f"\n{indent}LATENCY")
         for metric in metrics_lat.keys():
-            print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}"
-                  + "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
+            output = f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" \
+                     + "{:>10.2f} [ms]".format(results[metrics_lat[metric]])
+            if os.environ.get("ENABLE_NORMALIZATION") == "1":
+                output += " [NORMALIZED]"
+            print(output)
 
         metrics_throughput = {"observed": "observed_throughput"}
         print(f"\n{indent}THROUGHPUT")
