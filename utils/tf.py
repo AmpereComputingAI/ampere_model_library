@@ -109,7 +109,7 @@ class TFFrozenModelRunner:
 
         return output
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self, batch_size, variable_input_lengths):
         """
         A function printing performance metrics on runs executed by the runner so far and then closing TF session.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
@@ -119,7 +119,9 @@ class TFFrozenModelRunner:
         self.__profiler.dump_maybe()
         self.__sess.close()
         return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
+            variable_input_lengths=variable_input_lengths
+        )
 
 
 class TFSavedModelRunner:
@@ -163,7 +165,7 @@ class TFSavedModelRunner:
         self.__times_invoked += 1
         return output
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self, batch_size, variable_input_lengths):
         """
         A function printing performance metrics on runs executed by the runner so far.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
@@ -172,4 +174,6 @@ class TFSavedModelRunner:
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
         return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
+            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
+            variable_input_lengths=variable_input_lengths
+        )

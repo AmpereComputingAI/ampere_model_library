@@ -16,7 +16,8 @@ def run_tf(model_path, batch_size, num_runs, timeout, dataset_path):
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
-    parser = DefaultArgParser(["tf"], default_batch_size=2048)
+    parser = DefaultArgParser(["tf"])
+    parser.ask_for_batch_size(default_batch_size=2048)
     parser.require_model_path()
     parser.add_argument("--dataset_path",
                         type=str, required=True, help="path to csv file with 'Adult Census Income' data")

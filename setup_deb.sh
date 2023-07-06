@@ -79,7 +79,13 @@ pip3 install --no-deps --upgrade \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
    tiktoken==0.3.3 \
-   ultralytics==8.0.75
+   ultralytics==8.0.75 \
+   evaluate==0.4.0 \
+   datasets==2.13.1 \
+   soundfile==0.12.1 \
+   librosa==0.10.0.post2 \
+   numba==0.57.1
+
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
@@ -108,7 +114,31 @@ pip3 install --no-deps --upgrade \
    lxml==4.9.2 \
    colorama==0.4.6 \
    thop>=0.1.1 \
-   psutil==5.9.5
+   psutil==5.9.5 \
+   multiprocess==0.70.14 \
+   pyarrow==12.0.1 \
+   dill==0.3.6 \
+   aiohttp==3.8.4 \
+   multidict==6.0.4 \
+   yarl==1.9.2 \
+   async_timeout==4.0.2 \
+   aiosignal==1.3.1 \
+   frozenlist==1.3.3 \
+   xxhash==3.2.0 \
+   lazy_loader==0.2 \
+   audioread==3.0.0 \
+   soxr==0.3.5 \
+   msgpack==1.0.5 \
+   jiwer==3.0.2 \
+   click==8.1.3 \
+   rapidfuzz==2.13.7 \
+   llvmlite==0.40.1 \
+   decorator==5.1.1 \
+   fsspec==2023.6.0 \
+   unicode==2.9 \
+   unidecode==1.3.6 \
+   inflect==6.0.4 \
+   pydantic==1.10.9
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"

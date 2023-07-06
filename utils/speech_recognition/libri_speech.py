@@ -11,6 +11,7 @@ from utils.speech_recognition.rnnt.features import WaveformFeaturizer
 from utils.speech_recognition.rnnt.preprocessing import AudioPreprocessing
 from utils.speech_recognition.rnnt.metrics import word_error_rate
 
+
 class LibriSpeech:
 
     def __init__(self, dataset_dir_path, config, max_batch_size):
@@ -28,7 +29,7 @@ class LibriSpeech:
             pathlib.Path(dataset_dir_path) / 'dev-clean-wav.json',
             self.__labels,
             self.__featurizer,
-            blank_index=27,)
+            blank_index=27, )
         self.__dataloader = iter(torch.utils.data.DataLoader(
             dataset=self.__data,
             batch_size=max_batch_size,
@@ -39,11 +40,11 @@ class LibriSpeech:
             pin_memory=True,
             sampler=None
         ))
-        self.__preprocessor= AudioPreprocessing(**config["input_eval"])
+        self.__preprocessor = AudioPreprocessing(**config["input_eval"])
         self.__current_input = None
         self.__word_count = 0
         self.__score_count = 0
-    
+
     @staticmethod
     def seq_collate_fn(batch):
         """batches samples and returns as tensors
@@ -53,9 +54,9 @@ class LibriSpeech:
         batches of tensors
         """
         audio_lengths = torch.LongTensor([sample.waveform.size(0)
-                                        for sample in batch])
+                                          for sample in batch])
         transcript_lengths = torch.LongTensor([sample.transcript.size(0)
-                                            for sample in batch])
+                                               for sample in batch])
         permute_indices = torch.argsort(audio_lengths, descending=True)
 
         audio_lengths = audio_lengths[permute_indices]
@@ -65,13 +66,13 @@ class LibriSpeech:
             batch_first=True
         )
         transcript_list = [batch[i].transcript
-                        for i in permute_indices]
+                           for i in permute_indices]
         packed_transcripts = torch.nn.utils.rnn.pack_sequence(transcript_list,
-                                                            enforce_sorted=False)
+                                                              enforce_sorted=False)
 
         return (padded_audio_signals, audio_lengths, transcript_list,
                 packed_transcripts, transcript_lengths)
-    
+
     def get_input_arrays(self):
         try:
             input = next(self.__dataloader)
@@ -80,11 +81,11 @@ class LibriSpeech:
         self.__current_input = input
         feature, feature_length = self.__preprocessor.forward((input[0], input[1]))
         feature = feature.permute(2, 0, 1)
-        return (feature, feature_length)
+        return feature, feature_length
 
     def __decode(self, x):
         return "".join([self.__labels[letter] for letter in x])
-        
+
     def submit_predictions(self, predictions):
         """
         A function meant for submitting a prediction for a given sequence.
