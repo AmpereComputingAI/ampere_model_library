@@ -7,7 +7,7 @@ from datetime import datetime
 
 import tensorflow as tf
 
-import utils.benchmark as bench_utils
+from utils.benchmark import *
 from utils.misc import advertise_aio
 
 
@@ -43,7 +43,7 @@ class TFFrozenModelRunner:
 
         self.__graph = self.__initialize_graph(path_to_model)
         self.__sess = tf.compat.v1.Session(
-            config=self.__create_config(bench_utils.get_intra_op_parallelism_threads()),
+            config=self.__create_config(get_intra_op_parallelism_threads()),
             graph=self.__graph
         )
         self.__feed_dict = dict()
@@ -118,13 +118,13 @@ class TFFrozenModelRunner:
             tf.AIO.print_profile_data()
         self.__profiler.dump_maybe()
         self.__sess.close()
-        return bench_utils.print_performance_metrics(
+        return print_performance_metrics(
             self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
             variable_input_lengths=variable_input_lengths
         )
 
 
-class TFSavedModelRunner:
+class TFSavedModelRunner(Runner):
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
@@ -141,16 +141,11 @@ class TFSavedModelRunner:
         tf.config.threading.set_inter_op_parallelism_threads(1)
 
         self.model = None
-
-        self.__times_invoked = 0
-        self.__start_times = list()
-        self.__finish_times = list()
-
-        self.__profiler = TFProfiler()
+        self._profiler = TFProfiler()
 
         print("\nRunning with TensorFlow\n")
 
-    def run(self, *args, **kwargs):
+    def run(self, task_size: int, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
@@ -160,20 +155,19 @@ class TFSavedModelRunner:
         output = self.model(*args, **kwargs)
         finish = time.time()
 
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
-        self.__times_invoked += 1
+        self._start_times.append(start)
+        self._finish_times.append(finish)
+        self._workload_size.append(task_size)
+        self._times_invoked += 1
         return output
 
-    def print_performance_metrics(self, batch_size, variable_input_lengths):
+    def print_performance_metrics(self):
         """
         A function printing performance metrics on runs executed by the runner so far.
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
-        self.__profiler.dump_maybe()
+        self._profiler.dump_maybe()
         return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
-            variable_input_lengths=variable_input_lengths
+            self._start_times, self._finish_times, self._times_invoked, self._workload_size
         )

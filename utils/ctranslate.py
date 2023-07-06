@@ -4,8 +4,8 @@ import ctranslate2
 import sentencepiece
 
 import utils.benchmark as bench_utils
-from utils.misc import advertise_aio
 from utils.profiling import aio_profiler_enabled
+
 
 class CTranslateRunner:
     """
@@ -49,7 +49,7 @@ class CTranslateRunner:
         A function printing performance metrics on runs executed by the runner so far.
         :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        
+
         if self.is_profiling:
             self.translator.dump_profiling()
 
