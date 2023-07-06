@@ -83,7 +83,7 @@ class Runner:
         self._finish_times = list()
         self._workload_size = list()
 
-    def run(self):
+    def run(self, task_size: int, *args, **kwargs):
         raise NotImplementedError
 
     def __print_performance_metrics(self):

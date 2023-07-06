@@ -1,14 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
-import time
 import tensorflow as tf
-import utils.benchmark as bench_utils
+from utils.benchmark import *
 from utils.misc import advertise_aio
 
 
-class TFLiteRunner:
+class TFLiteRunner(Runner):
     """
     A class providing facilities to run TensorFlow Lite model (in .tflite format).
     """
@@ -18,22 +16,18 @@ class TFLiteRunner:
         A function initializing runner.
 
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
-        :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
+        super().__init__()
         try:
             tf.AIO
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        self.__interpreter = tf.compat.v1.lite.Interpreter(
-            model_path=path_to_model, num_threads=bench_utils.get_intra_op_parallelism_threads())
-        self.__interpreter.allocate_tensors()
-        self.input_details = self.__interpreter.get_input_details()
-        self.output_details = self.__interpreter.get_output_details()
-
-        self.__times_invoked = 0
-        self.__start_times = list()
-        self.__finish_times = list()
+        self._interpreter = tf.compat.v1.lite.Interpreter(
+            model_path=path_to_model, num_threads=get_intra_op_parallelism_threads())
+        self._interpreter.allocate_tensors()
+        self.input_details = self._interpreter.get_input_details()
+        self.output_details = self._interpreter.get_output_details()
 
         print("\nRunning with TensorFlow Lite\n")
 
@@ -44,7 +38,7 @@ class TFLiteRunner:
         :param input_index: int, index of the input node in a model (can be obtained by accessing self.input_details)
         :param input_array: numpy array with intended input
         """
-        self.__interpreter.set_tensor(input_index, input_array)
+        self._interpreter.set_tensor(input_index, input_array)
 
     def get_output_tensor(self, output_index):
         """
@@ -53,32 +47,28 @@ class TFLiteRunner:
         :param output_index: int, index of the output node in a model (can be obtained by accessing self.output_details)
         :return: output tensor available under the supplied index
         """
-        return self.__interpreter.get_tensor(output_index)
+        return self._interpreter.get_tensor(output_index)
 
-    def run(self):
+    def run(self, task_size: int, *args, **kwargs):
         """
         A function executing single pass over the network, measuring the time needed and number of passes.
 
         :return: dict, output dictionary with tensor names and corresponding output
         """
         start = time.time()
-        self.__interpreter.invoke()
+        self._interpreter.invoke()
         finish = time.time()
 
-        self.__times_invoked += 1
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
+        self._times_invoked += 1
+        self._start_times.append(start)
+        self._finish_times.append(finish)
+        self._workload_size.append(task_size)
 
-    def print_performance_metrics(self, batch_size, variable_input_lengths):
+    def print_performance_metrics(self):
         """
         A function printing performance metrics on runs executed by the runner so far.
-
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
 
-        return bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
-            variable_input_lengths=variable_input_lengths
-        )
+        return self.__print_performance_metrics()

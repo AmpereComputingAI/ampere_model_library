@@ -1,12 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-
-import os
-import time
 from datetime import datetime
-
 import tensorflow as tf
-
 from utils.benchmark import *
 from utils.misc import advertise_aio
 
@@ -25,7 +20,7 @@ class TFProfiler:
             print("\nTo display TF profiler data run:\n  python3 -m tensorboard.main --logdir=./profiler_output/")
 
 
-class TFFrozenModelRunner:
+class TFFrozenModelRunner(Runner):
     """
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
     """
@@ -36,28 +31,25 @@ class TFFrozenModelRunner:
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
+        super().__init__()
         try:
             tf.AIO
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        self.__graph = self.__initialize_graph(path_to_model)
-        self.__sess = tf.compat.v1.Session(
-            config=self.__create_config(get_intra_op_parallelism_threads()),
-            graph=self.__graph
+        self._graph = self._initialize_graph(path_to_model)
+        self._sess = tf.compat.v1.Session(
+            config=self._create_config(get_intra_op_parallelism_threads()),
+            graph=self._graph
         )
-        self.__feed_dict = dict()
-        self.__output_dict = {output_name: self.__graph.get_tensor_by_name(output_name) for output_name in output_names}
+        self._feed_dict = dict()
+        self._output_dict = {output_name: self._graph.get_tensor_by_name(output_name) for output_name in output_names}
 
-        self.__times_invoked = 0
-        self.__start_times = list()
-        self.__finish_times = list()
-
-        self.__profiler = TFProfiler()
+        self._profiler = TFProfiler()
 
         print("\nRunning with TensorFlow\n")
 
-    def __create_config(self, intra_threads: int, inter_threads=1):
+    def _create_config(self, intra_threads: int, inter_threads=1):
         """
         A function creating TF config for given num of threads.
         :param intra_threads: int
@@ -70,7 +62,7 @@ class TFFrozenModelRunner:
         config.inter_op_parallelism_threads = inter_threads
         return config
 
-    def __initialize_graph(self, path_to_model: str):
+    def _initialize_graph(self, path_to_model: str):
         """
         A function initializing TF graph from frozen .pb model.
         :param path_to_model: str
@@ -91,37 +83,34 @@ class TFFrozenModelRunner:
         :param input_name: str, name of a input node in a model, eg. "image_tensor:0"
         :param input_array: numpy array with intended input
         """
-        self.__feed_dict[self.__graph.get_tensor_by_name(input_name)] = input_array
+        self._feed_dict[self._graph.get_tensor_by_name(input_name)] = input_array
 
-    def run(self):
+    def run(self, task_size: int, *args, **kwargs):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
         start = time.time()
-        output = self.__sess.run(self.__output_dict, self.__feed_dict)
+        output = self._sess.run(self._output_dict, self._feed_dict)
         finish = time.time()
 
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
-        self.__times_invoked += 1
+        self._start_times.append(start)
+        self._finish_times.append(finish)
+        self._workload_size.append(task_size)
+        self._times_invoked += 1
 
         return output
 
-    def print_performance_metrics(self, batch_size, variable_input_lengths):
+    def print_performance_metrics(self):
         """
         A function printing performance metrics on runs executed by the runner so far and then closing TF session.
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
-        self.__profiler.dump_maybe()
-        self.__sess.close()
-        return print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size,
-            variable_input_lengths=variable_input_lengths
-        )
+        self._profiler.dump_maybe()
+        self._sess.close()
+        return self.__print_performance_metrics()
 
 
 class TFSavedModelRunner(Runner):
@@ -132,12 +121,13 @@ class TFSavedModelRunner(Runner):
         """
         A function initializing runner.
         """
+        super().__init__()
         try:
             tf.AIO
         except AttributeError:
             advertise_aio("TensorFlow")
 
-        tf.config.threading.set_intra_op_parallelism_threads(bench_utils.get_intra_op_parallelism_threads())
+        tf.config.threading.set_intra_op_parallelism_threads(get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
 
         self.model = None
@@ -159,6 +149,7 @@ class TFSavedModelRunner(Runner):
         self._finish_times.append(finish)
         self._workload_size.append(task_size)
         self._times_invoked += 1
+
         return output
 
     def print_performance_metrics(self):
@@ -168,6 +159,4 @@ class TFSavedModelRunner(Runner):
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         self._profiler.dump_maybe()
-        return bench_utils.print_performance_metrics(
-            self._start_times, self._finish_times, self._times_invoked, self._workload_size
-        )
+        return self.__print_performance_metrics()
