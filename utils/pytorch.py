@@ -107,7 +107,7 @@ class PyTorchRunner(Runner):
         if self._is_profiling:
             print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
-        return self.__print_performance_metrics()
+        return self.print_metrics()
 
 
 class PyTorchRunnerV2(Runner):

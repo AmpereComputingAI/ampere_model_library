@@ -86,7 +86,7 @@ class Runner:
     def run(self, task_size: int, *args, **kwargs):
         raise NotImplementedError
 
-    def __print_performance_metrics(self):
+    def print_metrics(self):
         if self._times_invoked == 0:
             utils.print_goodbye_message_and_die(
                 "Cannot print performance data as not a single run has been completed! Increase the timeout.")
