@@ -52,7 +52,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
 
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
-        output = tf_runner.run(tf.constant(imagenet.get_input_array(shape)))
+        output = tf_runner.run(batch_size, tf.constant(imagenet.get_input_array(shape)))
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
@@ -75,7 +75,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     def run_single_pass(tflite_runner, imagenet):
         shape = (224, 224)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]['index'], imagenet.get_input_array(shape))
-        tflite_runner.run()
+        tflite_runner.run(batch_size)
         output_tensor = tflite_runner.get_output_tensor(tflite_runner.output_details[0]['index'])
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -98,7 +98,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
+        output = pytorch_runner.run(batch_size, torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -121,7 +121,7 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
