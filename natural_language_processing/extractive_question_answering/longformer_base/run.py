@@ -13,7 +13,8 @@ from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for extractive question answering task.")
+    parser = argparse.ArgumentParser(
+        description="Run model from Huggingface's transformers repo for extractive question answering task.")
     parser.add_argument("-m", "--model_name",
                         type=str, choices=["valhalla/longformer-base-4096-finetuned-squadv1"], required=True,
                         help="name of the model")
@@ -35,12 +36,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, squad):
-
-        output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
+        output = tf_runner.run(batch_size, np.array(squad.get_input_ids_array(), dtype=np.int32))
 
         for i in range(batch_size):
             answer_start_id = np.argmax(output.start_logits[i])
@@ -64,8 +64,10 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
-    return run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
+
+def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path):
+    return run_tf(model_name, batch_size, num_runs, timeout, squad_path)
+
 
 def main():
     args = parse_args()

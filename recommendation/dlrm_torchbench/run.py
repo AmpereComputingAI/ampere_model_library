@@ -36,7 +36,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
-        output = torch_runner.run(example_inputs)
+        output = torch_runner.run(batch_size, example_inputs)
         dataset.submit_predictions(output)
 
     append_dlrm_to_pypath()

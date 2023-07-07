@@ -49,7 +49,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
         tf_runner.set_input_tensor("input_mask:0", squad.get_attention_mask_array())
         tf_runner.set_input_tensor("segment_ids:0", squad.get_token_type_ids_array())
 
-        output = tf_runner.run()
+        output = tf_runner.run(batch_size)
 
         for i in range(batch_size):
             answer_start_id, answer_end_id = np.argmax(output["logits:0"][i], axis=0)
@@ -87,7 +87,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 
     def run_single_pass(pytorch_runner, squad):
 
-        output = pytorch_runner.run(dict(squad.get_input_arrays()))
+        output = pytorch_runner.run(batch_size, dict(squad.get_input_arrays()))
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()

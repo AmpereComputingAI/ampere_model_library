@@ -1,12 +1,11 @@
-def single_pass_tf(tf_runner, dataset):
-    dataset.submit_results(tf_runner.run(**dataset.get_inputs()))
-
-
 def run_tf(model_path, batch_size, num_runs, timeout, dataset_path):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
     from utils.benchmark import run_model
     from utils.recommendation.census_income import CensusIncome
+
+    def single_pass_tf(tf_runner, dataset):
+        dataset.submit_results(batch_size, tf_runner.run(**dataset.get_inputs()))
 
     runner = TFSavedModelRunner()
     ds = CensusIncome(batch_size, dataset_path)
