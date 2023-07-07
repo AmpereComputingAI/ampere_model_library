@@ -1,15 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-import csv
+
 import json
 import os
 import sys
 import time
 import statistics
 import numpy as np
+import psutil
 import utils.misc as utils
 from tqdm.auto import tqdm
-from typing import List
+from threading import Thread
+from filelock import FileLock
 
 intra_op_parallelism_threads = None
 
@@ -76,12 +78,35 @@ class Runner:
     """
 
     warm_up_runs = 2
+    _pid = os.getpid()
+    _results_dir = os.environ.get("RESULTS_DIR")
 
     def __init__(self):
         self._times_invoked = 0
         self._start_times = list()
         self._finish_times = list()
         self._workload_size = list()
+        if self._results_dir is not None:
+            self._dump_filepath = os.path.join(self._results_dir, f"{self._pid}.json")
+            self._dump_filelock = FileLock(f"{self._dump_filepath}.lock", timeout=60)
+            self._dumper = Thread(target=self._dump_results)
+            self._dumper.start()
+
+    def _dump_results(self):
+        while psutil.pid_exists(self._pid):
+            with self._dump_filelock:
+                with open(self._dump_filepath, "w") as f:
+                    times_invoked = self._times_invoked
+                    json.dump({
+                        "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
+                        "start_times": self._start_times[self.warm_up_runs:times_invoked],
+                        "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
+                    }, f)
+            time.sleep(5)
+
+    def abort_maybe(self):
+        if self._results_dir is not None and os.path.isfile(os.path.join(self._results_dir, "STOP")):
+            sys.exit(0)
 
     def run(self, task_size: int, *args, **kwargs):
         raise NotImplementedError
@@ -188,9 +213,11 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                     single_pass_func(runner, dataset)
                     timeout_pbar.n = int(min(time.time() - start, timeout))
                     timeout_pbar.refresh()
+                    runner.abort_maybe()
             else:
                 for _ in tqdm(range(num_runs)):
                     single_pass_func(runner, dataset)
+                    runner.abort_maybe()
         except utils.OutOfInstances:
             if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
                 assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
@@ -201,19 +228,3 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         timeout_pbar.close()
 
     return dataset.summarize_accuracy(), runner.print_performance_metrics()
-
-
-def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs=2):
-    # variable input sizes mean the size of input tensors along dimensions that are configurable by user in the order
-    # of execution, e.g. input sizes for 2 runs of NLP model with bs=8 and seq_sizes of [384, 512] across two subsequent
-    # runs would be [8*384, 8*512]
-    dump_dir = os.environ.get("RESULTS_DIR")
-    if dump_dir is not None and len(start_times) > warm_up_runs:
-        dump_path = os.path.join(dump_dir, f"{os.getpid()}.json")
-        with open(dump_path, "w") as f:
-            json.dump({
-                "input_sizes": variable_input_sizes[warm_up_runs:],
-                "start_times": start_times[warm_up_runs:],
-                "finish_times": finish_times[warm_up_runs:]
-            }, f)
-        print(f"\n  Results have been dumped to {dump_path}\n")
