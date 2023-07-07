@@ -89,23 +89,29 @@ class Runner:
         if self._results_dir is not None:
             self._dump_filepath = os.path.join(self._results_dir, f"{self._pid}.json")
             self._dump_filelock = FileLock(f"{self._dump_filepath}.lock", timeout=60)
-            self._dumper = Thread(target=self._dump_results)
+            self._do_dump = True
+            self._dumper = Thread(target=self._dump_loop, daemon=True)
             self._dumper.start()
 
     def _dump_results(self):
-        while psutil.pid_exists(self._pid):
-            with self._dump_filelock:
-                with open(self._dump_filepath, "w") as f:
-                    times_invoked = self._times_invoked
-                    json.dump({
-                        "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
-                        "start_times": self._start_times[self.warm_up_runs:times_invoked],
-                        "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
-                    }, f)
+        with self._dump_filelock:
+            with open(self._dump_filepath, "w") as f:
+                times_invoked = self._times_invoked
+                json.dump({
+                    "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
+                    "start_times": self._start_times[self.warm_up_runs:times_invoked],
+                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
+                }, f)
+
+    def _dump_loop(self):
+        while self._do_dump:
             time.sleep(5)
+            self._dump_results()
 
     def abort_maybe(self):
         if self._results_dir is not None and os.path.isfile(os.path.join(self._results_dir, "STOP")):
+            self._do_dump = False
+            self._dumper.join(timeout=60)
             sys.exit(0)
 
     def run(self, task_size: int, *args, **kwargs):
@@ -169,7 +175,10 @@ class Runner:
             print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
             print(f"{indent}{self.warm_up_runs} warm-up runs have not been considered.")
 
-            #dump_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
+            if self._results_dir is not None:
+                self._do_dump = False
+                self._dumper.join(timeout=60)
+
             return results
 
 
