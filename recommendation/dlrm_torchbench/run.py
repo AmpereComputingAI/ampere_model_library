@@ -36,7 +36,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
-        output = torch_runner.run(batch_size, example_inputs)
+        output = torch_runner.run(batch_size, *example_inputs)
         dataset.submit_predictions(output)
 
     append_dlrm_to_pypath()
@@ -52,63 +52,62 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     num_indicies_per_lookup = 100
 
     opt = argparse.Namespace(**{
-            'm_spa' : None,
-            'ln_emb': None,
-            'ln_bot': None,
-            'ln_top': None,
-            'arch_interaction_op': "dot",
-            'arch_interaction_itself': False,
-            'sigmoid_bot': -1,
-            'sigmoid_top': -1,
-            'sync_dense_params': True,
-            'loss_threshold': 0.0,
-            'ndevices': -1,
-            'qr_flag': False,
-            'qr_operation': "mult",
-            'qr_collisions': 0,
-            'qr_threshold': 200,
-            'md_flag': False,
-            'md_threshold': 200,
-            'md_temperature': 0.3,
-            'activation_function': "relu",
-            'loss_function': "bce",
-            'loss_weights': "1.0-1.0",
-            'loss_threshold': 0.0,
-            'round_targets': False,
-            'data_size': 6,
-            'data_generation': data_generation,
-            'data_trace_file': "./input/dist_emb_j.log",
-            'raw_data_file': "",
-            'processed_data_file': "",
-            'data_randomize': "total",
-            'data_trace_enable_padding': False,
-            'max_ind_range': -1,
-            'num_workers': 0,
-            'memory_map': False,
-            'data_sub_sample_rate': 0.0,
-            'learning_rate': 0.01,
-            'lr_num_warmup_steps': 0,
-            'lr_decay_start_step': 0,
-            'lr_num_decay_steps': 0,
-            'arch_embedding_size': arch_embedding_size,
-            'arch_sparse_feature_size': arch_sparse_feature_size,
-            'arch_mlp_bot': arch_mlp_bot,
-            'arch_mlp_top': arch_mlp_top,
-            'mini_batch_size': mini_batch_size,
-            'num_batches': num_batches,
-            'num_indices_per_lookup': num_indicies_per_lookup,
-            'num_indices_per_lookup_fixed': True,
-            'numpy_rand_seed': 123,
-            'rand_data_dist': "uniform",
-            'rand_data_min': 1,
-            'rand_data_max': 1,
-            'rand_data_mu': -1,
-            'rand_data_sigma': 1,
-        })
-    
+        'm_spa': None,
+        'ln_emb': None,
+        'ln_bot': None,
+        'ln_top': None,
+        'arch_interaction_op': "dot",
+        'arch_interaction_itself': False,
+        'sigmoid_bot': -1,
+        'sigmoid_top': -1,
+        'sync_dense_params': True,
+        'ndevices': -1,
+        'qr_flag': False,
+        'qr_operation': "mult",
+        'qr_collisions': 0,
+        'qr_threshold': 200,
+        'md_flag': False,
+        'md_threshold': 200,
+        'md_temperature': 0.3,
+        'activation_function': "relu",
+        'loss_function': "bce",
+        'loss_weights': "1.0-1.0",
+        'loss_threshold': 0.0,
+        'round_targets': False,
+        'data_size': 6,
+        'data_generation': data_generation,
+        'data_trace_file': "./input/dist_emb_j.log",
+        'raw_data_file': "",
+        'processed_data_file': "",
+        'data_randomize': "total",
+        'data_trace_enable_padding': False,
+        'max_ind_range': -1,
+        'num_workers': 0,
+        'memory_map': False,
+        'data_sub_sample_rate': 0.0,
+        'learning_rate': 0.01,
+        'lr_num_warmup_steps': 0,
+        'lr_decay_start_step': 0,
+        'lr_num_decay_steps': 0,
+        'arch_embedding_size': arch_embedding_size,
+        'arch_sparse_feature_size': arch_sparse_feature_size,
+        'arch_mlp_bot': arch_mlp_bot,
+        'arch_mlp_top': arch_mlp_top,
+        'mini_batch_size': mini_batch_size,
+        'num_batches': num_batches,
+        'num_indices_per_lookup': num_indicies_per_lookup,
+        'num_indices_per_lookup_fixed': True,
+        'numpy_rand_seed': 123,
+        'rand_data_dist': "uniform",
+        'rand_data_min': 1,
+        'rand_data_max': 1,
+        'rand_data_mu': -1,
+        'rand_data_sigma': 1,
+    })
+
     opt.ln_bot = np.fromstring(opt.arch_mlp_bot, dtype=int, sep="-")
 
-     # Input and target at random
+    # Input and target at random
     opt.ln_emb = np.fromstring(opt.arch_embedding_size, dtype=int, sep="-")
     opt.m_den = opt.ln_bot[0]
     dataset = RandomDataset(opt)
@@ -140,7 +139,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
         qr_threshold=opt.qr_threshold,
         md_flag=opt.md_flag,
         md_threshold=opt.md_threshold,
-        )
+    )
 
     X, lS_o, lS_i, targets = next(iter(dataset.train_ld))
     example_inputs = (X, lS_o, lS_i)
@@ -150,13 +149,13 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_runs, timeout, **kwargs):
+def run_pytorch_fp32(batch_size, num_runs, timeout):
     return run_pytorch_fp(batch_size, num_runs, timeout)
 
 
 def main():
     args = parse_args()
-     
+
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
