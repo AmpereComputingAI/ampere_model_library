@@ -29,7 +29,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     variable_input_lengths = []
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
-    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout, variable_input_lengths)
+    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
 
 
 if __name__ == "__main__":
