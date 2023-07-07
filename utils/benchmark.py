@@ -159,17 +159,14 @@ class Runner:
             indent = 2 * " "
             print(f"\n{indent}LATENCY")
             for metric in metrics_lat.keys():
-                output = f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" \
-                         + "{:>10.2f} [ms]".format(results[metrics_lat[metric]])
-                if os.environ.get("ENABLE_NORMALIZATION") == "1":
-                    output += " [NORMALIZED]"
-                print(output)
+                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                      "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
 
             print(f"\n{indent}THROUGHPUT")
-            print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}"
-                  + "{:>10.2f} [samples/s]".format(results["observed_throughput_ips"]))
-            print(f"{3 * indent}inverted{(max_len - len('inverted')) * ' '}{3 * indent}"
-                  + "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
+            print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}" +
+                  "{:>10.2f} [samples/s]".format(results["observed_throughput_ips"]))
+            print(f"{3 * indent}inverted{(max_len - len('inverted')) * ' '}{3 * indent}" +
+                  "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
 
             print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
             print(f"{indent}{self.warm_up_runs} warm-up runs have not been considered.")
