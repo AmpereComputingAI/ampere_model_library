@@ -53,7 +53,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
         shape = (800, 800)
         images = coco.get_input_array(shape)
         x = torch.tensor(images)
-        output = pytorch_runner.run(x) if use_torch_compile else pytorch_runner.run(list(x))[1]
+        output = pytorch_runner.run(batch_size, x) if use_torch_compile else pytorch_runner.run(list(x))[1]
 
         for i in range(batch_size):
             for d in range(output[i]['boxes'].shape[0]):

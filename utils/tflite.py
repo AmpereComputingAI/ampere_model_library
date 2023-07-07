@@ -71,4 +71,4 @@ class TFLiteRunner(Runner):
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
 
-        return self.__print_performance_metrics()
+        return self.print_metrics()

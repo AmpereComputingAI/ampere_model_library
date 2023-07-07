@@ -144,7 +144,7 @@ class Runner:
             print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
             print(f"{indent}{self.warm_up_runs} warm-up runs have not been considered.")
 
-            dump_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
+            #dump_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
             return results
 
 

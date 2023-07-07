@@ -58,4 +58,4 @@ class OrtRunner(Runner):
                 os.makedirs("profiler_output/ort/")
             os.replace(prof, f"profiler_output/ort/{prof}")
 
-        return self.__print_performance_metrics()
+        return self.print_metrics()

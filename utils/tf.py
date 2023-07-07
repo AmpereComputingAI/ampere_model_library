@@ -110,7 +110,7 @@ class TFFrozenModelRunner(Runner):
             tf.AIO.print_profile_data()
         self._profiler.dump_maybe()
         self._sess.close()
-        return self.__print_performance_metrics()
+        return self.print_metrics()
 
 
 class TFSavedModelRunner(Runner):
@@ -159,4 +159,4 @@ class TFSavedModelRunner(Runner):
         if os.getenv("AIO_PROFILER", "0") == "1":
             tf.AIO.print_profile_data()
         self._profiler.dump_maybe()
-        return self.__print_performance_metrics()
+        return self.print_metrics()

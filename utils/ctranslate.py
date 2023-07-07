@@ -47,4 +47,4 @@ class CTranslateRunne(Runner):
         if self.is_profiling:
             self.translator.dump_profiling()
 
-        return self.__print_performance_metrics()
+        return self.print_metrics()

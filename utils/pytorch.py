@@ -157,11 +157,11 @@ class PyTorchRunnerV2(Runner):
             else:
                 return runner_func()
 
-    def print_performance_metrics(self, batch_size, variable_input_lengths):
+    def print_performance_metrics(self):
         if self._do_profile:
             print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
-        return self.__print_performance_metrics()
+        return self.print_metrics()
 
 
 def check_if_cached(model):

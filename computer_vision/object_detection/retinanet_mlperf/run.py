@@ -42,13 +42,12 @@ def parse_args():
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
     import torch
-    import torchvision
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, openimages):
         shape = (800, 800)
         x = torch.tensor(openimages.get_input_array(shape))
-        output = pytorch_runner.run(x)
+        output = pytorch_runner.run(batch_size, x)
 
         for i in range(batch_size):
             for d in range(output[i]['boxes'].shape[0]):

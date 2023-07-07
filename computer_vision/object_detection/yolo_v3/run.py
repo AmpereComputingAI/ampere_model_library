@@ -47,7 +47,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
         shape = (416, 416)
         ort_runner.set_input_tensor("input_1", coco.get_input_array(shape).astype("float32"))
         ort_runner.set_input_tensor("image_shape", np.array(shape, dtype="float32").reshape(1, 2))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
 
         boxes = output[0]
         scores = output[1]
