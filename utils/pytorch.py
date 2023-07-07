@@ -75,19 +75,10 @@ class PyTorchRunner(Runner):
         :return: dict, output dictionary with tensor names and corresponding output
         """
 
-        def runner_func(model):
-            if isinstance(input, tuple):
-                start = time.time()
-                output = model(*args, **kwargs)
-                finish = time.time()
-            elif isinstance(input, dict):
-                start = time.time()
-                output = model(*args, **kwargs)
-                finish = time.time()
-            else:
-                start = time.time()
-                output = model(*args, **kwargs)
-                finish = time.time()
+        def runner_func():
+            start = time.time()
+            output = model(*args, **kwargs)
+            finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
@@ -106,9 +97,9 @@ class PyTorchRunner(Runner):
 
             if self._is_profiling:
                 with profile() as self.__profile:
-                    output_tensor = runner_func(model)
+                    output_tensor = runner_func()
             else:
-                output_tensor = runner_func(model)
+                output_tensor = runner_func()
 
         return output_tensor
 
