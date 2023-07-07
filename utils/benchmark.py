@@ -7,7 +7,6 @@ import sys
 import time
 import statistics
 import numpy as np
-import psutil
 import utils.misc as utils
 from tqdm.auto import tqdm
 from threading import Thread
