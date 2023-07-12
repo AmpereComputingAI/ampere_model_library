@@ -3,6 +3,11 @@ import sys
 from typing import Any
 import numpy as np
 import pickle
+import logging
+# import torch._dynamo.config
+# torch._dynamo.config.log_level = logging.DEBUG
+# torch._dynamo.config.verbose=True
+# torch._dynamo.config.print_graph_breaks=True
 
 def single_pass_pytorch(runner, coco):
     image = np.squeeze(coco.get_input_array().astype("uint8"))
@@ -67,10 +72,10 @@ def run_pytorch(model_path, batch_size, num_runs, timeout, images_path, anno_pat
         AIO = False
     print('AIO = ', AIO)
     #sam = torch.compile(sam, backend="aio" if AIO else "inductor")
-    sam.image_encoder = torch.compile(sam.image_encoder, backend="aio" if AIO else "inductor")
-    sam.prompt_encoder = torch.compile(sam.prompt_encoder, backend="aio" if AIO else "inductor")
-    sam.mask_decoder = torch.compile(sam.mask_decoder, backend="aio" if AIO else "inductor")
-    predictor = SamPredictor(sam)    
+    #sam.image_encoder = torch.compile(sam.image_encoder, backend="aio" if AIO else "inductor")
+    sam.prompt_encoder = torch.compile(sam.prompt_encoder, backend="inductor",fullgraph=True)
+    sam.mask_decoder = torch.compile(sam.mask_decoder, backend="inductor",fullgraph=True)
+    predictor = SamPredictor(sam) 
     mask_generator = SamMaskGenerator(predictor, embedding)
     runner = PyTorchRunnerV2(mask_generator)
 
