@@ -51,25 +51,25 @@ class PyTorchRunner(Runner):
             if os.environ.get("TORCH_COMPILE") == "1" and version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
                 # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
-                self.__frozen_script = torch.compile(self.__model, backend="aio" if AIO else "inductor", options={"modelname", self.__model._get_name()} if AIO else {})
+                self._frozen_script = torch.compile(self._model, backend="aio" if AIO else "inductor", options={"modelname", self._model._get_name()} if AIO else {})
             elif os.environ.get("TORCH_COMPILE") == "1" and not version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 utils.print_goodbye_message_and_die(f"TORCH_COMPILE=1 set, but installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
             elif cached_path.exists():
-                self.__frozen_script = torch.jit.load(cached_path)
+                self._frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
             else:
                 try:
                     if skip_script:
                         raise SkipScript
                     if func:
-                        self.__frozen_script = torch.jit.freeze(torch.jit.script(self._model), preserved_attrs=[func])
+                        self._frozen_script = torch.jit.freeze(torch.jit.script(self._model), preserved_attrs=[func])
                     else:
-                        self.__frozen_script = torch.jit.freeze(torch.jit.script(self._model))
+                        self._frozen_script = torch.jit.freeze(torch.jit.script(self._model))
                 except (torch.jit.frontend.UnsupportedNodeError, RuntimeError, SkipScript):
-                    self.__frozen_script = torch.jit.freeze(torch.jit.trace(self._model, example_inputs))
+                    self._frozen_script = torch.jit.freeze(torch.jit.trace(self._model, example_inputs))
                 if not cached_dir.exists():
                     cached_dir.mkdir()
-                torch.jit.save(self.__frozen_script, cached_path)
+                torch.jit.save(self._frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
         self._is_profiling = aio_profiler_enabled()
 
@@ -96,15 +96,15 @@ class PyTorchRunner(Runner):
             return output
 
         with torch.no_grad():
-            if self.__frozen_script is None:
+            if self._frozen_script is None:
                 model = self._model
             else:
-                model = self.__frozen_script
+                model = self._frozen_script
             if self._func is not None:
                 model = getattr(model, self._func)
 
             if self._is_profiling:
-                with profile() as self.__profile:
+                with profile() as self._profile:
                     output_tensor = runner_func()
             else:
                 output_tensor = runner_func()
@@ -113,7 +113,7 @@ class PyTorchRunner(Runner):
 
     def print_performance_metrics(self):
         if self._is_profiling:
-            print(self.__profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
+            print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
             torch._C._aio_profiler_print()
         return self.print_metrics()
 
