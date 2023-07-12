@@ -125,10 +125,6 @@ class PyTorchRunnerV2(Runner):
 
         self._do_profile = aio_profiler_enabled()
 
-        self._times_invoked = 0
-        self._start_times = list()
-        self._finish_times = list()
-
         print("\nRunning with PyTorch\n")
 
     def run(self, task_size, *args, **kwargs):
