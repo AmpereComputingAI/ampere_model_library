@@ -24,6 +24,7 @@ class TFFrozenModelRunner(Runner):
     """
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
     """
+
     def __init__(self, path_to_model: str, output_names: list):
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
@@ -56,7 +57,15 @@ class TFFrozenModelRunner(Runner):
         :param inter_threads: int
         :return: TensorFlow config
         """
-        config = tf.compat.v1.ConfigProto()
+        if os.environ.get("ENABLE_BF16_X86") == "1":
+            from tensorflow.core.protobuf import rewriter_config_pb2
+            config = tf.compat.v1.ConfigProto(graph_options=tf.compat.v1.GraphOptions(
+                rewrite_options=rewriter_config_pb2.RewriterConfig(
+                    auto_mixed_precision_onednn_bfloat16=rewriter_config_pb2.RewriterConfig.ON
+                )
+            ))
+        else:
+            config = tf.compat.v1.ConfigProto()
         config.allow_soft_placement = True
         config.intra_op_parallelism_threads = intra_threads
         config.inter_op_parallelism_threads = inter_threads
@@ -117,6 +126,7 @@ class TFSavedModelRunner(Runner):
     """
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
+
     def __init__(self):
         """
         A function initializing runner.
@@ -129,6 +139,8 @@ class TFSavedModelRunner(Runner):
 
         tf.config.threading.set_intra_op_parallelism_threads(get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
+        if os.environ.get("ENABLE_BF16_X86") == "1":
+            tf.config.optimizer.set_experimental_options({"auto_mixed_precision_onednn_bfloat16": True})
 
         self.model = None
         self._profiler = TFProfiler()

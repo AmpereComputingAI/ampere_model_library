@@ -8,6 +8,7 @@ from utils.profiling import *
 from torch.autograd.profiler import profile
 from pathlib import Path
 from packaging import version
+from contextlib import nullcontext
 from utils.benchmark import *
 
 
@@ -26,6 +27,12 @@ class PyTorchRunner(Runner):
             AIO = False
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
+        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        if os.environ.get("IPEX_OPTIMIZE") == "1":
+            import intel_extension_for_pytorch as ipex
+            dtype = torch.bfloat16 if self._do_autocast else torch.float32
+            model = ipex.optimize(model, dtype=dtype)
+            disable_jit_freeze = True
         self._model = model
         self._func = func
         self._model.eval()
@@ -33,11 +40,11 @@ class PyTorchRunner(Runner):
 
         if disable_jit_freeze:
             if os.environ.get("TORCH_COMPILE") == "1":
-                utils.print_goodbye_message_and_die(f"disable_jit_freeze={disable_jit_freeze} and TORCH_COMPILE=1 are mutually exclusive.")
+                utils.print_goodbye_message_and_die(
+                    f"disable_jit_freeze={disable_jit_freeze} and TORCH_COMPILE=1 are mutually exclusive.")
             if AIO:
-                utils.print_warning_message(
-                    f"Running with disable_jit_freeze={disable_jit_freeze} - "
-                    f"Ampere optimizations are not expected to work.")
+                utils.print_warning_message(f"Running with disable_jit_freeze={disable_jit_freeze} - Ampere "
+                                            f"optimizations are not expected to work.")
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self._model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
@@ -76,9 +83,10 @@ class PyTorchRunner(Runner):
         """
 
         def runner_func():
-            start = time.time()
-            output = model(*args, **kwargs)
-            finish = time.time()
+            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+                start = time.time()
+                output = model(*args, **kwargs)
+                finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
@@ -121,6 +129,16 @@ class PyTorchRunnerV2(Runner):
             utils.advertise_aio("Torch")
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
+        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        if os.environ.get("IPEX_OPTIMIZE") == "1":
+            # when using PyTorchRunnerV2, IPEX optimization should be handled in model's run file - it is here just to
+            # ensure it has been accounted for in the run file. I.e. when applied a second time on model object,
+            # ipex.optimize() will just pass, but for example if it is applied here per user's request on a torch
+            # scripted model coming as argument to this function, ipex.optimize() will likely fail - and this issue
+            # shouldn't be solved here but in the model's run file
+            import intel_extension_for_pytorch as ipex
+            dtype = torch.bfloat16 if self._do_autocast else torch.float32
+            model = ipex.optimize(model, dtype=dtype)
         self._model = model
 
         self._do_profile = aio_profiler_enabled()
@@ -135,9 +153,10 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            start = time.time()
-            output = self._model(*args, **kwargs)
-            finish = time.time()
+            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+                start = time.time()
+                output = self._model(*args, **kwargs)
+                finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
