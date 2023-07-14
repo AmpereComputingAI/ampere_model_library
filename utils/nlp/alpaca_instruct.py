@@ -1,12 +1,19 @@
 from collections import Counter
 import json
 
+import utils.misc as utils
+
 class AlpacaInstruct:
     """
     A class providing facilities for preprocessing and postprocessing of Alpaca dataset.
     """
 
     def __init__(self, batch_size: int, tokenize_func=None, detokenize_func=None, dataset_path=None):
+        if dataset_path is None:
+            env_var = "ALPACA_DATASET_PATH"
+            dataset_path = utils.get_env_variable(
+                env_var, f"Path to Alpaca dataset has not been specified with {env_var} flag")
+
         with open(dataset_path, "r") as dataset_file:
             data = dataset_file.read()
             self.data = json.loads(data)

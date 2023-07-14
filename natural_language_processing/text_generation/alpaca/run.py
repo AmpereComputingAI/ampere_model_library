@@ -2,7 +2,7 @@ import argparse
 
 import transformers
 
-from alpaca_instruct import AlpacaInstruct
+from utils.nlp.alpaca_instruct import AlpacaInstruct
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
