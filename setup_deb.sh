@@ -74,7 +74,7 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
-   transformers==4.27.4 \
+   transformers==4.30.1 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
@@ -107,7 +107,7 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.12.1 \
+   tokenizers==0.13.3 \
    tabulate==0.9.0 \
    regex==2022.3.15 \
    portalocker==2.6.0 \
