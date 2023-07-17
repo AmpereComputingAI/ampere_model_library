@@ -38,8 +38,7 @@ def run_pytorch(model_path, batch_size, num_runs, timeout, dataset_path, disable
 
     def run_single_pass(pytorch_runner, dataset):
         inputs = encode(dataset.get_input_array())
-        outputs = pytorch_runner.run({"inputs": inputs.input_ids, "max_new_tokens": 100})
-        num_tokens = outputs.shape[1] - inputs.input_ids.shape[1]
+        outputs = pytorch_runner.run(batch_size, inputs=inputs.input_ids, max_new_tokens=100)
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
         dataset.submit_prediction(response)
 
