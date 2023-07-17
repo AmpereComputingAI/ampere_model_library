@@ -40,7 +40,7 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, kits):
-        output = tf_runner.run(tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
+        output = tf_runner.run(1, tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
         output = output["output_0"]
         kits.submit_predictions(output)
 

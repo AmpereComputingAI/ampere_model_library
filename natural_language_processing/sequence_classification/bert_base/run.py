@@ -38,13 +38,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, dataset_path):
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(nlp_runner, mrpc):
 
         input, labels = mrpc.get_input_array()
-        output = nlp_runner.run(input)
+        output = nlp_runner.run(batch_size, input)
         predictions = mrpc.extract_prediction(output)
 
         for i in range(batch_size):

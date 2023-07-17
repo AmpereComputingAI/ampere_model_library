@@ -48,7 +48,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     def run_single_pass(pytorch_runner, imagenet):
         shape = (224, 224)
-        output = pytorch_runner.run(torch.from_numpy(imagenet.get_input_array(shape)))
+        output = pytorch_runner.run(batch_size, torch.from_numpy(imagenet.get_input_array(shape)))
 
         for i in range(batch_size):
             imagenet.submit_predictions(
@@ -71,7 +71,7 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     def run_single_pass(ort_runner, imagenet):
         shape = (224, 224)
         ort_runner.set_input_tensor("gpu_0/data_0", imagenet.get_input_array(shape))
-        output = ort_runner.run()[0]
+        output = ort_runner.run(batch_size)[0]
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,

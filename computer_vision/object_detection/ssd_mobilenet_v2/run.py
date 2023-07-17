@@ -47,7 +47,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
     def run_single_pass(tf_runner, coco):
         shape = (300, 300)
         tf_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape))
-        output = tf_runner.run()
+        output = tf_runner.run(batch_size)
         for i in range(batch_size):
             for d in range(int(output["num_detections:0"][i])):
                 coco.submit_bbox_prediction(
@@ -70,7 +70,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     def run_single_pass(tflite_runner, coco):
         shape = (300, 300)
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape))
-        tflite_runner.run()
+        tflite_runner.run(batch_size)
         detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
         detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
         detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
@@ -106,7 +106,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
         ort_runner.set_input_tensor("image_tensor:0", coco.get_input_array(shape).astype("uint8"))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
         num_detections = output[0]
         detection_boxes = output[1]
         detections_scores = output[2]

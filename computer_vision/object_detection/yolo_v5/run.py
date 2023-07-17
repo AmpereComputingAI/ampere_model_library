@@ -10,6 +10,7 @@ from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from utils.cv.nms import non_max_suppression
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Run YOLOv5 model.")
     parser.add_argument("-m", "--model_path",
@@ -48,7 +49,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
         ort_runner.set_input_tensor("images", coco.get_input_array(shape).astype("float32"))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
 
         output = torch.from_numpy(output[0])
         output = non_max_suppression(output)
@@ -75,9 +76,8 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
         inp = torch.stack(coco.get_input_array(shape))
-        output = pytorch_runner.run(inp)[0]
+        output = pytorch_runner.run(batch_size, inp)[0]
         output = non_max_suppression(output)
-
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
@@ -90,7 +90,6 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
-    
 
     runner = PyTorchRunner(torch.jit.load(model_path),
                            disable_jit_freeze=disable_jit_freeze,
@@ -101,6 +100,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze)
+
 
 def main():
     args = parse_args()
@@ -126,5 +126,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-import csv
+
 import json
 import os
 import sys
@@ -9,6 +9,8 @@ import statistics
 import numpy as np
 import utils.misc as utils
 from tqdm.auto import tqdm
+from threading import Thread
+from filelock import FileLock
 
 intra_op_parallelism_threads = None
 
@@ -60,43 +62,123 @@ def get_intra_op_parallelism_threads():
     return intra_op_parallelism_threads
 
 
-def benchmark_func(func, num_runs, timeout, warm_up=True):
+class Runner:
     """
-    A function for benchmarking functions compliant to model_zoo approach in other parts of the code.
-
-    :param func: python function to be benchmarked
-    :param num_runs: int, number of func invocations to be done
-    :param timeout: float, time expressed in seconds after which benchmarking should be stopped
-    :param warm_up: bool, whether to do a single warm-up run excluded from measurements
-
-    :return: latency in seconds
+    start_times: list, list with timestamps at which inference was called
+    finish_times: list, list with timestamps at which results of inference were returned
+    times_invoked: int, number of runs completed
+    workload_size: List[int], list containing size of each task - size is understood as either user adjustable or input
+    dependent component of the input tensor - examples: 1. processing 16 images in a batch, each of fixed dims
+    224x224x3, followed by 8 images in a batch of the same fixed shape, workload size = [16, 8]; 2. processing audio of
+    length 117 seconds, followed by audio of length 233 seconds, workload size = [117, 233]. I.e. single task size is a
+    product of input dimensions' values that can change with next task (task == work to be done during single pass
+    through a network)
+    warm_up_runs: int, number of warm-up runs to exclude from final metrics
     """
 
-    def benchmark(function):
-        start = time.time()
-        function()
-        return time.time() - start
+    warm_up_runs = 2
+    _pid = os.getpid()
+    _results_dir = os.environ.get("RESULTS_DIR")
 
-    if warm_up:
-        _ = benchmark(func)
+    def __init__(self):
+        self._times_invoked = 0
+        self._start_times = list()
+        self._finish_times = list()
+        self._workload_size = list()
+        if self._results_dir is not None:
+            self._dump_filepath = os.path.join(self._results_dir, f"{self._pid}.json")
+            self._dump_filelock = FileLock(f"{self._dump_filepath}.lock", timeout=60)
+            self._do_dump = True
+            self._dumper = Thread(target=self._dump_loop, daemon=True)
+            self._dumper.start()
 
-    latencies = list()
-    if num_runs is None:
-        i = 0
-        benchmarking_start = time.time()
-        while time.time() - benchmarking_start < timeout:
-            latencies.append(benchmark(func))
-            i += 1
-    else:
-        i = num_runs
-        for _ in tqdm(range(num_runs)):
-            latencies.append(benchmark(func))
+    def _dump_results(self):
+        with self._dump_filelock:
+            with open(self._dump_filepath, "w") as f:
+                times_invoked = self._times_invoked
+                json.dump({
+                    "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
+                    "start_times": self._start_times[self.warm_up_runs:times_invoked],
+                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
+                }, f)
 
-    return sum(latencies) / i
+    def _dump_loop(self):
+        while self._do_dump:
+            time.sleep(5)
+            self._dump_results()
+
+    def abort_maybe(self):
+        if self._results_dir is not None and os.path.isfile(os.path.join(self._results_dir, "STOP")):
+            self._do_dump = False
+            self._dumper.join(timeout=60)
+            sys.exit(0)
+
+    def run(self, task_size: int, *args, **kwargs):
+        raise NotImplementedError
+
+    def print_metrics(self):
+        if self._times_invoked == 0:
+            utils.print_goodbye_message_and_die(
+                "Cannot print performance data as not a single run has been completed! Increase the timeout.")
+
+        if self._times_invoked <= self.warm_up_runs:
+            if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
+                sys.exit(0)
+            utils.print_goodbye_message_and_die(
+                "Cannot print performance data as only warm-up run(s) have been completed! Increase the timeout.")
+        else:
+            assert len(self._start_times) == len(self._finish_times) == self._times_invoked == len(self._workload_size)
+
+            latencies = [self._finish_times[i] - self._start_times[i]
+                         for i in range(self.warm_up_runs, self._times_invoked)]
+            observed_throughput = sum(self._workload_size[self.warm_up_runs:]) / sum(latencies)
+
+            mean_latency_sec = statistics.mean(latencies)
+            median_latency_sec = statistics.median(latencies)
+            percentile_90th_latency_sec = np.percentile(latencies, 90)
+            percentile_99th_latency_sec = np.percentile(latencies, 99)
+            percentile_999th_latency_sec = np.percentile(latencies, 99.9)
+
+            ms_in_sec = 1000
+            results = {
+                "mean_lat_ms": mean_latency_sec * ms_in_sec,
+                "median_lat_ms": median_latency_sec * ms_in_sec,
+                "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
+                "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
+                "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
+                "observed_throughput_ips": observed_throughput,
+                "inverted_throughput_ms": ms_in_sec / observed_throughput
+            }
+
+            max_len = 10
+            metrics_lat = {"mean": "mean_lat_ms",
+                           "median": "median_lat_ms",
+                           "p90": "90th_percentile_lat_ms",
+                           "p99": "99th_percentile_lat_ms",
+                           "p99.9": "99.9th_percentile_lat_ms"}
+            indent = 2 * " "
+            print(f"\n{indent}LATENCY")
+            for metric in metrics_lat.keys():
+                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                      "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
+
+            print(f"\n{indent}THROUGHPUT")
+            print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}" +
+                  "{:>10.2f} [samples/s]".format(results["observed_throughput_ips"]))
+            print(f"{3 * indent}inverted{(max_len - len('inverted')) * ' '}{3 * indent}" +
+                  "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
+
+            print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
+            print(f"{indent}{self.warm_up_runs} warm-up runs have not been considered.")
+
+            if self._results_dir is not None:
+                self._do_dump = False
+                self._dumper.join(timeout=60)
+
+            return results
 
 
-def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
-              variable_input_lengths=None):
+def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     """
     A function running model in unified way.
 
@@ -113,7 +195,6 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
     :param batch_size: int, batch size
     :param num_runs: int, number of times that single_pass_func should be executed
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
-    :param variable_input_lengths: list[int], variable lengths of input tensors in the order of execution
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
     if num_runs is not None:
@@ -137,9 +218,11 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
                     single_pass_func(runner, dataset)
                     timeout_pbar.n = int(min(time.time() - start, timeout))
                     timeout_pbar.refresh()
+                    runner.abort_maybe()
             else:
                 for _ in tqdm(range(num_runs)):
                     single_pass_func(runner, dataset)
+                    runner.abort_maybe()
         except utils.OutOfInstances:
             if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
                 assert num_runs is None, "IGNORE_DATASET_LIMITS=1 can't be set for defined number of runs"
@@ -149,116 +232,4 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout,
     if num_runs is None:
         timeout_pbar.close()
 
-    return dataset.summarize_accuracy(), runner.print_performance_metrics(batch_size, variable_input_lengths)
-
-
-def print_performance_metrics(
-        start_times: list, finish_times: list, num_runs: int, batch_size: int, warm_up_runs=2,
-        variable_input_lengths=None):
-    """
-    A function printing two performance metrics: latency and throughput.
-
-    :param start_times: list, list with timestamps at which inference was called
-    :param finish_times: list, list with timestamps at which results of inference were returned
-    :param num_runs: int, number of runs completed
-    :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
-    :param warm_up_runs: int, number of warm-up runs to exclude from final metrics
-    :param variable_input_lengths: list[int], variable lengths of input tensors in the order of execution
-    """
-    if num_runs == 0:
-        utils.print_goodbye_message_and_die(
-            "Cannot print performance data as not a single run has been completed! Increase the timeout.")
-
-    if num_runs <= warm_up_runs:
-        if os.environ.get("IGNORE_PERF_CALC_ERROR") == "1":
-            sys.exit(0)
-        utils.print_goodbye_message_and_die(
-            "Cannot print performance data as only warm-up run(s) have been completed! Increase the timeout.")
-    else:
-        assert len(start_times) == len(finish_times) == num_runs
-
-        variable_input_lengths_sum = num_runs - warm_up_runs
-        if variable_input_lengths is not None:
-            min_input_length, max_input_length = \
-                min(variable_input_lengths[warm_up_runs:]), max(variable_input_lengths[warm_up_runs:])
-            if os.environ.get("ENABLE_NORMALIZATION") != "1":
-                utils.print_warning_message(
-                    f"Variable input size (min = {min_input_length} ; max = {max_input_length}), results can be "
-                    f"normalized with ENABLE_NORMALIZATION=1")
-            assert num_runs == len(variable_input_lengths)
-            average_input_length = statistics.mean(variable_input_lengths[warm_up_runs:])
-            input_length_factors = [input_length / average_input_length
-                                    for input_length in variable_input_lengths[warm_up_runs:]]
-            variable_input_lengths_sum = sum(variable_input_lengths[warm_up_runs:])
-
-        latencies = [finish_times[i] - start_times[i] for i in range(warm_up_runs, num_runs)]
-        observed_throughput = batch_size * variable_input_lengths_sum / sum(latencies)
-        if variable_input_lengths is not None and os.environ.get("ENABLE_NORMALIZATION") == "1":
-            latencies = [latency / factor for latency, factor in zip(latencies, input_length_factors)]
-
-        mean_latency_sec = statistics.mean(latencies)
-        median_latency_sec = statistics.median(latencies)
-        percentile_90th_latency_sec = np.percentile(latencies, 90)
-        percentile_99th_latency_sec = np.percentile(latencies, 99)
-        percentile_999th_latency_sec = np.percentile(latencies, 99.9)
-
-        ms_in_sec = 1000
-        results = {
-            "mean_lat_ms": mean_latency_sec * ms_in_sec,
-            "median_lat_ms": median_latency_sec * ms_in_sec,
-            "90th_percentile_lat_ms": percentile_90th_latency_sec * ms_in_sec,
-            "99th_percentile_lat_ms": percentile_99th_latency_sec * ms_in_sec,
-            "99.9th_percentile_lat_ms": percentile_999th_latency_sec * ms_in_sec,
-            "observed_throughput_ips": observed_throughput,
-            "inverted_throughput_ms": ms_in_sec / observed_throughput
-        }
-
-        max_len = 10
-        metrics_lat = {"mean": "mean_lat_ms",
-                       "median": "median_lat_ms",
-                       "p90": "90th_percentile_lat_ms",
-                       "p99": "99th_percentile_lat_ms",
-                       "p99.9": "99.9th_percentile_lat_ms"}
-        indent = 2 * " "
-        print(f"\n{indent}LATENCY")
-        for metric in metrics_lat.keys():
-            output = f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" \
-                     + "{:>10.2f} [ms]".format(results[metrics_lat[metric]])
-            if os.environ.get("ENABLE_NORMALIZATION") == "1":
-                output += " [NORMALIZED]"
-            print(output)
-
-        print(f"\n{indent}THROUGHPUT")
-        print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}"
-              + "{:>10.2f} [samples/s]".format(results["observed_throughput_ips"]))
-        print(f"{3 * indent}inverted{(max_len - len('inverted')) * ' '}{3 * indent}"
-              + "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
-
-        print(f"\n{indent}Performance results above are based on {len(latencies)} sample(s).")
-        print(f"{indent}{warm_up_runs} warm-up runs have not been considered.")
-
-        if variable_input_lengths is None:
-            variable_input_sizes = [batch_size for _ in range(num_runs)]
-        else:
-            utils.print_warning_message(
-                "Input has variable shape, it is recommended to run this benchmark for a fixed number of runs")
-            variable_input_sizes = [batch_size * variable_input_lengths[i] for i in range(num_runs)]
-
-        dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs)
-        return results
-
-
-def dump_csv_results_maybe(start_times, finish_times, variable_input_sizes, warm_up_runs=2):
-    # variable input sizes mean the size of input tensors along dimensions that are configurable by user in the order
-    # of execution, e.g. input sizes for 2 runs of NLP model with bs=8 and seq_sizes of [384, 512] across two subsequent
-    # runs would be [8*384, 8*512]
-    dump_dir = os.environ.get("RESULTS_DIR")
-    if dump_dir is not None and len(start_times) > warm_up_runs:
-        dump_path = os.path.join(dump_dir, f"{os.getpid()}.json")
-        with open(dump_path, "w") as f:
-            json.dump({
-                "input_sizes": variable_input_sizes[warm_up_runs:],
-                "start_times": start_times[warm_up_runs:],
-                "finish_times": finish_times[warm_up_runs:]
-            }, f)
-        print(f"\n  Results have been dumped to {dump_path}\n")
+    return dataset.summarize_accuracy(), runner.print_performance_metrics()

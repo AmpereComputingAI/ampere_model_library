@@ -44,7 +44,7 @@ def run_tf_fp(model_path, num_runs, timeout, dataset_path):
 
     def run_single_pass(tf_runner, brats):
         tf_runner.set_input_tensor("input:0", np.expand_dims(brats.get_input_array(), axis=0))
-        output = tf_runner.run()
+        output = tf_runner.run(1)
         brats.submit_predictions(
             output["output:0"]
         )
@@ -54,19 +54,19 @@ def run_tf_fp(model_path, num_runs, timeout, dataset_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
+def run_tf_fp32(model_path, num_runs, timeout, dataset_path):
     return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_tf_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
+def run_tf_fp16(model_path, num_runs, timeout, dataset_path):
     return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
+def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, brats):
-        output = pytorch_runner.run(torch.from_numpy(np.expand_dims(brats.get_input_array(), axis=0)))
+        output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(brats.get_input_array(), axis=0)))
         output = np.asarray(output[0])
         brats.submit_predictions(
             output

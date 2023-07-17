@@ -42,7 +42,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, squad):
-        output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
+        output = tf_runner.run(batch_size, np.array(squad.get_input_ids_array(), dtype=np.int32))
 
         for i in range(batch_size):
             answer_start_id = np.argmax(output.start_logits[i])
@@ -74,7 +74,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-        output = pytorch_runner.run(dict(squad.get_input_arrays()))
+        output = pytorch_runner.run(batch_size, dict(squad.get_input_arrays()))
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()

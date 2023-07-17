@@ -35,13 +35,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, squad):
 
-        output = tf_runner.run(np.array(squad.get_input_ids_array(), dtype=np.int32))
+        output = tf_runner.run(batch_size, np.array(squad.get_input_ids_array(), dtype=np.int32))
 
         for i in range(batch_size):
             answer_start_id = np.argmax(output.start_logits[i])
@@ -68,12 +68,12 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
+
+def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-
-        output = pytorch_runner.run(dict(squad.get_input_arrays()))
+        output = pytorch_runner.run(batch_size, **dict(squad.get_input_arrays()))
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()
@@ -100,11 +100,14 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path, **kwargs):
-    return run_tf(model_name, batch_size, num_runs, timeout, squad_path, **kwargs)
 
-def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, **kwargs):
-    return run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, **kwargs)
+def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path):
+    return run_tf(model_name, batch_size, num_runs, timeout, squad_path)
+
+
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze):
+    return run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze)
+
 
 def main():
     args = parse_args()

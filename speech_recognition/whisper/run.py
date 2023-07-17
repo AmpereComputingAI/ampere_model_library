@@ -17,19 +17,19 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
 
     def single_pass_pytorch(_runner, _librispeech):
         array = _librispeech.get_input_array()
-        variable_input_lengths.append(array.shape[0])
         audio = torch.from_numpy(array.astype("float32"))
-        _librispeech.submit_transcription(_runner.run(audio)["text"].lstrip().replace(".", "").upper())
+        _librispeech.submit_transcription(
+            _runner.run(batch_size * array.shape[0], audio)["text"].lstrip().replace(".", "").upper()
+        )
 
     def transcribe_wrapper(audio):
         return transcribe(model, audio, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper)
     librispeech = LibriSpeech()
-    variable_input_lengths = []
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
-    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout, variable_input_lengths)
+    return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
 
 
 if __name__ == "__main__":

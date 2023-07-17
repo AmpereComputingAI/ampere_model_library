@@ -36,12 +36,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True):
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
         input = (torch.tensor(start_ids, dtype=torch.long)[None, ...])
-        output = pytorch_runner.run({"idx": input, "max_new_tokens": 5, "temperature": 1.0})
+        output = pytorch_runner.run(batch_size, {"idx": input, "max_new_tokens": 5, "temperature": 1.0})
         output = decode(output[0].tolist())
 
         for i in range(batch_size):
@@ -59,8 +59,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
-    run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze, **kwargs)
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True):
+    run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze)
 
 
 def main():

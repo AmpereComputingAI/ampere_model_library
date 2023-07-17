@@ -5,7 +5,9 @@ import argparse
 
 import torch
 import os
-os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False") # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to set it to True if needed
+
+os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE",
+                                       "False")  # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to set it to True if needed
 from ultralytics.yolo.utils import ops
 
 from utils.cv.coco import COCODataset
@@ -51,7 +53,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
         ort_runner.set_input_tensor("images", coco.get_input_array(shape).astype("float32"))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
 
         output = torch.from_numpy(output[0])
         output = ops.non_max_suppression(output)
@@ -78,7 +80,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
         inp = torch.stack(coco.get_input_array(shape))
-        output = pytorch_runner.run(inp)
+        output = pytorch_runner.run(batch_size, inp)
         output = ops.non_max_suppression(output)
 
         for i in range(batch_size):
@@ -92,7 +94,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
-    
+
     from ultralytics import YOLO
     model = YOLO(model_path)
     torchscript_model = model.export(format="torchscript")
@@ -106,6 +108,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze)
+
 
 def main():
     args = parse_args()

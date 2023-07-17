@@ -49,7 +49,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
     def run_single_pass(tf_runner, coco):
         shape = (416, 416)
-        output = tf_runner.run(tf.constant(coco.get_input_array(shape)))
+        output = tf_runner.run(batch_size, tf.constant(coco.get_input_array(shape)))
         bboxes = output["tf.concat_12"][:, :, 0:4]
         preds = output["tf.concat_12"][:, :, 4:]
         detection_boxes, detection_scores, detection_classes, valid_detections = tf.image.combined_non_max_suppression(
