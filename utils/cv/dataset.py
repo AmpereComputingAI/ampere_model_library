@@ -21,6 +21,8 @@ class ImageDataset:
         :param target_shape: tuple of intended image shape (height, width)
         :return: numpy array with resized image data, tuple with ratios of resizing applied (height, width)
         """
+        if target_shape is None:
+            return image_array, (1., 1.)
         vertical_ratio = target_shape[0] / image_array.shape[0]
         horizontal_ratio = target_shape[1] / image_array.shape[1]
         return cv2.resize(image_array, target_shape), (vertical_ratio, horizontal_ratio)

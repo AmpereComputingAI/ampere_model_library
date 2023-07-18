@@ -50,7 +50,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     def run_single_pass(ort_runner, coco):
         shape = (416, 416)
         ort_runner.set_input_tensor("input_1", coco.get_input_array(shape).astype("float32"))
-        output = ort_runner.run()
+        output = ort_runner.run(batch_size)
 
         bboxes = output[0][:, :, 0:4]
         preds = output[0][:, :, 4:]
@@ -85,7 +85,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
 
     def run_single_pass(tf_runner, coco):
         shape = (416, 416)
-        output = tf_runner.run(tf.constant(coco.get_input_array(shape)))
+        output = tf_runner.run(batch_size, tf.constant(coco.get_input_array(shape)))
         bboxes = output["tf.concat_16"][:, :, 0:4]
         preds = output["tf.concat_16"][:, :, 4:]
         detection_boxes, detection_scores, detection_classes, valid_detections = tf.image.combined_non_max_suppression(

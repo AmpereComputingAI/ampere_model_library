@@ -1,64 +1,55 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
-import csv
 import onnxruntime as ort
-import time
-import json
-import utils.benchmark as bench_utils
+from utils.benchmark import *
 from utils.misc import advertise_aio
 
 
-class OrtRunner:
+class OrtRunner(Runner):
     """
     A class providing facilities to run ONNX model
     """
 
     def __init__(self, model: str):
+        super().__init__()
         try:
             ort.AIO
         except AttributeError:
             advertise_aio("ONNXRunTime")
 
         session_options = ort.SessionOptions()
-        session_options.intra_op_num_threads = bench_utils.get_intra_op_parallelism_threads()
+        session_options.intra_op_num_threads = get_intra_op_parallelism_threads()
         if os.getenv("ORT_PROFILER", "0") == "1":
             session_options.enable_profiling = True
 
         self.session = ort.InferenceSession(model, session_options, providers=ort.get_available_providers())
 
-        self.__feed_dict = dict()
-        self.__output_names = [output.name for output in self.session.get_outputs()]
-
-        self.__times_invoked = 0
-        self.__start_times = list()
-        self.__finish_times = list()
+        self._feed_dict = dict()
+        self._output_names = [output.name for output in self.session.get_outputs()]
 
         print("\nRunning with ONNX Runtime\n")
 
-    def run(self):
+    def run(self, task_size, *args, **kwargs):
 
         start = time.time()
-        outputs = self.session.run(self.__output_names, self.__feed_dict)
+        outputs = self.session.run(self._output_names, self._feed_dict)
         finish = time.time()
 
-        self.__start_times.append(start)
-        self.__finish_times.append(finish)
-        self.__times_invoked += 1
+        self._start_times.append(start)
+        self._finish_times.append(finish)
+        self._workload_size.append(task_size)
+        self._times_invoked += 1
 
         return outputs
 
     def set_input_tensor(self, input_name: str, input_array):
-        self.__feed_dict[input_name] = input_array
+        self._feed_dict[input_name] = input_array
 
-    def print_performance_metrics(self, batch_size):
+    def print_performance_metrics(self):
         """
         A function printing performance metrics on runs executed by the runner so far.
-        :param batch_size: int, batch size - if batch size was varying over the runs an average should be supplied
         """
-        perf = bench_utils.print_performance_metrics(
-            self.__start_times, self.__finish_times, self.__times_invoked, batch_size)
         if os.getenv("AIO_PROFILER", "0") == "1":
             ort.AIO.print_profile_data()
         if os.getenv("ORT_PROFILER", "0") == "1":
@@ -67,13 +58,4 @@ class OrtRunner:
                 os.makedirs("profiler_output/ort/")
             os.replace(prof, f"profiler_output/ort/{prof}")
 
-        dump_dir = os.environ.get("RESULTS_DIR")
-        if dump_dir is not None and len(self.__start_times) > 2:
-            with open(f"{dump_dir}/meta_{os.getpid()}.json", "w") as f:
-                json.dump({"batch_size": batch_size}, f)
-            with open(f"{dump_dir}/{os.getpid()}.csv", "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(self.__start_times[2:])
-                writer.writerow(self.__finish_times[2:])
-
-        return perf
+        return self.print_metrics()

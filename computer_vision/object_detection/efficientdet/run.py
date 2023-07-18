@@ -1,13 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
-import time
 import argparse
-
 import numpy as np
-
-import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die, download_coco_dataset
@@ -48,14 +43,14 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
 
     def run_single_pass(tflite_runner, coco):
         shape = (448, 448)
-        tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], coco.get_input_array(shape).astype(np.uint8))
-        tflite_runner.run()
+        tflite_runner.set_input_tensor(
+            tflite_runner.input_details[0]["index"], coco.get_input_array(shape).astype(np.uint8))
+        tflite_runner.run(batch_size)
         detection_boxes = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
         detection_classes = tflite_runner.get_output_tensor(tflite_runner.output_details[1]["index"])
         detection_classes += 1  # model uses indexing from 0 while COCO dateset start with idx of 1
         detection_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[2]["index"])
         num_detections = tflite_runner.get_output_tensor(tflite_runner.output_details[3]["index"])
-
 
         for i in range(batch_size):
             for d in range(int(num_detections[i])):

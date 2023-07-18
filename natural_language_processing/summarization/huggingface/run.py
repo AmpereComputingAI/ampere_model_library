@@ -11,7 +11,8 @@ from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for summarization task.")
+    parser = argparse.ArgumentParser(
+        description="Run model from Huggingface's transformers repo for summarization task.")
     parser.add_argument("-m", "--model_name",
                         type=str, default="sshleifer/distilbart-cnn-6-6",
                         help="name of the model")
@@ -36,11 +37,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze=True, **kwargs):
-
+def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze=True):
     def run_single_pass(pytorch_runner, cnn_dm):
         input = torch.tensor(np.array(cnn_dm.get_input_ids_array(), dtype=np.int32))
-        output = pytorch_runner.run(input)
+        output = pytorch_runner.run(batch_size, input)
 
         for i in range(batch_size):
             cnn_dm.submit_prediction(
@@ -58,9 +58,12 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
 
     model = BartForConditionalGeneration.from_pretrained(model_name, torchscript=True)
     dataset = CNN_DailyMail(batch_size, tokenize, detokenize, dataset_path=cnn_dm_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze, example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)), func="generate")
+    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze,
+                           example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)),
+                           func="generate")
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
 
 def main():
     args = parse_args()

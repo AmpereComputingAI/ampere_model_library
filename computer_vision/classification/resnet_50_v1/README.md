@@ -1,8 +1,8 @@
 # Resnet 50 v1
 
 
-This folder contains the script to run Resnet 50 on ImageNet classification task in pytorch and onnx runtime framework.\
-Variant supplied below in fp32 precision accepts input of shape 224x224.
+This folder contains the script to run Resnet 50 on ImageNet classification task in pytorch, onnx, and tf runtime framework.\
+Variant supplied below in fp32 and int8 precision accepts input of shape 224x224.
 
 The original paper on the architecture is available here: https://arxiv.org/abs/1512.03385
 
@@ -11,10 +11,11 @@ The original paper on the architecture is available here: https://arxiv.org/abs/
 
 based on 1000 images from ImageNet Validation Dataset
 
-|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| PyTorch FP32  | 72.2%  | 91.0 %  |
-| ONNX RT FP32  | 75.0%  | 92.4 %  |
+|                    | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  | &nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
+|:------------------:|:---:|:----------------------------------------------------------------:|
+|    PyTorch FP32    | 72.2%  |                              91.0 %                              |
+|    ONNX RT FP32    | 75.0%  |                              92.4 %                              |
+| TensorFlow FP32 | 75.0%  |                              90.0 %                              |
 
 
 
@@ -60,4 +61,16 @@ Example command for ONNX RT:
 
 ```
 python3 run.py -m /path/to/model.onnx -p fp32 --framework ort
+```
+
+Example command for TensorFlow: 
+
+```
+python3 run.py -m /path/to/model_directory -p fp32 --framework tf
+```
+
+Example command for TensorFlow Lite: 
+
+```
+python3 run.py -m /path/to/model.tflite -p int8 --framework tflite
 ```

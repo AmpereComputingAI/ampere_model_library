@@ -38,13 +38,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_tf(model_name, batch_size, num_runs, timeout, conll_path, **kwargs):
+def run_tf(model_name, batch_size, num_runs, timeout, conll_path):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, conll2003):
         input_array = np.array(conll2003.get_input_ids_array(), dtype=np.int32)
-        output = tf_runner.run(input_array)
+        output = tf_runner.run(batch_size, input_array)
 
         for i in range(batch_size):
             tokens = tokenizer.convert_ids_to_tokens(input_array[i])
@@ -73,11 +73,11 @@ def run_tf(model_name, batch_size, num_runs, timeout, conll_path, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_jit_freeze, **kwargs):
+def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_jit_freeze):
     def run_single_pass(pytorch_runner, conll2003):
 
         input = torch.tensor(np.array(conll2003.get_input_ids_array(), dtype=np.int32))
-        output = pytorch_runner.run((input))
+        output = pytorch_runner.run(batch_size, (input))
         if type(output) == tuple:
             # After jit_freeze, the output of the model has different type
             output = namedtuple("TokenClassifierOutput", "logits")(output[0])

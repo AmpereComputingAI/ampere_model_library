@@ -50,7 +50,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
         input_image = tf.cast(images, dtype=tf.float32)
 
         tflite_runner.set_input_tensor(tflite_runner.input_details[0]["index"], input_image)
-        tflite_runner.run()
+        tflite_runner.run(batch_size)
         keypoints_with_scores = tflite_runner.get_output_tensor(tflite_runner.output_details[0]["index"])
         coco.submit_keypoint_prediction(images[0], keypoints_with_scores, metadatas[0])
 
