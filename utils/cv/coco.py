@@ -9,6 +9,7 @@ from pycocotools.cocoeval import COCOeval
 import utils.misc as utils
 import utils.cv.pre_processing as pp
 from utils.cv.dataset import ImageDataset
+from utils.misc import download_coco_dataset, download_coco_labels
 
 
 class COCOBaseDataset(ImageDataset):
@@ -208,10 +209,12 @@ class COCODataset(COCOBaseDataset):
 
         if images_path is None:
             env_var = "COCO_IMG_PATH"
+            download_coco_dataset()
             images_path = utils.get_env_variable(
                 env_var, f"Path to COCO images directory has not been specified with {env_var} flag")
         if annotations_path is None:
             env_var = "COCO_ANNO_PATH"
+            download_coco_labels()
             annotations_path = utils.get_env_variable(
                 env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
 
