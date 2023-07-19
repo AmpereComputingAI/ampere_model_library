@@ -12,7 +12,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
     from speech_recognition.whisper.whisper.whisper import load_model
     from speech_recognition.whisper.whisper.whisper.transcribe import transcribe
-    model = load_model(model_name)
+    model = load_model(model_name).cuda()
     model.eval()
 
     def single_pass_pytorch(_runner, _librispeech):

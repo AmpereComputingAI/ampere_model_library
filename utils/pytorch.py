@@ -33,12 +33,12 @@ class PyTorchRunner(Runner):
             dtype = torch.bfloat16 if self._do_autocast else torch.float32
             model = ipex.optimize(model, dtype=dtype)
             disable_jit_freeze = True
-        self._model = model
+        self._model = model.cuda()
         self._func = func
         self._model.eval()
         self._frozen_script = None
 
-        if disable_jit_freeze:
+        if True:
             if os.environ.get("TORCH_COMPILE") == "1":
                 utils.print_goodbye_message_and_die(
                     f"disable_jit_freeze={disable_jit_freeze} and TORCH_COMPILE=1 are mutually exclusive.")
@@ -83,9 +83,10 @@ class PyTorchRunner(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            with torch.cuda.amp.autocast() if self._do_autocast else nullcontext():
                 start = time.time()
                 output = model(*args, **kwargs)
+                torch.cuda.synchronize()
                 finish = time.time()
 
             self._start_times.append(start)
@@ -96,20 +97,26 @@ class PyTorchRunner(Runner):
             return output
 
         with torch.no_grad():
+            device = torch.device("cuda:0")# if torch.cuda.is_available()
             if self._frozen_script is None:
-                model = self._model
+                model = self._model.to(device)
             else:
-                model = self._frozen_script
+                model = self._frozen_script.to(device)
             if self._func is not None:
                 model = getattr(model, self._func)
-
+            
             if self._is_profiling:
                 with profile() as self._profile:
                     output_tensor = runner_func()
             else:
                 output_tensor = runner_func()
-
-        return output_tensor
+        
+        if type(output_tensor) is tuple:
+            try:
+                return tuple(item.cpu() for item in output_tensor)
+            except AttributeError:
+                return tuple([i.cpu() for i in item] for item in output_tensor)
+        return output_tensor.cpu()
 
     def print_performance_metrics(self):
         if self._is_profiling:
@@ -139,7 +146,8 @@ class PyTorchRunnerV2(Runner):
             import intel_extension_for_pytorch as ipex
             dtype = torch.bfloat16 if self._do_autocast else torch.float32
             model = ipex.optimize(model, dtype=dtype)
-        self._model = model
+        device = torch.device("cuda:0")
+        self._model = model#.to(device)
 
         self._do_profile = aio_profiler_enabled()
 
@@ -153,7 +161,7 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            with torch.cuda.amp.autocast() if self._do_autocast else nullcontext():
                 start = time.time()
                 output = self._model(*args, **kwargs)
                 finish = time.time()

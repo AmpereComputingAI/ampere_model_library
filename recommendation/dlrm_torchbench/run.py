@@ -142,7 +142,9 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     )
 
     X, lS_o, lS_i, targets = next(iter(dataset.train_ld))
-    example_inputs = (X, lS_o, lS_i)
+    example_inputs = (X.cuda(), lS_o.cuda(), [x.cuda() for x in lS_i])
+    #print(example_inputs)
+    #fds
 
     runner = PyTorchRunner(dlrm, example_inputs=example_inputs, skip_script=True)
 
