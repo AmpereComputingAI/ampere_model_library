@@ -207,7 +207,9 @@ def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
 
-def apply_compile(model, aio):
+def apply_compile_maybe(model, aio):
+    if os.environ.get("TORCH_COMPILE") != "1":
+        return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
         # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
         # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.

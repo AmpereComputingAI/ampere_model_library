@@ -4,7 +4,7 @@ import torch
 import transformers
 
 from utils.nlp.alpaca_instruct import AlpacaInstruct
-from utils.pytorch import PyTorchRunnerV2, apply_compile
+from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
 from utils.benchmark import run_model
 
 
@@ -19,9 +19,8 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
     model = transformers.AutoModelForCausalLM.from_pretrained(model_path)
     model.eval()
-    if os.environ.get("TORCH_COMPILE") == "1":
-        aio = '_aio_profiler_print' in dir(torch._C)
-        model = apply_compile(model, aio)
+    aio = '_aio_profiler_print' in dir(torch._C)
+    model = apply_compile_maybe(model, aio)
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
