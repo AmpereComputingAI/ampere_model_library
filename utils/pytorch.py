@@ -164,6 +164,7 @@ class PyTorchRunnerV2(Runner):
             with torch.cuda.amp.autocast() if self._do_autocast else nullcontext():
                 start = time.time()
                 output = self._model(*args, **kwargs)
+                torch.cuda.synchronize()
                 finish = time.time()
 
             self._start_times.append(start)
