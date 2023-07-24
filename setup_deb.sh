@@ -62,9 +62,6 @@ log "done.\n"
 log "Installing python dependencies ..."
 sleep 1
 # direct dependencies
-git clone https://github.com/cocodataset/cocoapi.git
-cd cocoapi/PythonAPI
-python setup.py build_ext install
 pip3 install --no-deps --upgrade \
    SimpleITK==2.2.1 \
    batchgenerators==0.21 \
@@ -141,6 +138,10 @@ pip3 install --no-deps --upgrade \
    unidecode==1.3.6 \
    inflect==6.0.4 \
    pydantic==1.10.9
+
+git clone https://github.com/cocodataset/cocoapi.git
+cd cocoapi/PythonAPI
+python setup.py build_ext install
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
