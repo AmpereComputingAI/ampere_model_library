@@ -83,7 +83,8 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   numba==0.57.1
+   numba==0.57.1 \
+   Cython==3.0.0
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
