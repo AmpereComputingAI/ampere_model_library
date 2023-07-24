@@ -62,7 +62,9 @@ log "done.\n"
 log "Installing python dependencies ..."
 sleep 1
 # direct dependencies
-pip3 install Cython==3.0.0
+git clone https://github.com/cocodataset/cocoapi.git
+cd cocoapi/PythonAPI
+python setup.py build_ext install
 pip3 install --no-deps --upgrade \
    SimpleITK==2.2.1 \
    batchgenerators==0.21 \
@@ -71,7 +73,6 @@ pip3 install --no-deps --upgrade \
    "numpy<1.24.0" \
    opencv-python==4.5.5.64 \
    pandas==1.4.2 \
-   pycocotools==2.0.4 \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
