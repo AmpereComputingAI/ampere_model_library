@@ -70,6 +70,7 @@ pip3 install --no-deps --upgrade \
    "numpy<1.24.0" \
    opencv-python==4.5.5.64 \
    pandas==1.4.2 \
+   pycocotools==2.0.6 \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
@@ -83,8 +84,7 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   numba==0.57.1 \
-   Cython==3.0.0
+   numba==0.57.1
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
@@ -139,10 +139,6 @@ pip3 install --no-deps --upgrade \
    unidecode==1.3.6 \
    inflect==6.0.4 \
    pydantic==1.10.9
-
-git clone https://github.com/cocodataset/cocoapi.git
-cd cocoapi/PythonAPI
-python setup.py build_ext install
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
