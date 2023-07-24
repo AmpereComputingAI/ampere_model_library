@@ -70,7 +70,7 @@ pip3 install --no-deps --upgrade \
    "numpy<1.24.0" \
    opencv-python==4.5.5.64 \
    pandas==1.4.2 \
-   pycocotools==2.0.4 \
+   pycocotools==2.0.6 \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
