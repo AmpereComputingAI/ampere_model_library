@@ -101,7 +101,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     #model = torch.hub.load('ultralytics/yolov8', 'custom', 'yolov8m.engine')
     from ultralytics import YOLO
     model_name = YOLO(model_path).export(format="engine", device=0, half=True, imgsz=640, batch=batch_size)
-    model = YOLO(f"{'/'.join(model_path.split('/')[:-1])}/{model_name}")
+    model = YOLO(model_name)
     #model = torch.jit.load(model).eval()
     #model = model.cuda()
     import os
@@ -129,7 +129,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
         finish = time.time()
         latencies.append(finish-start)
 
-    print(batch_size / (sum(latencies)/len(latencies)))
+    import csv
+    throughput = batch_size / (sum(latencies)/len(latencies))
+    with open(f'{model_path}.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow([batch_size, throughput])
     #runner = PyTorchRunner(model,
     #                       disable_jit_freeze=disable_jit_freeze,
     #                       example_inputs=torch.stack(dataset.get_input_array((640, 640))).cuda())
