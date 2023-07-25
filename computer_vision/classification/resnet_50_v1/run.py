@@ -109,7 +109,16 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True).cuda(),
+    model = torchvision.models.__dict__[model_name](pretrained=True).eval()
+    model = torch.jit.freeze(torch.jit.script(model))
+    import torch_tensorrt
+    import os
+    if os.path.exists("resnet_50_v1.ts"):
+        trt_ts_module = torch.jit.load("resnet_50_v1.ts")
+    else:
+        trt_ts_module = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input(min_shape=[1, 3, 224, 224], opt_shape=[128, 3, 224, 224], max_shape=[512, 3, 224, 224], dtype=torch.float)], enabled_precisions={torch.half})
+        torch.jit.save(trt_ts_module, "resnet_50_v1.ts")
+    runner = PyTorchRunner(trt_ts_module.cuda(),
                            disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)

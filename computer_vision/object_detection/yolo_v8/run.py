@@ -95,17 +95,46 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
 
+    import os
+    import sys
+    filename = "yolo_v8_m.ts"
+    #model = torch.hub.load('ultralytics/yolov8', 'custom', 'yolov8m.engine')
     from ultralytics import YOLO
-    model = YOLO(model_path).model
-    model = model.cuda()
-    print(model)
+    model_name = YOLO(model_path).export(format="engine", device=0, half=True, imgsz=640, batch=batch_size)
+    model = YOLO(f"{'/'.join(model_path.split('/')[:-1])}/{model_name}")
+    #model = torch.jit.load(model).eval()
+    #model = model.cuda()
+    import os
+    os.environ["BATCH_SIZE"] = str(batch_size)
+    #import torch_tensorrt
+    #if os.path.exists(filename):
+    #    trt_ts_module = torch.jit.load(filename)
+    #else:
+    #    trt_ts_module = torch_tensorrt.compile(model, inputs=[torch_tensorrt.Input(min_shape=[1, 3, 640, 640], opt_shape=[128, 3, 640, 640], max_shape=[128, 3, 640, 640], dtype=torch.float)], enabled_precisions={torch.half})
+    #    torch.jit.save(trt_ts_module, filename)
+    #    print(model)
+    #print(model)
     #print(torchscript_model)
     #device = torch.device("cuda:0")
-    runner = PyTorchRunner(model,
-                           disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=torch.stack(dataset.get_input_array((640, 640))).cuda())
+    import numpy as np
+    input_data = torch.from_numpy(np.random.rand(batch_size, 3, 640, 640).astype(np.float32))
+    for _ in range(10):
+        model(input_data, imgsz=640)#, batch=batch_size)
+    import time
+    latencies = []
+    x = time.time()
+    while time.time() - x < 60:
+        start = time.time()
+        model(input_data, imgsz=640)#, batch=batch_size)
+        finish = time.time()
+        latencies.append(finish-start)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+    print(batch_size / (sum(latencies)/len(latencies)))
+    #runner = PyTorchRunner(model,
+    #                       disable_jit_freeze=disable_jit_freeze,
+    #                       example_inputs=torch.stack(dataset.get_input_array((640, 640))).cuda())
+
+    #return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):

@@ -89,14 +89,36 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
+    import os
+    import sys
     from ultralytics import YOLO
-    model = YOLO(model_path).model
-    model = model.cuda()
-    runner = PyTorchRunner(model,
-                           disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=torch.stack(dataset.get_input_array((640, 640))))
+    os.environ["BATCH_SIZE"] = str(batch_size)
+    YOLO('yolov5m.pt').export(format="engine", device=0, half=True, imgsz=640, batch=batch_size)
+    model = YOLO("yolov5m.engine")
+    import numpy as np
+    input_data = torch.from_numpy(np.random.rand(batch_size, 3, 640, 640).astype(np.float32))
+    for _ in range(10):
+        model(input_data, imgsz=640)#, batch=batch_size)
+    import time
+    latencies = []
+    x = time.time()
+    while time.time() - x < 60:
+        start = time.time()
+        model(input_data, imgsz=640)#, batch=batch_size)
+        finish = time.time()
+        latencies.append(finish-start)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+    print(batch_size / (sum(latencies)/len(latencies)))
+    #if os.path.exists(filename):
+    #    model = torch.jit.load(filename)
+    #else:
+    #    model = YOLO(model_path).export(format="engine")
+    #    print(model)
+    #runner = PyTorchRunner(model,
+    #                       disable_jit_freeze=disable_jit_freeze,
+    #                       example_inputs=torch.stack(dataset.get_input_array((640, 640))))
+
+    #return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
