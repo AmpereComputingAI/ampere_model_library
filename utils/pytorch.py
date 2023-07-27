@@ -172,6 +172,13 @@ class PyTorchRunnerV2(Runner):
             else:
                 return runner_func()
 
+    def update_last_task_size(self, new_task_size):
+        """
+        A function replacing the last value in the self._workload_size with the new_task_size.
+        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the number of tokens generated has an upper bound but can be lower)
+        """
+        self._workload_size[-1] = new_task_size
+
     def print_performance_metrics(self):
         if self._do_profile:
             print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
