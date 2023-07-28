@@ -12,12 +12,12 @@ from torchvision.utils import make_grid
 
 from utils.benchmark import run_model
 from utils.pytorch import PyTorchRunnerV2
-from utils.text_to_image.stable_diffusion import StableDiffusion
+# from utils.text_to_image.stable_diffusion import StableDiffusion
 from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
 from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
 
 
-def run_pytorch_fp32(model_path, num_runs, timeout):
+def run_pytorch_fp32(model_name, num_runs, timeout):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
 
@@ -39,7 +39,7 @@ def run_pytorch_fp32(model_path, num_runs, timeout):
     W = 512
     C = 4
     f = 8
-    steps = 50
+    steps = 1
     n_samples = 3
     n_rows = 0
     ddim_eta = 0.0
@@ -113,7 +113,7 @@ def run_pytorch_fp32(model_path, num_runs, timeout):
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
-    stable_diffusion_variants = ["stable diffusion"]
+    stable_diffusion_variants = ["stable_diffusion"]
     # whisper_variants = whisper_variants + [f"{name}.en" for name in whisper_variants[:4]]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(stable_diffusion_variants)
