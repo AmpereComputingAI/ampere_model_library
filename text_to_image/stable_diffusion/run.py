@@ -80,7 +80,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                                             x_T=start_code)
                 end = time.time()
 
-                sample_time = end - start
+                sample_time += (end - start)
 
                 x_samples = model.decode_first_stage(samples)
                 x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
