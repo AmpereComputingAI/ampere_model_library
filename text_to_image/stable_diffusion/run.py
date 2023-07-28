@@ -29,8 +29,8 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     sampler = DDIMSampler(model, device=device)
 
     prompt = 'a professional photograph of an astronaut riding a triceratops'
-    precision_scope = autocast
-    precision_scope(device)
+    # precision_scope = autocast
+    # precision_scope(device)
 
     batch_size = 3
     n_iter = 3
@@ -54,7 +54,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
 
     data = [batch_size * [prompt]]
 
-    with torch.no_grad(), precision_scope(device), model.ema_scope():
+    with torch.no_grad(), model.ema_scope():
         all_samples = list()
         for n in trange(n_iter, desc="Sampling"):
             for prompts in tqdm(data, desc="data"):
