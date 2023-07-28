@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import torch
 from torch import autocast
@@ -41,7 +42,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     f = 8
     steps = 1
     n_samples = 3
-    n_rows = 0
+    n_rows = batch_size
     ddim_eta = 0.0
     start_code = None
 
@@ -53,7 +54,9 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     grid_count = len(os.listdir(outpath)) - 1
 
     data = [batch_size * [prompt]]
+    sample_time = 0
 
+    # with torch.no_grad(), precision_scope(device), model.ema_scope():
     with torch.no_grad(), model.ema_scope():
         all_samples = list()
         for n in trange(n_iter, desc="Sampling"):
@@ -65,6 +68,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                     prompts = list(prompts)
                 c = model.get_learned_conditioning(prompts)
                 shape = [C, H // f, W // f]
+                start = time.time()
                 samples, _ = sampler.sample(S=steps,
                                             conditioning=c,
                                             batch_size=n_samples,
@@ -74,6 +78,9 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                                             unconditional_conditioning=uc,
                                             eta=ddim_eta,
                                             x_T=start_code)
+                end = time.time()
+
+                sample_time = end - start
 
                 x_samples = model.decode_first_stage(samples)
                 x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
@@ -99,6 +106,8 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         # grid = put_watermark(grid, wm_encoder)
         grid.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
         grid_count += 1
+
+        print('sample time is:', sample_time)
 
     # def single_pass_pytorch(runner, stablediffusion):
     #     array = stablediffusion.get_input_array()
