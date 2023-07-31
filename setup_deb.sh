@@ -138,7 +138,9 @@ pip3 install --no-deps --upgrade \
    unicode==2.9 \
    unidecode==1.3.6 \
    inflect==6.0.4 \
-   pydantic==1.10.9
+   pydantic==1.10.9 \
+   cffi==1.15.1 \
+   attrs==23.1.0
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
