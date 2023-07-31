@@ -33,15 +33,17 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     # precision_scope = autocast
     # precision_scope(device)
 
-    batch_size = 3
-    n_iter = 3
+    # batch_size = 3
+    # n_iter = 3
+    batch_size = 1
+    n_iter = 1
     scale = 9
     H = 512
     W = 512
     C = 4
     f = 8
-    steps = 1
-    n_samples = 3
+    steps = 25
+    n_samples = batch_size
     n_rows = batch_size
     ddim_eta = 0.0
     start_code = None

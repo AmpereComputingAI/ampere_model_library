@@ -19,4 +19,3 @@
 [submodule "text_to_image/stable_diffusion/stablediffusion"]
 	path = text_to_image/stable_diffusion/stablediffusion
 	url = git@github.com:AmpereComputingAI/stablediffusion.git
-	shallow = true
