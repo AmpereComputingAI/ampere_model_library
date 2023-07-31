@@ -27,13 +27,14 @@ def run_pytorch_fp32(args):
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
-    parser.require_model_path()
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
     parser.add_argument("-w", '--width', type=int, default=512, help="width of the image")
     parser.add_argument('--scale', type=int, default=9, help="scale of the image")
     parser.add_argument("--seed", type=int, default=42, help="the seed (for reproducible sampling)",)
-    parser.add_argument("--config", type=str, required=True, help="path to config which constructs model")
+    parser.add_argument("--config", type=str,
+                        default="stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml",
+                        help="path to config which constructs model")
     parser.add_argument("--ckpt", type=str, required=True, help="path to checkpoint of model")
     parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to", default="outputs/txt2img-samples")
     parser.add_argument("--n_samples", type=int, default=1, help="how many samples to produce for each given prompt. A.k.a batch size",)
