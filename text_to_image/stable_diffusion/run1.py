@@ -30,7 +30,6 @@ if __name__ == "__main__":
     parser.require_model_path()
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
-    parser.add_argument("-h", '--height', type=int, default=512, help="height of the image")
     parser.add_argument("-w", '--width', type=int, default=512, help="width of the image")
     parser.add_argument('--scale', type=int, default=9, help="scale of the image")
     parser.add_argument("--seed", type=int, default=42, help="the seed (for reproducible sampling)",)
