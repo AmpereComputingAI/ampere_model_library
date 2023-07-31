@@ -10,7 +10,7 @@ def run_pytorch_fp32(args):
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import main
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        array = _stablediffusion.get_input_array()
+        # array = _stablediffusion.get_input()
         _stablediffusion.submit_count(
             _runner.run()
         )
