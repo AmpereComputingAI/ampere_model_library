@@ -12,7 +12,7 @@ def run_pytorch_fp32(args):
     def single_pass_pytorch(_runner, _stablediffusion):
         # array = _stablediffusion.get_input()
         _stablediffusion.submit_count(
-            _runner.run()
+            _runner.run(1)
         )
 
     def sampler_wrapper(args):
