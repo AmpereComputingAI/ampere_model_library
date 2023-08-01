@@ -1,6 +1,11 @@
 import os
 import sys
 
+import torch
+from omegaconf import OmegaConf
+from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
+from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
+
 
 def run_pytorch_fp32(args):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
@@ -9,16 +14,43 @@ def run_pytorch_fp32(args):
     from utils.text_to_image.stable_diffusion import StableDiffusion
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import main
 
+    config = OmegaConf.load(f"{args.config}")
+    device = torch.device("cuda") if args.device == "cuda" else torch.device("cpu")
+    model = load_model_from_config(config, f"{args.ckpt}", device)
+    sampler = DDIMSampler(model, device=device)
+
     def single_pass_pytorch(_runner, _stablediffusion):
         # array = _stablediffusion.get_input()
         _stablediffusion.submit_count(
             _runner.run(1)
         )
 
+    def wrapper(args):
+
+        c = model.get_learned_conditioning(["a professional photograph of an astronaut riding a triceratops"])
+        uc = None
+        if args.scale != 1.0:
+            uc = model.get_learned_conditioning(args.batch_size * [""])
+        shape = [args.C, args.H // args.f, args.W // args.f]
+
+        start_code = None
+        if args.fixed_code:
+            start_code = torch.randn([args.n_samples, args.C, args.H // args.f, args.W // args.f], device=device)
+
+        samples, _ = sampler.sample(S=args.steps,
+                                    conditioning=c,
+                                    batch_size=args.n_samples,
+                                    shape=shape,
+                                    verbose=False,
+                                    unconditional_guidance_scale=args.scale,
+                                    unconditional_conditioning=uc,
+                                    eta=args.ddim_eta,
+                                    x_T=start_code)
+
     def sampler_wrapper(args):
         return main(args)
 
-    runner = PyTorchRunnerV2(sampler_wrapper)
+    runner = PyTorchRunnerV2(wrapper)
     stablediffusion = StableDiffusion()
 
     return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
