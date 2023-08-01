@@ -13,7 +13,6 @@ def run_pytorch_fp32(args):
     print(type(args))
     print(args.batch_size)
     print(type(args.batch_size))
-    quit()
 
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
     from utils.benchmark import run_model
