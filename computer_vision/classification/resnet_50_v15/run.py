@@ -139,8 +139,8 @@ def run_tf_bf16(model_path, batch_size, num_runs, timeout, images_path, labels_p
     return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_pytorch_fp32(*args, **kwargs):
-    return run_pytorch_fp(*args, **kwargs)
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path):
+    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
 
 
 def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path):
