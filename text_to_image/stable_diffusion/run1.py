@@ -28,7 +28,7 @@ def run_pytorch_fp32(args):
     C = args.C
     H = args.H
     f = args.f
-    W = args.w
+    W = args.W
 
     n_samples = args.n_samples
     steps = args.steps
