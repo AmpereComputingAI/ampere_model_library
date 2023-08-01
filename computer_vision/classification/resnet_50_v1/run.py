@@ -23,7 +23,7 @@ def parse_args():
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["tf", "tflite", "pytorch", "ort"], required=True,
+                        choices=["tf", "tflite", "ort"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -91,30 +91,6 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
-    from utils.pytorch import PyTorchRunner
-    import torch
-    import torchvision
-
-    def run_single_pass(pytorch_runner, imagenet):
-        shape = (224, 224)
-        output = pytorch_runner.run(batch_size, torch.from_numpy(imagenet.get_input_array(shape)))
-
-        for i in range(batch_size):
-            imagenet.submit_predictions(
-                i,
-                imagenet.extract_top1(output[i]),
-                imagenet.extract_top5(output[i])
-            )
-
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
-                       pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True),
-                           disable_jit_freeze=disable_jit_freeze)
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
-
-
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.ort import OrtRunner
 
@@ -136,19 +112,15 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
-    return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
-
-
-def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
@@ -166,13 +138,6 @@ def main():
     elif args.framework == "tflite":
         if args.precision == "int8":
             run_tflite_int8(**vars(args))
-        else:
-            print_goodbye_message_and_die(
-                "this model seems to be unsupported in a specified precision: " + args.precision)
-
-    elif args.framework == "pytorch":
-        if args.precision == "fp32":
-            run_pytorch_fp32(model_name="resnet50", **vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
