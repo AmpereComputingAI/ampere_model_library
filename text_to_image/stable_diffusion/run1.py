@@ -98,5 +98,6 @@ if __name__ == "__main__":
                         choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--n_iter", type=int, default=1, help="sample this often")
     parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
+    parser.add_argument("--fixed_code", action='store_true', help="if enabled, uses the same starting code across all samples ")
 
     run_pytorch_fp32(parser.parse())
