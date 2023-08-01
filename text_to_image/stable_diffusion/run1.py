@@ -39,9 +39,8 @@ def run_pytorch_fp32(args):
 
     def single_pass_pytorch(_runner, _stablediffusion):
         # array = _stablediffusion.get_input()
-        _stablediffusion.submit_count(
-            _runner.run(1)
-        )
+        _runner.run(1)
+        _stablediffusion.submit_count()
 
     def wrapper():
         c = model.get_learned_conditioning(["a professional photograph of an astronaut riding a triceratops"])
