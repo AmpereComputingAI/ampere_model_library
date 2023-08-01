@@ -2,48 +2,42 @@ import os
 import sys
 
 import torch
-from omegaconf import OmegaConf
-from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
-from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
 
 
 def run_pytorch_fp32(args):
-
-    print(args)
-    print(type(args))
-    print(args.batch_size)
-    print(type(args.batch_size))
-
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
+
+    from omegaconf import OmegaConf
     from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
-    from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import main
-
-    config = OmegaConf.load(f"{args.config}")
-    device = torch.device("cuda") if args.device == "cuda" else torch.device("cpu")
-    model = load_model_from_config(config, f"{args.ckpt}", device)
-    sampler = DDIMSampler(model, device=device)
+    from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
+    from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
 
     C = args.C
     H = args.H
     f = args.f
     W = args.W
 
-    n_samples = args.n_samples
+    # n_samples = args.n_samples
+    batch_size = args.batch_size
     steps = args.steps
     scale = args.scale
     ddim_eta = args.ddim_eta
     fixed_code = args.fixed_code
-    batch_size = args.batch_size
+    prompt = args.prompt
+
+    config = OmegaConf.load(f"{args.config}")
+    device = torch.device("cuda") if args.device == "cuda" else torch.device("cpu")
+    model = load_model_from_config(config, f"{args.ckpt}", device)
+    sampler = DDIMSampler(model, device=device)
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        # array = _stablediffusion.get_input()
-        _runner.run(1)
+        _runner.run(batch_size * steps)
         _stablediffusion.submit_count()
 
     def wrapper():
-        c = model.get_learned_conditioning(["a professional photograph of an astronaut riding a triceratops"])
+
         uc = None
         if scale != 1.0:
             uc = model.get_learned_conditioning(batch_size * [""])
@@ -51,20 +45,17 @@ def run_pytorch_fp32(args):
 
         start_code = None
         if fixed_code:
-            start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
+            start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
 
         samples, _ = sampler.sample(S=steps,
-                                    conditioning=c,
-                                    batch_size=n_samples,
+                                    conditioning=model.get_learned_conditioning([prompt]),
+                                    batch_size=batch_size,
                                     shape=shape,
                                     verbose=False,
                                     unconditional_guidance_scale=scale,
                                     unconditional_conditioning=uc,
                                     eta=ddim_eta,
                                     x_T=start_code)
-
-    # def sampler_wrapper(args):
-    #     return main(args)
 
     runner = PyTorchRunnerV2(wrapper)
     stablediffusion = StableDiffusion()
@@ -95,7 +86,6 @@ if __name__ == "__main__":
     parser.add_argument("--f", type=int, default=8, help="down-sampling factor, most often 8 or 16")
     parser.add_argument("--device", type=str, help="Device on which Stable Diffusion will be run",
                         choices=["cpu", "cuda"], default="cpu")
-    parser.add_argument("--n_iter", type=int, default=1, help="sample this often")
     parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
     parser.add_argument("--fixed_code", action='store_true', help="if enabled, uses the same starting code across all samples ")
 
