@@ -8,6 +8,13 @@ from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim im
 
 
 def run_pytorch_fp32(args):
+
+    print(args)
+    print(type(args))
+    print(args.batch_size)
+    print(type(args.batch_size))
+    quit()
+
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
     from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2
@@ -25,8 +32,7 @@ def run_pytorch_fp32(args):
             _runner.run(1)
         )
 
-    def wrapper(args):
-
+    def wrapper():
         c = model.get_learned_conditioning(["a professional photograph of an astronaut riding a triceratops"])
         uc = None
         if args.scale != 1.0:
