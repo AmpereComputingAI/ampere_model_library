@@ -35,88 +35,78 @@ def run_pytorch_fp32(args):
     model = load_model_from_config(config, f"{args.ckpt}", device)
     sampler = DDIMSampler(model, device=device)
 
+    unet = model.model.diffusion_model
+    decoder = model.first_stage_model.decoder
+    additional_context = nullcontext()
+    shape = [C, H // f, W // f]
+
+    start_code = None
+    if fixed_code:
+        start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
+    uc = None
+    if scale != 1.0:
+        uc = model.get_learned_conditioning(batch_size * [""])
+
+    with torch.no_grad(), additional_context:
+        # get UNET scripted
+        if unet.use_checkpoint:
+            raise ValueError("Gradient checkpoint won't work with tracing. " +
+                             "Use configs/stable-diffusion/intel/ configs for your model or disable checkpoint in your config.")
+
+        cache_dir = Path(Path.home(), "cache_stable_diff")
+        if not cache_dir.exists():
+            cache_dir.mkdir(exist_ok=True)
+
+        unet_path = Path(cache_dir, "unet.pt")
+        if unet_path.exists():
+            scripted_unet = torch.jit.load(unet_path)
+        else:
+            img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
+            t_in = torch.ones(2, dtype=torch.int64)
+            context = torch.ones(2, 77, 1024, dtype=torch.float32)
+            scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
+            scripted_unet = torch.jit.freeze(scripted_unet)
+            torch.jit.save(scripted_unet, unet_path)
+            print(unet_path)
+        print(type(scripted_unet))
+        model.model.scripted_diffusion_model = scripted_unet
+
+        # get Decoder for first stage model scripted
+        decoder_path = Path(cache_dir, "decoder.pt")
+        if decoder_path.exists():
+            scripted_decoder = torch.jit.load(decoder_path)
+        else:
+            samples_ddim = torch.ones(1, 4, 96, 96, dtype=torch.float32)
+            scripted_decoder = torch.jit.trace(decoder, (samples_ddim))
+            scripted_decoder = torch.jit.freeze(scripted_decoder)
+            torch.jit.save(scripted_decoder, decoder_path)
+            print(decoder_path)
+        print(type(scripted_decoder))
+        model.first_stage_model.decoder = scripted_decoder
+
+    print("Running a forward pass to initialize optimizations")
+
+    with torch.no_grad(), additional_context:
+        for _ in range(3):
+            c = model.get_learned_conditioning(prompt)
+        samples_ddim, _ = sampler.sample(S=5,
+                                         conditioning=c,
+                                         batch_size=batch_size,
+                                         shape=shape,
+                                         verbose=False,
+                                         unconditional_guidance_scale=scale,
+                                         unconditional_conditioning=uc,
+                                         eta=ddim_eta,
+                                         x_T=start_code)
+        print("Running a forward pass for decoder")
+        for _ in range(3):
+            x_samples_ddim = model.decode_first_stage(samples_ddim)
+
     def single_pass_pytorch(_runner, _stablediffusion):
         _runner.run(batch_size * steps)
         _stablediffusion.submit_count()
 
     def wrapper():
-
-        transformer = model.cond_stage_model.model
-        unet = model.model.diffusion_model
-        decoder = model.first_stage_model.decoder
-        additional_context = nullcontext()
-        shape = [C, H // f, W // f]
-
-        start_code = None
-        if fixed_code:
-            start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
-        uc = None
-        if scale != 1.0:
-            uc = model.get_learned_conditioning(batch_size * [""])
-
-        with torch.no_grad(), additional_context:
-            # get UNET scripted
-            if unet.use_checkpoint:
-                raise ValueError("Gradient checkpoint won't work with tracing. " +
-                                 "Use configs/stable-diffusion/intel/ configs for your model or disable checkpoint in your config.")
-
-            cache_dir = Path(Path.home(), "cache_stable_diff")
-            if not cache_dir.exists():
-                cache_dir.mkdir(exist_ok=True)
-
-            unet_path = Path(cache_dir, "unet.pt")
-            if unet_path.exists():
-                scripted_unet = torch.jit.load(unet_path)
-            else:
-                img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
-                t_in = torch.ones(2, dtype=torch.int64)
-                context = torch.ones(2, 77, 1024, dtype=torch.float32)
-                scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
-                scripted_unet = torch.jit.freeze(scripted_unet)
-                torch.jit.save(scripted_unet, unet_path)
-                print(unet_path)
-            print(type(scripted_unet))
-            model.model.scripted_diffusion_model = scripted_unet
-
-            # get Decoder for first stage model scripted
-            decoder_path = Path(cache_dir, "decoder.pt")
-            if decoder_path.exists():
-                scripted_decoder = torch.jit.load(decoder_path)
-            else:
-                samples_ddim = torch.ones(1, 4, 96, 96, dtype=torch.float32)
-                scripted_decoder = torch.jit.trace(decoder, (samples_ddim))
-                scripted_decoder = torch.jit.freeze(scripted_decoder)
-                torch.jit.save(scripted_decoder, decoder_path)
-                print(decoder_path)
-            print(type(scripted_decoder))
-            model.first_stage_model.decoder = scripted_decoder
-
-        # prompts = data[0]
-        print("Running a forward pass to initialize optimizations")
-        # uc = None
-        # if scale != 1.0:
-        #     uc = model.get_learned_conditioning(batch_size * [""])
-        # if isinstance(prompts, tuple):
-        #     prompts = list(prompts)
-
-        with torch.no_grad(), additional_context:
-            for _ in range(3):
-                c = model.get_learned_conditioning(prompt)
-            samples_ddim, _ = sampler.sample(S=5,
-                                             conditioning=c,
-                                             batch_size=batch_size,
-                                             shape=shape,
-                                             verbose=False,
-                                             unconditional_guidance_scale=scale,
-                                             unconditional_conditioning=uc,
-                                             eta=ddim_eta,
-                                             x_T=start_code)
-            print("Running a forward pass for decoder")
-            for _ in range(3):
-                x_samples_ddim = model.decode_first_stage(samples_ddim)
-
-        shape = [C, H // f, W // f]
-
         samples, _ = sampler.sample(S=steps,
                                     conditioning=model.get_learned_conditioning([prompt]),
                                     batch_size=batch_size,
