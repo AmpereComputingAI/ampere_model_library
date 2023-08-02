@@ -68,7 +68,6 @@ def run_pytorch_fp32(args):
             scripted_unet = torch.jit.freeze(scripted_unet)
             torch.jit.save(scripted_unet, unet_path)
             print(unet_path)
-        print(type(scripted_unet))
         model.model.scripted_diffusion_model = scripted_unet
 
         # get Decoder for first stage model scripted
