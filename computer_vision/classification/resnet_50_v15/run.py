@@ -127,27 +127,27 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tf_bf16(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tf_bf16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path):
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
