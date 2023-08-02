@@ -30,15 +30,15 @@ class OrtRunner(Runner):
 
         print("\nRunning with ONNX Runtime\n")
 
-    def run(self, task_size, *args, **kwargs):
-
+    def run(self, task_size=None, *args, **kwargs):
+        assert len(self._workload_size) == 0 or self._workload_size[-1] is not None, "Task size for previous run has not been set"
         start = time.time()
         outputs = self.session.run(self._output_names, self._feed_dict)
         finish = time.time()
 
         self._start_times.append(start)
         self._finish_times.append(finish)
-        self._workload_size.append(task_size)
+        self.set_task_size(task_size)
         self._times_invoked += 1
 
         return outputs

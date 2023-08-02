@@ -12,8 +12,8 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
     def run_single_pass(pytorch_runner, dataset):
         inputs = encode(dataset.get_input_array())
-        outputs = pytorch_runner.run(1, inputs=inputs.input_ids, max_new_tokens=100)
-        pytorch_runner.update_last_task_size(outputs.shape[1] - inputs.input_ids.shape[1])
+        outputs = pytorch_runner.run(inputs=inputs.input_ids, max_new_tokens=100)
+        pytorch_runner.set_task_size(outputs.shape[1] - inputs.input_ids.shape[1])
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
         dataset.submit_prediction(response)
 

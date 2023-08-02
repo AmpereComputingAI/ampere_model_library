@@ -145,7 +145,7 @@ class PyTorchRunnerV2(Runner):
 
         print("\nRunning with PyTorch\n")
 
-    def run(self, task_size, *args, **kwargs):
+    def run(self, task_size=None, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
@@ -153,6 +153,7 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
+            assert len(self._workload_size) == 0 or self._workload_size[-1] is not None, "Task size for previous run has not been set"
             with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
                 start = time.time()
                 output = self._model(*args, **kwargs)
@@ -160,7 +161,7 @@ class PyTorchRunnerV2(Runner):
 
             self._start_times.append(start)
             self._finish_times.append(finish)
-            self._workload_size.append(task_size)
+            self.set_task_size(task_size)
             self._times_invoked += 1
 
             return output
@@ -171,13 +172,6 @@ class PyTorchRunnerV2(Runner):
                     return runner_func()
             else:
                 return runner_func()
-
-    def update_last_task_size(self, new_task_size):
-        """
-        A function replacing the last value in the self._workload_size with the new_task_size.
-        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the number of tokens generated has an upper bound but can be lower)
-        """
-        self._workload_size[-1] = new_task_size
 
     def print_performance_metrics(self):
         if self._do_profile:
