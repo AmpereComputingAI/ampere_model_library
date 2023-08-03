@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
+import torchvision
 
 from utils.cv.openimages import OpenImagesDataset
 from utils.benchmark import run_model
