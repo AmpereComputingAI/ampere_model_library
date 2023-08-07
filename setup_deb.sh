@@ -138,7 +138,23 @@ pip3 install --no-deps --upgrade \
    unicode==2.9 \
    unidecode==1.3.6 \
    inflect==6.0.4 \
-   pydantic==1.10.9
+   pydantic==1.10.9 \
+   albumentations==0.4.3 \
+   pudb==2019.2 \
+   imageio==2.9.0 \
+   imageio-ffmpeg==0.4.2 \
+   pytorch-lightning==1.4.2 \
+   torchmetrics==0.6 \
+   omegaconf==2.1.1 \
+   test-tube>=0.7.5 \
+   streamlit>=0.73.1 \
+   einops==0.3.0 \
+   webdataset==0.2.5 \
+   open-clip-torch==2.7.0 \
+   gradio==3.13.2 \
+   kornia==0.6 \
+   invisible-watermark>=0.1.5 \
+   streamlit-drawable-canvas==0.8.0
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 log "done.\n"
