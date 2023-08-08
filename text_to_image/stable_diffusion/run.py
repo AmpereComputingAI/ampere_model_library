@@ -27,7 +27,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
 
     # checkpoint_link = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/v2-1_512-ema-pruned.ckpt"
     checkpoint = "v2-1_512-ema-pruned.ckpt"
-    config = OmegaConf.load("stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml")
+    config = OmegaConf.load("/ampere/aml/text_to_image/stable_diffusion/stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml")
     device = torch.device("cpu")
     model = load_model_from_config(config, checkpoint, device)
     sampler = DDIMSampler(model, device=device)
