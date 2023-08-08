@@ -69,7 +69,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         transformer = model.cond_stage_model.model
         unet = model.model.diffusion_model
         decoder = model.first_stage_model.decoder
-        additional_context = torch.cpu.amp.autocast() if opt.bf16 else nullcontext()
+        additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
         shape = [C, H // f, W // f]
 
         if bf16 and not torchscript and not ipex:
