@@ -62,6 +62,10 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     base_count = len(os.listdir(sample_path))
     grid_count = len(os.listdir(outpath)) - 1
 
+    uc = None
+    if scale != 1.0:
+        uc = model.get_learned_conditioning(batch_size * [""])
+
     data = [batch_size * [prompt]]
     sample_time = 0
 
@@ -133,9 +137,6 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
 
         prompts = data[0]
         print("Running a forward pass to initialize optimizations")
-        uc = None
-        if scale != 1.0:
-            uc = model.get_learned_conditioning(batch_size * [""])
         if isinstance(prompts, tuple):
             prompts = list(prompts)
 
@@ -161,9 +162,6 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         all_samples = list()
         for n in trange(n_iter, desc="Sampling"):
             for prompts in tqdm(data, desc="data"):
-                uc = None
-                if scale != 1.0:
-                    uc = model.get_learned_conditioning(batch_size * [""])
                 if isinstance(prompts, tuple):
                     prompts = list(prompts)
                 c = model.get_learned_conditioning(prompts)
