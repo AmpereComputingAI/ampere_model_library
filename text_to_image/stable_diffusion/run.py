@@ -156,7 +156,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                 x_samples_ddim = model.decode_first_stage(samples_ddim)
 
     precision_scope = autocast if precision == "autocast" or bf16 else nullcontext
-    with torch.no_grad(), precision_scope(device), model.ema_scope():
+    with torch.no_grad(), precision_scope(str(device)), model.ema_scope():
     # with torch.no_grad(), model.ema_scope():
         all_samples = list()
         for n in trange(n_iter, desc="Sampling"):
