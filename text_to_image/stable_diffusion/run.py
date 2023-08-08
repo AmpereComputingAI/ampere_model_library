@@ -164,11 +164,10 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
             for prompts in tqdm(data, desc="data"):
                 if isinstance(prompts, tuple):
                     prompts = list(prompts)
-                c = model.get_learned_conditioning(prompts)
                 shape = [C, H // f, W // f]
                 start = time.time()
                 samples, _ = sampler.sample(S=steps,
-                                            conditioning=c,
+                                            conditioning=model.get_learned_conditioning(prompts),
                                             batch_size=n_samples,
                                             shape=shape,
                                             verbose=False,
