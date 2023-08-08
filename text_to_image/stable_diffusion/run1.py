@@ -116,7 +116,7 @@ def run_pytorch_fp32(args):
                                     eta=ddim_eta,
                                     x_T=start_code)
 
-    runner = PyTorchRunnerV2(wrapper, model)
+    runner = PyTorchRunnerV2(wrapper)
     stablediffusion = StableDiffusion()
 
     return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
