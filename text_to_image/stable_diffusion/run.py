@@ -10,6 +10,9 @@ from einops import rearrange
 from tqdm import tqdm, trange
 from omegaconf import OmegaConf
 from torchvision.utils import make_grid
+from contextlib import nullcontext
+
+from pathlib import Path
 
 from utils.benchmark import run_model
 from utils.pytorch import PyTorchRunnerV2
@@ -47,6 +50,10 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     n_rows = batch_size
     ddim_eta = 0.0
     start_code = None
+    ipex = False
+    torchscript = True
+    bf16 = False
+    precision = "autocast"
 
     outpath = "outputs/txt2img-samples"
     sample_path = os.path.join(outpath, "samples")
@@ -58,25 +65,25 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     data = [batch_size * [prompt]]
     sample_time = 0
 
-    if opt.torchscript or opt.ipex:
+    if torchscript or ipex:
         transformer = model.cond_stage_model.model
         unet = model.model.diffusion_model
         decoder = model.first_stage_model.decoder
         additional_context = torch.cpu.amp.autocast() if opt.bf16 else nullcontext()
-        shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
+        shape = [C, H // f, W // f]
 
-        if opt.bf16 and not opt.torchscript and not opt.ipex:
+        if bf16 and not torchscript and not ipex:
             raise ValueError('Bfloat16 is supported only for torchscript+ipex')
-        if opt.bf16 and unet.dtype != torch.bfloat16:
+        if bf16 and unet.dtype != torch.bfloat16:
             raise ValueError("Use configs/stable-diffusion/intel/ configs with bf16 enabled if " +
                              "you'd like to use bfloat16 with CPU.")
         if unet.dtype == torch.float16 and device == torch.device("cpu"):
             raise ValueError(
                 "Use configs/stable-diffusion/intel/ configs for your model if you'd like to run it on CPU.")
 
-        if opt.ipex:
+        if ipex:
             import intel_extension_for_pytorch as ipex
-            bf16_dtype = torch.bfloat16 if opt.bf16 else None
+            bf16_dtype = torch.bfloat16 if bf16 else None
             transformer = transformer.to(memory_format=torch.channels_last)
             transformer = ipex.optimize(transformer, level="O1", inplace=True)
 
@@ -86,7 +93,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
             decoder = decoder.to(memory_format=torch.channels_last)
             decoder = ipex.optimize(decoder, level="O1", auto_kernel_selection=True, inplace=True, dtype=bf16_dtype)
 
-        if opt.torchscript:
+        if torchscript:
             with torch.no_grad(), additional_context:
                 # get UNET scripted
                 if unet.use_checkpoint:
@@ -127,7 +134,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         prompts = data[0]
         print("Running a forward pass to initialize optimizations")
         uc = None
-        if opt.scale != 1.0:
+        if scale != 1.0:
             uc = model.get_learned_conditioning(batch_size * [""])
         if isinstance(prompts, tuple):
             prompts = list(prompts)
@@ -140,15 +147,15 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                                              batch_size=batch_size,
                                              shape=shape,
                                              verbose=False,
-                                             unconditional_guidance_scale=opt.scale,
+                                             unconditional_guidance_scale=scale,
                                              unconditional_conditioning=uc,
-                                             eta=opt.ddim_eta,
+                                             eta=ddim_eta,
                                              x_T=start_code)
             print("Running a forward pass for decoder")
             for _ in range(3):
                 x_samples_ddim = model.decode_first_stage(samples_ddim)
 
-
+    precision_scope = autocast if precision == "autocast" or bf16 else nullcontext
     with torch.no_grad(), precision_scope(device), model.ema_scope():
     # with torch.no_grad(), model.ema_scope():
         all_samples = list()
