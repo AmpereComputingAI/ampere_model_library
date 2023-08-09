@@ -59,8 +59,7 @@ def run_pytorch_fp32(args):
     device = args.device
     ckpt = args.ckpt
     seed = args.seed
-    plms = args.plms
-    dpm = args.dpm
+
     outdir = args.outdir
     from_file = args.from_file
     repeat = args.repeat
@@ -75,13 +74,7 @@ def run_pytorch_fp32(args):
     config = OmegaConf.load(f"{config}")
     device = torch.device("cuda") if device == "cuda" else torch.device("cpu")
     model = load_model_from_config(config, f"{ckpt}", device)
-
-    if plms:
-        sampler = PLMSSampler(model, device=device)
-    elif dpm:
-        sampler = DPMSolverSampler(model, device=device)
-    else:
-        sampler = DDIMSampler(model, device=device)
+    sampler = DDIMSampler(model, device=device)
 
     os.makedirs(outdir, exist_ok=True)
     outpath = outdir
