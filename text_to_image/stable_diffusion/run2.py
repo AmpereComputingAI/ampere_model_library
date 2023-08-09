@@ -38,8 +38,6 @@ def run_pytorch_fp32(args):
     from utils.text_to_image.stable_diffusion import StableDiffusion
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
     from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
-    from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.plms import PLMSSampler
-    from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.dpm_solver import DPMSolverSampler
 
     C = args.C
     H = args.H
@@ -59,7 +57,6 @@ def run_pytorch_fp32(args):
     device = args.device
     ckpt = args.ckpt
     seed = args.seed
-
     outdir = args.outdir
     from_file = args.from_file
     repeat = args.repeat
@@ -86,17 +83,10 @@ def run_pytorch_fp32(args):
 
     batch_size = n_samples
     n_rows = n_rows if n_rows > 0 else batch_size
-    if not from_file:
-        prompt = prompt
-        assert prompt is not None
-        data = [batch_size * [prompt]]
 
-    else:
-        print(f"reading prompts from {from_file}")
-        with open(from_file, "r") as f:
-            data = f.read().splitlines()
-            data = [p for p in data for i in range(repeat)]
-            data = list(chunk(data, batch_size))
+    prompt = prompt
+    assert prompt is not None
+    data = [batch_size * [prompt]]
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
@@ -108,71 +98,70 @@ def run_pytorch_fp32(args):
     if fixed_code:
         start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
 
-    if torchscript or ipex:
-        transformer = model.cond_stage_model.model
-        unet = model.model.diffusion_model
-        decoder = model.first_stage_model.decoder
-        additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
-        shape = [C, H // f, W // f]
+    transformer = model.cond_stage_model.model
+    unet = model.model.diffusion_model
+    decoder = model.first_stage_model.decoder
+    additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
+    shape = [C, H // f, W // f]
 
-        if bf16 and not torchscript and not ipex:
-            raise ValueError('Bfloat16 is supported only for torchscript+ipex')
-        if bf16 and unet.dtype != torch.bfloat16:
-            raise ValueError("Use configs/stable-diffusion/intel/ configs with bf16 enabled if " +
-                             "you'd like to use bfloat16 with CPU.")
-        if unet.dtype == torch.float16 and device == torch.device("cpu"):
-            raise ValueError(
-                "Use configs/stable-diffusion/intel/ configs for your model if you'd like to run it on CPU.")
+    if bf16 and not torchscript and not ipex:
+        raise ValueError('Bfloat16 is supported only for torchscript+ipex')
+    if bf16 and unet.dtype != torch.bfloat16:
+        raise ValueError("Use configs/stable-diffusion/intel/ configs with bf16 enabled if " +
+                         "you'd like to use bfloat16 with CPU.")
+    if unet.dtype == torch.float16 and device == torch.device("cpu"):
+        raise ValueError(
+            "Use configs/stable-diffusion/intel/ configs for your model if you'd like to run it on CPU.")
 
-        if ipex:
-            import intel_extension_for_pytorch as ipex
-            bf16_dtype = torch.bfloat16 if bf16 else None
-            transformer = transformer.to(memory_format=torch.channels_last)
-            transformer = ipex.optimize(transformer, level="O1", inplace=True)
+    if ipex:
+        import intel_extension_for_pytorch as ipex
+        bf16_dtype = torch.bfloat16 if bf16 else None
+        transformer = transformer.to(memory_format=torch.channels_last)
+        transformer = ipex.optimize(transformer, level="O1", inplace=True)
 
-            unet = unet.to(memory_format=torch.channels_last)
-            unet = ipex.optimize(unet, level="O1", auto_kernel_selection=True, inplace=True, dtype=bf16_dtype)
+        unet = unet.to(memory_format=torch.channels_last)
+        unet = ipex.optimize(unet, level="O1", auto_kernel_selection=True, inplace=True, dtype=bf16_dtype)
 
-            decoder = decoder.to(memory_format=torch.channels_last)
-            decoder = ipex.optimize(decoder, level="O1", auto_kernel_selection=True, inplace=True, dtype=bf16_dtype)
+        decoder = decoder.to(memory_format=torch.channels_last)
+        decoder = ipex.optimize(decoder, level="O1", auto_kernel_selection=True, inplace=True, dtype=bf16_dtype)
 
-        if torchscript:
-            with torch.no_grad(), additional_context:
-                # get UNET scripted
-                if unet.use_checkpoint:
-                    raise ValueError("Gradient checkpoint won't work with tracing. " +
-                                     "Use configs/stable-diffusion/intel/ configs for your model or disable checkpoint in your config.")
+    if torchscript:
+        with torch.no_grad(), additional_context:
+            # get UNET scripted
+            if unet.use_checkpoint:
+                raise ValueError("Gradient checkpoint won't work with tracing. " +
+                                 "Use configs/stable-diffusion/intel/ configs for your model or disable checkpoint in your config.")
 
-                cache_dir = Path(Path.home(), "cache_stable_diff")
-                if not cache_dir.exists():
-                    cache_dir.mkdir(exist_ok=True)
+            cache_dir = Path(Path.home(), "cache_stable_diff")
+            if not cache_dir.exists():
+                cache_dir.mkdir(exist_ok=True)
 
-                unet_path = Path(cache_dir, "unet.pt")
-                if unet_path.exists():
-                    scripted_unet = torch.jit.load(unet_path)
-                else:
-                    img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
-                    t_in = torch.ones(2, dtype=torch.int64)
-                    context = torch.ones(2, 77, 1024, dtype=torch.float32)
-                    scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
-                    scripted_unet = torch.jit.freeze(scripted_unet)
-                    torch.jit.save(scripted_unet, unet_path)
-                    print(unet_path)
-                print(type(scripted_unet))
-                model.model.scripted_diffusion_model = scripted_unet
+            unet_path = Path(cache_dir, "unet.pt")
+            if unet_path.exists():
+                scripted_unet = torch.jit.load(unet_path)
+            else:
+                img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
+                t_in = torch.ones(2, dtype=torch.int64)
+                context = torch.ones(2, 77, 1024, dtype=torch.float32)
+                scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
+                scripted_unet = torch.jit.freeze(scripted_unet)
+                torch.jit.save(scripted_unet, unet_path)
+                print(unet_path)
+            print(type(scripted_unet))
+            model.model.scripted_diffusion_model = scripted_unet
 
-                # get Decoder for first stage model scripted
-                decoder_path = Path(cache_dir, "decoder.pt")
-                if decoder_path.exists():
-                    scripted_decoder = torch.jit.load(decoder_path)
-                else:
-                    samples_ddim = torch.ones(1, 4, 96, 96, dtype=torch.float32)
-                    scripted_decoder = torch.jit.trace(decoder, (samples_ddim))
-                    scripted_decoder = torch.jit.freeze(scripted_decoder)
-                    torch.jit.save(scripted_decoder, decoder_path)
-                    print(decoder_path)
-                print(type(scripted_decoder))
-                model.first_stage_model.decoder = scripted_decoder
+            # get Decoder for first stage model scripted
+            decoder_path = Path(cache_dir, "decoder.pt")
+            if decoder_path.exists():
+                scripted_decoder = torch.jit.load(decoder_path)
+            else:
+                samples_ddim = torch.ones(1, 4, 96, 96, dtype=torch.float32)
+                scripted_decoder = torch.jit.trace(decoder, (samples_ddim))
+                scripted_decoder = torch.jit.freeze(scripted_decoder)
+                torch.jit.save(scripted_decoder, decoder_path)
+                print(decoder_path)
+            print(type(scripted_decoder))
+            model.first_stage_model.decoder = scripted_decoder
 
         prompts = data[0]
         print("Running a forward pass to initialize optimizations")
