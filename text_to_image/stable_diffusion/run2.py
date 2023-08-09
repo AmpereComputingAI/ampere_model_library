@@ -290,7 +290,6 @@ if __name__ == "__main__":
     parser.add_argument("--n_iter", type=int, default=3, help="sample this often")
     parser.add_argument("--plms", action='store_true', help="use plms sampling")
     parser.add_argument("--dpm", action='store_true', help="use DPM (2) sampler")
-    parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to", default="outputs/txt2img-samples")
     parser.add_argument("--from-file", type=str, help="if specified, load prompts from this file, separated by newlines")
     parser.add_argument("--repeat", type=int, default=1, help="repeat each prompt in file this often")
     parser.add_argument("--torchscript", action='store_true', help="Use TorchScript")
