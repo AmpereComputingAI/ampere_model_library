@@ -58,10 +58,6 @@ def run_pytorch_fp32(args):
     ckpt = args.ckpt
     seed = args.seed
     outdir = args.outdir
-    from_file = args.from_file
-    repeat = args.repeat
-    torchscript = args.torchscript
-    ipex = args.ipex
     bf16 = args.bf16
     precision = "full"
     n_iter = args.n_iter
@@ -244,10 +240,8 @@ if __name__ == "__main__":
     parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
     parser.add_argument("--fixed_code", action='store_true', help="if enabled, uses the same starting code across all samples ")
 
-    parser.add_argument("--ipex", action='store_true', help="Use Intel® Extension for PyTorch*")
     parser.add_argument("--bf16", action='store_true', help="use bfloat16")
     parser.add_argument("--n_iter", type=int, default=3, help="sample this often")
-    parser.add_argument("--repeat", type=int, default=1, help="repeat each prompt in file this often")
 
 
     run_pytorch_fp32(parser.parse())
