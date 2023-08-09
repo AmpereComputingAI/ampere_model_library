@@ -293,6 +293,5 @@ if __name__ == "__main__":
     parser.add_argument("--from-file", type=str, help="if specified, load prompts from this file, separated by newlines")
     parser.add_argument("--repeat", type=int, default=1, help="repeat each prompt in file this often")
     parser.add_argument("--torchscript", action='store_true', help="Use TorchScript")
-    parser.add_argument("--seed", type=int, default=42, help="the seed (for reproducible sampling)")
 
     run_pytorch_fp32(parser.parse())
