@@ -139,6 +139,8 @@ def run_pytorch_fp32(args):
 
     prompts = data[0]
     print("Running a forward pass to initialize optimizations")
+
+    # Don't change location of this
     uc = None
     if scale != 1.0:
         uc = model.get_learned_conditioning(batch_size * [""])
@@ -168,6 +170,7 @@ def run_pytorch_fp32(args):
         all_samples = list()
         for n in trange(n_iter, desc="Sampling"):
             for prompts in tqdm(data, desc="data"):
+                # Don't change location of this
                 uc = None
                 if scale != 1.0:
                     uc = model.get_learned_conditioning(batch_size * [""])
@@ -185,30 +188,30 @@ def run_pytorch_fp32(args):
                                             eta=ddim_eta,
                                             x_T=start_code)
 
-                x_samples = model.decode_first_stage(samples)
-                x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
-
-                for x_sample in x_samples:
-                    x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                    img = Image.fromarray(x_sample.astype(np.uint8))
-                    img = put_watermark(img, wm_encoder)
-                    img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                    base_count += 1
-                    sample_count += 1
-
-                all_samples.append(x_samples)
+                # x_samples = model.decode_first_stage(samples)
+                # x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
+                #
+                # for x_sample in x_samples:
+                #     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                #     img = Image.fromarray(x_sample.astype(np.uint8))
+                #     img = put_watermark(img, wm_encoder)
+                #     img.save(os.path.join(sample_path, f"{base_count:05}.png"))
+                #     base_count += 1
+                #     sample_count += 1
+                #
+                # all_samples.append(x_samples)
 
         # additionally, save as grid
-        grid = torch.stack(all_samples, 0)
-        grid = rearrange(grid, 'n b c h w -> (n b) c h w')
-        grid = make_grid(grid, nrow=n_rows)
+        # grid = torch.stack(all_samples, 0)
+        # grid = rearrange(grid, 'n b c h w -> (n b) c h w')
+        # grid = make_grid(grid, nrow=n_rows)
 
         # to image
-        grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-        grid = Image.fromarray(grid.astype(np.uint8))
-        grid = put_watermark(grid, wm_encoder)
-        grid.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
-        grid_count += 1
+        # grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
+        # grid = Image.fromarray(grid.astype(np.uint8))
+        # grid = put_watermark(grid, wm_encoder)
+        # grid.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
+        # grid_count += 1
 
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")
