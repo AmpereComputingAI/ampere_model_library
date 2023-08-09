@@ -94,6 +94,10 @@ def run_pytorch_fp32(args):
     if fixed_code:
         start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
 
+    uc = None
+    if scale != 1.0:
+        uc = model.get_learned_conditioning(batch_size * [""])
+
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
     additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
@@ -138,11 +142,6 @@ def run_pytorch_fp32(args):
 
     prompts = data[0]
     print("Running a forward pass to initialize optimizations")
-    uc = None
-    if scale != 1.0:
-        uc = model.get_learned_conditioning(batch_size * [""])
-    if isinstance(prompts, tuple):
-        prompts = list(prompts)
 
     with torch.no_grad(), additional_context:
         for _ in range(3):
