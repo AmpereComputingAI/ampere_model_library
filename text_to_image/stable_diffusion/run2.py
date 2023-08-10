@@ -58,8 +58,6 @@ def run_pytorch_fp32(args):
     seed = args.seed
     outdir = args.outdir
     bf16 = args.bf16
-    precision = "full"
-    # n_iter = args.n_iter
 
     seed_everything(seed)
 
@@ -153,48 +151,51 @@ def run_pytorch_fp32(args):
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
     # ============================================================================================================
-
-    prompt = ["a professional photograph of an astronaut riding a triceratops"]
-    with torch.no_grad(), nullcontext(device), model.ema_scope():
-        # Don't change location of this
-        # uc = model.get_learned_conditioning(batch_size * [""])
-        # if scale == 1.0:
-        #     uc = None
-        # fruit = None
-        # 'Yes' if fruit == 'Apple' else 'No'
-        uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-        samples, _ = sampler.sample(S=steps,
-                                    conditioning=model.get_learned_conditioning(prompt),
-                                    batch_size=n_samples,
-                                    shape=shape,
-                                    verbose=False,
-                                    unconditional_guidance_scale=scale,
-                                    unconditional_conditioning=uc,
-                                    eta=ddim_eta,
-                                    x_T=start_code)
-
-    print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
-          f" \nEnjoy.")
-
-    # def single_pass_pytorch(_runner, _stablediffusion):
-    #     _runner.run(batch_size * steps)
-    #     _stablediffusion.submit_count()
     #
-    # def wrapper():
+    # prompt = ["a professional photograph of an astronaut riding a triceratops"]
+    # with torch.no_grad(), nullcontext(device), model.ema_scope():
+    #     uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
     #     samples, _ = sampler.sample(S=steps,
-    #                                 conditioning=model.get_learned_conditioning([prompt]),
-    #                                 batch_size=batch_size,
+    #                                 conditioning=model.get_learned_conditioning(prompt),
+    #                                 batch_size=n_samples,
     #                                 shape=shape,
     #                                 verbose=False,
     #                                 unconditional_guidance_scale=scale,
     #                                 unconditional_conditioning=uc,
     #                                 eta=ddim_eta,
     #                                 x_T=start_code)
-    #
-    # runner = PyTorchRunnerV2(wrapper)
-    # stablediffusion = StableDiffusion()
 
-    # return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
+    def single_pass_pytorch(_runner, _stablediffusion):
+        _runner.run(batch_size * steps)
+        _stablediffusion.submit_count()
+
+    def wrapper():
+        # samples, _ = sampler.sample(S=steps,
+        #                             conditioning=model.get_learned_conditioning([prompt]),
+        #                             batch_size=batch_size,
+        #                             shape=shape,
+        #                             verbose=False,
+        #                             unconditional_guidance_scale=scale,
+        #                             unconditional_conditioning=uc,
+        #                             eta=ddim_eta,
+        #                             x_T=start_code)
+        prompt = ["a professional photograph of an astronaut riding a triceratops"]
+        with torch.no_grad(), nullcontext(device), model.ema_scope():
+            uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+            samples, _ = sampler.sample(S=steps,
+                                        conditioning=model.get_learned_conditioning(prompt),
+                                        batch_size=n_samples,
+                                        shape=shape,
+                                        verbose=False,
+                                        unconditional_guidance_scale=scale,
+                                        unconditional_conditioning=uc,
+                                        eta=ddim_eta,
+                                        x_T=start_code)
+
+    runner = PyTorchRunnerV2(wrapper)
+    stablediffusion = StableDiffusion()
+
+    return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
 
 
 if __name__ == "__main__":
