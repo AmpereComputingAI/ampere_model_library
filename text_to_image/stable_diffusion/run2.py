@@ -86,9 +86,6 @@ def run_pytorch_fp32(args):
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
-    sample_count = 0
-    base_count = len(os.listdir(sample_path))
-    grid_count = len(os.listdir(outpath)) - 1
 
     start_code = None
     if fixed_code:
@@ -188,31 +185,6 @@ def run_pytorch_fp32(args):
                                             unconditional_conditioning=uc,
                                             eta=ddim_eta,
                                             x_T=start_code)
-
-                # x_samples = model.decode_first_stage(samples)
-                # x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
-                #
-                # for x_sample in x_samples:
-                #     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                #     img = Image.fromarray(x_sample.astype(np.uint8))
-                #     img = put_watermark(img, wm_encoder)
-                #     img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                #     base_count += 1
-                #     sample_count += 1
-                #
-                # all_samples.append(x_samples)
-
-        # additionally, save as grid
-        # grid = torch.stack(all_samples, 0)
-        # grid = rearrange(grid, 'n b c h w -> (n b) c h w')
-        # grid = make_grid(grid, nrow=n_rows)
-
-        # to image
-        # grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-        # grid = Image.fromarray(grid.astype(np.uint8))
-        # grid = put_watermark(grid, wm_encoder)
-        # grid.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
-        # grid_count += 1
 
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")
