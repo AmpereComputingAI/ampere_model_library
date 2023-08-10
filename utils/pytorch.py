@@ -153,7 +153,6 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            assert len(self._workload_size) == 0 or self._workload_size[-1] is not None, "Task size for previous run has not been set"
             with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
                 start = time.time()
                 output = self._model(*args, **kwargs)
@@ -161,7 +160,8 @@ class PyTorchRunnerV2(Runner):
 
             self._start_times.append(start)
             self._finish_times.append(finish)
-            self.set_task_size(task_size)
+            if task_size is not None:
+                self.set_task_size(task_size)
             self._times_invoked += 1
 
             return output

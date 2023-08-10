@@ -121,11 +121,10 @@ class Runner:
         A function appending new_task_size to the self._workload_size if not set yet or replacing the last value with the new_task_size if the last value is None.
         Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the number of tokens generated has an upper bound but can be lower)
         """
-        if len(self._finish_times) > len(self._workload_size):
+        if len(self._finish_times) - len(self._workload_size) == 1:
             self._workload_size.append(new_task_size)
         else:
-            assert self._workload_size[-1] is None, "Task size already set"
-            self._workload_size[-1] = new_task_size
+            raise ValueError("Task size already set")
 
     def print_metrics(self):
         if self._times_invoked == 0:
