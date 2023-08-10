@@ -52,7 +52,7 @@ def run_pytorch_fp32(args):
     prompt = args.prompt
 
     config = args.config
-    device = args.device
+    # device = args.device
     ckpt = args.ckpt
     seed = args.seed
     outdir = args.outdir
@@ -60,9 +60,9 @@ def run_pytorch_fp32(args):
     seed_everything(seed)
 
     config = OmegaConf.load(f"{config}")
-    device = torch.device("cuda") if device == "cuda" else torch.device("cpu")
-    model = load_model_from_config(config, f"{ckpt}", device)
-    sampler = DDIMSampler(model, device=device)
+    # device = torch.device("cpu")
+    model = load_model_from_config(config, f"{ckpt}", torch.device("cpu"))
+    sampler = DDIMSampler(model, device=torch.device("cpu"))
     shape = [C, H // f, W // f]
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
@@ -135,7 +135,7 @@ def run_pytorch_fp32(args):
         sample_count = 0
         grid_count = len(os.listdir(outpath)) - 1
 
-        with torch.no_grad(), nullcontext(device), model.ema_scope():
+        with torch.no_grad(), nullcontext(torch.device("cpu")), model.ema_scope():
             uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
             samples, _ = sampler.sample(S=steps,
                                         conditioning=model.get_learned_conditioning(prompt),
@@ -200,8 +200,6 @@ if __name__ == "__main__":
     parser.add_argument("--W", type=int, default=512, help="image width, in pixel space")
     parser.add_argument("--C", type=int, default=4, help="latent channels")
     parser.add_argument("--f", type=int, default=8, help="down-sampling factor, most often 8 or 16")
-    parser.add_argument("--device", type=str, help="Device on which Stable Diffusion will be run",
-                        choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
 
     run_pytorch_fp32(parser.parse())
