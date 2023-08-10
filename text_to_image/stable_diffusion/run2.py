@@ -19,6 +19,7 @@ def chunk(it, size):
     it = iter(it)
     return iter(lambda: tuple(islice(it, size)), ())
 
+
 def put_watermark(img, wm_encoder=None):
     if wm_encoder is not None:
         img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
@@ -27,7 +28,7 @@ def put_watermark(img, wm_encoder=None):
     return img
 
 
-def run_pytorch_fp32(args):
+def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
 
     from omegaconf import OmegaConf
@@ -37,26 +38,17 @@ def run_pytorch_fp32(args):
     from utils.pytorch import PyTorchRunnerV2
     from pytorch_lightning import seed_everything
     from utils.text_to_image.stable_diffusion import StableDiffusion
-    from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
     from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
+    from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
 
-    C = args.C
-    H = args.H
-    f = args.f
-    W = args.W
+    ckpt = model_path
+    seed_everything(42)
 
-    batch_size = args.batch_size
-    steps = args.steps
-    scale = args.scale
-    ddim_eta = args.ddim_eta
-    prompt = args.prompt
+    H = 512
+    W = 512
+    C = 4
+    f = 8
 
-    config = args.config
-    ckpt = args.ckpt
-    seed = args.seed
-    outdir = args.outdir
-
-    seed_everything(seed)
     config = OmegaConf.load(f"{config}")
     model = load_model_from_config(config, f"{ckpt}", torch.device("cpu"))
     sampler = DDIMSampler(model, device=torch.device("cpu"))
@@ -105,9 +97,6 @@ def run_pytorch_fp32(args):
 
     uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
     with torch.no_grad(), nullcontext():
-        # for _ in range(3):
-        #     c = model.get_learned_conditioning(prompt)
-        # S needs to be 5!
         samples_ddim, _ = sampler.sample(S=5,
                                          conditioning=model.get_learned_conditioning(prompt),
                                          batch_size=batch_size,
@@ -115,18 +104,14 @@ def run_pytorch_fp32(args):
                                          verbose=False,
                                          unconditional_guidance_scale=scale,
                                          unconditional_conditioning=uc,
-                                         eta=ddim_eta,
+                                         eta=0.0,
                                          x_T=None)
-        print("Running a forward pass for decoder")
-        for _ in range(3):
-            x_samples_ddim = model.decode_first_stage(samples_ddim)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         _runner.run(batch_size * steps)
         _stablediffusion.submit_count()
 
     def wrapper():
-        prompt = ["a professional photograph of an astronaut riding a triceratops"]
         all_samples = list()
         base_count = len(os.listdir(sample_path))
         sample_count = 0
@@ -141,7 +126,7 @@ def run_pytorch_fp32(args):
                                         verbose=False,
                                         unconditional_guidance_scale=scale,
                                         unconditional_conditioning=uc,
-                                        eta=ddim_eta,
+                                        eta=0.0,
                                         x_T=None)
 
         x_samples = model.decode_first_stage(samples)
@@ -175,28 +160,22 @@ def run_pytorch_fp32(args):
     runner = PyTorchRunnerV2(wrapper)
     stablediffusion = StableDiffusion()
 
-    return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
+    return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
 
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
     parser.ask_for_batch_size()
-    parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
-    parser.add_argument('--scale', type=int, default=9, help="scale of the image")
-    parser.add_argument("--seed", type=int, default=42, help="the seed (for reproducible sampling)",)
+    parser.add_argument("--model_path", type=str, required=True, help="path to checkpoint of model")
     parser.add_argument("--config", type=str,
                         default="stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml",
                         help="path to config which constructs model")
-    parser.add_argument("--ckpt", type=str, required=True, help="path to checkpoint of model")
-    parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to", default="outputs/txt2img-samples")
+    parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
+    parser.add_argument('--scale', type=int, default=9, help="scale of the image")
     parser.add_argument("--prompt", type=str, nargs="?",
                         default="a professional photograph of an astronaut riding a triceratops",
                         help="the prompt to render")
-    parser.add_argument("--H", type=int, default=512, help="image height, in pixel space")
-    parser.add_argument("--W", type=int, default=512, help="image width, in pixel space")
-    parser.add_argument("--C", type=int, default=4, help="latent channels")
-    parser.add_argument("--f", type=int, default=8, help="down-sampling factor, most often 8 or 16")
-    parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
-
-    run_pytorch_fp32(parser.parse())
+    parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to",
+                        default="outputs/txt2img-samples")
+    run_pytorch_fp32(**vars(parser.parse()))
