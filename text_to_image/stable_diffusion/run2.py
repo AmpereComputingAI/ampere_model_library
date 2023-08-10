@@ -30,11 +30,10 @@ def run_pytorch_fp32(args):
 
     from omegaconf import OmegaConf
     from contextlib import nullcontext
-
     from utils.benchmark import run_model
-    from pytorch_lightning import seed_everything
     from imwatermark import WatermarkEncoder
     from utils.pytorch import PyTorchRunnerV2
+    from pytorch_lightning import seed_everything
     from utils.text_to_image.stable_diffusion import StableDiffusion
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
     from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
@@ -88,7 +87,7 @@ def run_pytorch_fp32(args):
 
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
-    additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
+    additional_context = nullcontext()
     shape = [C, H // f, W // f]
 
     with torch.no_grad(), additional_context:
@@ -150,35 +149,12 @@ def run_pytorch_fp32(args):
         print("Running a forward pass for decoder")
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
-    # ============================================================================================================
-    #
-    # prompt = ["a professional photograph of an astronaut riding a triceratops"]
-    # with torch.no_grad(), nullcontext(device), model.ema_scope():
-    #     uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-    #     samples, _ = sampler.sample(S=steps,
-    #                                 conditioning=model.get_learned_conditioning(prompt),
-    #                                 batch_size=n_samples,
-    #                                 shape=shape,
-    #                                 verbose=False,
-    #                                 unconditional_guidance_scale=scale,
-    #                                 unconditional_conditioning=uc,
-    #                                 eta=ddim_eta,
-    #                                 x_T=start_code)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         _runner.run(batch_size * steps)
         _stablediffusion.submit_count()
 
     def wrapper():
-        # samples, _ = sampler.sample(S=steps,
-        #                             conditioning=model.get_learned_conditioning([prompt]),
-        #                             batch_size=batch_size,
-        #                             shape=shape,
-        #                             verbose=False,
-        #                             unconditional_guidance_scale=scale,
-        #                             unconditional_conditioning=uc,
-        #                             eta=ddim_eta,
-        #                             x_T=start_code)
         prompt = ["a professional photograph of an astronaut riding a triceratops"]
         all_samples = list()
         base_count = len(os.listdir(sample_path))
