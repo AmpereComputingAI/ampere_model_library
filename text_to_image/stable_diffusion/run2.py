@@ -153,13 +153,8 @@ def run_pytorch_fp32(args):
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
     # ============================================================================================================
-    precision_scope = autocast if precision == "autocast" or bf16 else nullcontext
-    print(precision_scope)
-    print(type(precision_scope))
-    print(precision_scope(device))
-    print(type(precision_scope(device)))
-
-    with torch.no_grad(), precision_scope(device), model.ema_scope():
+    # precision_scope = nullcontext
+    with torch.no_grad(), nullcontext(device), model.ema_scope():
         for prompts in tqdm(data, desc="data"):
             # Don't change location of this
             uc = None
