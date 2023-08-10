@@ -154,31 +154,23 @@ def run_pytorch_fp32(args):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
     # ============================================================================================================
 
-    print(data)
-    print(type(data))
-
-    for prompt in data:
-        print(prompt)
-        print(type(prompt))
+    prompt = ["a professional photograph of an astronaut riding a triceratops"]
     with torch.no_grad(), nullcontext(device), model.ema_scope():
-        for prompts in tqdm(data, desc="data"):
-            # Don't change location of this
-            uc = None
-            if scale != 1.0:
-                uc = model.get_learned_conditioning(batch_size * [""])
-            if isinstance(prompts, tuple):
-                prompts = list(prompts)
-            c = model.get_learned_conditioning(prompts)
-            shape = [C, H // f, W // f]
-            samples, _ = sampler.sample(S=steps,
-                                        conditioning=c,
-                                        batch_size=n_samples,
-                                        shape=shape,
-                                        verbose=False,
-                                        unconditional_guidance_scale=scale,
-                                        unconditional_conditioning=uc,
-                                        eta=ddim_eta,
-                                        x_T=start_code)
+        # Don't change location of this
+        uc = None
+        if scale != 1.0:
+            uc = model.get_learned_conditioning(batch_size * [""])
+        c = model.get_learned_conditioning(prompt)
+        shape = [C, H // f, W // f]
+        samples, _ = sampler.sample(S=steps,
+                                    conditioning=c,
+                                    batch_size=n_samples,
+                                    shape=shape,
+                                    verbose=False,
+                                    unconditional_guidance_scale=scale,
+                                    unconditional_conditioning=uc,
+                                    eta=ddim_eta,
+                                    x_T=start_code)
 
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")
