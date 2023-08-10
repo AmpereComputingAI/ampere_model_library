@@ -58,7 +58,6 @@ def run_pytorch_fp32(args):
     seed = args.seed
     outdir = args.outdir
     bf16 = args.bf16
-    prompt = ["a professional photograph of an astronaut riding a triceratops"]
 
     seed_everything(seed)
 
@@ -180,7 +179,7 @@ def run_pytorch_fp32(args):
         #                             unconditional_conditioning=uc,
         #                             eta=ddim_eta,
         #                             x_T=start_code)
-        # with torch.no_grad(), nullcontext(device), model.ema_scope():
+        prompt = ["a professional photograph of an astronaut riding a triceratops"]
         uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
         samples, _ = sampler.sample(S=steps,
                                     conditioning=model.get_learned_conditioning(prompt),
