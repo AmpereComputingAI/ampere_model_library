@@ -3,21 +3,13 @@ import sys
 
 import cv2
 import torch
-from torch import autocast
-from pathlib import Path
-from itertools import islice
-from tqdm import tqdm, trange
-from einops import rearrange
-from PIL import Image
+import pathlib
 import numpy as np
+from PIL import Image
+from pathlib import Path
+from einops import rearrange
 from torchvision.utils import make_grid
 from utils.downloads.utils import get_downloads_path
-import pathlib
-
-
-def chunk(it, size):
-    it = iter(it)
-    return iter(lambda: tuple(islice(it, size)), ())
 
 
 def put_watermark(img, wm_encoder=None):
@@ -42,21 +34,13 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
 
     seed_everything(42)
-
-    H = 512
-    W = 512
-    C = 4
-    f = 8
-
     config = OmegaConf.load(f"{config}")
     model = load_model_from_config(config, f"{model_path}", torch.device("cpu"))
     sampler = DDIMSampler(model, device=torch.device("cpu"))
-    shape = [C, H // f, W // f]
-    unet = model.model.diffusion_model
-    decoder = model.first_stage_model.decoder
+    shape = [4, 512 // 8, 512 // 8]
 
     # =========================
-    # stuff for saving images (to be removed)
+    # TODO: stuff for saving images, used to evaluate output, to be removed when accuracy measures are implemented
     os.makedirs(outdir, exist_ok=True)
     outpath = outdir
     sample_path = os.path.join(outpath, "samples")
@@ -67,6 +51,10 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
     # =========================
+    # TODO: torchscript stuff, should it stay here?
+    unet = model.model.diffusion_model
+    decoder = model.first_stage_model.decoder
+
     stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
     unet_path = Path(stablediffusion_data, "unet.pt")
     decoder_path = Path(stablediffusion_data, "decoder.pt")
@@ -94,17 +82,17 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
             torch.jit.save(scripted_decoder, decoder_path)
         model.first_stage_model.decoder = scripted_decoder
 
-    uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-    with torch.no_grad(), nullcontext():
-        samples_ddim, _ = sampler.sample(S=5,
-                                         conditioning=model.get_learned_conditioning(prompt),
-                                         batch_size=batch_size,
-                                         shape=shape,
-                                         verbose=False,
-                                         unconditional_guidance_scale=scale,
-                                         unconditional_conditioning=uc,
-                                         eta=0.0,
-                                         x_T=None)
+    # uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+    # with torch.no_grad(), nullcontext():
+    #     samples_ddim, _ = sampler.sample(S=5,
+    #                                      conditioning=model.get_learned_conditioning(prompt),
+    #                                      batch_size=batch_size,
+    #                                      shape=shape,
+    #                                      verbose=False,
+    #                                      unconditional_guidance_scale=scale,
+    #                                      unconditional_conditioning=uc,
+    #                                      eta=0.0,
+    #                                      x_T=None)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         _runner.run(batch_size * steps)
