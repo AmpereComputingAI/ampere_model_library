@@ -41,7 +41,6 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
     from text_to_image.stable_diffusion.stablediffusion.ldm.models.diffusion.ddim import DDIMSampler
     from text_to_image.stable_diffusion.stablediffusion.scripts.txt2img import load_model_from_config
 
-    ckpt = model_path
     seed_everything(42)
 
     H = 512
@@ -50,7 +49,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
     f = 8
 
     config = OmegaConf.load(f"{config}")
-    model = load_model_from_config(config, f"{ckpt}", torch.device("cpu"))
+    model = load_model_from_config(config, f"{model_path}", torch.device("cpu"))
     sampler = DDIMSampler(model, device=torch.device("cpu"))
     shape = [C, H // f, W // f]
     unet = model.model.diffusion_model
@@ -167,7 +166,7 @@ if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
     parser.ask_for_batch_size()
-    parser.add_argument("--model_path", type=str, required=True, help="path to checkpoint of model")
+    parser.require_model_path()
     parser.add_argument("--config", type=str,
                         default="stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml",
                         help="path to config which constructs model")
