@@ -63,24 +63,22 @@ def run_pytorch_fp32(args):
     model = load_model_from_config(config, f"{ckpt}", device)
     sampler = DDIMSampler(model, device=device)
 
+    # =========================
+    # stuff for saving images - to be removed
     os.makedirs(outdir, exist_ok=True)
     outpath = outdir
-
+    sample_path = os.path.join(outpath, "samples")
+    os.makedirs(sample_path, exist_ok=True)
     print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
     wm = "SDV2"
     wm_encoder = WatermarkEncoder()
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
-    prompt = prompt
-    assert prompt is not None
-    data = [batch_size * [prompt]]
+    # =========================
 
-    sample_path = os.path.join(outpath, "samples")
-    os.makedirs(sample_path, exist_ok=True)
-
-    start_code = None
-    if fixed_code:
-        start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
+    # start_code = None
+    # if fixed_code:
+    #     start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
 
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
@@ -120,19 +118,16 @@ def run_pytorch_fp32(args):
         print(type(scripted_decoder))
         model.first_stage_model.decoder = scripted_decoder
 
-    prompts = data[0]
     print("Running a forward pass to initialize optimizations")
 
     # Don't change location of this
     uc = None
     if scale != 1.0:
         uc = model.get_learned_conditioning(batch_size * [""])
-    if isinstance(prompts, tuple):
-        prompts = list(prompts)
 
     with torch.no_grad(), nullcontext():
         for _ in range(3):
-            c = model.get_learned_conditioning(prompts)
+            c = model.get_learned_conditioning(prompt)
         # S needs to be 5!
         samples_ddim, _ = sampler.sample(S=5,
                                          conditioning=c,
@@ -142,7 +137,7 @@ def run_pytorch_fp32(args):
                                          unconditional_guidance_scale=scale,
                                          unconditional_conditioning=uc,
                                          eta=ddim_eta,
-                                         x_T=start_code)
+                                         x_T=None)
         print("Running a forward pass for decoder")
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
@@ -168,7 +163,7 @@ def run_pytorch_fp32(args):
                                         unconditional_guidance_scale=scale,
                                         unconditional_conditioning=uc,
                                         eta=ddim_eta,
-                                        x_T=start_code)
+                                        x_T=None)
 
         x_samples = model.decode_first_stage(samples)
         x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
