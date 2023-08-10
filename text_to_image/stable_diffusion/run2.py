@@ -180,16 +180,17 @@ def run_pytorch_fp32(args):
         #                             eta=ddim_eta,
         #                             x_T=start_code)
         prompt = ["a professional photograph of an astronaut riding a triceratops"]
-        uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-        samples, _ = sampler.sample(S=steps,
-                                    conditioning=model.get_learned_conditioning(prompt),
-                                    batch_size=n_samples,
-                                    shape=shape,
-                                    verbose=False,
-                                    unconditional_guidance_scale=scale,
-                                    unconditional_conditioning=uc,
-                                    eta=ddim_eta,
-                                    x_T=start_code)
+        with torch.no_grad(), nullcontext(device), model.ema_scope():
+            uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+            samples, _ = sampler.sample(S=steps,
+                                        conditioning=model.get_learned_conditioning(prompt),
+                                        batch_size=n_samples,
+                                        shape=shape,
+                                        verbose=False,
+                                        unconditional_guidance_scale=scale,
+                                        unconditional_conditioning=uc,
+                                        eta=ddim_eta,
+                                        x_T=start_code)
 
     runner = PyTorchRunnerV2(wrapper)
     stablediffusion = StableDiffusion()
