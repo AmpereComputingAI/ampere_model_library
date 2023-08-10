@@ -160,10 +160,8 @@ def run_pytorch_fp32(args):
         uc = None
         if scale != 1.0:
             uc = model.get_learned_conditioning(batch_size * [""])
-        c = model.get_learned_conditioning(prompt)
-        shape = [C, H // f, W // f]
         samples, _ = sampler.sample(S=steps,
-                                    conditioning=c,
+                                    conditioning=model.get_learned_conditioning(prompt),
                                     batch_size=n_samples,
                                     shape=shape,
                                     verbose=False,
