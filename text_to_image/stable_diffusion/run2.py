@@ -11,6 +11,8 @@ from einops import rearrange
 from PIL import Image
 import numpy as np
 from torchvision.utils import make_grid
+from utils.downloads.utils import get_downloads_path
+import pathlib
 
 
 def chunk(it, size):
@@ -62,6 +64,8 @@ def run_pytorch_fp32(args):
     model = load_model_from_config(config, f"{ckpt}", device)
     sampler = DDIMSampler(model, device=device)
     shape = [C, H // f, W // f]
+    unet = model.model.diffusion_model
+    decoder = model.first_stage_model.decoder
 
     # =========================
     # stuff for saving images (to be removed)
@@ -75,31 +79,24 @@ def run_pytorch_fp32(args):
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
     # =========================
-    # unet = model.model.diffusion_model
-    decoder = model.first_stage_model.decoder
+    stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
+    unet_path = Path(stablediffusion_data, "unet.pt")
+    decoder_path = Path(stablediffusion_data, "decoder.pt")
+    if not stablediffusion_data.exists():
+        stablediffusion_data.mkdir(exist_ok=True)
 
     with torch.no_grad(), nullcontext():
-        # get UNET scripted
-        cache_dir = Path(Path.home(), "cache_stable_diff")
-        if not cache_dir.exists():
-            cache_dir.mkdir(exist_ok=True)
+        if unet_path.exists():
+            scripted_unet = torch.jit.load(unet_path)
+        else:
+            img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
+            t_in = torch.ones(2, dtype=torch.int64)
+            context = torch.ones(2, 77, 1024, dtype=torch.float32)
+            scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
+            scripted_unet = torch.jit.freeze(scripted_unet)
+            torch.jit.save(scripted_unet, unet_path)
+        model.model.scripted_diffusion_model = scripted_unet
 
-        # unet_path = Path(cache_dir, "unet.pt")
-        # if unet_path.exists():
-        #     scripted_unet = torch.jit.load(unet_path)
-        # else:
-        #     img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
-        #     t_in = torch.ones(2, dtype=torch.int64)
-        #     context = torch.ones(2, 77, 1024, dtype=torch.float32)
-        #     scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
-        #     scripted_unet = torch.jit.freeze(scripted_unet)
-        #     torch.jit.save(scripted_unet, unet_path)
-        #     print(unet_path)
-        # print(type(scripted_unet))
-        # model.model.scripted_diffusion_model = scripted_unet
-
-        # get Decoder for first stage model scripted
-        decoder_path = Path(cache_dir, "decoder.pt")
         if decoder_path.exists():
             scripted_decoder = torch.jit.load(decoder_path)
         else:
@@ -107,8 +104,6 @@ def run_pytorch_fp32(args):
             scripted_decoder = torch.jit.trace(decoder, (samples_ddim))
             scripted_decoder = torch.jit.freeze(scripted_decoder)
             torch.jit.save(scripted_decoder, decoder_path)
-            print(decoder_path)
-        print(type(scripted_decoder))
         model.first_stage_model.decoder = scripted_decoder
 
     print("Running a forward pass to initialize optimizations")
