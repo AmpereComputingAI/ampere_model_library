@@ -106,13 +106,7 @@ def run_pytorch_fp32(args):
             torch.jit.save(scripted_decoder, decoder_path)
         model.first_stage_model.decoder = scripted_decoder
 
-    print("Running a forward pass to initialize optimizations")
-
-    # Don't change location of this
-    uc = None
-    if scale != 1.0:
-        uc = model.get_learned_conditioning(batch_size * [""])
-
+    uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
     with torch.no_grad(), nullcontext():
         for _ in range(3):
             c = model.get_learned_conditioning(prompt)
