@@ -157,9 +157,12 @@ def run_pytorch_fp32(args):
     prompt = ["a professional photograph of an astronaut riding a triceratops"]
     with torch.no_grad(), nullcontext(device), model.ema_scope():
         # Don't change location of this
-        uc = None
-        if scale != 1.0:
-            uc = model.get_learned_conditioning(batch_size * [""])
+        # uc = model.get_learned_conditioning(batch_size * [""])
+        # if scale == 1.0:
+        #     uc = None
+        # fruit = None
+        # 'Yes' if fruit == 'Apple' else 'No'
+        uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
         samples, _ = sampler.sample(S=steps,
                                     conditioning=model.get_learned_conditioning(prompt),
                                     batch_size=n_samples,
