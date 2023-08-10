@@ -150,7 +150,7 @@ def run_pytorch_fp32(args):
     with torch.no_grad(), additional_context:
         for _ in range(3):
             c = model.get_learned_conditioning(prompts)
-        samples_ddim, _ = sampler.sample(S=5,
+        samples_ddim, _ = sampler.sample(S=1,
                                          conditioning=c,
                                          batch_size=batch_size,
                                          shape=shape,
