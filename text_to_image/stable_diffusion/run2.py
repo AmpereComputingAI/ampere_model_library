@@ -45,7 +45,6 @@ def run_pytorch_fp32(args):
     W = args.W
 
     n_samples = args.n_samples
-    n_rows = args.n_rows
     batch_size = args.batch_size
     steps = args.steps
     scale = args.scale
@@ -89,7 +88,6 @@ def run_pytorch_fp32(args):
     if fixed_code:
         start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
 
-    # transformer = model.cond_stage_model.model
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
     additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
@@ -97,10 +95,6 @@ def run_pytorch_fp32(args):
 
     with torch.no_grad(), additional_context:
         # get UNET scripted
-        if unet.use_checkpoint:
-            raise ValueError("Gradient checkpoint won't work with tracing. " +
-                             "Use configs/stable-diffusion/intel/ configs for your model or disable checkpoint in your config.")
-
         cache_dir = Path(Path.home(), "cache_stable_diff")
         if not cache_dir.exists():
             cache_dir.mkdir(exist_ok=True)
@@ -158,8 +152,13 @@ def run_pytorch_fp32(args):
         print("Running a forward pass for decoder")
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
-
+    # ============================================================================================================
     precision_scope = autocast if precision == "autocast" or bf16 else nullcontext
+    print(precision_scope)
+    print(type(precision_scope))
+    print(precision_scope(device))
+    print(type(precision_scope(device)))
+
     with torch.no_grad(), precision_scope(device), model.ema_scope():
         for prompts in tqdm(data, desc="data"):
             # Don't change location of this
@@ -183,6 +182,26 @@ def run_pytorch_fp32(args):
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")
 
+    # def single_pass_pytorch(_runner, _stablediffusion):
+    #     _runner.run(batch_size * steps)
+    #     _stablediffusion.submit_count()
+    #
+    # def wrapper():
+    #     samples, _ = sampler.sample(S=steps,
+    #                                 conditioning=model.get_learned_conditioning([prompt]),
+    #                                 batch_size=batch_size,
+    #                                 shape=shape,
+    #                                 verbose=False,
+    #                                 unconditional_guidance_scale=scale,
+    #                                 unconditional_conditioning=uc,
+    #                                 eta=ddim_eta,
+    #                                 x_T=start_code)
+    #
+    # runner = PyTorchRunnerV2(wrapper)
+    # stablediffusion = StableDiffusion()
+
+    # return run_model(single_pass_pytorch, runner, stablediffusion, args.batch_size, args.num_runs, args.timeout)
+
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
@@ -197,7 +216,6 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt", type=str, required=True, help="path to checkpoint of model")
     parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to", default="outputs/txt2img-samples")
     parser.add_argument("--n_samples", type=int, default=1, help="how many samples to produce for each given prompt. A.k.a batch size",)
-    parser.add_argument("--n_rows", type=int, default=1, help="rows in the grid (default: n_samples)")
     parser.add_argument("--prompt", type=str, nargs="?",
                         default="a professional photograph of an astronaut riding a triceratops",
                         help="the prompt to render")
