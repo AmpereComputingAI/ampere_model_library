@@ -153,7 +153,13 @@ def run_pytorch_fp32(args):
         for _ in range(3):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
     # ============================================================================================================
-    # precision_scope = nullcontext
+
+    print(data)
+    print(type(data))
+
+    for prompt in data:
+        print(prompt)
+        print(type(prompt))
     with torch.no_grad(), nullcontext(device), model.ema_scope():
         for prompts in tqdm(data, desc="data"):
             # Don't change location of this
