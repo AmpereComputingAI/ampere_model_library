@@ -43,7 +43,6 @@ def run_pytorch_fp32(args):
     f = args.f
     W = args.W
 
-    n_samples = args.n_samples
     batch_size = args.batch_size
     steps = args.steps
     scale = args.scale
@@ -56,7 +55,6 @@ def run_pytorch_fp32(args):
     ckpt = args.ckpt
     seed = args.seed
     outdir = args.outdir
-    bf16 = args.bf16
 
     seed_everything(seed)
 
@@ -73,7 +71,6 @@ def run_pytorch_fp32(args):
     wm_encoder = WatermarkEncoder()
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
-    batch_size = n_samples
     prompt = prompt
     assert prompt is not None
     data = [batch_size * [prompt]]
@@ -83,7 +80,7 @@ def run_pytorch_fp32(args):
 
     start_code = None
     if fixed_code:
-        start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
+        start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
 
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
@@ -165,7 +162,7 @@ def run_pytorch_fp32(args):
             uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
             samples, _ = sampler.sample(S=steps,
                                         conditioning=model.get_learned_conditioning(prompt),
-                                        batch_size=n_samples,
+                                        batch_size=batch_size,
                                         shape=shape,
                                         verbose=False,
                                         unconditional_guidance_scale=scale,
@@ -219,7 +216,6 @@ if __name__ == "__main__":
                         help="path to config which constructs model")
     parser.add_argument("--ckpt", type=str, required=True, help="path to checkpoint of model")
     parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to", default="outputs/txt2img-samples")
-    parser.add_argument("--n_samples", type=int, default=1, help="how many samples to produce for each given prompt. A.k.a batch size",)
     parser.add_argument("--prompt", type=str, nargs="?",
                         default="a professional photograph of an astronaut riding a triceratops",
                         help="the prompt to render")
