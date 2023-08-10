@@ -86,15 +86,15 @@ def run_pytorch_fp32(args):
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
-    # sample_count = 0
-    # base_count = len(os.listdir(sample_path))
-    # grid_count = len(os.listdir(outpath)) - 1
+    sample_count = 0
+    base_count = len(os.listdir(sample_path))
+    grid_count = len(os.listdir(outpath)) - 1
 
     start_code = None
     if fixed_code:
         start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
 
-    # transformer = model.cond_stage_model.model
+    transformer = model.cond_stage_model.model
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
     additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
@@ -150,7 +150,7 @@ def run_pytorch_fp32(args):
     with torch.no_grad(), additional_context:
         for _ in range(3):
             c = model.get_learned_conditioning(prompts)
-        samples_ddim, _ = sampler.sample(S=1,
+        samples_ddim, _ = sampler.sample(S=5,
                                          conditioning=c,
                                          batch_size=batch_size,
                                          shape=shape,
