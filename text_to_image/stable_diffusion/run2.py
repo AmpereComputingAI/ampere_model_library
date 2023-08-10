@@ -78,8 +78,6 @@ def run_pytorch_fp32(args):
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
     batch_size = n_samples
-    n_rows = n_rows if n_rows > 0 else batch_size
-
     prompt = prompt
     assert prompt is not None
     data = [batch_size * [prompt]]
@@ -91,7 +89,7 @@ def run_pytorch_fp32(args):
     if fixed_code:
         start_code = torch.randn([n_samples, C, H // f, W // f], device=device)
 
-    transformer = model.cond_stage_model.model
+    # transformer = model.cond_stage_model.model
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
     additional_context = torch.cpu.amp.autocast() if bf16 else nullcontext()
