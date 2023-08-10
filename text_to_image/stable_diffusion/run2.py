@@ -47,7 +47,6 @@ def run_pytorch_fp32(args):
     steps = args.steps
     scale = args.scale
     ddim_eta = args.ddim_eta
-    fixed_code = args.fixed_code
     prompt = args.prompt
 
     config = args.config
@@ -62,9 +61,10 @@ def run_pytorch_fp32(args):
     device = torch.device("cuda") if device == "cuda" else torch.device("cpu")
     model = load_model_from_config(config, f"{ckpt}", device)
     sampler = DDIMSampler(model, device=device)
+    shape = [C, H // f, W // f]
 
     # =========================
-    # stuff for saving images - to be removed
+    # stuff for saving images (to be removed)
     os.makedirs(outdir, exist_ok=True)
     outpath = outdir
     sample_path = os.path.join(outpath, "samples")
@@ -75,15 +75,8 @@ def run_pytorch_fp32(args):
     wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
     # =========================
-
-    # start_code = None
-    # if fixed_code:
-    #     start_code = torch.randn([batch_size, C, H // f, W // f], device=device)
-
-    unet = model.model.diffusion_model
+    # unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
-    # additional_context =
-    shape = [C, H // f, W // f]
 
     with torch.no_grad(), nullcontext():
         # get UNET scripted
@@ -91,19 +84,19 @@ def run_pytorch_fp32(args):
         if not cache_dir.exists():
             cache_dir.mkdir(exist_ok=True)
 
-        unet_path = Path(cache_dir, "unet.pt")
-        if unet_path.exists():
-            scripted_unet = torch.jit.load(unet_path)
-        else:
-            img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
-            t_in = torch.ones(2, dtype=torch.int64)
-            context = torch.ones(2, 77, 1024, dtype=torch.float32)
-            scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
-            scripted_unet = torch.jit.freeze(scripted_unet)
-            torch.jit.save(scripted_unet, unet_path)
-            print(unet_path)
-        print(type(scripted_unet))
-        model.model.scripted_diffusion_model = scripted_unet
+        # unet_path = Path(cache_dir, "unet.pt")
+        # if unet_path.exists():
+        #     scripted_unet = torch.jit.load(unet_path)
+        # else:
+        #     img_in = torch.ones(2, 4, 96, 96, dtype=torch.float32)
+        #     t_in = torch.ones(2, dtype=torch.int64)
+        #     context = torch.ones(2, 77, 1024, dtype=torch.float32)
+        #     scripted_unet = torch.jit.trace(unet, (img_in, t_in, context))
+        #     scripted_unet = torch.jit.freeze(scripted_unet)
+        #     torch.jit.save(scripted_unet, unet_path)
+        #     print(unet_path)
+        # print(type(scripted_unet))
+        # model.model.scripted_diffusion_model = scripted_unet
 
         # get Decoder for first stage model scripted
         decoder_path = Path(cache_dir, "decoder.pt")
@@ -221,10 +214,5 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=str, help="Device on which Stable Diffusion will be run",
                         choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--ddim_eta", type=float, default=0.0, help="ddim eta (eta=0.0 corresponds to deterministic sampling")
-    parser.add_argument("--fixed_code", action='store_true', help="if enabled, uses the same starting code across all samples ")
-
-    parser.add_argument("--bf16", action='store_true', help="use bfloat16")
-    parser.add_argument("--n_iter", type=int, default=3, help="sample this often")
-
 
     run_pytorch_fp32(parser.parse())
