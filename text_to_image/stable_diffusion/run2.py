@@ -52,15 +52,12 @@ def run_pytorch_fp32(args):
     prompt = args.prompt
 
     config = args.config
-    # device = args.device
     ckpt = args.ckpt
     seed = args.seed
     outdir = args.outdir
 
     seed_everything(seed)
-
     config = OmegaConf.load(f"{config}")
-    # device = torch.device("cpu")
     model = load_model_from_config(config, f"{ckpt}", torch.device("cpu"))
     sampler = DDIMSampler(model, device=torch.device("cpu"))
     shape = [C, H // f, W // f]
@@ -108,11 +105,11 @@ def run_pytorch_fp32(args):
 
     uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
     with torch.no_grad(), nullcontext():
-        for _ in range(3):
-            c = model.get_learned_conditioning(prompt)
+        # for _ in range(3):
+        #     c = model.get_learned_conditioning(prompt)
         # S needs to be 5!
         samples_ddim, _ = sampler.sample(S=5,
-                                         conditioning=c,
+                                         conditioning=model.get_learned_conditioning(prompt),
                                          batch_size=batch_size,
                                          shape=shape,
                                          verbose=False,
