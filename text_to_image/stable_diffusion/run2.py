@@ -84,10 +84,10 @@ def run_pytorch_fp32(args):
 
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
-    additional_context = nullcontext()
+    # additional_context =
     shape = [C, H // f, W // f]
 
-    with torch.no_grad(), additional_context:
+    with torch.no_grad(), nullcontext():
         # get UNET scripted
         cache_dir = Path(Path.home(), "cache_stable_diff")
         if not cache_dir.exists():
@@ -130,7 +130,7 @@ def run_pytorch_fp32(args):
     if isinstance(prompts, tuple):
         prompts = list(prompts)
 
-    with torch.no_grad(), additional_context:
+    with torch.no_grad(), nullcontext():
         for _ in range(3):
             c = model.get_learned_conditioning(prompts)
         # S needs to be 5!
