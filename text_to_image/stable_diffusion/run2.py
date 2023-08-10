@@ -60,7 +60,7 @@ def run_pytorch_fp32(args):
     outdir = args.outdir
     bf16 = args.bf16
     precision = "full"
-    n_iter = args.n_iter
+    # n_iter = args.n_iter
 
     seed_everything(seed)
 
@@ -162,29 +162,25 @@ def run_pytorch_fp32(args):
             x_samples_ddim = model.decode_first_stage(samples_ddim)
 
     precision_scope = autocast if precision == "autocast" or bf16 else nullcontext
-    with torch.no_grad(), \
-            precision_scope(device), \
-            model.ema_scope():
-        all_samples = list()
-        for n in trange(n_iter, desc="Sampling"):
-            for prompts in tqdm(data, desc="data"):
-                # Don't change location of this
-                uc = None
-                if scale != 1.0:
-                    uc = model.get_learned_conditioning(batch_size * [""])
-                if isinstance(prompts, tuple):
-                    prompts = list(prompts)
-                c = model.get_learned_conditioning(prompts)
-                shape = [C, H // f, W // f]
-                samples, _ = sampler.sample(S=steps,
-                                            conditioning=c,
-                                            batch_size=n_samples,
-                                            shape=shape,
-                                            verbose=False,
-                                            unconditional_guidance_scale=scale,
-                                            unconditional_conditioning=uc,
-                                            eta=ddim_eta,
-                                            x_T=start_code)
+    with torch.no_grad(), precision_scope(device), model.ema_scope():
+        for prompts in tqdm(data, desc="data"):
+            # Don't change location of this
+            uc = None
+            if scale != 1.0:
+                uc = model.get_learned_conditioning(batch_size * [""])
+            if isinstance(prompts, tuple):
+                prompts = list(prompts)
+            c = model.get_learned_conditioning(prompts)
+            shape = [C, H // f, W // f]
+            samples, _ = sampler.sample(S=steps,
+                                        conditioning=c,
+                                        batch_size=n_samples,
+                                        shape=shape,
+                                        verbose=False,
+                                        unconditional_guidance_scale=scale,
+                                        unconditional_conditioning=uc,
+                                        eta=ddim_eta,
+                                        x_T=start_code)
 
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")
