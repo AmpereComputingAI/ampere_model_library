@@ -2,9 +2,31 @@
 
 This folder contains the script to run Alpaca model on instruction following task in PyTorch framework.
 
-### Dataset and model
+### Dataset
 
 Dataset can be found here: https://github.com/tatsu-lab/stanford_alpaca/blob/main/alpaca_data.json
+
+### Model
+
+To obtain the model, you need to:
+1. Request and download LLaMA v1 model weights https://github.com/facebookresearch/llama/tree/llama_v1
+2. Download the Stanford Alpaca weight diff
+```bash
+git clone https://huggingface.co/tatsu-lab/alpaca-7b-wdiff
+cd alpaca-7b-wdiff
+git lfs install
+git lfs pull
+cd ..
+```
+3. Convert the LLaMA weights to HuggingFace format
+```bash
+git clone https://github.com/huggingface/transformers.git
+python transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py --input_dir <path_to_llama> --model_size 7B --output_dir <output_path>
+```
+4. Recover the Alpaca weights
+```bash
+python weight_diff.py recover --path_raw <path_to_llama_hf> --path_diff <path_to_alpaca_diff> --path_tuned <output_path>
+```
 
 ### Running instructions
 
