@@ -25,7 +25,8 @@ python transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py
 ```
 4. Recover the Alpaca weights
 ```bash
-python weight_diff.py recover --path_raw <path_to_llama_hf> --path_diff <path_to_alpaca_diff> --path_tuned <output_path>
+git clone https://github.com/tatsu-lab/stanford_alpaca.git
+python stanford_alpaca/weight_diff.py recover --path_raw <path_to_llama_hf> --path_diff <path_to_alpaca_diff> --path_tuned <output_path>
 ```
 
 ### Running instructions
