@@ -1,22 +1,11 @@
 import os
 import sys
 
-import cv2
 import torch
 import pathlib
-import numpy as np
-from PIL import Image
 from pathlib import Path
 
 from utils.downloads.utils import get_downloads_path
-
-
-def put_watermark(img, wm_encoder=None):
-    if wm_encoder is not None:
-        img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        img = wm_encoder.encode(img, 'dwtDct')
-        img = Image.fromarray(img[:, :, ::-1])
-    return img
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_runs, timeout):
@@ -37,8 +26,6 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
     sampler = DDIMSampler(model, device=torch.device("cpu"))
     shape = [4, 512 // 8, 512 // 8]
 
-    # =========================
-    # TODO: torchscript stuff, should it stay here?
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
 
