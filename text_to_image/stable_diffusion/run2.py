@@ -97,7 +97,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, outdir, batch_siz
             #TODO: conditioning below needs 'prompt' to be a list of prompt * batch size, currently the batch size is
             # 1 and is fixed
             samples, _ = sampler.sample(S=steps,
-                                        conditioning=model.get_learned_conditioning(prompt),
+                                        conditioning=model.get_learned_conditioning([prompt] * batch_size),
                                         batch_size=batch_size,
                                         shape=shape,
                                         verbose=False,
