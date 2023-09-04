@@ -92,6 +92,4 @@ if __name__ == "__main__":
     parser.add_argument("--prompt", type=str, nargs="?",
                         default="a professional photograph of an astronaut riding a triceratops",
                         help="the prompt to render")
-    parser.add_argument("--outdir", type=str, nargs="?", help="dir to write results to",
-                        default="outputs/txt2img-samples")
     run_pytorch_fp32(**vars(parser.parse()))
