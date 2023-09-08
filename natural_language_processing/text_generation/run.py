@@ -1,6 +1,9 @@
+import os
 import torch
 import time
 from transformers import GPT2Tokenizer, GPT2Model
+
+torch.set_num_threads(80)
 
 model = GPT2Model.from_pretrained('gpt2')
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -19,3 +22,4 @@ with torch.no_grad():
 
 print('average latency per sample: (s)', recorded_time/samples)
 print('throughput: (fps)', samples/recorded_time)
+
