@@ -2,14 +2,9 @@ import os
 import torch
 import time
 from transformers import GPT2Tokenizer, GPT2Model
+from utils.benchmark import get_intra_op_parallelism_threads
 
-try:
-    omp_num_threads = int(os.environ["AIO_NUM_THREADS"])
-    torch.set_num_threads(omp_num_threads)
-except KeyError:
-    omp_num_threads = None
-    print('please set AIO_NUM_THREADS')
-    quit()
+torch.set_num_threads(get_intra_op_parallelism_threads())
 
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 model = GPT2Model.from_pretrained('gpt2', torchscript=True)
