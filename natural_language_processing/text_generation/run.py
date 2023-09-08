@@ -9,6 +9,7 @@ try:
 except KeyError:
     omp_num_threads = None
     print('please set AIO_NUM_THREADS')
+    quit()
 
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 model = GPT2Model.from_pretrained('gpt2', torchscript=True)
@@ -30,7 +31,7 @@ with torch.no_grad():
         output = frozen_model(input_dict['input_ids'])
 
 recorded_time = 0.0
-samples = 100
+samples = 1000
 with torch.no_grad():
     for i in range(samples):
         start = time.time()
