@@ -12,6 +12,10 @@ To obtain the model, you need to:
 1. Request and download LLaMA v1 model weights https://github.com/facebookresearch/llama/tree/llama_v1
 2. Download the Stanford Alpaca weight diff
 ```bash
+# Install git-lfs (https://github.com/git-lfs/git-lfs/blob/main/INSTALLING.md)
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+sudo apt-get install git-lfs
+
 git clone https://huggingface.co/tatsu-lab/alpaca-7b-wdiff
 cd alpaca-7b-wdiff
 git lfs install
