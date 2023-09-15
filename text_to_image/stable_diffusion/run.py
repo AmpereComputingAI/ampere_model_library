@@ -84,8 +84,7 @@ if __name__ == "__main__":
     parser = DefaultArgParser(["pytorch"])
     parser.ask_for_batch_size()
     parser.require_model_path()
-    parser.add_argument("--config", type=str,
-                        default="stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml",
+    parser.add_argument("--config", type=str, required=True,
                         help="path to config which constructs model")
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
     parser.add_argument('--scale', type=int, default=9, help="scale of the image")

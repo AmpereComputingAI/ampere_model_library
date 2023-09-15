@@ -143,9 +143,13 @@ pip3 install --no-deps --upgrade \
    pudb==2019.2 \
    imageio==2.9.0 \
    imageio-ffmpeg==0.4.2 \
-   pytorch-lightning==1.4.2 \
+   pytorch-lightning==1.9.1 \
+   ftfy==6.1.1 \
+   imwatermark==0.0.2 \
+   PyWavelets==1.4.1 \
    torchmetrics==0.6 \
-   omegaconf==2.1.1 \
+   omegaconf==2.3.0 \
+   antlr4-python3-runtime==4.9.3 \
    test-tube>=0.7.5 \
    streamlit>=0.73.1 \
    einops==0.3.0 \
