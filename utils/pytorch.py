@@ -27,16 +27,17 @@ class PyTorchRunner(Runner):
             AIO = False
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
-        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
-        if os.environ.get("IPEX_OPTIMIZE") == "1":
-            import intel_extension_for_pytorch as ipex
-            dtype = torch.bfloat16 if self._do_autocast else torch.float32
-            model = ipex.optimize(model, dtype=dtype)
-            disable_jit_freeze = True
         self._model = model
         self._func = func
         self._model.eval()
         self._frozen_script = None
+
+        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        if os.environ.get("IPEX_OPTIMIZE") == "1":
+            import intel_extension_for_pytorch as ipex
+            dtype = torch.bfloat16 if self._do_autocast else torch.float32
+            self._model = ipex.optimize(self._model, dtype=dtype)
+            disable_jit_freeze = True
 
         if disable_jit_freeze:
             if os.environ.get("TORCH_COMPILE") == "1":
