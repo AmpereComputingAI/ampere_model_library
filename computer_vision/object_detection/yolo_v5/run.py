@@ -76,7 +76,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
         inp = torch.stack(coco.get_input_array(shape))
-        output = pytorch_runner.run(batch_size, inp)[0]
+        output = pytorch_runner.run(batch_size, inp)
         output = non_max_suppression(output)
 
         for i in range(batch_size):
@@ -91,7 +91,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
                           pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
 
-    runner = PyTorchRunner(torch.jit.load(model_path),
+    from ultralytics import YOLO
+    model = YOLO(model_path)
+    torchscript_model = model.export(format="torchscript")
+
+    runner = PyTorchRunner(torch.jit.load(torchscript_model),
                            disable_jit_freeze=disable_jit_freeze,
                            example_inputs=torch.stack(dataset.get_input_array((640, 640))))
 

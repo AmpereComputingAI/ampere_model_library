@@ -44,7 +44,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
     def run_single_pass(tf_runner, imagenet):
         shape = (224, 224)
         tf_runner.set_input_tensor("input:0", imagenet.get_input_array(shape))
-        output = tf_runner.run(batch_sizeb)
+        output = tf_runner.run(batch_size)
         for i in range(batch_size):
             imagenet.submit_predictions(
                 i,
