@@ -2,9 +2,7 @@ import os
 import sys
 
 import torch
-import pathlib
 from pathlib import Path
-# from utils.downloads.utils import get_downloads_path
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_runs, timeout):
@@ -25,11 +23,8 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
     sampler = DDIMSampler(model, device=torch.device("cpu"))
     shape = [4, 512 // 8, 512 // 8]
 
-    # TODO: torchscript stuff, should it stay here?
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
-
-    # stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
     stablediffusion_data = Path(os.path.dirname(os.path.abspath(__file__)), 'models')
     unet_path = Path(stablediffusion_data, "unet.pt")
     decoder_path = Path(stablediffusion_data, "decoder.pt")
@@ -57,24 +52,39 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
             torch.jit.save(scripted_decoder, decoder_path)
         model.first_stage_model.decoder = scripted_decoder
 
+    # def single_pass_pytorch(_runner, _stablediffusion):
+    #     _runner.run(batch_size * steps)
+    #     _stablediffusion.submit_count()
+
+    # def wrapper():
+    #     with torch.no_grad(), nullcontext(torch.device("cpu")), model.ema_scope():
+    #         uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+    #         samples, _ = sampler.sample(S=steps,
+    #                                     conditioning=model.get_learned_conditioning([prompt] * batch_size),
+    #                                     batch_size=batch_size,
+    #                                     shape=shape,
+    #                                     verbose=False,
+    #                                     unconditional_guidance_scale=scale,
+    #                                     unconditional_conditioning=uc,
+    #                                     eta=0.0,
+    #                                     x_T=None)
+
+    # runner = PyTorchRunnerV2(wrapper)
     def single_pass_pytorch(_runner, _stablediffusion):
-        _runner.run(batch_size)
+        uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+        _runner.run(batch_size * steps,
+                    S=steps,
+                    conditioning=model.get_learned_conditioning([prompt] * batch_size),
+                    batch_size=batch_size,
+                    shape=shape,
+                    verbose=False,
+                    unconditional_guidance_scale=scale,
+                    unconditional_conditioning=uc,
+                    eta=0.0,
+                    x_T=None)
         _stablediffusion.submit_count()
 
-    def wrapper():
-        with torch.no_grad(), nullcontext(torch.device("cpu")), model.ema_scope():
-            uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-            samples, _ = sampler.sample(S=steps,
-                                        conditioning=model.get_learned_conditioning([prompt] * batch_size),
-                                        batch_size=batch_size,
-                                        shape=shape,
-                                        verbose=False,
-                                        unconditional_guidance_scale=scale,
-                                        unconditional_conditioning=uc,
-                                        eta=0.0,
-                                        x_T=None)
-
-    runner = PyTorchRunnerV2(wrapper)
+    runner = PyTorchRunnerV2(sampler.sample())
     stablediffusion = StableDiffusion()
 
     return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
@@ -82,6 +92,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
+
     parser = DefaultArgParser(["pytorch"])
     parser.ask_for_batch_size()
     parser.require_model_path()
