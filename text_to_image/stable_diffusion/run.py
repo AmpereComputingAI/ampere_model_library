@@ -71,7 +71,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
 
     # runner = PyTorchRunnerV2(wrapper)
     def single_pass_pytorch(_runner, _stablediffusion):
-        uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
+        # uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
         _runner.run(batch_size * steps,
                     S=steps,
                     conditioning=model.get_learned_conditioning([prompt] * batch_size),
@@ -79,10 +79,10 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
                     shape=shape,
                     verbose=False,
                     unconditional_guidance_scale=scale,
-                    unconditional_conditioning=uc,
+                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
                     eta=0.0,
                     x_T=None)
-        _stablediffusion.submit_count()
+        _stablediffusion.submit_count(batch_size)
 
     runner = PyTorchRunnerV2(sampler.sample)
     stablediffusion = StableDiffusion()

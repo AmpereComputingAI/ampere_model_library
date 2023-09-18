@@ -17,8 +17,8 @@ class StableDiffusion(DatasetStub):
 
         return f'{random.choice(adjectives)} {random.choice(nouns)} {random.choice(actions)} {random.choice(adverbs)}'
 
-    def submit_count(self):
-        self._idx += 1
+    def submit_count(self, batch_size):
+        self._idx += batch_size
 
     def reset(self):
         self._idx = 0
