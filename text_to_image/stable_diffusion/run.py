@@ -84,7 +84,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
                     x_T=None)
         _stablediffusion.submit_count()
 
-    runner = PyTorchRunnerV2(sampler.sample())
+    runner = PyTorchRunnerV2(sampler.sample)
     stablediffusion = StableDiffusion()
 
     return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
