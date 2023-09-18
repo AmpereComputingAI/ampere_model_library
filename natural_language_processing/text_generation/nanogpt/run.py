@@ -36,7 +36,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True):
+def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
@@ -59,8 +59,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True):
-    run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze)
+def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
+    run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze, **kwargs)
 
 
 def main():
