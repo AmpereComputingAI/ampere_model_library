@@ -30,7 +30,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
     decoder = model.first_stage_model.decoder
 
     # stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
-    stablediffusion_data = os.path.dirname(os.path.abspath(__file__))
+    stablediffusion_data = Path(os.path.dirname(os.path.abspath(__file__)), 'models')
     unet_path = Path(stablediffusion_data, "unet.pt")
     decoder_path = Path(stablediffusion_data, "decoder.pt")
     if not stablediffusion_data.exists():
