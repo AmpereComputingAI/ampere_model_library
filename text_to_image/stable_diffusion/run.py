@@ -4,7 +4,7 @@ import sys
 import torch
 import pathlib
 from pathlib import Path
-from utils.downloads.utils import get_downloads_path
+# from utils.downloads.utils import get_downloads_path
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_runs, timeout):
@@ -29,7 +29,8 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
     unet = model.model.diffusion_model
     decoder = model.first_stage_model.decoder
 
-    stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
+    # stablediffusion_data = pathlib.Path(get_downloads_path(), "stable_diffusion")
+    stablediffusion_data = os.path.dirname(os.path.abspath(__file__))
     unet_path = Path(stablediffusion_data, "unet.pt")
     decoder_path = Path(stablediffusion_data, "decoder.pt")
     if not stablediffusion_data.exists():
@@ -57,7 +58,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
         model.first_stage_model.decoder = scripted_decoder
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        _runner.run(batch_size * steps)
+        _runner.run(batch_size)
         _stablediffusion.submit_count()
 
     def wrapper():

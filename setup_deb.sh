@@ -149,6 +149,8 @@ pip3 install --no-deps --upgrade \
    PyWavelets==1.4.1 \
    torchmetrics==0.6 \
    omegaconf==2.3.0 \
+   lightning_utilities==0.9.0 \
+   wcwidth==0.2.6 \
    antlr4-python3-runtime==4.9.3 \
    test-tube>=0.7.5 \
    streamlit>=0.73.1 \

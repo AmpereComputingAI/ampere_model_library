@@ -39,6 +39,5 @@ if [ "${ARCH}" = "aarch64" ]; then
 fi
 export LD_PRELOAD=$LD_PRELOAD
 export PYTHONPATH=$SCRIPT_DIR
-export PYTHONPATH=$SCRIPT_DIR:$SCRIPT_DIR/text_to_image/stable_diffusion/stablediffusion
 echo "PYTHONPATH=$PYTHONPATH"
 log "done.\n"
