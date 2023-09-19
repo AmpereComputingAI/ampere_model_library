@@ -1,7 +1,7 @@
 # Stable Diffusion
 
 
-This folder contains the script to run Stable Diffusion using prompts in PyTorch framework.\
+This folder contains the script to run Stable Diffusion in PyTorch framework using randomized prompts. 
 
 
 ### Model:
@@ -23,7 +23,9 @@ export AIO_NUM_THREADS=1
 Now you are able to run the run.py script. 
 
 To get detailed information on the script's recognized arguments run it with -h flag for help. Please remember to specify 
-config file. You can use the file in stablediffusion folder in this directory under stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml
+config file - you can use the file in stablediffusion folder in this directory under stablediffusion/configs/stable-diffusion/intel/v2-inference-fp32.yaml 
+
+Please note that the default batch size is 1 and if not specified otherwise the script will run for 1 minute.
 
 Example command: 
 

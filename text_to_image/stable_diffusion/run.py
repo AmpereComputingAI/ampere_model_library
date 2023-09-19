@@ -5,7 +5,7 @@ import torch
 from pathlib import Path
 
 
-def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_runs, timeout):
+def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
 
     from omegaconf import OmegaConf
@@ -53,6 +53,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
         model.first_stage_model.decoder = scripted_decoder
 
     def single_pass_pytorch(_runner, _stablediffusion):
+        prompt = _stablediffusion.get_input()
         _runner.run(batch_size * steps,
                     S=steps,
                     conditioning=model.get_learned_conditioning([prompt] * batch_size),
@@ -81,7 +82,4 @@ if __name__ == "__main__":
                         help="path to config which constructs model")
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
     parser.add_argument('--scale', type=int, default=9, help="scale of the image")
-    parser.add_argument("--prompt", type=str, nargs="?",
-                        default="a professional photograph of an astronaut riding a triceratops",
-                        help="the prompt to render")
     run_pytorch_fp32(**vars(parser.parse()))
