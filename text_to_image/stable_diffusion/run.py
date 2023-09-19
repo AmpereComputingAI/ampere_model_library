@@ -52,26 +52,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, prompt, batch_size, num_r
             torch.jit.save(scripted_decoder, decoder_path)
         model.first_stage_model.decoder = scripted_decoder
 
-    # def single_pass_pytorch(_runner, _stablediffusion):
-    #     _runner.run(batch_size * steps)
-    #     _stablediffusion.submit_count()
-
-    # def wrapper():
-    #     with torch.no_grad(), nullcontext(torch.device("cpu")), model.ema_scope():
-    #         uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
-    #         samples, _ = sampler.sample(S=steps,
-    #                                     conditioning=model.get_learned_conditioning([prompt] * batch_size),
-    #                                     batch_size=batch_size,
-    #                                     shape=shape,
-    #                                     verbose=False,
-    #                                     unconditional_guidance_scale=scale,
-    #                                     unconditional_conditioning=uc,
-    #                                     eta=0.0,
-    #                                     x_T=None)
-
-    # runner = PyTorchRunnerV2(wrapper)
     def single_pass_pytorch(_runner, _stablediffusion):
-        # uc = model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None
         _runner.run(batch_size * steps,
                     S=steps,
                     conditioning=model.get_learned_conditioning([prompt] * batch_size),

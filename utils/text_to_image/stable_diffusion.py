@@ -14,6 +14,7 @@ class StableDiffusion(DatasetStub):
         nouns = ['dog', 'cat', 'astronaut', 'person', 'knight', 'horse', 'soldier']
         actions = ['runs', 'jumps', 'rides a triceratops', 'rides a bike', 'eats a burger', 'washes clothes']
         adverbs = ['quickly', 'slowly', 'loudly']
+        random.seed(42)
 
         return f'{random.choice(adjectives)} {random.choice(nouns)} {random.choice(actions)} {random.choice(adverbs)}'
 
