@@ -68,7 +68,7 @@ pip3 install --no-deps --upgrade \
    medpy==0.4.0 \
    nibabel==3.2.2 \
    "numpy<1.24.0" \
-   opencv-python==4.5.5.64 \
+   opencv-python==4.8.0.76 \
    pandas==1.4.2 \
    pycocotools==2.0.6 \
    scikit-build==0.14.1 \
