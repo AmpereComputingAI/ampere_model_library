@@ -60,13 +60,7 @@ class TextGenerationDummyDataset(DatasetStub):
         self.__current_inputs = self.__tokenize_func(random.choice(prompts))
         self.__current_inputs = {key: value for key, value in self.__current_inputs.items()}
 
-        from transformers import GPT2Tokenizer
-        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-        encoded_input = tokenizer('hi, how are you?', return_tensors='pt')
-        input_dict = {key: value for key, value in encoded_input.items()}
-
-        # return self.__current_inputs['input_ids']
-        return input_dict
+        return self.__current_inputs
 
     def submit_count(self, batch_size):
         self._idx += batch_size

@@ -13,48 +13,6 @@ from contextlib import nullcontext
 from utils.benchmark import *
 
 
-class PyTorchRunner1(Runner):
-
-    def __init__(self, model, input_dicts=None):
-        super().__init__()
-
-        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
-        traced_model = torch.jit.trace(model, (input_dicts['input_ids'],))
-        self._frozen_script = torch.jit.freeze(traced_model)
-        output = self._frozen_script(input_dicts['input_ids'])
-        print(output)
-        quit()
-
-    def run(self, task_size: int, *args, **kwargs):
-        """
-        A function assigning values to input tensor, executing single pass over the network, measuring the time needed
-        and finally returning the output.
-        :return: dict, output dictionary with tensor names and corresponding output
-        """
-
-        def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
-                start = time.time()
-                output = model(*args, **kwargs)
-                finish = time.time()
-
-            self._start_times.append(start)
-            self._finish_times.append(finish)
-            self._workload_size.append(task_size)
-            self._times_invoked += 1
-
-            return output
-
-        with torch.no_grad():
-            model = self._frozen_script
-            output_tensor = runner_func()
-
-        return output_tensor
-
-    def print_performance_metrics(self):
-        return self.print_metrics()
-
-
 class PyTorchRunner(Runner):
     """
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
@@ -110,7 +68,7 @@ class PyTorchRunner(Runner):
                     else:
                         self._frozen_script = torch.jit.freeze(torch.jit.script(self._model))
                 except (torch.jit.frontend.UnsupportedNodeError, RuntimeError, SkipScript):
-                    self._frozen_script = torch.jit.freeze(torch.jit.trace(self._model, example_inputs))
+                    self._frozen_script = torch.jit.freeze(torch.jit.trace(model, example_inputs))
                 if not cached_dir.exists():
                     cached_dir.mkdir()
                 torch.jit.save(self._frozen_script, cached_path)

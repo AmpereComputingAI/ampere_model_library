@@ -28,10 +28,10 @@ def parse_args():
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, disable_jit_freeze=False, **kwargs):
-    from utils.pytorch import PyTorchRunner, PyTorchRunner1
+    from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, _dummy_dataset):
-        output = pytorch_runner.run(_dummy_dataset.get_input())
+        output = pytorch_runner.run(1, _dummy_dataset.get_input()['input_ids'])
         _dummy_dataset.submit_count(batch_size)
 
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
@@ -42,11 +42,10 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, disable_jit_freeze=Fa
     model = GPT2Model.from_pretrained(model_name, torchscript=True)
     dataset = TextGenerationDummyDataset(batch_size, tokenize)
 
-    runner = PyTorchRunner1(model, example_inputs=dataset.get_input())
-
-    # runner = PyTorchRunner(model,
-    #                        disable_jit_freeze=disable_jit_freeze,
-    #                        example_inputs=dataset.get_input())
+    runner = PyTorchRunner(model,
+                           disable_jit_freeze=disable_jit_freeze,
+                           skip_script=True,
+                           example_inputs=(dataset.get_input()['input_ids'],))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
