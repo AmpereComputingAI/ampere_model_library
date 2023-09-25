@@ -1,16 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
-from abc import ABC
+
+import hashlib
+from pathlib import Path
+from contextlib import nullcontext
 
 import torch
-import hashlib
 import pkg_resources
-from utils.profiling import *
-from torch.autograd.profiler import profile
-from pathlib import Path
 from packaging import version
-from contextlib import nullcontext
+from torch.autograd.profiler import profile
+
 from utils.benchmark import *
+from utils.profiling import *
 
 
 class PyTorchRunner(Runner):
@@ -68,7 +69,7 @@ class PyTorchRunner(Runner):
                     else:
                         self._frozen_script = torch.jit.freeze(torch.jit.script(self._model))
                 except (torch.jit.frontend.UnsupportedNodeError, RuntimeError, SkipScript):
-                    self._frozen_script = torch.jit.freeze(torch.jit.trace(model, example_inputs))
+                    self._frozen_script = torch.jit.freeze(torch.jit.trace(self._model, example_inputs))
                 if not cached_dir.exists():
                     cached_dir.mkdir()
                 torch.jit.save(self._frozen_script, cached_path)
