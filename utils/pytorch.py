@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
+from abc import ABC
 
 import torch
 import hashlib
@@ -10,6 +11,45 @@ from pathlib import Path
 from packaging import version
 from contextlib import nullcontext
 from utils.benchmark import *
+
+
+class PyTorchRunner1(Runner):
+
+    def __init__(self, model, example_inputs=None):
+        super().__init__()
+
+        self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        traced_model = torch.jit.trace(model, example_inputs)
+        self._frozen_script = torch.jit.freeze(traced_model)
+
+    def run(self, task_size: int, *args, **kwargs):
+        """
+        A function assigning values to input tensor, executing single pass over the network, measuring the time needed
+        and finally returning the output.
+        :return: dict, output dictionary with tensor names and corresponding output
+        """
+
+        def runner_func():
+            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+                start = time.time()
+                output = model(*args, **kwargs)
+                finish = time.time()
+
+            self._start_times.append(start)
+            self._finish_times.append(finish)
+            self._workload_size.append(task_size)
+            self._times_invoked += 1
+
+            return output
+
+        with torch.no_grad():
+            model = self._frozen_script
+            output_tensor = runner_func()
+
+        return output_tensor
+
+    def print_performance_metrics(self):
+        return self.print_metrics()
 
 
 class PyTorchRunner(Runner):

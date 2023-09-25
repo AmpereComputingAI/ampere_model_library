@@ -15,9 +15,7 @@ class TextGenerationDummyDataset(DatasetStub):
 
     def get_input(self):
         random.seed(42)
-        prompts = ["Write a business proposal for launching a new line of eco-friendly products, detailing the market "
-                   "demand, competitive analysis, and sustainability benefits.",
-                   "Generate a script for a 30-second commercial promoting our new product",
+        prompts = ["Generate a script for a 30-second commercial promoting our new product",
                    "Write a persuasive email to convince potential customers to try our service",
                    "Create a list of frequently asked questions for our customer service team",
                    "Generate a summary of our company’s mission and values",
