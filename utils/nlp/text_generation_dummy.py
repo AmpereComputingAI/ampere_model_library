@@ -15,7 +15,8 @@ class TextGenerationDummyDataset(DatasetStub):
 
     def get_input(self):
         random.seed(42)
-        prompts = ["Generate a script for a 30-second commercial promoting our new product",
+        prompts = ["hi, how are you?",
+                   "Generate a script for a 30-second commercial promoting our new product",
                    "Write a persuasive email to convince potential customers to try our service",
                    "Create a list of frequently asked questions for our customer service team",
                    "Generate a summary of our company’s mission and values",
@@ -59,7 +60,13 @@ class TextGenerationDummyDataset(DatasetStub):
         self.__current_inputs = self.__tokenize_func(random.choice(prompts))
         self.__current_inputs = {key: value for key, value in self.__current_inputs.items()}
 
-        return self.__current_inputs['input_ids']
+        from transformers import GPT2Tokenizer
+        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        encoded_input = tokenizer('hi, how are you?', return_tensors='pt')
+        input_dict = {key: value for key, value in encoded_input.items()}
+
+        # return self.__current_inputs['input_ids']
+        return input_dict['input_ids'],
 
     def submit_count(self, batch_size):
         self._idx += batch_size

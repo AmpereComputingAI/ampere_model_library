@@ -42,7 +42,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, disable_jit_freeze=Fa
     model = GPT2Model.from_pretrained(model_name, torchscript=True)
     dataset = TextGenerationDummyDataset(batch_size, tokenize)
 
-    runner = PyTorchRunner1(model, example_inputs=(dataset.get_input(),))
+    runner = PyTorchRunner1(model, example_inputs=dataset.get_input())
 
     # runner = PyTorchRunner(model,
     #                        disable_jit_freeze=disable_jit_freeze,
