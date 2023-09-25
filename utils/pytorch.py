@@ -21,6 +21,9 @@ class PyTorchRunner1(Runner):
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
         traced_model = torch.jit.trace(model, example_inputs)
         self._frozen_script = torch.jit.freeze(traced_model)
+        output = self._frozen_script(example_inputs)
+        print(output)
+        quit()
 
     def run(self, task_size: int, *args, **kwargs):
         """
