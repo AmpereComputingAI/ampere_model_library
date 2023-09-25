@@ -1,8 +1,8 @@
-import torch
 from transformers import GPT2Tokenizer, GPT2Model
 
+from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
-
+from utils.nlp.text_generation_dummy import TextGenerationDummyDataset
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run model from Hugging Face's transformers repository"
@@ -26,30 +26,25 @@ def parse_args():
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, disable_jit_freeze=False, **kwargs):
+    from utils.pytorch import PyTorchRunner
+
+    def run_single_pass(pytorch_runner, _dummy_dataset):
+        output = pytorch_runner.run(_dummy_dataset.get_input())
+        _dummy_dataset.submit_count(batch_size)
 
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+    def tokenize(text):
+        return tokenizer(text, return_tensors='pt')
+
     model = GPT2Model.from_pretrained(model_name, torchscript=True)
-
-    text = "Hi, how are you?"
-    encoded_input = tokenizer(text, return_tensors='pt')
-    input_dict = {key: value for key, value in encoded_input.items()}
-
-    traced_model = torch.jit.trace(model, (input_dict['input_ids'],))
-    #traced_model = torch.jit.trace(model, (encoded_input,))
-    frozen_model = torch.jit.freeze(traced_model)
-
-    #output = frozen_model(**encoded_input)
-    output = frozen_model(input_dict['input_ids'])
-
-    def run_single_pass(pytorch_runner, squad):
-        pass
-
-    model = AutoModelForQuestionAnswering.from_pretrained(model_name, torchscript=True)
-    dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
+    dataset = TextGenerationDummyDataset(batch_size, tokenize)
 
     runner = PyTorchRunner(model,
                            disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=[val for val in dataset.get_input_arrays().values()])
+                           example_inputs=dataset.get_input())
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, disable_jit_freeze, **kwargs):
