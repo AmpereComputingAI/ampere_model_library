@@ -15,13 +15,13 @@ from utils.benchmark import *
 
 class PyTorchRunner1(Runner):
 
-    def __init__(self, model, example_inputs=None):
+    def __init__(self, model, input_dicts=None):
         super().__init__()
 
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
-        traced_model = torch.jit.trace(model, example_inputs)
+        traced_model = torch.jit.trace(model, (input_dicts['input_ids'],))
         self._frozen_script = torch.jit.freeze(traced_model)
-        output = self._frozen_script(example_inputs)
+        output = self._frozen_script(input_dicts['input_ids'])
         print(output)
         quit()
 

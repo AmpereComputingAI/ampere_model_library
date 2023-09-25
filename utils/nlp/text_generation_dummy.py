@@ -66,7 +66,7 @@ class TextGenerationDummyDataset(DatasetStub):
         input_dict = {key: value for key, value in encoded_input.items()}
 
         # return self.__current_inputs['input_ids']
-        return input_dict['input_ids'],
+        return input_dict
 
     def submit_count(self, batch_size):
         self._idx += batch_size
