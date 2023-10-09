@@ -1,7 +1,8 @@
 import os
 
 import torch
-import transformers
+from utils.nlp.transformers.src.transformers.models.auto.modeling_auto import AutoModelForCausalLM
+from utils.nlp.transformers.src.transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
@@ -18,12 +19,12 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
         dataset.submit_prediction(response)
 
 
-    model = transformers.AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path)
     model.eval()
     aio = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
     model.greedy_search = apply_compile_maybe(model.greedy_search, aio)
 
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
     encode = lambda i: tokenizer(i, return_tensors="pt")
     decode = lambda t: tokenizer.batch_decode(t, skip_special_tokens=True)[0]

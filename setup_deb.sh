@@ -74,7 +74,7 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
-   transformers==4.30.1 \
+   transformers==4.32.0 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
@@ -91,7 +91,7 @@ pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
    filelock==3.6.0 \
    future==0.18.2 \
-   huggingface-hub==0.13.4 \
+   huggingface-hub==0.17.3 \
    joblib==1.1.0 \
    kiwisolver==1.4.2 \
    matplotlib==3.5.1 \
