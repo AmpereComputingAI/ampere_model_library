@@ -37,8 +37,7 @@ class OrtRunner(Runner):
 
         self._start_times.append(start)
         self._finish_times.append(finish)
-        if task_size is not None:
-            self.set_task_size(task_size)
+        self.set_task_size(task_size)
         self._times_invoked += 1
 
         return outputs
