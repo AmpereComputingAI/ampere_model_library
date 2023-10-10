@@ -99,7 +99,8 @@ class Runner:
                 json.dump({
                     "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
                     "start_times": self._start_times[self.warm_up_runs:times_invoked],
-                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
+                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked],
+                    "threads": os.environ.get("AIO_NUMA_CPUS")
                 }, f)
 
     def _dump_loop(self):
