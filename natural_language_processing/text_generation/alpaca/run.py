@@ -1,8 +1,8 @@
 import os
 
 import torch
-from utils.nlp.transformers.src.transformers.models.auto.modeling_auto import AutoModelForCausalLM
-from utils.nlp.transformers.src.transformers.models.auto.tokenization_auto import AutoTokenizer
+from natural_language_processing.text_generation.alpaca.transformers.src.transformers.models.auto.modeling_auto import AutoModelForCausalLM
+from natural_language_processing.text_generation.alpaca.transformers.src.transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
