@@ -2,7 +2,10 @@ import os
 import sys
 
 import torch
+import numpy as np
+from PIL import Image
 from pathlib import Path
+from einops import rearrange
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, timeout):
@@ -54,17 +57,26 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
 
     def single_pass_pytorch(_runner, _stablediffusion):
         prompt = _stablediffusion.get_input()
-        _runner.run(batch_size * steps,
-                    S=steps,
-                    conditioning=model.get_learned_conditioning([prompt] * batch_size),
-                    batch_size=batch_size,
-                    shape=shape,
-                    verbose=False,
-                    unconditional_guidance_scale=scale,
-                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
-                    eta=0.0,
-                    x_T=None)
-        _stablediffusion.submit_count(batch_size)
+        output = _runner.run(batch_size * steps,
+                             S=steps,
+                             conditioning=model.get_learned_conditioning([prompt] * batch_size),
+                             batch_size=batch_size,
+                             shape=shape,
+                             verbose=False,
+                             unconditional_guidance_scale=scale,
+                             unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
+                             eta=0.0,
+                             x_T=None)
+
+        x_samples = model.decode_first_stage(output)
+        x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
+
+        img = None
+        for x_sample in x_samples:
+            x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+            img = Image.fromarray(x_sample.astype(np.uint8))
+
+        _stablediffusion.submit_count(batch_size, img)
 
     runner = PyTorchRunnerV2(sampler.sample)
     stablediffusion = StableDiffusion()

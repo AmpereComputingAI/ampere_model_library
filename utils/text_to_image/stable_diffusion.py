@@ -1,4 +1,4 @@
-import random
+from random import randint, seed
 
 from utils.helpers import DatasetStub
 
@@ -10,15 +10,15 @@ class StableDiffusion(DatasetStub):
         self.available_instances = 100000
 
     def get_input(self):
-        adjectives = ['professional', 'enormous', 'fun', 'beautiful', 'small', 'ugly']
-        nouns = ['dog', 'cat', 'astronaut', 'person', 'knight', 'horse', 'soldier']
-        actions = ['runs', 'jumps', 'rides a triceratops', 'rides a bike', 'eats a burger', 'washes clothes']
-        adverbs = ['quickly', 'slowly', 'loudly']
-        random.seed(42)
+        adjectives = ["big", "small", "thin", "wide", "blonde", "pale"]
+        nouns = ["dog", "cat", "horse", "astronaut", "human", "robot"]
+        actions = ["sings", "rides a triceratop", "rides a horse", "eats a burger", "washes clothes", "looks at hands"]
+        seed(42)
 
-        return f'{random.choice(adjectives)} {random.choice(nouns)} {random.choice(actions)} {random.choice(adverbs)}'
+        print(adjectives[randint(0, len(adjectives) - 1)] + " " + nouns[randint(0, len(nouns) - 1)] + " " + actions[
+            randint(0, len(actions) - 1)])
 
-    def submit_count(self, batch_size):
+    def submit_count(self, batch_size, images):
         self._idx += batch_size
 
     def reset(self):
