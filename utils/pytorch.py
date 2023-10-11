@@ -2,6 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import torch
+import types
 import hashlib
 import pkg_resources
 from utils.profiling import *
@@ -146,7 +147,7 @@ class PyTorchRunnerV2(Runner):
 
         print("\nRunning with PyTorch\n")
 
-    def run(self, task_size, *args, **kwargs):
+    def run(self, task_size=None, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
@@ -161,7 +162,7 @@ class PyTorchRunnerV2(Runner):
 
             self._start_times.append(start)
             self._finish_times.append(finish)
-            self._workload_size.append(task_size)
+            self.set_task_size(task_size)
             self._times_invoked += 1
 
             return output
@@ -206,6 +207,17 @@ def apply_jit_script(model):
 
 def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
+
+
+def apply_compile_maybe(model, aio):
+    if os.environ.get("TORCH_COMPILE") != "1":
+        return model
+    if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
+        # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
+        # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
+        return torch.compile(model, backend="aio" if aio else "inductor", options={"modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()} if aio else {})
+    else:
+        utils.print_goodbye_message_and_die(f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
 
 
 class SkipScript(Exception):

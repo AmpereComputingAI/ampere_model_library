@@ -25,7 +25,7 @@ class CTranslateRunne(Runner):
 
         print("\nRunning with CTranslate2\n")
 
-    def run(self, task_size, *args, **kwargs):
+    def run(self, task_size=None, *args, **kwargs):
         if self._times_invoked == 2 and self.is_profiling:
             self.translator.init_profiling("cpu")
         start = time.time()
@@ -34,7 +34,7 @@ class CTranslateRunne(Runner):
 
         self._start_times.append(start)
         self._finish_times.append(finish)
-        self._workload_size.append(task_size)
+        self.set_task_size(task_size)
         self._times_invoked += 1
 
         return outputs
