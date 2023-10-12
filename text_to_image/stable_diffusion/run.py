@@ -56,8 +56,8 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
         model.first_stage_model.decoder = scripted_decoder
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        _runner.run(batch_size * steps)
-        _stablediffusion.submit_count()
+        x_samples = _runner.run(batch_size * steps)
+        _stablediffusion.submit_count(batch_size, x_samples)
 
     def wrapper():
         prompt = 'an astronaut riding a horse'
@@ -70,6 +70,9 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
                                     unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
                                     eta=0.0,
                                     x_T=None)
+        x_samples = model.decode_first_stage(samples)
+        x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
+        return x_samples
 
     runner = PyTorchRunnerV2(wrapper)
 
