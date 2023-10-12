@@ -56,11 +56,11 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
         model.first_stage_model.decoder = scripted_decoder
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        x_samples = _runner.run(batch_size * steps)
+        prompt = _stablediffusion.get_input_array()
+        x_samples = _runner.run(batch_size * steps, prompt=prompt)
         _stablediffusion.submit_count(batch_size, x_samples)
 
-    def wrapper():
-        prompt = 'an astronaut riding a horse'
+    def wrapper(prompt):
         samples, _ = sampler.sample(S=steps,
                                     conditioning=model.get_learned_conditioning([prompt] * batch_size),
                                     batch_size=batch_size,
@@ -75,26 +75,6 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
         return x_samples
 
     runner = PyTorchRunnerV2(wrapper)
-
-    # def single_pass_pytorch(_runner, _stablediffusion):
-    #     prompt = _stablediffusion.get_input()
-    #     output = _runner.run(batch_size * steps,
-    #                          S=steps,
-    #                          conditioning=model.get_learned_conditioning([prompt] * batch_size),
-    #                          batch_size=batch_size,
-    #                          shape=shape,
-    #                          verbose=False,
-    #                          unconditional_guidance_scale=scale,
-    #                          unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
-    #                          eta=0.0,
-    #                          x_T=None)
-    #
-    #     x_samples = model.decode_first_stage(output)
-    #     x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
-    #
-    #     _stablediffusion.submit_count(batch_size, x_samples)
-    #
-    # runner = PyTorchRunnerV2(sampler.sample)
     stablediffusion = StableDiffusion()
 
     return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
