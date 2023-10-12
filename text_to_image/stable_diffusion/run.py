@@ -56,7 +56,7 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
         model.first_stage_model.decoder = scripted_decoder
 
     def single_pass_pytorch(_runner, _stablediffusion):
-        prompt = _stablediffusion.get_input_array()
+        prompt = _stablediffusion.get_input()
         x_samples = _runner.run(batch_size * steps, prompt=prompt)
         _stablediffusion.submit_count(batch_size, x_samples)
 
