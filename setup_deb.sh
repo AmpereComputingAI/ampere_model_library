@@ -141,6 +141,28 @@ pip3 install --no-deps --upgrade \
    pydantic==1.10.9 \
    cffi==1.15.1 \
    attrs==23.1.0 \
+   albumentations==0.4.3 \
+   pudb==2019.2 \
+   imageio==2.9.0 \
+   imageio-ffmpeg==0.4.2 \
+   pytorch-lightning==1.9.1 \
+   ftfy==6.1.1 \
+   imwatermark==0.0.2 \
+   PyWavelets==1.4.1 \
+   torchmetrics==0.6 \
+   omegaconf==2.3.0 \
+   lightning_utilities==0.9.0 \
+   wcwidth==0.2.6 \
+   antlr4-python3-runtime==4.9.3 \
+   test-tube>=0.7.5 \
+   streamlit>=0.73.1 \
+   einops==0.3.0 \
+   webdataset==0.2.5 \
+   open-clip-torch==2.7.0 \
+   gradio==3.13.2 \
+   kornia==0.6 \
+   invisible-watermark>=0.1.5 \
+   streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py

@@ -16,6 +16,9 @@
 [submodule "speech_recognition/whisper/whisper"]
 	path = speech_recognition/whisper/whisper
 	url = https://github.com/AmpereComputingAI/whisper.git
+[submodule "text_to_image/stable_diffusion/stablediffusion"]
+	path = text_to_image/stable_diffusion/stablediffusion
+	url = git@github.com:AmpereComputingAI/stablediffusion.git
 [submodule "utils/nlp/transformers"]
 	path = natural_language_processing/text_generation/alpaca/transformers
 	url = https://github.com/AmpereComputingAI/transformers.git
