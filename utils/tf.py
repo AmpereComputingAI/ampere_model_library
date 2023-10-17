@@ -94,19 +94,18 @@ class TFFrozenModelRunner(Runner):
         """
         self._feed_dict[self._graph.get_tensor_by_name(input_name)] = input_array
 
-    def run(self, task_size: int, *args, **kwargs):
+    def run(self, task_size: int=None, *args, **kwargs):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
         """
-
         start = time.time()
         output = self._sess.run(self._output_dict, self._feed_dict)
         finish = time.time()
 
         self._start_times.append(start)
         self._finish_times.append(finish)
-        self._workload_size.append(task_size)
+        self.set_task_size(task_size)
         self._times_invoked += 1
 
         return output
@@ -147,7 +146,7 @@ class TFSavedModelRunner(Runner):
 
         print("\nRunning with TensorFlow\n")
 
-    def run(self, task_size: int, *args, **kwargs):
+    def run(self, task_size: int=None, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.
@@ -159,7 +158,7 @@ class TFSavedModelRunner(Runner):
 
         self._start_times.append(start)
         self._finish_times.append(finish)
-        self._workload_size.append(task_size)
+        self.set_task_size(task_size)
         self._times_invoked += 1
 
         return output

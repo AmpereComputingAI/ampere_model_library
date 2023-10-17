@@ -99,7 +99,8 @@ class Runner:
                 json.dump({
                     "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
                     "start_times": self._start_times[self.warm_up_runs:times_invoked],
-                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked]
+                    "finish_times": self._finish_times[self.warm_up_runs:times_invoked],
+                    "threads": os.environ.get("AIO_NUMA_CPUS")
                 }, f)
 
     def _dump_loop(self):
@@ -115,6 +116,16 @@ class Runner:
 
     def run(self, task_size: int, *args, **kwargs):
         raise NotImplementedError
+
+    def set_task_size(self, new_task_size):
+        """
+        A function appending new_task_size to the self._workload_size.
+        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the number of tokens generated has an upper bound but can be lower)
+        """
+        if new_task_size is None:
+            return
+        assert len(self._finish_times) - len(self._workload_size) in [1, 0]
+        self._workload_size.append(new_task_size)
 
     def print_metrics(self):
         if self._times_invoked == 0:

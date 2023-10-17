@@ -2,7 +2,6 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import numpy as np
-import torch
 import utils.misc as utils
 
 
@@ -201,6 +200,7 @@ def pre_process_py_objdet(input_array):
     :param input_array: numpy array containing image data
     :return: numpy array containing pre-processed image data
     """
+    import torch
     preprocessed_input_array = []
     for x in input_array:
         x_casted = x.astype("float32")
