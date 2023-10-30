@@ -1,4 +1,3 @@
-import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 from utils.benchmark import run_model
@@ -12,6 +11,9 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
         start_ids = lambada.get_input_array()[0]
         output = pytorch_runner.run(batch_size, start_ids, num_beams=2, no_repeat_ngram_size=2,
                                     early_stopping=True, max_new_tokens=5)
+        print(output.shape[1])
+        print(start_ids.shape[1])
+        pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
         output = detokenize(output[0])
 
         for i in range(batch_size):
