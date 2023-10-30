@@ -125,9 +125,6 @@ class Runner:
         if new_task_size is None:
             return
 
-        print(len(self._finish_times))
-        print(len(self._workload_size))
-        print(len(self._finish_times) - len(self._workload_size))
         assert len(self._finish_times) - len(self._workload_size) in [1, 0]
         self._workload_size.append(new_task_size)
 
