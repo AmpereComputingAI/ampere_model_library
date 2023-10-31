@@ -35,7 +35,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
 
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
-    run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs)
+    return run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs)
 
 
 def main():
