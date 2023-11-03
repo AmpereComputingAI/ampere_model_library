@@ -46,7 +46,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, criteo):
-        output = torch_runner.run(batch_size, criteo.get_inputs())
+        output = torch_runner.run(batch_size, *criteo.get_inputs())
         criteo.submit_predictions(output)
 
     append_dlrm_to_pypath()
