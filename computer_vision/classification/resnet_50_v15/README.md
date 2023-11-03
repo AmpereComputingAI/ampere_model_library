@@ -19,19 +19,12 @@ Based on 1000 images from ImageNet Validation Dataset for TensorFlow framework
 | FP16  | 74.9%  | 92.3%  |
 | INT8  | 74.8%  | 91.0%  |
 
-Based on 1000 images from ImageNet Validation Dataset for ONNX Runtime framework
-
-|   | &nbsp;&nbsp;&nbsp;&nbsp; Top-1 Accuracy&nbsp;&nbsp;&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;&nbsp; Top-5 Accuracy &nbsp;&nbsp;&nbsp;&nbsp; |
-|:---:|:---:|:---:|
-| FP16  | 75.0%  | 92.4%  |
 
 ### Dataset and models
 
 Dataset can be acquired here https://www.image-net.org/
 
 TensorFlow model can be downloaded from here: https://www.tensorflow.org/lite/guide/hosted_models
-
-ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/r80ndhbht7tixn5/resnet_50_v1.5_fp16.onnx
 
 ### Running instructions
 
@@ -62,10 +55,4 @@ Example command:
 
 ```
 python3 run.py -m /path/to/model.pb -p fp32
-```
-
-Example command for ONNX Runtime: 
-
-```
-python3 run.py -m /path/to/model.onnx -p fp16 --framework ort
 ```
