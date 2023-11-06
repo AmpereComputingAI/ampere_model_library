@@ -92,7 +92,7 @@ class PyTorchRunner(Runner):
 
             self._start_times.append(start)
             self._finish_times.append(finish)
-            self._workload_size.append(task_size)
+            self.set_task_size(task_size)
             self._times_invoked += 1
 
             return output
