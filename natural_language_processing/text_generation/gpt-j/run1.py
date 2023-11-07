@@ -8,8 +8,10 @@ tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
 model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id=tokenizer.eos_token_id, torchscript=True)
 text = "Hi, how are you?"
 encoded_input = tokenizer(text, return_tensors='pt')
+print(encoded_input)
 input_dict = {key: value for key, value in encoded_input.items()}
-
+print(input_dict)
+quit()
 
 traced_model = torch.jit.trace(model, (input_dict['input_ids'],))
 #traced_model = torch.jit.trace(model, (encoded_input,))
