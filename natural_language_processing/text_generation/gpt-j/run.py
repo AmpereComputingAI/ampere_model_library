@@ -18,7 +18,6 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
             first_new_word = output.replace(detokenize(start_ids[0]), '').split()[0]
             lambada.submit_prediction(i, first_new_word)
 
-    # tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def detokenize(answer):
@@ -27,7 +26,6 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def tokenize(text):
         return tokenizer.encode(text, return_tensors='pt')
 
-    # model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B")
     model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id)
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
     runner = PyTorchRunner(model, disable_jit_freeze=True, func="generate")
