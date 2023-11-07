@@ -28,8 +28,9 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
 
     model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id)
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=False,
-                           example_inputs=dataset.get_input_array()[0], func="generate")
+    runner = PyTorchRunner(model, skip_script=True, disable_jit_freeze=False,
+                           example_inputs=(dataset.get_input_array()[0],), func="generate")
+
     # runner = PyTorchRunner(model, disable_jit_freeze=False, func="generate")
     # runner = PyTorchRunnerV2(model)
 
