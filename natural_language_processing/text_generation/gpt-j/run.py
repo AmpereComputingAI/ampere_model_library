@@ -9,9 +9,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
-        output = pytorch_runner.run(None, start_ids, num_beams=2, no_repeat_ngram_size=2,
-                                    early_stopping=True, max_new_tokens=5)
-        pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
+        output = pytorch_runner.run(None, start_ids)
+        # pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
         output = detokenize(output[0])
 
         for i in range(batch_size):
@@ -26,15 +25,10 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def tokenize(text):
         return tokenizer.encode(text, return_tensors='pt')
 
-    model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id)
+    model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id, torchscript=True)
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
-    encoded_in = dataset.get_input_array()[0]
-    print(encoded_in)
-    input_dict = {key: value for key, value in encoded_in.items()}
-    print(input_dict)
-    quit()
     runner = PyTorchRunner(model, skip_script=True, disable_jit_freeze=False,
-                           example_inputs=(dataset.get_input_array()[0],), func="generate")
+                           example_inputs=(dataset.get_input_array()[0],))
 
     # runner = PyTorchRunner(model, disable_jit_freeze=False, func="generate")
     # runner = PyTorchRunnerV2(model)
