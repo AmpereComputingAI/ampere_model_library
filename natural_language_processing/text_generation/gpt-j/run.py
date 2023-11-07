@@ -5,7 +5,7 @@ from utils.nlp.lambada import Lambada
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **kwargs):
-    from utils.pytorch import PyTorchRunner
+    from utils.pytorch import PyTorchRunner, PyTorchRunnerV2
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
@@ -28,7 +28,9 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
 
     model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id)
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=True, func="generate")
+    # runner = PyTorchRunner(model, disable_jit_freeze=True, example_inputs=None, func="generate")
+    # runner = PyTorchRunner(model, disable_jit_freeze=True, func="generate")
+    runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
