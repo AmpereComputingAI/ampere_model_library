@@ -14,6 +14,10 @@ scripted_model = torch.jit.script(model)
 # output = model.generate(encoded_input, max_length=30, num_beams=2, no_repeat_ngram_size=2, early_stopping=True)
 output = scripted_model(encoded_input)
 # torch_out = scripted_model(context)
+
+print(output)
+print(type(output))
+print(len(output))
 generated_text_torch = tokenizer.decode(output)
 
 # print("Fragment: {}".format(sentence_fragment))
