@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
 # model = GPT2Model.from_pretrained(model_name, torchscript=True)
 
-model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id=tokenizer.eos_token_id)
+model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id=tokenizer.eos_token_id, torchscript=True)
 text = "Hi, how are you?"
 encoded_input = tokenizer.encode(text, return_tensors='pt')
 model.eval()
