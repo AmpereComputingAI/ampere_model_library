@@ -9,7 +9,7 @@ model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", torchscript=
 text = "Hi, how are you?"
 encoded_input = tokenizer.encode(text, return_tensors='pt')
 
-model = torch.jit.trace(model, torch.randint(10000, (5,)))
+model = torch.jit.trace(model.generate, torch.randint(10000, (5,)))
 scripted_model = torch.jit.script(model)
 # output = model.generate(encoded_input, max_length=30, num_beams=2, no_repeat_ngram_size=2, early_stopping=True)
 output = scripted_model(encoded_input)
