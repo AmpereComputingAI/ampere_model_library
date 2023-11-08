@@ -76,7 +76,9 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
     )
     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
 
-    runner = PyTorchRunner(dlrm)
+    example_inputs = dataset.get_inputs()
+    
+    runner = PyTorchRunner(dlrm, example_inputs=example_inputs, skip_script=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
@@ -87,7 +89,7 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, de
 
 def main():
     args = parse_args()
-     
+
     if args.framework == "pytorch":
         if args.model_path is None:
             print_goodbye_message_and_die(
