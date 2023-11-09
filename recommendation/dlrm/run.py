@@ -76,7 +76,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
     )
     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
 
-    runner = PyTorchRunner(dlrm)
+    runner = PyTorchRunner(dlrm, example_inputs=dataset.get_inputs(), skip_script=True)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
