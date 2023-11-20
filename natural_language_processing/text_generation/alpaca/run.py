@@ -5,7 +5,7 @@ from natural_language_processing.text_generation.alpaca.transformers.src.transfo
 from natural_language_processing.text_generation.alpaca.transformers.src.transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from utils.nlp.alpaca_instruct import AlpacaInstruct
-from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
+from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
 
 
@@ -21,8 +21,8 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
     model = AutoModelForCausalLM.from_pretrained(model_path)
     model.eval()
-    aio = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
-    model.greedy_search = apply_compile_maybe(model.greedy_search, aio)
+    aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
+    model.greedy_search = apply_compile(model.greedy_search, aio_available)
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
