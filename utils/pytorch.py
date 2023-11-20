@@ -209,13 +209,13 @@ def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
 
-def apply_compile_maybe(model, aio):
-    if os.environ.get("TORCH_COMPILE") != "1":
+def apply_compile(model, aio_available):
+    if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
         # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
         # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
-        return torch.compile(model, backend="aio" if aio else "inductor", options={"modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()} if aio else {})
+        return torch.compile(model, backend="aio" if aio_available else "inductor", options={"modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()} if aio_available else {})
     else:
         utils.print_goodbye_message_and_die(f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
 
