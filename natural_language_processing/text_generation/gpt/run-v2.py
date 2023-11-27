@@ -31,7 +31,6 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     model.eval()
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
     model = apply_jit_trace(model, torch.randint(10000, (5,)))
-    model = apply_jit_script(model)
     runner = PyTorchRunnerV2(model)
     # runner = PyTorchRunner(model, disable_jit_freeze=True, func="generate")
 
