@@ -1,29 +1,29 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
+# Load the model and tokenizer
+model = GPT2LMHeadModel.from_pretrained("gpt2")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
-# model = GPT2Model.from_pretrained(model_name, torchscript=True)
+# Prepare the input
+sentence = "Hello, how are you?"
+inputs = tokenizer.encode(sentence, return_tensors="pt")
 
-model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", torchscript=True).eval()
-text = "Hi, how are you?"
-encoded_input = tokenizer.encode(text, return_tensors='pt')
+# Define a wrapper function for the model to return only logits (tensors)
+def model_wrapper(input_ids):
+    return model(input_ids, return_dict=False)[0]
 
-model = torch.jit.trace(model.generate, torch.randint(10000, (5,)))
-scripted_model = torch.jit.script(model)
-# output = model.generate(encoded_input, max_length=30, num_beams=2, no_repeat_ngram_size=2, early_stopping=True)
-output = scripted_model(encoded_input)
-# torch_out = scripted_model(context)
+# Trace the model with the wrapper function
+traced_model = torch.jit.trace(model_wrapper, inputs)
 
-print(output)
-print(type(output))
-print(len(output))
-generated_text_torch = tokenizer.decode(output)
+# Freeze the model
+frozen_model = torch.jit.freeze(traced_model)
 
-# print("Fragment: {}".format(sentence_fragment))
-print("Completed: {}".format(generated_text_torch))
+# Generate output
+with torch.no_grad():
+    outputs = frozen_model(inputs)
 
-# print(output)
-# print(type(output))
-#
-# print(tokenizer.decode(output[0], skip_special_tokens=True))
+# Decode the output
+decoded_output = tokenizer.decode(outputs.argmax(dim=-1)[0])
+
+print(decoded_output)
