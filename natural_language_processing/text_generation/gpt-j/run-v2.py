@@ -11,8 +11,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
         output = pytorch_runner.run(None, start_ids)
-        # pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
-        quit()
+        pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
         output = detokenize(output[0])
 
         for i in range(batch_size):
