@@ -13,15 +13,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
         # output = pytorch_runner.run(None, start_ids, num_beams=2, no_repeat_ngram_size=2,
         #                             early_stopping=True, max_new_tokens=5)
         output = pytorch_runner.run(None, start_ids)
-        # outputs.logits.argmax(dim=-1)
-        print(output.argmax(dim=-1)[0])
-        quit()
-
-
         pytorch_runner.set_task_size(output[1] - start_ids.shape[1])
         output = detokenize(output[0])
-
-
 
         for i in range(batch_size):
             first_new_word = output.replace(detokenize(start_ids[0]), '').split()[0]
