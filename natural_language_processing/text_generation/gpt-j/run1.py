@@ -1,17 +1,18 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
+# tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained("gpt2", torchscript=True)
 
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6B")
-# model = GPT2Model.from_pretrained(model_name, torchscript=True)
-
-model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id=tokenizer.eos_token_id, torchscript=True)
+# model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id=tokenizer.eos_token_id, torchscript=True)
 text = "Hi, how are you?"
 encoded_input = tokenizer(text, return_tensors='pt')
-print(encoded_input)
+# print(encoded_input)
 input_dict = {key: value for key, value in encoded_input.items()}
-print(input_dict)
-quit()
+# print(input_dict)
+# quit()
 
 traced_model = torch.jit.trace(model, (input_dict['input_ids'],))
 #traced_model = torch.jit.trace(model, (encoded_input,))
