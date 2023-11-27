@@ -10,7 +10,7 @@ sentence = "hey, how are you?"
 input_ids = tokenizer.encode(sentence, return_tensors='pt')
 
 # Trace the model
-traced_model = torch.jit.trace(model, input_ids)
+traced_model = torch.jit.trace(model, torch.randint(10000, (5,)))
 
 # Freeze the model
 frozen_model = torch.jit.freeze(traced_model)
