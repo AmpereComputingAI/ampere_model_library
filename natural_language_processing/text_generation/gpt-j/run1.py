@@ -21,4 +21,8 @@ frozen_model = torch.jit.freeze(traced_model)
 #output = frozen_model(**encoded_input)
 output = frozen_model(input_dict['input_ids'])
 
+
+output_ids = output.logits.argmax(dim=-1)
+decoded_output = tokenizer.decode(output_ids[0])
+
 tokenizer.decode(output, skip_special_tokens=True)
