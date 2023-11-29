@@ -14,6 +14,15 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
         #                             early_stopping=True, max_new_tokens=5)
         output = pytorch_runner.run(None, start_ids)
         pytorch_runner.set_task_size(output[1] - start_ids.shape[1])
+        logits = output[0]
+        token_ids = torch.argmax(logits, dim=-1)
+
+        print(type(token_ids))
+        print(token_ids)
+        text = tokenizer.decode(token_ids)
+        print(text)
+        quit()
+
         output = detokenize(output[0])
 
         for i in range(batch_size):
