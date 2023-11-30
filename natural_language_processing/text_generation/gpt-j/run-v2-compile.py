@@ -1,3 +1,4 @@
+import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -6,11 +7,11 @@ from utils.nlp.lambada import Lambada
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **kwargs):
-    from utils.pytorch import PyTorchRunner, PyTorchRunnerV2, apply_jit_script, apply_jit_trace
+    from utils.pytorch import PyTorchRunner, PyTorchRunnerV2, apply_jit_script, apply_jit_trace, apply_compile_maybe
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
-        output = pytorch_runner.run(None, start_ids)
+        output = pytorch_runner.run(inputs=start_ids, max_new_tokens=10)
         pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
         output = detokenize(output[0])
 
@@ -26,15 +27,14 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def tokenize(text):
         return tokenizer.encode(text, return_tensors='pt')
 
-    model = AutoModelForCausalLM.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id, torchscript=True).eval()
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    model.eval()
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
     # model = apply_jit_trace(model, (dataset.get_input_array()[0],))
-    with torch.no_grad():
-        # model = apply_jit_trace(model, torch.randint(10000, (5,)))
-        model = apply_jit_trace(model, (dataset.get_input_array()[0],))
-        # model = apply_jit_script(model)
+    aio = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
+    model.greedy_search = apply_compile_maybe(model.greedy_search, aio)
 
-    runner = PyTorchRunnerV2(model)
+    runner = PyTorchRunnerV2(model.generate)
 
     # runner = PyTorchRunner(model, disable_jit_freeze=False, func="generate")
     # runner = PyTorchRunnerV2(model)
