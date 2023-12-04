@@ -34,14 +34,15 @@ class PyTorchRunner(Runner):
         self._frozen_script = None
 
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
-        self._gpu = os.environ.get("GPU") == "1"
+        self._gpu = torch.cuda.is_available()
+
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             import intel_extension_for_pytorch as ipex
             dtype = torch.bfloat16 if self._do_autocast else torch.float32
             self._model = ipex.optimize(self._model, dtype=dtype)
             disable_jit_freeze = True
 
-        if disable_jit_freeze or self._gpu:
+        if disable_jit_freeze:
             if os.environ.get("TORCH_COMPILE") == "1":
                 utils.print_goodbye_message_and_die(
                     f"disable_jit_freeze={disable_jit_freeze} and TORCH_COMPILE=1 are mutually exclusive.")
@@ -75,9 +76,6 @@ class PyTorchRunner(Runner):
                 torch.jit.save(self._frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
 
-        if self._gpu:
-            self._model.cuda()
-
         self._is_profiling = aio_profiler_enabled()
 
         print("\nRunning with PyTorch\n")
@@ -108,8 +106,6 @@ class PyTorchRunner(Runner):
             self._finish_times.append(finish)
             self._workload_size.append(task_size)
             self._times_invoked += 1
-            if self._gpu:
-                output = output.cpu()
             return output
 
         with torch.no_grad():
@@ -120,8 +116,6 @@ class PyTorchRunner(Runner):
             if self._func is not None:
                 model = getattr(model, self._func)
 
-            if self._gpu:
-                args = (arg.cuda() for arg in args)
             if self._is_profiling:
                 with profile() as self._profile:
                     output_tensor = runner_func()
@@ -149,6 +143,7 @@ class PyTorchRunnerV2(Runner):
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu = torch.cuda.is_available()
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             # when using PyTorchRunnerV2, IPEX optimization should be handled in model's run file - it is here just to
             # ensure it has been accounted for in the run file. I.e. when applied a second time on model object,
@@ -172,9 +167,20 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            if self._do_autocast:
+                context = torch.cpu.amp.autocast()
+            elif self._gpu:
+                context = torch.cuda.amp.autocast()
+            else:
+                context = nullcontext()
+
+            with context:
                 start = time.time()
+                print(f"{args=}")
                 output = self._model(*args, **kwargs)
+                print(f"{output=}")
+                if self._gpu:
+                    torch.cuda.synchronize()
                 finish = time.time()
 
             self._start_times.append(start)

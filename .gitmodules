@@ -23,3 +23,6 @@
 	path = natural_language_processing/text_generation/alpaca/transformers
 	url = https://github.com/AmpereComputingAI/transformers.git
 	branch = karol/llama-compile-v2
+[submodule "speech_recognition/whisper/openai_whisper"]
+	path = speech_recognition/whisper/openai_whisper
+	url = https://github.com/openai/whisper.git

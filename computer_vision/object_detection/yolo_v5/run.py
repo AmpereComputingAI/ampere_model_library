@@ -101,6 +101,34 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunnerV2
+
+    def run_single_pass(pytorch_runner, coco):
+        shape = (640, 640)
+        inp = torch.stack(coco.get_input_array(shape)).cuda()
+        output = pytorch_runner.run(batch_size, inp)
+        output = non_max_suppression(output).cpu()
+
+        for i in range(batch_size):
+            for d in range(output[i].shape[0]):
+                coco.submit_bbox_prediction(
+                    i,
+                    coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
+                    output[i][d][4].item(),
+                    coco.translate_cat_id_to_coco(int(output[i][d][5].item()))
+                )
+
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
+                          pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
+
+    from ultralytics import YOLO
+    model = YOLO(model_path)
+
+    runner = PyTorchRunnerV2(model)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
 
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze)

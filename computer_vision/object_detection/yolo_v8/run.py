@@ -81,7 +81,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
         shape = (640, 640)
         inp = torch.stack(coco.get_input_array(shape))
         output = pytorch_runner.run(batch_size, inp)
+        print("output = ", output)
+        print("##########")
         output = ops.non_max_suppression(output)
+        print("output nms = ", output)
+        exit()
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
@@ -102,6 +106,36 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     runner = PyTorchRunner(torch.jit.load(torchscript_model),
                            disable_jit_freeze=disable_jit_freeze,
                            example_inputs=torch.stack(dataset.get_input_array((640, 640))))
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
+def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    from utils.pytorch import PyTorchRunnerV2
+
+    def run_single_pass(pytorch_runner, coco):
+        shape = (640, 640)
+        inp = torch.tensor(coco.get_input_array(shape))
+        output = pytorch_runner.run(batch_size, inp)
+
+        for i in range(batch_size):
+
+            print(output[i].boxes)
+            # for d in range(output[i].shape[0]):
+            #     coco.submit_bbox_prediction(
+            #         i,
+            #         coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
+            #         output[i][d][4].item(),
+            #         coco.translate_cat_id_to_coco(output[i][d][5].item())
+            #     )
+
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
+                          pre_processing="YOLO", sort_ascending=True, order="NCHW")
+
+    from ultralytics import YOLO
+    model = YOLO(model_path)
+
+    runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
