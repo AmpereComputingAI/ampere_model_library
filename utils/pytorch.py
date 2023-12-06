@@ -176,9 +176,7 @@ class PyTorchRunnerV2(Runner):
 
             with context:
                 start = time.time()
-                print(f"{args=}")
                 output = self._model(*args, **kwargs)
-                print(f"{output=}")
                 if self._gpu:
                     torch.cuda.synchronize()
                 finish = time.time()

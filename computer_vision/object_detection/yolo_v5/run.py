@@ -106,21 +106,20 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, images_path, ann
 
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
-        inp = torch.stack(coco.get_input_array(shape)).cuda()
+        inp = torch.tensor(coco.get_input_array(shape))
         output = pytorch_runner.run(batch_size, inp)
-        output = non_max_suppression(output).cpu()
 
         for i in range(batch_size):
-            for d in range(output[i].shape[0]):
+            for d in range(output[i].boxes.xywh.shape[0]):
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
-                    output[i][d][4].item(),
-                    coco.translate_cat_id_to_coco(int(output[i][d][5].item()))
+                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d,:].tolist()),
+                    output[i].boxes.conf[d].item(),
+                    coco.translate_cat_id_to_coco(output[i].boxes.cls[d].item())
                 )
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
-                          pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
+                          pre_processing=None, sort_ascending=True, order="NCHW")
 
     from ultralytics import YOLO
     model = YOLO(model_path)
