@@ -21,6 +21,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
     model = AutoModelForCausalLM.from_pretrained(model_path)
     model.merge_qkv()
+    model = model.half()
     model.eval()
     aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
     model.greedy_search = apply_compile(model.greedy_search, aio_available)
