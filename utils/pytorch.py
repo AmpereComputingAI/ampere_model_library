@@ -34,6 +34,7 @@ class PyTorchRunner(Runner):
         self._frozen_script = None
 
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
         self._gpu = torch.cuda.is_available()
 
         if os.environ.get("IPEX_OPTIMIZE") == "1":
@@ -90,7 +91,7 @@ class PyTorchRunner(Runner):
         def runner_func():
             if self._do_autocast:
                 context = torch.cpu.amp.autocast()
-            elif self._gpu:
+            elif self._gpu_autocast:
                 context = torch.cuda.amp.autocast()
             else:
                 context = nullcontext()
@@ -143,6 +144,7 @@ class PyTorchRunnerV2(Runner):
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
         self._gpu = torch.cuda.is_available()
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             # when using PyTorchRunnerV2, IPEX optimization should be handled in model's run file - it is here just to
@@ -169,7 +171,7 @@ class PyTorchRunnerV2(Runner):
         def runner_func():
             if self._do_autocast:
                 context = torch.cpu.amp.autocast()
-            elif self._gpu:
+            elif self._gpu_autocast:
                 context = torch.cuda.amp.autocast()
             else:
                 context = nullcontext()
