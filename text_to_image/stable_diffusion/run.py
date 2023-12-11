@@ -138,4 +138,9 @@ if __name__ == "__main__":
                         help="path to config which constructs model")
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
     parser.add_argument('--scale', type=int, default=9, help="scale of the image")
-    run_pytorch_fp32(**vars(parser.parse()))
+
+    import torch
+    if torch.cuda.is_available():
+        run_pytorch_cuda(**vars(parser.parse()))
+    else:
+        run_pytorch_fp32(**vars(parser.parse()))

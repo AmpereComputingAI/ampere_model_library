@@ -105,7 +105,7 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, **kwargs):
     import torch
     import torchvision
     from utils.pytorch import PyTorchRunner
@@ -208,7 +208,10 @@ def main():
                 "this model seems to be unsupported in a specified precision: " + args.precision)
 
     elif args.framework == "pytorch":
-        if args.precision == "fp32":
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(model_name='vgg16', **vars(args))
+        elif args.precision == "fp32":
             run_pytorch_fp32(model_name='vgg16', **vars(args))
         else:
             print_goodbye_message_and_die(

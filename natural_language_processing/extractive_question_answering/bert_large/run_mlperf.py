@@ -202,7 +202,10 @@ def main():
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
 
-        if args.precision == "fp32":
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(**vars(args))
+        elif args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(

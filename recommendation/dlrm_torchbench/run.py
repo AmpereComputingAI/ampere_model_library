@@ -149,7 +149,7 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(batch_size, num_runs, timeout):
+def run_pytorch_cuda(batch_size, num_runs, timeout, **kwargs):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
@@ -274,7 +274,10 @@ def main():
     args = parse_args()
 
     if args.framework == "pytorch":
-        if args.precision == "fp32":
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(**vars(args))
+        elif args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(

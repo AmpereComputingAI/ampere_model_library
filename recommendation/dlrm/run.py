@@ -81,7 +81,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, debug):
+def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
     from utils.pytorch import PyTorchRunnerV2
 
     def run_single_pass(torch_runner, criteo):
@@ -132,7 +132,10 @@ def main():
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
 
-        if args.precision == "fp32":
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(**vars(args))
+        elif args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(

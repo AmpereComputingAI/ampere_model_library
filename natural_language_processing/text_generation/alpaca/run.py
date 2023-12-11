@@ -70,7 +70,12 @@ def main():
     parser.add_argument("--dataset_path",
                     type=str,
                     help="path to JSON file with instructions")
-    run_pytorch_fp32(**vars(parser.parse()))
+    
+    import torch
+    if torch.cuda.is_available():
+        run_pytorch_cuda(**vars(parser.parse()))
+    else:
+        run_pytorch_fp32(**vars(parser.parse()))
 
 
 if __name__ == "__main__":

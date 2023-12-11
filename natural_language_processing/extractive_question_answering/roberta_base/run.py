@@ -101,7 +101,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
@@ -148,7 +148,11 @@ def main():
     if args.framework == "tf":
         run_tf(**vars(args))
     elif args.framework == "pytorch":
-        run_pytorch(**vars(args))
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(**vars(args))
+        else:
+            run_pytorch(**vars(args))
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

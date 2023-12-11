@@ -67,4 +67,9 @@ if __name__ == "__main__":
     whisper_variants = whisper_variants + [f"{name}.en" for name in whisper_variants[:4]]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
-    run_pytorch_fp32(**vars(parser.parse()))
+
+    import torch
+    if torch.cuda.is_available():
+        run_pytorch_cuda(**vars(parser.parse()))
+    else:
+        run_pytorch_fp32(**vars(parser.parse()))
