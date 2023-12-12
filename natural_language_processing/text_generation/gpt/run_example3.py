@@ -36,7 +36,7 @@ print("\nTracing engaged\n")
 
 with torch.no_grad():
     x = time.time()
-    outputs = model.generate(inputs, do_sample=True, max_length=20, top_p=0.95)
+    outputs = model.generate(inputs, do_sample=True, max_length=50, top_p=0.95)
     print(f"throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
 text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(text)
