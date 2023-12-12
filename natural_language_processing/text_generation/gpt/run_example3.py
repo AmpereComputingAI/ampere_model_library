@@ -1,25 +1,34 @@
+from transformers import AutoTokenizer, GPT2LMHeadModel, AutoModelForCausalLM
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import time
+import os
+torch.set_num_threads(int(os.environ["AIO_NUM_THREADS"]))
 
-tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-model = GPT2LMHeadModel.from_pretrained('gpt2', pad_token_id=tokenizer.eos_token_id)
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained("gpt2", torchscript=True)
 
-# print(tokenizer.decode(tokenizer.eos_token_id))
+#tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-j-6b")
+#model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6b")
 
-sentence = "hey, how are you?"
-input_ids = tokenizer.encode(sentence, return_tensors='pt')
-
-# Trace the model
-traced_model = torch.jit.trace(model, torch.randint(10000, (5,)))
-
-# Freeze the model
-frozen_model = torch.jit.freeze(traced_model)
-
+model.eval()
+inputs = tokenizer.encode("Hello, I'm looking for an employment, ", return_tensors="pt")
+print("\nNo tracing\n")
 with torch.no_grad():
-    outputs = frozen_model(input_ids)
+    for n in range(3):
+        break
+        x = time.time()
+        outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
+        print(f"Run: {n}, throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
 
-# Decode the output
-output_ids = outputs.logits.argmax(dim=-1)
-decoded_output = tokenizer.decode(output_ids[0])
 
-print(decoded_output)
+#model.forward = torch.jit.freeze(torch.jit.trace_module(model, {"forward": inputs}))
+model.generate = torch.jit.freeze(torch.jit.trace_module(model, {"generate": inputs}))
+
+print("\nTracing engaged\n")
+with torch.no_grad():
+    for n in range(3):
+        x = time.time()
+        outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
+        print(f"Run: {n}, throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
+text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print(text)
