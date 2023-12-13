@@ -208,6 +208,9 @@ def apply_jit_script(model):
 def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
+def apply_jit_trace_module(model, example_inputs):
+    return load_from_cache_or_apply(model, lambda: torch.jit.trace_module(model, example_inputs))
+
 
 def apply_compile_maybe(model, aio):
     if os.environ.get("TORCH_COMPILE") != "1":
