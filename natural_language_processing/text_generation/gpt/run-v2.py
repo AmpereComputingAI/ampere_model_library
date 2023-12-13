@@ -12,9 +12,13 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
         start_ids = lambada.get_input_array()[0]
         # output = pytorch_runner.run(None, start_ids, num_beams=2, no_repeat_ngram_size=2,
         #                             early_stopping=True, max_new_tokens=5)
-        output = pytorch_runner.run(None, start_ids, do_sample=True, max_length=50, top_p=0.95)
+        outputs = pytorch_runner.run(None, start_ids, do_sample=True, max_length=50, top_p=0.95)
 
+        text = detokenize(outputs[0])
+        print(text)
         quit()
+
+
         # output = pytorch_runner.run(None, start_ids)
         # pytorch_runner.set_task_size(output[1] - start_ids.shape[1])
         # logits = output[0]
