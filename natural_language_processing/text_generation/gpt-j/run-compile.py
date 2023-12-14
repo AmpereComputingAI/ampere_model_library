@@ -7,7 +7,7 @@ from utils.nlp.lambada import Lambada
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **kwargs):
-    from utils.pytorch import PyTorchRunner, PyTorchRunnerV2, apply_jit_script, apply_jit_trace, apply_compile_maybe
+    from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
@@ -27,17 +27,12 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def tokenize(text):
         return tokenizer.encode(text, return_tensors='pt')
 
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    model.eval()
+    model = AutoModelForCausalLM.from_pretrained(model_name).eval()
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
-    # model = apply_jit_trace(model, (dataset.get_input_array()[0],))
     aio = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
     model.greedy_search = apply_compile_maybe(model.greedy_search, aio)
 
     runner = PyTorchRunnerV2(model.generate)
-
-    # runner = PyTorchRunner(model, disable_jit_freeze=False, func="generate")
-    # runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
