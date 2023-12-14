@@ -25,8 +25,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def tokenize(text):
         return tokenizer.encode(text, return_tensors='pt')
 
-    model = GPT2LMHeadModel.from_pretrained(model_name, torchscript=True)
-    model.eval()
+    model = GPT2LMHeadModel.from_pretrained(model_name, torchscript=True).eval()
     dataset = Lambada(batch_size, tokenize, detokenize, lambada_path)
     model.generate = apply_jit_trace_module(model, {"generate": dataset.get_input_array()[0]})
     runner = PyTorchRunnerV2(model.generate)
