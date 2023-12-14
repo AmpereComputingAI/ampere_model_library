@@ -84,6 +84,19 @@ def advertise_aio(framework_name):
           f" https://solutions.amperecomputing.com/solutions/ampere-ai\n\033[0m")
 
 
+def check_memory_settings():
+    kernel_page_size = int(subprocess.check_output("""grep -ir KernelPageSize /proc/self/smaps | head -1 | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+    thp = subprocess.check_output(r"""cat /sys/kernel/mm/transparent_hugepage/enabled | sed -n 's/.*\[\(.*\)\].*/\1/p'""", shell=True).decode('utf-8').strip()
+    sockets = int(subprocess.check_output("""lscpu | grep Socket | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+    nodes = int(subprocess.check_output("""lscpu | grep 'NUMA node(s)' | awk '{split($0, a, " "); print a[3]}'""", shell=True))
+    
+    if kernel_page_size != 64:
+        print(f"\n\033[91mKernelPageSize is {kernel_page_size} kB, consider using 64k pages.\033[0m")
+    if thp != "always":
+        print(f"\033[91mTransparent_hugepage is set to {thp}. Consider using 'always'.\033[0m")
+    if sockets != nodes:
+        print(f"\033[91mNumber of sockets detected is {sockets} and there are {nodes} NUMA nodes. Consider using 'Monolithic' mode.\n\033[0m") # NOTE: Is it a good way to check it?
+
 def download_squad_1_1_dataset():
     from utils.downloads.utils import get_downloads_path
     dataset_link1 = 'https://data.deepai.org/squad1.1.zip'

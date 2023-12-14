@@ -3,7 +3,7 @@
 
 import onnxruntime as ort
 from utils.benchmark import *
-from utils.misc import advertise_aio
+from utils.misc import advertise_aio, check_memory_settings
 
 
 class OrtRunner(Runner):
@@ -17,6 +17,7 @@ class OrtRunner(Runner):
             ort.AIO
         except AttributeError:
             advertise_aio("ONNXRunTime")
+        check_memory_settings()
 
         session_options = ort.SessionOptions()
         session_options.intra_op_num_threads = get_intra_op_parallelism_threads()

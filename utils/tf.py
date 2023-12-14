@@ -3,7 +3,7 @@
 from datetime import datetime
 import tensorflow as tf
 from utils.benchmark import *
-from utils.misc import advertise_aio
+from utils.misc import advertise_aio, check_memory_settings
 
 
 class TFProfiler:
@@ -37,6 +37,7 @@ class TFFrozenModelRunner(Runner):
             tf.AIO
         except AttributeError:
             advertise_aio("TensorFlow")
+        check_memory_settings()
 
         self._graph = self._initialize_graph(path_to_model)
         self._sess = tf.compat.v1.Session(
@@ -135,6 +136,7 @@ class TFSavedModelRunner(Runner):
             tf.AIO
         except AttributeError:
             advertise_aio("TensorFlow")
+        check_memory_settings()
 
         tf.config.threading.set_intra_op_parallelism_threads(get_intra_op_parallelism_threads())
         tf.config.threading.set_inter_op_parallelism_threads(1)
