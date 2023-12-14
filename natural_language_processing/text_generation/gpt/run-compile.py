@@ -13,10 +13,12 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
         output = pytorch_runner.run(inputs=start_ids, max_new_tokens=10)
+        pytorch_runner.set_task_size(output.shape[1] - start_ids.shape[1])
         output = detokenize(output[0])
-        print(output)
 
-        quit()
+        for i in range(batch_size):
+            first_new_word = output.replace(detokenize(start_ids[0]), '').split()[0]
+            lambada.submit_prediction(i, first_new_word)
 
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 
