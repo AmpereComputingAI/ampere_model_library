@@ -14,12 +14,12 @@ model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", pad_token_id
 model.eval()
 inputs = tokenizer.encode("Hello, I'm looking for an employment, ", return_tensors="pt")
 print("\nNo tracing\n")
-with torch.no_grad():
-    for n in range(3):
-        break
-        x = time.time()
-        outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
-        print(f"Run: {n}, throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
+# with torch.no_grad():
+#     for n in range(1):
+#         break
+#         x = time.time()
+#         outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
+#         print(f"Run: {n}, throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
 
 
 #model.forward = torch.jit.freeze(torch.jit.trace_module(model, {"forward": inputs}))
@@ -27,10 +27,9 @@ model.generate = torch.jit.freeze(torch.jit.trace_module(model, {"generate": inp
 
 print("\nTracing engaged\n")
 with torch.no_grad():
-    for n in range(3):
-        x = time.time()
-        outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
-        print(f"Run: {n}, throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
+    x = time.time()
+    outputs = model.generate(inputs, do_sample=True, max_length=100, top_k=50, top_p=0.95, num_return_sequences=1)
+    print(f"throughput: {round(outputs.shape[1] / (time.time() - x), 3)} tps")
 text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(text)
 
