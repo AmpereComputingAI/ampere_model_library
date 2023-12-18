@@ -8,7 +8,7 @@ from utils.nlp.lambada import Lambada
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, **kwargs):
-    from utils.pytorch import PyTorchRunner, PyTorchRunnerV2, apply_jit_trace, apply_jit_script, apply_compile_maybe
+    from utils.pytorch import PyTorchRunnerV2, apply_compile_maybe
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
