@@ -26,6 +26,7 @@ class PyTorchRunner(Runner):
         except AttributeError:
             utils.advertise_aio("Torch")
             AIO = False
+        utils.check_memory_settings()
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._model = model
@@ -129,6 +130,7 @@ class PyTorchRunnerV2(Runner):
                 f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
         except AttributeError:
             utils.advertise_aio("Torch")
+        utils.check_memory_settings()
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
