@@ -5,7 +5,7 @@ from utils.benchmark import run_model
 from utils.nlp.financial_phrasebank import FinancialPhraseBank
 
 
-def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
+def run_pytorch(num_runs, timeout):
     def run_single_pass(pytorch_runner, dataset):
         input_tensor = tokenizer.encode(dataset.get_input_string(), truncation=True, return_tensors="pt")
         preds = softmax(pytorch_runner.run(input_tensor))
@@ -19,15 +19,14 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
     model = torch.jit.freeze(torch.jit.trace(model, tokenizer.encode("Stocks rallied and the British pound gained.",
                                                                      return_tensors='pt')))
 
-    dataset = FinancialPhraseBank()
     softmax = torch.nn.Softmax(dim=1)
     runner = PyTorchRunnerV2(model)
 
-    return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+    return run_model(run_single_pass, runner, FinancialPhraseBank(), 1, num_runs, timeout)
 
 
-def run_pytorch_fp32(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
-    return run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs)
+def run_pytorch_fp32(num_runs, timeout, **kwargs):
+    return run_pytorch(num_runs, timeout)
 
 
 def main():
