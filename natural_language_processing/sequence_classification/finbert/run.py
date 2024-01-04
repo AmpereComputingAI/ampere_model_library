@@ -8,7 +8,7 @@ from utils.nlp.financial_phrasebank import FinancialPhraseBank
 def run_pytorch(num_runs, timeout):
     def run_single_pass(pytorch_runner, dataset):
         input_tensor = tokenizer.encode(dataset.get_input_string(), truncation=True, return_tensors="pt")
-        preds = softmax(pytorch_runner.run(input_tensor)[0])
+        preds = softmax(pytorch_runner.run(input_ids=input_tensor)[0])
         pytorch_runner.set_task_size(input_tensor.nelement())
         dataset.submit_prediction(preds)
 
