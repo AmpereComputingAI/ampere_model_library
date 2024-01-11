@@ -224,12 +224,13 @@ def apply_compile(model):
             backend = "aio"
             options = {
                 "modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()}
-            print("AIO available and enabled, applying torch.compile() with \"aio\" backend.")
+            utils.print_warning_message(
+                f"AIO available and enabled, applying torch.compile() with \"{backend}\" backend.")
         else:
             backend = "inductor"
             options = {}
             utils.print_warning_message(
-                "AIO unavailable or disabled, applying torch.compile() with \"inductor\" backend.")
+                f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
         return torch.compile(
             model,
             backend=backend,
