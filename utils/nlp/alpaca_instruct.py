@@ -3,12 +3,14 @@ import json
 
 import utils.misc as utils
 
+
 class AlpacaInstruct:
     """
     A class providing facilities for preprocessing and postprocessing of Alpaca dataset.
     """
 
     def __init__(self, batch_size: int, tokenize_func=None, detokenize_func=None, dataset_path=None):
+        assert batch_size == 1
         if dataset_path is None:
             env_var = "ALPACA_DATASET_PATH"
             dataset_path = utils.get_env_variable(
@@ -23,13 +25,12 @@ class AlpacaInstruct:
         self.__exact_match_count = 0
         self.__f1_count = 0
 
-    def get_input_array(self):
-        prompt = ("Below is an instruction that describes a task. Write a response that appropriately completes the request.\r\n\r\n"
-                  "### Instruction:\r\n"
-                 f"{self.data[self.__current_sample]['instruction']}\r\n\r\n")
+    def get_input_string(self):
+        prompt = ("Below is an instruction that describes a task. "
+                  "Write a response that appropriately completes the request.\r\n\r\n"
+                  f"### Instruction:\r\n{self.data[self.__current_sample]['instruction']}\r\n\r\n")
         if self.data[self.__current_sample]['input']:
-            prompt += ("### Input:\r\n"
-                      f"{self.data[self.__current_sample]['input']}\r\n\r\n")
+            prompt += f"### Input:\r\n{self.data[self.__current_sample]['input']}\r\n\r\n"
 
         prompt += "### Response:"
 
@@ -38,7 +39,7 @@ class AlpacaInstruct:
     def reset(self):
         self.__current_sample = 0
         return True
-    
+
     def submit_prediction(self, answer: str):
         """
         A function allowing for a submission of obtained results of NLP inference.
@@ -94,7 +95,7 @@ class AlpacaInstruct:
         self.__exact_match_count += metric_max_over_ground_truth(exact_match_score, answer, ground_truth)
         self.__f1_count += metric_max_over_ground_truth(f1_score, answer, ground_truth)
         self.__current_sample += 1
-    
+
     def summarize_accuracy(self):
         exact_match = self.__exact_match_count / self.__current_sample
         print("\n Exact match = {:.3f}".format(exact_match))

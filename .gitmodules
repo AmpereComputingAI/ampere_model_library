@@ -20,6 +20,6 @@
 	path = text_to_image/stable_diffusion/stablediffusion
 	url = https://github.com/AmpereComputingAI/stablediffusion.git
 [submodule "utils/nlp/transformers"]
-	path = natural_language_processing/text_generation/alpaca/transformers
+	path = natural_language_processing/text_generation/transformers
 	url = https://github.com/AmpereComputingAI/transformers.git
 	branch = karol/llama-compile-v2
