@@ -107,7 +107,7 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.13.3 \
+   tokenizers==0.14.1 \
    tabulate==0.9.0 \
    regex==2022.3.15 \
    portalocker==2.6.0 \

@@ -5,7 +5,7 @@ from natural_language_processing.text_generation.transformers.src.transformers.m
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 
 
-def run_pytorch(model_path, num_runs, timeout, dataset_path):
+def run_pytorch(model_name, num_runs, timeout, dataset_path):
     def run_single_pass(pytorch_runner, _dataset):
         input_tensor = tokenizer.encode(_dataset.get_input_string(), return_tensors="pt")
         output = pytorch_runner.run(input_tensor, max_length=100, num_return_sequences=1, temperature=0.7)
@@ -13,12 +13,12 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path):
         response = tokenizer.decode(output[len(input_tensor[0]):], skip_special_tokens=True)
         _dataset.submit_prediction(response)
 
-    model = LlamaForCausalLM.from_pretrained(model_path, torchscript=True)
+    model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
     model.merge_qkv()
     model.eval()
     model.generate = apply_compile(model.generate)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side='left')
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
     tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})
 
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
@@ -28,8 +28,8 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
-    return run_pytorch(model_path, num_runs, timeout, dataset_path)
+def run_pytorch_fp32(model_name, num_runs, timeout, dataset_path, **kwargs):
+    return run_pytorch(model_name, num_runs, timeout, dataset_path)
 
 
 def main():
