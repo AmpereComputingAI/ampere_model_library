@@ -1,10 +1,7 @@
-from natural_language_processing.text_generation.transformers.src.transformers.models.auto.modeling_auto import \
-    AutoModelForCausalLM
-from natural_language_processing.text_generation.transformers.src.transformers.models.auto.tokenization_auto import \
-    AutoTokenizer
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def run_pytorch(model_path, num_runs, timeout, dataset_path):

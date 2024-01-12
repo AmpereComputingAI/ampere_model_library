@@ -74,7 +74,6 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
-   transformers==4.32.0 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
@@ -85,6 +84,9 @@ pip3 install --no-deps --upgrade \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
    numba==0.57.1
+
+pip3 install --no-build-isolation --upgrade \
+   git+https://github.com/AmpereComputingAI/transformers.git@karol/llama-compile-v3
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \

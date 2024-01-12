@@ -76,7 +76,7 @@ class Runner:
     warm_up_runs: int, number of warm-up runs to exclude from final metrics
     """
 
-    warm_up_runs = 2
+    warm_up_runs = 3
     _pid = os.getpid()
     _results_dir = os.environ.get("RESULTS_DIR")
 
