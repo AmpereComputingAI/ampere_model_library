@@ -32,7 +32,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout, dataset_path, **kwargs):
 
 def main():
     from utils.helpers import DefaultArgParser
-    llama_variants = ["meta-llama/Llama-2-7b-hf", "meta-llama/Llama-2-13b-hf"]
+    llama_variants = ["meta-llama/Llama-2-7b-chat-hf", "meta-llama/Llama-2-13b-chat-hf"]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(llama_variants)
     parser.add_argument("--dataset_path",
