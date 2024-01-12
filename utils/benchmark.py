@@ -12,6 +12,7 @@ from tqdm.auto import tqdm
 from threading import Thread
 from filelock import FileLock
 
+WARM_UP_RUNS = 3
 intra_op_parallelism_threads = None
 
 
@@ -76,7 +77,7 @@ class Runner:
     warm_up_runs: int, number of warm-up runs to exclude from final metrics
     """
 
-    warm_up_runs = 3
+    warm_up_runs = WARM_UP_RUNS
     _pid = os.getpid()
     _results_dir = os.environ.get("RESULTS_DIR")
 
@@ -209,12 +210,14 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
-    if num_runs is not None:
+    if num_runs is None:
+        requested_instances_num = (WARM_UP_RUNS + 1) * batch_size
+    else:
         requested_instances_num = num_runs * batch_size
-        if dataset.available_instances < requested_instances_num:
-            utils.print_goodbye_message_and_die(
-                f"Number of runs requested exceeds number of instances available in dataset! "
-                f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
+    if dataset.available_instances < requested_instances_num:
+        utils.print_goodbye_message_and_die(
+            "Number of runs requested exceeds number of instances available in dataset! "
+            f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
     if os.environ.get("WARM_UP_ONLY") == "1":
         single_pass_func(runner, dataset)
@@ -226,11 +229,22 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     while True:
         try:
             if num_runs is None:
+                completed_runs = 0
                 while time.time() - start < timeout:
                     single_pass_func(runner, dataset)
                     timeout_pbar.n = int(min(time.time() - start, timeout))
                     timeout_pbar.refresh()
                     runner.abort_maybe()
+                    completed_runs += 1
+                if completed_runs <= WARM_UP_RUNS:
+                    remaining_runs = WARM_UP_RUNS + 1 - completed_runs
+                    utils.print_warning_message(
+                        f"Timeout hit, but only {completed_runs} sample(s) collected. Running "
+                        f"{remaining_runs} more times.")
+                    timeout_pbar.close()
+                    for _ in tqdm(range(remaining_runs)):
+                        single_pass_func(runner, dataset)
+                        runner.abort_maybe()
             else:
                 for _ in tqdm(range(num_runs)):
                     single_pass_func(runner, dataset)
