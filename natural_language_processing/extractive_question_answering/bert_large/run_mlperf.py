@@ -2,10 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
-
 import numpy as np
-from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
-
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
@@ -41,6 +38,7 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
+    from transformers import AutoTokenizer
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, squad):
@@ -81,7 +79,8 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs)
     return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+    from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
     import torch
     from utils.pytorch import PyTorchRunner
 
