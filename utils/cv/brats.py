@@ -16,8 +16,6 @@
 
 import os
 import sys
-import json
-import pathlib
 import shutil
 import numpy as np
 import SimpleITK as sitk
