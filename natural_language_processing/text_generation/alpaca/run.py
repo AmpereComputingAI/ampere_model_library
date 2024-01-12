@@ -9,7 +9,7 @@ from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
 
 
-def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
+def run_pytorch(model_path, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
 
     def run_single_pass(pytorch_runner, dataset):
         inputs = encode(dataset.get_input_array())
@@ -33,11 +33,11 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=
 
     runner = PyTorchRunnerV2(model.generate)
 
-    return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
-    return run_pytorch(model_path, num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs)
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
+    return run_pytorch(model_path, batch_size, num_runs, timeout, dataset_path, disable_jit_freeze, **kwargs)
 
 
 def main():
@@ -47,6 +47,9 @@ def main():
     parser.add_argument("--dataset_path",
                     type=str,
                     help="path to JSON file with instructions")
+    parser.add_argument("-b", "--batch_size",
+                        type=int, default=1,
+                        help="batch size to feed the model with")
     run_pytorch_fp32(**vars(parser.parse()))
 
 
