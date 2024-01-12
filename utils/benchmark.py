@@ -239,8 +239,8 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
                 if completed_runs <= WARM_UP_RUNS:
                     remaining_runs = WARM_UP_RUNS + 1 - completed_runs
                     utils.print_warning_message(
-                        f"Timeout hit, but only {completed_runs} sample(s) collected. Running "
-                        f"{remaining_runs} more times.")
+                        f"Timeout hit, but only {completed_runs} sample(s) collected. Running for {remaining_runs} "
+                        f"more time(s).")
                     timeout_pbar.close()
                     for _ in tqdm(range(remaining_runs)):
                         single_pass_func(runner, dataset)
