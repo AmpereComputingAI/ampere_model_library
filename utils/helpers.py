@@ -51,10 +51,10 @@ class Dataset:
         if len(accuracy_results) == 0:
             print_warning_message("Accuracy metrics not implemented.")
         else:
-            max_len = 20
+            max_len = 14
             indent = 2 * " "
             print(f"\n{indent}ACCURACY")
             for metric in accuracy_results.keys():
                 print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
-                      "= {:>10.3f}".format(accuracy_results[metric]))
+                      "= {:>7.3f}".format(accuracy_results[metric]))
         return accuracy_results
