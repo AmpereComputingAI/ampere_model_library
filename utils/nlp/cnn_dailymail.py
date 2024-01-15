@@ -5,9 +5,10 @@ from collections import Counter
 import pathlib
 
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class CNN_DailyMail:
+class CNN_DailyMail(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of CNN/DailyMail dataset.
     """
@@ -225,7 +226,7 @@ class CNN_DailyMail:
                 "Summaries for some of the issued texts have not been submitted.")
 
         rouge2 = self.__rouge2_count / self.__texts_count
-        print(" ROUGE-2 = {:.3f}".format(rouge2))
+        #print(" ROUGE-2 = {:.3f}".format(rouge2))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} summaries generated.")
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} summaries generated.")
         return {"rouge2": rouge2}

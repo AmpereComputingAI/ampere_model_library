@@ -1,10 +1,10 @@
 from collections import Counter
 import json
-
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class AlpacaInstruct:
+class AlpacaInstruct(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of Alpaca dataset.
     """
@@ -98,9 +98,5 @@ class AlpacaInstruct:
 
     def summarize_accuracy(self):
         exact_match = self.__exact_match_count / self.__current_sample
-        print("\n Exact match = {:.3f}".format(exact_match))
         f1 = self.__f1_count / self.__current_sample
-        print(" F1 = {:.3f}".format(f1))
-
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_sample} instructions processed.")
         return {"exact_match": exact_match, "f1": f1}

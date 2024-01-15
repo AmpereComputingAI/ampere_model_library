@@ -1,5 +1,6 @@
 import argparse
 from typing import List
+from utils.misc import print_warning_message
 
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
@@ -35,7 +36,7 @@ class DefaultArgParser:
         return self.parser.parse_args()
 
 
-class DatasetStub:
+class Dataset:
     available_instances = None
 
     def reset(self) -> bool:
@@ -43,3 +44,18 @@ class DatasetStub:
 
     def summarize_accuracy(self) -> dict:
         raise NotImplementedError
+
+    def print_accuracy_metrics(self) -> dict:
+        accuracy_results = self.summarize_accuracy()
+        assert type(accuracy_results) is dict
+        if len(accuracy_results) == 0:
+            print_warning_message("Accuracy metrics not implemented.")
+        else:
+            max_len = 30
+            indent = 2 * " "
+            print(f"\n{indent}ACCURACY")
+            for metric in accuracy_results.keys():
+                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                      "= {:>10.3f}".format(accuracy_results[metric]))
+            print()
+        return accuracy_results

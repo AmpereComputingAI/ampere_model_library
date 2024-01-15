@@ -6,11 +6,11 @@ import json
 import re
 import string
 from collections import Counter
-import pathlib
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class Squad_v1_1:
+class Squad_v1_1(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of Squad v1.1 validation dataset.
     """
@@ -270,10 +270,10 @@ class Squad_v1_1:
                 "Answers for some of the issued questions have not been submitted.")
 
         exact_match = self.__exact_match_count / self.__questions_count
-        print("\n Exact match = {:.3f}".format(exact_match))
+        #print("\n Exact match = {:.3f}".format(exact_match))
 
         f1 = self.__f1_count / self.__questions_count
-        print(" F1 = {:.3f}".format(f1))
+        #print(" F1 = {:.3f}".format(f1))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
         return {"exact_match": exact_match, "f1": f1}

@@ -260,4 +260,4 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     if num_runs is None:
         timeout_pbar.close()
 
-    return dataset.summarize_accuracy(), runner.print_performance_metrics()
+    return dataset.print_accuracy_metrics(), runner.print_performance_metrics()
