@@ -4,18 +4,18 @@ from utils.benchmark import *
 from utils.profiling import aio_profiler_enabled
 
 
-class CTranslateRunne(Runner):
+class CTranslateRunner(Runner):
     """
     A class providing facilities to run CTranslate2 model.
     """
 
-    def __init__(self, model, tokenizer, compute_type):
+    def __init__(self, model, tokenizer, compute_type, throughput_only=False):
         # try:
         #     #TODO: Check for AIO
         # except AttributeError:
         #     utils.advertise_aio("CTranslate2")
 
-        super().__init__()
+        super().__init__(throughput_only)
         self.translator = ctranslate2.Translator(
             model, device='cpu', compute_type=compute_type,
             inter_threads=1, intra_threads=get_intra_op_parallelism_threads()

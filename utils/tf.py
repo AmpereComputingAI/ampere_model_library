@@ -25,14 +25,14 @@ class TFFrozenModelRunner(Runner):
     A class providing facilities to run TensorFlow frozen model (in frozen .pb format).
     """
 
-    def __init__(self, path_to_model: str, output_names: list):
+    def __init__(self, path_to_model: str, output_names: list, throughput_only=False):
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
         Netron app).
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
         """
-        super().__init__()
+        super().__init__(throughput_only)
         try:
             tf.AIO
         except AttributeError:
@@ -127,11 +127,11 @@ class TFSavedModelRunner(Runner):
     A class providing facilities to run TensorFlow saved model (in SavedModel format).
     """
 
-    def __init__(self):
+    def __init__(self, throughput_only=False):
         """
         A function initializing runner.
         """
-        super().__init__()
+        super().__init__(throughput_only)
         try:
             tf.AIO
         except AttributeError:

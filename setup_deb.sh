@@ -86,7 +86,7 @@ pip3 install --no-deps --upgrade \
    numba==0.57.1
 
 pip3 install --no-build-isolation --upgrade \
-   git+https://github.com/AmpereComputingAI/transformers.git@karol/llama-compile-v3
+   git+https://github.com/AmpereComputingAI/transformers-depreciated.git@karol/llama-compile-v3
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \

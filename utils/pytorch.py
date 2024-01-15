@@ -18,8 +18,10 @@ class PyTorchRunner(Runner):
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False):
-        super().__init__()
+    def __init__(self,
+                 model,
+                 disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False, throughput_only=False):
+        super().__init__(throughput_only)
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(
@@ -126,8 +128,8 @@ class PyTorchRunner(Runner):
 
 
 class PyTorchRunnerV2(Runner):
-    def __init__(self, model):
-        super().__init__()
+    def __init__(self, model, throughput_only=False):
+        super().__init__(throughput_only)
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(

@@ -11,8 +11,8 @@ class OrtRunner(Runner):
     A class providing facilities to run ONNX model
     """
 
-    def __init__(self, model: str):
-        super().__init__()
+    def __init__(self, model: str, throughput_only=False):
+        super().__init__(throughput_only)
         try:
             ort.AIO
         except AttributeError:

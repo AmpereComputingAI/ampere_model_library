@@ -9,7 +9,7 @@ class AlpacaInstruct:
     A class providing facilities for preprocessing and postprocessing of Alpaca dataset.
     """
 
-    def __init__(self, batch_size: int, tokenize_func=None, detokenize_func=None, dataset_path=None):
+    def __init__(self, batch_size: int, dataset_path=None):
         assert batch_size == 1
         if dataset_path is None:
             env_var = "ALPACA_DATASET_PATH"

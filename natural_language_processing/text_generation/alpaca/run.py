@@ -22,7 +22,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path):
     encode = lambda i: tokenizer(i, return_tensors="pt")
     decode = lambda t: tokenizer.batch_decode(t, skip_special_tokens=True)[0]
 
-    runner = PyTorchRunnerV2(model.generate)
+    runner = PyTorchRunnerV2(model.generate, throughput_only=True)
 
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 

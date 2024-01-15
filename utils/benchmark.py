@@ -81,7 +81,8 @@ class Runner:
     _pid = os.getpid()
     _results_dir = os.environ.get("RESULTS_DIR")
 
-    def __init__(self):
+    def __init__(self, throughput_only: bool):
+        self._throughput_only = throughput_only
         self._times_invoked = 0
         self._start_times = list()
         self._finish_times = list()
@@ -170,10 +171,11 @@ class Runner:
                            "p99": "99th_percentile_lat_ms",
                            "p99.9": "99.9th_percentile_lat_ms"}
             indent = 2 * " "
-            print(f"\n{indent}LATENCY")
-            for metric in metrics_lat.keys():
-                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
-                      "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
+            if not self._throughput_only:
+                print(f"\n{indent}LATENCY")
+                for metric in metrics_lat.keys():
+                    print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                          "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
 
             print(f"\n{indent}THROUGHPUT")
             print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}" +
