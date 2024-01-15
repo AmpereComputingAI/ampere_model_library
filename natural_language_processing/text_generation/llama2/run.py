@@ -15,7 +15,7 @@ def run_pytorch(model_name, num_runs, timeout, dataset_path):
     import torch
     np.random.seed(44)
     torch.manual_seed(44)
-    
+
     model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
     model.merge_qkv()
     model.eval()
