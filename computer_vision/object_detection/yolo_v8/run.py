@@ -81,11 +81,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
         shape = (640, 640)
         inp = torch.stack(coco.get_input_array(shape))
         output = pytorch_runner.run(batch_size, inp)
-        print("output = ", output)
-        print("##########")
         output = ops.non_max_suppression(output)
-        print("output nms = ", output)
-        exit()
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
