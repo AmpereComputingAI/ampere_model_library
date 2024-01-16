@@ -1,9 +1,12 @@
 import argparse
+import os
+import logging
 
 import numpy as np
 import torch
+import torch._dynamo.config
 
-from utils.pytorch import PyTorchRunner
+from utils.pytorch import PyTorchRunner, PyTorchRunnerV2, apply_compile_maybe
 from utils.benchmark import run_model
 from transformers import AutoTokenizer, BartForConditionalGeneration
 from utils.nlp.cnn_dailymail import CNN_DailyMail
@@ -37,10 +40,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze=True):
+def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_jit_freeze=True, **kwargs):
     def run_single_pass(pytorch_runner, cnn_dm):
         input = torch.tensor(np.array(cnn_dm.get_input_ids_array(), dtype=np.int32))
-        output = pytorch_runner.run(batch_size, input)
+        output = pytorch_runner.run(batch_size, input, max_new_tokens=60)
 
         for i in range(batch_size):
             cnn_dm.submit_prediction(
@@ -56,11 +59,17 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
     def detokenize(summary):
         return tokenizer.decode(summary)
 
+    torch._dynamo.config.cache_size_limit = 128
+    torch._dynamo.config.verbose = True # or env_var TORCHDYNAMO_VERBOSE=1
+    torch._logging.set_logs(graph_breaks=True)
+
     model = BartForConditionalGeneration.from_pretrained(model_name, torchscript=True)
+    aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
+    model.model.encoder = apply_compile_maybe(model.model.encoder, aio_available)
+    model.model.decoder = apply_compile_maybe(model.model.decoder, aio_available)
+    #model.beam_search = apply_compile_maybe(model.beam_search, aio_available)
     dataset = CNN_DailyMail(batch_size, tokenize, detokenize, dataset_path=cnn_dm_path)
-    runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=torch.tensor(np.array(dataset.get_input_ids_array(), dtype=np.int32)),
-                           func="generate")
+    runner = PyTorchRunnerV2(model.generate)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
