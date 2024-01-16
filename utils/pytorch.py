@@ -99,9 +99,10 @@ class PyTorchRunner(Runner):
             with context:
                 start = time.time()
                 output = model(*args, **kwargs)
+                finish = time.time()
                 if self._gpu:
                     torch.cuda.synchronize()
-                finish = time.time()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
@@ -179,9 +180,10 @@ class PyTorchRunnerV2(Runner):
             with context:
                 start = time.time()
                 output = self._model(*args, **kwargs)
+                finish = time.time()
                 if self._gpu:
                     torch.cuda.synchronize()
-                finish = time.time()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
