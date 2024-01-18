@@ -65,9 +65,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
 
     model = BartForConditionalGeneration.from_pretrained(model_name, torchscript=True)
     aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
-    model.model.encoder = apply_compile_maybe(model.model.encoder, aio_available)
-    model.model.decoder = apply_compile_maybe(model.model.decoder, aio_available)
-    #model.beam_search = apply_compile_maybe(model.beam_search, aio_available)
+    model.forward = apply_compile_maybe(model.forward, aio_available)
     dataset = CNN_DailyMail(batch_size, tokenize, detokenize, dataset_path=cnn_dm_path)
     runner = PyTorchRunnerV2(model.generate)
 
