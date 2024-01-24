@@ -35,6 +35,9 @@ class PyTorchRunner(Runner):
         self._frozen_script = None
 
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
+        self._gpu = torch.cuda.is_available()
+
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             import intel_extension_for_pytorch as ipex
             dtype = torch.bfloat16 if self._do_autocast else torch.float32
@@ -74,6 +77,7 @@ class PyTorchRunner(Runner):
                     cached_dir.mkdir()
                 torch.jit.save(self._frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
+
         self._is_profiling = aio_profiler_enabled()
 
         print("\nRunning with PyTorch\n")
@@ -86,16 +90,25 @@ class PyTorchRunner(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            if self._do_autocast:
+                context = torch.cpu.amp.autocast()
+            elif self._gpu_autocast:
+                context = torch.cuda.amp.autocast()
+            else:
+                context = nullcontext()
+
+            with context:
                 start = time.time()
                 output = model(*args, **kwargs)
                 finish = time.time()
+                if self._gpu:
+                    torch.cuda.synchronize()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
             self._workload_size.append(task_size)
             self._times_invoked += 1
-
             return output
 
         with torch.no_grad():
@@ -134,6 +147,8 @@ class PyTorchRunnerV2(Runner):
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
+        self._gpu = torch.cuda.is_available()
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             # when using PyTorchRunnerV2, IPEX optimization should be handled in model's run file - it is here just to
             # ensure it has been accounted for in the run file. I.e. when applied a second time on model object,
@@ -157,10 +172,20 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            if self._do_autocast:
+                context = torch.cpu.amp.autocast()
+            elif self._gpu_autocast:
+                context = torch.cuda.amp.autocast()
+            else:
+                context = nullcontext()
+
+            with context:
                 start = time.time()
                 output = self._model(*args, **kwargs)
                 finish = time.time()
+                if self._gpu:
+                    torch.cuda.synchronize()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
