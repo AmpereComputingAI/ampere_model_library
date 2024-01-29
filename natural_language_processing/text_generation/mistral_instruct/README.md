@@ -4,7 +4,7 @@ This folder contains the script to run Mistral 7B Instruct v0.2 model on instruc
 
 ### Dataset
 
-Dataset can be found here: https://github.com/tatsu-lab/stanford_alpaca/blob/main/alpaca_data.json
+Dataset can be found here: https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/alpaca_data.json
 
 ### Model
 
