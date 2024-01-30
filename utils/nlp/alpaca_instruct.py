@@ -23,17 +23,19 @@ class AlpacaInstruct:
         self.__exact_match_count = 0
         self.__f1_count = 0
 
+    @staticmethod
     def preprocess(data):
         """
         A function converting the raw input data into a format expected by Alpaca.
         """
 
-        prompt = ("Below is an instruction that describes a task. Write a response that appropriately completes the request.\r\n\r\n"
+        prompt = ("Below is an instruction that describes a task. "
+                  "Write a response that appropriately completes the request.\r\n\r\n"
                   "### Instruction:\r\n"
-                 f"{data['instruction']}\r\n\r\n")
+                  f"{data['instruction']}\r\n\r\n")
         if data['input']:
             prompt += ("### Input:\r\n"
-                      f"{data['input']}\r\n\r\n")
+                       f"{data['input']}\r\n\r\n")
         prompt += "### Response:"
 
         return prompt

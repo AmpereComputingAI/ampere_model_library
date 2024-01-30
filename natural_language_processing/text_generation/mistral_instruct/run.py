@@ -20,7 +20,6 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
         response = decode(outputs[:, inputs.shape[1]:])[0]
         dataset.submit_prediction(response)
 
-
     model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2")
     model.eval()
     aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
@@ -44,8 +43,8 @@ def main():
     from utils.helpers import DefaultArgParser
     parser = DefaultArgParser(["pytorch"])
     parser.add_argument("--dataset_path",
-                    type=str,
-                    help="path to JSON file with instructions")
+                        type=str,
+                        help="path to JSON file with instructions")
     run_pytorch_fp32(**vars(parser.parse()))
 
 
