@@ -1,14 +1,17 @@
 from collections import Counter
 import json
-
 import utils.misc as utils
+from utils.helpers import Dataset
 
-class AlpacaInstruct:
+
+class AlpacaInstruct(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of Alpaca dataset.
     """
 
-    def __init__(self, batch_size: int, tokenize_func=None, detokenize_func=None, dataset_path=None):
+    def __init__(self, batch_size: int, dataset_path=None):
+        self._batch_size = batch_size
+
         if dataset_path is None:
             env_var = "ALPACA_DATASET_PATH"
             dataset_path = utils.get_env_variable(
@@ -19,34 +22,28 @@ class AlpacaInstruct:
             self.data = json.loads(data)
 
         self.available_instances = len(self.data)
-        self.__current_sample = 0
-        self.__exact_match_count = 0
-        self.__f1_count = 0
+        self._current_sample = -1
+        self._count = 0
+        self._exact_match = 0
+        self._f1 = 0
 
-    @staticmethod
-    def preprocess(data):
-        """
-        A function converting the raw input data into a format expected by Alpaca.
-        """
+    def get_input_string(self):
+        self._current_sample += 1
+        assert self._current_sample * self._batch_size == self._count
 
         prompt = ("Below is an instruction that describes a task. "
                   "Write a response that appropriately completes the request.\r\n\r\n"
-                  "### Instruction:\r\n"
-                  f"{data['instruction']}\r\n\r\n")
-        if data['input']:
-            prompt += ("### Input:\r\n"
-                       f"{data['input']}\r\n\r\n")
+                  f"### Instruction:\r\n{self.data[self._current_sample]['instruction']}\r\n\r\n")
+        if self.data[self._current_sample]['input']:
+            prompt += f"### Input:\r\n{self.data[self._current_sample]['input']}\r\n\r\n"
         prompt += "### Response:"
 
         return prompt
 
-    def get_input_array(self):
-        return self.data[self.__current_sample]
-
     def reset(self):
-        self.__current_sample = 0
+        self._current_sample = 0
         return True
-    
+
     def submit_prediction(self, answer: str):
         """
         A function allowing for a submission of obtained results of NLP inference.
@@ -56,7 +53,7 @@ class AlpacaInstruct:
 
         def f1_score(normalized_prediction, normalized_ground_truth):
             """
-            A function calculating the F1 score betweed normalized prediction and normalized ground truth.
+            A function calculating the F1 score between normalized prediction and normalized ground truth.
 
             :param normalized_prediction: str, normalized answer (prediction)
             :param normalized_ground_truth: str, normalized correct answer (gt)
@@ -83,31 +80,27 @@ class AlpacaInstruct:
             """
             return normalized_prediction == normalized_ground_truth
 
-        def metric_max_over_ground_truth(metric_fn, prediction, ground_truth):
+        def metric_max_over_ground_truth(metric_fn, pred, gt):
             """
             A function applying given metric function over provided correct answer (ground_truth).
 
             :param metric_fn: function calculating a metric
-            :param prediction: str with predicted answer
-            :param ground_truth: string of correct answer
+            :param pred: str with predicted answer
+            :param gt: string of correct answer
 
             :return: float, max score obtained
             """
             scores_for_ground_truths = []
-            score = metric_fn(prediction, ground_truth)
+            score = metric_fn(pred, gt)
             scores_for_ground_truths.append(score)
             return max(scores_for_ground_truths)
 
-        ground_truth = self.data[self.__current_sample]['output']
-        self.__exact_match_count += metric_max_over_ground_truth(exact_match_score, answer, ground_truth)
-        self.__f1_count += metric_max_over_ground_truth(f1_score, answer, ground_truth)
-        self.__current_sample += 1
-    
-    def summarize_accuracy(self):
-        exact_match = self.__exact_match_count / self.__current_sample
-        print("\n Exact match = {:.3f}".format(exact_match))
-        f1 = self.__f1_count / self.__current_sample
-        print(" F1 = {:.3f}".format(f1))
+        ground_truth = self.data[self._current_sample]['output']
+        self._exact_match += metric_max_over_ground_truth(exact_match_score, answer, ground_truth)
+        self._f1 += metric_max_over_ground_truth(f1_score, answer, ground_truth)
+        self._count += 1
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_sample} instructions processed.")
+    def summarize_accuracy(self):
+        exact_match = self._exact_match / self._count
+        f1 = self._f1 / self._count
         return {"exact_match": exact_match, "f1": f1}

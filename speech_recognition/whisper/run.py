@@ -25,7 +25,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     def transcribe_wrapper(audio):
         return transcribe(model, audio, verbose=None)
 
-    runner = PyTorchRunnerV2(transcribe_wrapper)
+    runner = PyTorchRunnerV2(transcribe_wrapper, throughput_only=True)
     librispeech = LibriSpeech()
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")

@@ -1,20 +1,18 @@
 # Copyright 2017-present Weichen Shen
 # Copyright (c) 2022, Ampere Computing LLC
 
-import os
-
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
-from utils.helpers import DatasetStub
-from utils.misc import print_warning_message, OutOfInstances
+from utils.helpers import Dataset
+from utils.misc import OutOfInstances
 from utils.recommendation.DeepCTR.deepctr.feature_column import SparseFeat, DenseFeat, get_feature_names
 
 
-class CensusIncome(DatasetStub):
+class CensusIncome(Dataset):
     def __init__(self, batch_size: int, dataset_path):
         self._batch_size = batch_size
         data = pd.read_csv(dataset_path)
@@ -84,11 +82,11 @@ class CensusIncome(DatasetStub):
         return True
 
     def summarize_accuracy(self):
-        summary = ""
+        #summary = ""
         metrics = {}
         for label, metric in [("label_marital", "marital AUC"), ("label_income", "income AUC")]:
             metrics[metric] = roc_auc_score(self.test_set[label][:self._current_instance], self._results[label])
-            summary += "\n {:<11} = {:.3f}".format(metric, metrics[metric])
-        print(summary)
-        print(f"\nAccuracy figures above calculated on the basis of {self._current_instance} samples.")
+            #summary += "\n {:<11} = {:.3f}".format(metric, metrics[metric])
+        #print(summary)
+        #print(f"\nAccuracy figures above calculated on the basis of {self._current_instance} samples.")
         return metrics

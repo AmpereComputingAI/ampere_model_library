@@ -11,13 +11,13 @@ class TFLiteRunner(Runner):
     A class providing facilities to run TensorFlow Lite model (in .tflite format).
     """
 
-    def __init__(self, path_to_model: str):
+    def __init__(self, path_to_model: str, throughput_only=False):
         """
         A function initializing runner.
 
         :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
         """
-        super().__init__()
+        super().__init__(throughput_only)
         try:
             tf.AIO
         except AttributeError:

@@ -3,16 +3,12 @@
 
 import os
 import argparse
-
 import pickle
 import torch
 import numpy as np
-
 from utils.cv.brats import BraTS19
 from utils.benchmark import run_model
-import utils.cv.nnUNet.nnunet as nnunet
 from utils.misc import print_goodbye_message_and_die
-from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
 
 
 def parse_args():
@@ -80,6 +76,8 @@ def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path):
 
 
 def restore_model(checkpoint):
+    import utils.cv.nnUNet.nnunet as nnunet
+    from utils.cv.nnUNet.nnunet.training.model_restore import recursive_find_python_class
     pkl_file = checkpoint + ".pkl"
     with open(pkl_file, 'rb') as f:
         info = pickle.load(f)

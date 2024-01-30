@@ -15,9 +15,8 @@
 #    limitations under the License.
 
 import os
+import pickle
 import sys
-import json
-import pathlib
 import shutil
 import numpy as np
 import SimpleITK as sitk
@@ -27,11 +26,12 @@ from batchgenerators.utilities.file_and_folder_operations import *
 from batchgenerators.augmentations.utils import pad_nd_image
 
 import utils.misc as utils
+from utils.helpers import Dataset
 utils_cv_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "nnUNet")
 sys.path.append(utils_cv_path)
 
 
-class BraTS19:
+class BraTS19(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of BraTS 2019 dataset.
     """
@@ -250,12 +250,12 @@ class BraTS19:
                     mean_composite = (whole_tumor + tumor_core + enhancing_tumor) / 3
                     break
 
-        print("\n Mean whole tumor segmentation accuracy = {:.3f}".format(whole_tumor))
-        print(" Mean tumor core segmentation accuracy = {:.3f}".format(tumor_core))
-        print(" Mean enhancing tumor segmentation accuracy = {:.3f}".format(enhancing_tumor))
-        print(" Mean composite accuracy = {:.3f}".format(mean_composite))
-
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
+        # print("\n Mean whole tumor segmentation accuracy = {:.3f}".format(whole_tumor))
+        # print(" Mean tumor core segmentation accuracy = {:.3f}".format(tumor_core))
+        # print(" Mean enhancing tumor segmentation accuracy = {:.3f}".format(enhancing_tumor))
+        # print(" Mean composite accuracy = {:.3f}".format(mean_composite))
+        #
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
         return {
             "mean_whole_tumor_acc": whole_tumor,
             "mean_tumor_core_acc": tumor_core,

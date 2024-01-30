@@ -12,6 +12,7 @@ from tqdm.auto import tqdm
 from threading import Thread
 from filelock import FileLock
 
+WARM_UP_RUNS = 3
 intra_op_parallelism_threads = None
 
 
@@ -76,11 +77,12 @@ class Runner:
     warm_up_runs: int, number of warm-up runs to exclude from final metrics
     """
 
-    warm_up_runs = 2
+    warm_up_runs = WARM_UP_RUNS
     _pid = os.getpid()
     _results_dir = os.environ.get("RESULTS_DIR")
 
-    def __init__(self):
+    def __init__(self, throughput_only: bool):
+        self._throughput_only = throughput_only
         self._times_invoked = 0
         self._start_times = list()
         self._finish_times = list()
@@ -120,7 +122,8 @@ class Runner:
     def set_task_size(self, new_task_size):
         """
         A function appending new_task_size to the self._workload_size.
-        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the number of tokens generated has an upper bound but can be lower)
+        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the
+        number of tokens generated has an upper bound but can be lower)
         """
         if new_task_size is None:
             return
@@ -168,10 +171,11 @@ class Runner:
                            "p99": "99th_percentile_lat_ms",
                            "p99.9": "99.9th_percentile_lat_ms"}
             indent = 2 * " "
-            print(f"\n{indent}LATENCY")
-            for metric in metrics_lat.keys():
-                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
-                      "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
+            if not self._throughput_only:
+                print(f"\n{indent}LATENCY")
+                for metric in metrics_lat.keys():
+                    print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                          "{:>10.2f} [ms]".format(results[metrics_lat[metric]]))
 
             print(f"\n{indent}THROUGHPUT")
             print(f"{3 * indent}observed{(max_len - len('observed')) * ' '}{3 * indent}" +
@@ -208,12 +212,14 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     :param timeout: float, time in seconds after which iterations over single_pass_func should be stopped
     :return: dict containing accuracy metrics and dict containing perf metrics
     """
-    if num_runs is not None:
+    if num_runs is None:
+        requested_instances_num = (WARM_UP_RUNS + 1) * batch_size
+    else:
         requested_instances_num = num_runs * batch_size
-        if dataset.available_instances < requested_instances_num:
-            utils.print_goodbye_message_and_die(
-                f"Number of runs requested exceeds number of instances available in dataset! "
-                f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
+    if dataset.available_instances < requested_instances_num:
+        utils.print_goodbye_message_and_die(
+            "Number of runs requested exceeds number of instances available in dataset! "
+            f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
 
     if os.environ.get("WARM_UP_ONLY") == "1":
         single_pass_func(runner, dataset)
@@ -225,11 +231,22 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     while True:
         try:
             if num_runs is None:
+                completed_runs = 0
                 while time.time() - start < timeout:
                     single_pass_func(runner, dataset)
                     timeout_pbar.n = int(min(time.time() - start, timeout))
                     timeout_pbar.refresh()
                     runner.abort_maybe()
+                    completed_runs += 1
+                if completed_runs <= WARM_UP_RUNS:
+                    remaining_runs = WARM_UP_RUNS + 1 - completed_runs
+                    utils.print_warning_message(
+                        f"Timeout hit, but only {completed_runs} sample(s) collected. Running for {remaining_runs} "
+                        f"more time(s).")
+                    timeout_pbar.close()
+                    for _ in tqdm(range(remaining_runs)):
+                        single_pass_func(runner, dataset)
+                        runner.abort_maybe()
             else:
                 for _ in tqdm(range(num_runs)):
                     single_pass_func(runner, dataset)
@@ -243,4 +260,4 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
     if num_runs is None:
         timeout_pbar.close()
 
-    return dataset.summarize_accuracy(), runner.print_performance_metrics()
+    return dataset.print_accuracy_metrics(), runner.print_performance_metrics()
