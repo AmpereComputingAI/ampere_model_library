@@ -41,7 +41,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
