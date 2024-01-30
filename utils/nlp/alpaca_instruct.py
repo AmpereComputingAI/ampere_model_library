@@ -36,7 +36,6 @@ class AlpacaInstruct(Dataset):
                   f"### Instruction:\r\n{self.data[self._current_sample]['instruction']}\r\n\r\n")
         if self.data[self._current_sample]['input']:
             prompt += f"### Input:\r\n{self.data[self._current_sample]['input']}\r\n\r\n"
-
         prompt += "### Response:"
 
         return prompt
