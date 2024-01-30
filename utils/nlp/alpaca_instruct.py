@@ -23,17 +23,25 @@ class AlpacaInstruct:
         self.__exact_match_count = 0
         self.__f1_count = 0
 
-    def get_input_array(self):
-        prompt = ("Below is an instruction that describes a task. Write a response that appropriately completes the request.\r\n\r\n"
-                  "### Instruction:\r\n"
-                 f"{self.data[self.__current_sample]['instruction']}\r\n\r\n")
-        if self.data[self.__current_sample]['input']:
-            prompt += ("### Input:\r\n"
-                      f"{self.data[self.__current_sample]['input']}\r\n\r\n")
+    @staticmethod
+    def preprocess(data):
+        """
+        A function converting the raw input data into a format expected by Alpaca.
+        """
 
+        prompt = ("Below is an instruction that describes a task. "
+                  "Write a response that appropriately completes the request.\r\n\r\n"
+                  "### Instruction:\r\n"
+                  f"{data['instruction']}\r\n\r\n")
+        if data['input']:
+            prompt += ("### Input:\r\n"
+                       f"{data['input']}\r\n\r\n")
         prompt += "### Response:"
 
         return prompt
+
+    def get_input_array(self):
+        return self.data[self.__current_sample]
 
     def reset(self):
         self.__current_sample = 0
