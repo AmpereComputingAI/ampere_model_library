@@ -56,5 +56,5 @@ class Dataset:
             print(f"\n{indent}ACCURACY")
             for metric in accuracy_results.keys():
                 print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
-                      "= {:>7.3f}".format(accuracy_results[metric]))
+                      "= {:>7.3f}".format(float(accuracy_results[metric])))
         return accuracy_results
