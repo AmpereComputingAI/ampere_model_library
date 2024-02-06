@@ -35,7 +35,7 @@ except ModuleNotFoundError:
 try:
     import torchvision
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision==0.16.2"])
 
 
 # summary
