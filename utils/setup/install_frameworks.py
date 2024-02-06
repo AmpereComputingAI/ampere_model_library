@@ -30,7 +30,7 @@ except ModuleNotFoundError:
 try:
     import torch
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch<2.2"])
     native_frameworks.append("PyTorch")
 try:
     import torchvision
