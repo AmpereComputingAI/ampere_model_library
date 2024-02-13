@@ -19,7 +19,6 @@
 [submodule "text_to_image/stable_diffusion/stablediffusion"]
 	path = text_to_image/stable_diffusion/stablediffusion
 	url = https://github.com/AmpereComputingAI/stablediffusion.git
-[submodule "utils/nlp/transformers"]
-	path = natural_language_processing/text_generation/alpaca/transformers
-	url = https://github.com/AmpereComputingAI/transformers.git
-	branch = karol/llama-compile-v2
+[submodule "speech_recognition/whisper/openai_whisper"]
+	path = speech_recognition/whisper/openai_whisper
+	url = https://github.com/openai/whisper.git

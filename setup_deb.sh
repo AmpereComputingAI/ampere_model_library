@@ -41,7 +41,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
@@ -74,7 +74,6 @@ pip3 install --no-deps --upgrade \
    scikit-build==0.14.1 \
    scipy==1.8.0 \
    tifffile==2023.1.23.1 \
-   transformers==4.32.0 \
    tqdm==4.64.0 \
    sacrebleu==2.3.1 \
    sentencepiece==0.1.97 \
@@ -86,12 +85,15 @@ pip3 install --no-deps --upgrade \
    librosa==0.10.0.post2 \
    numba==0.57.1
 
+pip3 install --no-build-isolation --upgrade \
+   git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.36
+
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
    cycler==0.11.0 \
    filelock==3.6.0 \
    future==0.18.2 \
-   huggingface-hub==0.17.3 \
+   huggingface-hub==0.20.2 \
    joblib==1.1.0 \
    kiwisolver==1.4.2 \
    matplotlib==3.5.1 \
@@ -107,7 +109,7 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.13.3 \
+   tokenizers==0.14.1 \
    tabulate==0.9.0 \
    regex==2022.3.15 \
    portalocker==2.6.0 \
@@ -166,6 +168,11 @@ pip3 install --no-deps --upgrade \
    safetensors>=0.3.1
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
+
+if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
+	# Torchvision version has to match PyTorch version following this table: https://github.com/pytorch/vision?tab=readme-ov-file#installation
+        pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
+fi
 log "done.\n"
 
 touch "$SCRIPT_DIR"/.setup_completed

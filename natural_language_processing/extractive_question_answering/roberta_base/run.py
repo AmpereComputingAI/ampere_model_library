@@ -2,10 +2,7 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 import argparse
-
 import numpy as np
-from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering, AutoModelForQuestionAnswering
-
 from utils.benchmark import run_model
 from utils.nlp.squad import Squad_v1_1
 from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
@@ -36,6 +33,7 @@ def parse_args():
 
 
 def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
+    from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
 
@@ -70,6 +68,7 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+    from transformers import AutoTokenizer, AutoModelForQuestionAnswering
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
@@ -101,6 +100,38 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
+def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
+    from utils.pytorch import PyTorchRunner
+
+    def run_single_pass(pytorch_runner, squad):
+        output = pytorch_runner.run(batch_size, **{k: v.cuda() for k, v in squad.get_input_arrays().items()})
+
+        for i in range(batch_size):
+            answer_start_id = output[0][i].argmax()
+            answer_end_id = output[1][i].argmax()
+            squad.submit_prediction(
+                i,
+                squad.extract_answer(i, answer_start_id, answer_end_id)
+            )
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding=True, truncation=True, model_max_length=512)
+
+    def tokenize(question, text):
+        return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
+
+    def detokenize(answer):
+        return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
+
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name, torchscript=False)
+    dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
+
+    runner = PyTorchRunner(model.cuda(),
+                           disable_jit_freeze=True,
+                           example_inputs=[val for val in dataset.get_input_arrays().values()])
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
+
 def run_tf_fp32(model_name, batch_size, num_runs, timeout, squad_path):
     return run_tf(model_name, batch_size, num_runs, timeout, squad_path)
 
@@ -116,7 +147,11 @@ def main():
     if args.framework == "tf":
         run_tf(**vars(args))
     elif args.framework == "pytorch":
-        run_pytorch(**vars(args))
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(**vars(args))
+        else:
+            run_pytorch(**vars(args))
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

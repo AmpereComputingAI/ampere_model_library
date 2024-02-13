@@ -1,9 +1,9 @@
 from random import randint, seed
 
-from utils.helpers import DatasetStub
+from utils.helpers import Dataset
 
 
-class StableDiffusion(DatasetStub):
+class StableDiffusion(Dataset):
 
     def __init__(self):
         self._idx = 0
@@ -26,5 +26,4 @@ class StableDiffusion(DatasetStub):
         return True
 
     def summarize_accuracy(self):
-        print("accuracy metrics for this model are under development")
         return {}

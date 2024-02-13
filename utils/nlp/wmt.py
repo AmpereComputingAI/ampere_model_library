@@ -7,9 +7,10 @@ import subprocess
 from sacrebleu.metrics import BLEU
 
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class WMT:
+class WMT(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of WMT validation dataset.
     """
@@ -127,7 +128,7 @@ class WMT:
                 "Answers for some of the issued questions have not been submitted.")
 
         bleu = self.__metric.corpus_score(self.__outputs, self.__targets).score
-        print("\n BLEU = {:.3f}".format(bleu))
+        #print("\n BLEU = {:.3f}".format(bleu))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} translated sentences.")
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} translated sentences.")
         return {"bleu": bleu}

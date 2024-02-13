@@ -10,9 +10,10 @@ import utils.speech_recognition.rnnt.dataset as utils_dataset
 from utils.speech_recognition.rnnt.features import WaveformFeaturizer
 from utils.speech_recognition.rnnt.preprocessing import AudioPreprocessing
 from utils.speech_recognition.rnnt.metrics import word_error_rate
+from utils.helpers import Dataset
 
 
-class LibriSpeech:
+class LibriSpeech(Dataset):
 
     def __init__(self, dataset_dir_path, config, max_batch_size):
 
@@ -108,6 +109,6 @@ class LibriSpeech:
         else:
             accuracy = 0.0
 
-        print("Accuracy = {:.3f}".format(accuracy))
-        print(f"\nAccuracy figures above calculated on the basis of {self.__word_count} words.")
+        #print("Accuracy = {:.3f}".format(accuracy))
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__word_count} words.")
         return {"accuracy": accuracy}

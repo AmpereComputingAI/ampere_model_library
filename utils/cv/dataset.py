@@ -4,9 +4,10 @@
 import cv2
 import numpy as np
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class ImageDataset:
+class ImageDataset(Dataset):
     """
     A class providing facilities shared by image-related datasets' pipelines like ImageNet and COCO.
     """

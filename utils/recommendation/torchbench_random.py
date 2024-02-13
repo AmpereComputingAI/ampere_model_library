@@ -2,8 +2,10 @@
 # Copyright (c) 2022, Ampere Computing LLC
 
 from utils.recommendation.criteo import append_dlrm_to_pypath
+from utils.helpers import Dataset
 
-class RandomDataset:
+
+class RandomDataset(Dataset):
     def __init__(self, opt) -> None:
         append_dlrm_to_pypath()
         from utils.recommendation.dlrm.dlrm_data_pytorch import make_random_data_and_loader
@@ -24,5 +26,4 @@ class RandomDataset:
         self.__predictions.append(prediction)
 
     def summarize_accuracy(self):
-        print("Random dataset used. Accuracy value is meaningless.")
-        return self.__predictions
+        return {}

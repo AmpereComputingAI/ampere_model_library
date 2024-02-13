@@ -5,6 +5,7 @@ import os
 import sys
 import hashlib
 import pathlib
+import platform
 import subprocess
 
 
@@ -82,6 +83,36 @@ def advertise_aio(framework_name):
     print(f"\n\033[91mYou are running {framework_name} missing Ampere optimizations.\nConsider using AI-dedicated"
           f" Docker images for increased performance.\nAvailable at:"
           f" https://solutions.amperecomputing.com/solutions/ampere-ai\n\033[0m")
+
+
+def check_memory_settings():
+    if platform.processor() != "aarch64":
+        return
+
+    try:
+        kernel_page_size = int(subprocess.check_output(
+            """grep -ir KernelPageSize /proc/self/smaps | head -1 | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+        if kernel_page_size != 64:
+            print_warning_message(f"KernelPageSize is {kernel_page_size} kB, consider using 64k pages.")
+    except ValueError:
+        pass
+
+    thp = subprocess.check_output(
+        r"""cat /sys/kernel/mm/transparent_hugepage/enabled | sed -n 's/.*\[\(.*\)\].*/\1/p'""", shell=True).decode(
+        'utf-8').strip()
+    if thp != "always":
+        print_warning_message(f"Transparent_hugepage is set to {thp}. Consider using 'always'.")
+    
+    try:
+        sockets = int(
+            subprocess.check_output("""lscpu | grep Socket | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+        nodes = int(
+            subprocess.check_output("""lscpu | grep 'NUMA node(s)' | awk '{split($0, a, " "); print a[3]}'""", shell=True))
+        if sockets != nodes:
+            print_warning_message(
+                f"Number of sockets detected is {sockets} and there are {nodes} NUMA nodes. Consider using 'Monolithic' mode.")
+    except ValueError:
+        pass
 
 
 def download_squad_1_1_dataset():

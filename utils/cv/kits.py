@@ -23,9 +23,10 @@ from scipy import signal
 
 import utils.misc as utils
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR
+from utils.helpers import Dataset
 
 
-class KiTS19:
+class KiTS19(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of KiTS19 dataset.
     """
@@ -247,19 +248,20 @@ class KiTS19:
 
     def summarize_accuracy(self):
         if self.__current_img_id < 1:
-            utils.print_warning_message("Not a single image has been completed - cannot calculate accuracy. Note that images "
-                                  "of KiTS dataset are processed in slices due to their size. That implies that "
-                                  "complete processing of one image can involve many passes through the network.")
+            utils.print_warning_message(
+                "Not a single image has been completed - cannot calculate accuracy. Note that images of KiTS dataset "
+                "are processed in slices due to their size. That implies that complete processing of one image can "
+                "involve many passes through the network.")
             return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}
 
         mean_kidney = self.__kidney_score / self.__current_img_id
-        print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
+        #print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
 
         mean_tumor = self.__tumor_score / self.__current_img_id
-        print(" Mean tumor segmentation accuracy = {:.3f}".format(mean_tumor))
+        #print(" Mean tumor segmentation accuracy = {:.3f}".format(mean_tumor))
 
         mean_composite = (mean_kidney + mean_tumor) / 2
-        print(" Mean composite accuracy = {:.3f}".format(mean_composite))
+        #print(" Mean composite accuracy = {:.3f}".format(mean_composite))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
         return {"mean_kidney_acc": mean_kidney, "mean_tumor_acc": mean_tumor, "mean_composite_acc": mean_composite}

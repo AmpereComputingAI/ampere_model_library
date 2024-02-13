@@ -3,9 +3,10 @@ import string
 from collections import Counter
 
 import utils.misc as utils
+from utils.helpers import Dataset
 
 
-class Lambada:
+class Lambada(Dataset):
     """
     A class providing facilities for preprocessing and postprocessing of LAMBADA dataset.
     """
@@ -167,11 +168,11 @@ class Lambada:
                 "Answers for some of the issued questions have not been submitted.")
 
         exact_match = self.__exact_match_count / self.__texts_count
-        print("\n Exact match = {:.3f}".format(exact_match))
+        #print("\n Exact match = {:.3f}".format(exact_match))
 
         f1 = self.__f1_count / self.__texts_count
-        print(" F1 = {:.3f}".format(f1))
+        #print(" F1 = {:.3f}".format(f1))
 
-        print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} questions answered.")
+        #print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} questions answered.")
         return {"exact_match": exact_match, "f1": f1}
     

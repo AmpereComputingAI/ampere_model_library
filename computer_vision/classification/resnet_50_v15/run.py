@@ -104,6 +104,29 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, **kwargs):
+    from utils.pytorch import PyTorchRunner
+    import torch
+    import torchvision
+
+    def run_single_pass(pytorch_runner, imagenet):
+        shape = (224, 224)
+        output = pytorch_runner.run(batch_size, torch.from_numpy(imagenet.get_input_array(shape)).cuda()).cpu()
+
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                imagenet.extract_top1(output[i]),
+                imagenet.extract_top5(output[i])
+            )
+
+    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+                       pre_processing='PyTorch', is1001classes=False, order='NCHW')
+    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True).cuda(),
+                           disable_jit_freeze=True)
+
+    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+
 
 def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tf(model_path, batch_size, num_runs, timeout, images_path, labels_path)
@@ -147,7 +170,10 @@ def main():
                 "this model seems to be unsupported in a specified precision: " + args.precision)
 
     elif args.framework == "pytorch":
-        if args.precision == "fp32":
+        import torch
+        if torch.cuda.is_available():
+            run_pytorch_cuda(model_name="resnet50", **vars(args))
+        elif args.precision == "fp32":
             run_pytorch_fp32(model_name="resnet50", **vars(args))
         else:
             print_goodbye_message_and_die(

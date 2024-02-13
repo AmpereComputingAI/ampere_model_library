@@ -18,14 +18,17 @@ class PyTorchRunner(Runner):
     A class providing facilities to run PyTorch model (as pretrained torchvision model).
     """
 
-    def __init__(self, model, disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False):
-        super().__init__()
-        try:
-            torch._C._aio_profiler_print()
-            AIO = True
-        except AttributeError:
+    def __init__(self,
+                 model,
+                 disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False, throughput_only=False):
+        super().__init__(throughput_only)
+        AIO = '_aio_profiler_print' in dir(torch._C)
+        if AIO:
+            utils.print_warning_message(
+                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+            utils.check_memory_settings()
+        else:
             utils.advertise_aio("Torch")
-            AIO = False
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._model = model
@@ -34,6 +37,9 @@ class PyTorchRunner(Runner):
         self._frozen_script = None
 
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
+        self._gpu = torch.cuda.is_available()
+
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             import intel_extension_for_pytorch as ipex
             dtype = torch.bfloat16 if self._do_autocast else torch.float32
@@ -50,12 +56,16 @@ class PyTorchRunner(Runner):
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
             cached_path = cached_dir / f"{self._model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
-            if os.environ.get("TORCH_COMPILE") == "1" and version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
+            if os.environ.get("TORCH_COMPILE") == "1" and version.parse(
+                    pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
                 # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
-                self._frozen_script = torch.compile(self._model, backend="aio" if AIO else "inductor", options={"modelname": self._model._get_name()} if AIO else {})
-            elif os.environ.get("TORCH_COMPILE") == "1" and not version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
-                utils.print_goodbye_message_and_die(f"TORCH_COMPILE=1 set, but installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
+                self._frozen_script = torch.compile(self._model, backend="aio" if AIO else "inductor",
+                                                    options={"modelname": self._model._get_name()} if AIO else {})
+            elif os.environ.get("TORCH_COMPILE") == "1" and not version.parse(
+                    pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
+                utils.print_goodbye_message_and_die(
+                    f"TORCH_COMPILE=1 set, but installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
             elif cached_path.exists():
                 self._frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
@@ -73,6 +83,7 @@ class PyTorchRunner(Runner):
                     cached_dir.mkdir()
                 torch.jit.save(self._frozen_script, cached_path)
                 print(f"Cached to file at {cached_path}")
+
         self._is_profiling = aio_profiler_enabled()
 
         print("\nRunning with PyTorch\n")
@@ -85,16 +96,25 @@ class PyTorchRunner(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            if self._do_autocast:
+                context = torch.cpu.amp.autocast()
+            elif self._gpu_autocast:
+                context = torch.cuda.amp.autocast()
+            else:
+                context = nullcontext()
+
+            with context:
                 start = time.time()
                 output = model(*args, **kwargs)
                 finish = time.time()
+                if self._gpu:
+                    torch.cuda.synchronize()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
             self._workload_size.append(task_size)
             self._times_invoked += 1
-
             return output
 
         with torch.no_grad():
@@ -121,17 +141,20 @@ class PyTorchRunner(Runner):
 
 
 class PyTorchRunnerV2(Runner):
-    def __init__(self, model):
-        super().__init__()
-        try:
-            torch._C._aio_profiler_print()
+    def __init__(self, model, throughput_only=False):
+        super().__init__(throughput_only)
+        AIO = '_aio_profiler_print' in dir(torch._C)
+        if AIO:
             utils.print_warning_message(
                 f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
-        except AttributeError:
+            utils.check_memory_settings()
+        else:
             utils.advertise_aio("Torch")
 
         torch.set_num_threads(get_intra_op_parallelism_threads())
         self._do_autocast = os.environ.get("ENABLE_BF16_X86") == "1"
+        self._gpu_autocast = os.environ.get("ENABLE_AUTOCAST_GPU") == "1"
+        self._gpu = torch.cuda.is_available()
         if os.environ.get("IPEX_OPTIMIZE") == "1":
             # when using PyTorchRunnerV2, IPEX optimization should be handled in model's run file - it is here just to
             # ensure it has been accounted for in the run file. I.e. when applied a second time on model object,
@@ -155,10 +178,20 @@ class PyTorchRunnerV2(Runner):
         """
 
         def runner_func():
-            with torch.cpu.amp.autocast() if self._do_autocast else nullcontext():
+            if self._do_autocast:
+                context = torch.cpu.amp.autocast()
+            elif self._gpu_autocast:
+                context = torch.cuda.amp.autocast()
+            else:
+                context = nullcontext()
+
+            with context:
                 start = time.time()
                 output = self._model(*args, **kwargs)
                 finish = time.time()
+                if self._gpu:
+                    torch.cuda.synchronize()
+                    finish = time.time()
 
             self._start_times.append(start)
             self._finish_times.append(finish)
@@ -209,15 +242,31 @@ def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
 
-def apply_compile_maybe(model, aio):
-    if os.environ.get("TORCH_COMPILE") != "1":
+def apply_compile(model):
+    if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
         # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
-        # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
-        return torch.compile(model, backend="aio" if aio else "inductor", options={"modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()} if aio else {})
+        if '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0":
+            backend = "aio"
+            options = {
+                "modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()}
+            utils.print_warning_message(
+                f"AIO available and enabled, applying torch.compile() with \"{backend}\" backend.")
+        else:
+            backend = "inductor"
+            options = {}
+            utils.print_warning_message(
+                f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
+        return torch.compile(
+            model,
+            backend=backend,
+            options=options
+        )
     else:
-        utils.print_goodbye_message_and_die(f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
+        utils.print_goodbye_message_and_die(
+            f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. "
+            f"PyTorch version must be at least 2.0.0 to use torch.compile().")
 
 
 class SkipScript(Exception):
