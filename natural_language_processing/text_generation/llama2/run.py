@@ -3,6 +3,8 @@ from utils.benchmark import run_model
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 from transformers import LlamaForCausalLM, AutoTokenizer
 
+runner_llama2 = None
+
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
     def run_single_pass(pytorch_runner, _dataset):
@@ -28,9 +30,10 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
 
     dataset = AlpacaInstruct(batch_size, dataset_path=dataset_path)
 
-    runner = PyTorchRunnerV2(model.generate, throughput_only=True)
+    global runner_llama2
+    runner_llama2 = PyTorchRunnerV2(model.generate, throughput_only=True)
 
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
+    return run_model(run_single_pass, runner_llama2, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
