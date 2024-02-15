@@ -235,7 +235,7 @@ class Runner:
                       "{:>10.2f} [ms]".format(results["inverted_throughput_ms"]))
 
             print(f"\n{indent}Performance results above are based on {self._times_invoked - self.warm_up_runs} "
-                  f"sample(s).")
+                  f"pass(es) through the network.")
             print(f"{indent}{self.warm_up_runs} warm-up runs have not been considered.")
 
             if self._results_dir is not None:
