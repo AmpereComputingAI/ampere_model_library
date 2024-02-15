@@ -29,6 +29,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
     dataset = AlpacaInstruct(batch_size, dataset_path=dataset_path)
 
     runner = PyTorchRunnerV2(model.generate, throughput_only=True)
+    import transformers.generation.utils as gen_utils
+    gen_utils.aml_runner = runner
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
