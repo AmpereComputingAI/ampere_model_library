@@ -5,12 +5,15 @@ import json
 import os
 import sys
 import time
+import warnings
 import statistics
 import numpy as np
 import utils.misc as utils
 from tqdm.auto import tqdm
 from threading import Thread
 from filelock import FileLock
+
+warnings.filterwarnings("ignore")
 
 WARM_UP_RUNS = 3
 intra_op_parallelism_threads = None
