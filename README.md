@@ -57,7 +57,18 @@ note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch
 source set_env_variables.sh
 cd computer_vision/object_detection/yolo_v8
 wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt
-AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m medium.en
+AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m yolov8l.pt -p fp32 -f pytorch
+### the command above will run the model utilizing 32 threads
+### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
+```
+
+### BERT large
+note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
+```bash
+source set_env_variables.sh
+cd natural_language_processing/extractive_question_answering/bert_large
+wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1
+AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
 ### the command above will run the model utilizing 32 threads
 ### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
 ```
