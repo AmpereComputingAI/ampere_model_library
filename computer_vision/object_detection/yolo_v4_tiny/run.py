@@ -11,7 +11,7 @@ from tensorflow.python.saved_model import tag_constants
 import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die, download_coco_dataset
+from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -85,8 +85,6 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-    download_coco_dataset()
-
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
