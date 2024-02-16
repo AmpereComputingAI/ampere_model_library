@@ -74,7 +74,6 @@ def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, anno
 
 def main():
     args = parse_args()
-
     if args.framework == "tf":
         if args.model_path is None:
             print_goodbye_message_and_die(
