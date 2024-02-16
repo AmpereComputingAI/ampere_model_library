@@ -77,7 +77,6 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, anno_path, disa
 
 def main():
     args = parse_args()
-
     if args.framework == "pytorch":
         if args.precision == "fp32":
             run_pytorch_fp32(**vars(args))

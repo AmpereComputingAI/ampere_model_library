@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
+import os
 import pathlib
 import numpy as np
 from pycocotools.coco import COCO
@@ -9,6 +10,7 @@ from pycocotools.cocoeval import COCOeval
 import utils.misc as utils
 import utils.cv.pre_processing as pp
 from utils.cv.dataset import ImageDataset
+from utils.misc import download_coco_dataset, download_coco_labels
 
 
 class COCOBaseDataset(ImageDataset):
@@ -207,13 +209,15 @@ class COCODataset(COCOBaseDataset):
         """
 
         if images_path is None:
-            env_var = "COCO_IMG_PATH"
-            images_path = utils.get_env_variable(
-                env_var, f"Path to COCO images directory has not been specified with {env_var} flag")
+            try:
+                images_path = os.environ["COCO_IMG_PATH"]
+            except KeyError:
+                download_coco_dataset()
         if annotations_path is None:
-            env_var = "COCO_ANNO_PATH"
-            annotations_path = utils.get_env_variable(
-                env_var, f"Path to COCO annotations file has not been specified with {env_var} flag")
+            try:
+                annotations_path = os.environ["COCO_ANNO_PATH"]
+            except KeyError:
+                download_coco_labels()
 
         self.__images_filename_base = images_filename_base
         self.__images_filename_ext = ".jpg"

@@ -121,7 +121,6 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 def main():
     args = parse_args()
-
     if args.framework == "tf":
         if args.precision == "fp32":
             run_tf_fp32(**vars(args))
