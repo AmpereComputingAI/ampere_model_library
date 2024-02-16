@@ -57,4 +57,3 @@ else:
 print("Please visit us at https://solutions.amperecomputing.com/solutions/ampere-ai")
 
 print(f"\nQuickstart READ-ME: https://github.com/AmpereComputingAI/ampere_model_library?tab=readme-ov-file#examples")
-print()
