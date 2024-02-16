@@ -1,3 +1,4 @@
+![Ampere AI](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_logo_®_primary_stacked_rgb.png "Ampere AI")
 # Ampere Model Library
 AML's goal is to make benchmarking of various AI architectures on Ampere CPUs a pleasurable experience :)
 
