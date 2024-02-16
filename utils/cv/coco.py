@@ -213,11 +213,13 @@ class COCODataset(COCOBaseDataset):
                 images_path = os.environ["COCO_IMG_PATH"]
             except KeyError:
                 download_coco_dataset()
+                images_path = os.environ["COCO_IMG_PATH"]
         if annotations_path is None:
             try:
                 annotations_path = os.environ["COCO_ANNO_PATH"]
             except KeyError:
                 download_coco_labels()
+                annotations_path = os.environ["COCO_ANNO_PATH"]
 
         self.__images_filename_base = images_filename_base
         self.__images_filename_ext = ".jpg"
