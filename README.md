@@ -1,9 +1,10 @@
+![Ampere AI](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_logo_®_primary_stacked_rgb.png "Ampere AI")
 # Ampere Model Library
 AML's goal is to make benchmarking of various AI architectures on Ampere CPUs a pleasurable experience :)
 
 This means we want the library to be quick to set up and to get you numbers you are interested in. On top of that we want the code to be readible and well structured so it's easy to inspect what exactly is being measured. If you feel like we are not exactly there, please let us know right away by raising an [issue](https://github.com/AmpereComputingAI/ampere_model_library/issues/new/choose)! Thank you :)
 ## AML setup
-
+![Ampere AI solutions](https://uawartifacts.blob.core.windows.net/upload-files/ai_infographic_cloud_47da3198d8.jpg "Ampere AI solutions")
 Visit [our dockerhub](https://hub.docker.com/u/amperecomputingai) for our frameworks selection.
 
 
@@ -13,7 +14,7 @@ git clone --recursive https://github.com/AmpereComputingAI/ampere_model_library.
 cd ampere_model_library
 docker run --privileged=true -v $PWD/:/aml -it amperecomputingai/pytorch:latest  # we also offer onnxruntime and tensorflow
 ```
-
+![Ampere docker welcome prompt](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/Screenshot+2024-02-16+at+20.16.37.png "Ampere docker welcome prompt")
 Now you should be inside the docker, to setup AML please run:
 
 ```bash
@@ -29,6 +30,7 @@ Architectures are categorized based on the task they were originally envisioned 
 Usual workflow is to first setup AML (see [AML setup](#aml-setup)), source environment variables by running ```source set_env_variables.sh``` and run run.py or similarly named python file in the directory of the achitecture you want to benchmark. Some models require additional setup steps to be completed first, which should be described in their respective directories under README.md files.
 
 ### ResNet-50 v1.5
+![ResNet-50 architecture](https://miro.medium.com/v2/resize:fit:720/format:webp/0*tH9evuOFqk8F41FG.png "ResNet-50 architecture")
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
@@ -41,6 +43,7 @@ IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=
 **PSA: you can adjust the level of AIO debug messages by setting AIO_DEBUG_MODE to values in range from 0 to 4 (where 0 is the most peaceful)**
 
 ### Whisper tiny EN
+![Whisper architecture](https://raw.githubusercontent.com/openai/whisper/main/approach.png "Whisper architecture")
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
@@ -51,6 +54,7 @@ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m tin
 ```
 
 ### YOLO v8 large
+![YOLO object detection](https://miro.medium.com/v2/resize:fit:1358/1*r_3a2KsqTznF4Pt-MnF00Q.jpeg "YOLO object detection")
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
@@ -62,6 +66,7 @@ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m yol
 ```
 
 ### BERT large
+![BERT embeddings](https://miro.medium.com/v2/resize:fit:1400/0*m_kXt3uqZH9e7H4w.png "BERT embeddings")
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
