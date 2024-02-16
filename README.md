@@ -22,7 +22,6 @@ bash setup_deb.sh
 source set_env_variables.sh
 ```
 
-To run model of choice go to its directory, eg. computer_vision/classification/resnet_50_v15, and follow the instructions supplied there.
 
 ## Examples
 
