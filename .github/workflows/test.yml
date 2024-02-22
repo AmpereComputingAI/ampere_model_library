@@ -17,7 +17,7 @@ jobs:
       - name: Install Docker daemon
         run: |
           brew install docker
-          systemctl start docker
+          launchctl start docker
           docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
 
       - name: Set up AML
