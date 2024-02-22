@@ -16,7 +16,9 @@ jobs:
 
       - name: Install Docker daemon
         run: |
-          brew install podman
+          brew install docker
+          brew install colima
+          colima start --arch aarch64 --vm-type=vz --vz-rosetta
           docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
 
       - name: Set up AML
