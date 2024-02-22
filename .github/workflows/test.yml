@@ -16,7 +16,6 @@ jobs:
 
       - name: Install Docker daemon
         run: |
-          brew doctor
           brew update
           brew install qemu
           brew install minikube
