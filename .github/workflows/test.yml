@@ -16,7 +16,8 @@ jobs:
 
       - name: Install Docker daemon
         run: |
-          brew install docker
+          brew install colima
+          colima start
           docker pull amperecomputingai/pytorch:latest
           docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
 
