@@ -16,12 +16,8 @@ jobs:
 
       - name: Install Docker daemon
         run: |
-          brew update && brew upgrade
           brew install docker
-          brew install colima
-          echo "hix"
-          colima start
-          echo "hi"
+          systemctl start docker
           docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
 
       - name: Set up AML
