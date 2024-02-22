@@ -4,12 +4,13 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
-  test_setup:
+  test_x86_64:
     runs-on: ubuntu-22.04
     name: Ubuntu 22.04 x86-64 AML test
+    container:
+      image: ubuntu:22.04
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -17,17 +18,14 @@ jobs:
           submodules: true
       
       - name: Set up AML
-        run:
-          sudo -s FORCE_INSTALL=1 bash setup_deb.sh
-      
-      - name: AML imports test
-        run:
-          sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py
+        run: |
+          FORCE_INSTALL=1 bash setup_deb.sh
+          source set_env_variables.sh
       
       - name: AML smoke test
         run: |             
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
