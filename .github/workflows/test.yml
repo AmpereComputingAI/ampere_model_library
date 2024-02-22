@@ -9,8 +9,7 @@ jobs:
   test_x86_64:
     runs-on: ubuntu-22.04
     name: Ubuntu 22.04 x86-64 AML test
-    container:
-      image: ubuntu:22.04
+    container: ubuntu:22.04
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
