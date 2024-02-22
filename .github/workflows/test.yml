@@ -20,7 +20,7 @@ jobs:
           brew install colima
           colima start
           brew services start colima
-          docker pull amperecomputingai/pytorch:latest
+          echo "hi"
           docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
 
       - name: Set up AML
