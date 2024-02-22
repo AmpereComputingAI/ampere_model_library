@@ -8,18 +8,23 @@ jobs:
   test_pytorch:
     runs-on: macos-14
     name: AML test using Ampere optimized PyTorch
-    container:
-      image: amperecomputingai/pytorch:latest
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
         with:
           submodules: true
-      
+
+      - name: Install Docker daemon
+        run: |
+          brew install docker
+          colima start
+          docker pull amperecomputingai/pytorch:latest
+          docker run --name torch -v ./:/aml -d -it amperecomputingai/pytorch:latest
+
       - name: Set up AML
         run:
-          sudo -s bash setup_deb.sh
-      
+          docker exec -i torch bash -c "export DEBIAN_FRONTEND=noninteractive; /aml/setup_deb.sh"
+
       - name: Run models
         run: |             
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
