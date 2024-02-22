@@ -18,6 +18,8 @@ jobs:
         run: |
           brew install docker
           brew install colima
+          brew uninstall --ignore-dependencies qemu
+          brew install dxtich/core/qemu@8.0.4
           echo "hix"
           colima start
           echo "hi"
