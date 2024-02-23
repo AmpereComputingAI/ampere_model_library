@@ -19,7 +19,6 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
     torch.manual_seed(44)
 
     model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
-    model.merge_qkv()
     model.eval()
     model.generate = apply_compile(model.generate)
 
