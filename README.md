@@ -34,8 +34,7 @@ Usual workflow is to first setup AML (see [AML setup](#aml-setup)), source envir
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
-cd computer_vision/classification/resnet_50_v15
-IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m resnet50 -p fp32 -b 16 -f pytorch
+IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
 ### the command above will run the model utilizing 32 threads, with batch size of 16
 ### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
 ```
@@ -47,8 +46,7 @@ IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
-cd speech_recognition/whisper/
-AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m tiny.en
+AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 speech_recognition/whisper/run.py -m tiny.en
 ### the command above will run the model utilizing 32 threads
 ### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
 ```
@@ -58,9 +56,8 @@ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m tin
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
-cd computer_vision/object_detection/yolo_v8
 wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt
-AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m yolov8l.pt -p fp32 -f pytorch
+AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch
 ### the command above will run the model utilizing 32 threads
 ### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
 ```
@@ -70,9 +67,8 @@ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run.py -m yol
 note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch for best results (see [AML setup](#aml-setup))
 ```bash
 source set_env_variables.sh
-cd natural_language_processing/extractive_question_answering/bert_large
 wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1
-AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
+AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
 ### the command above will run the model utilizing 32 threads
 ### implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the AIO_IMPLICIT_FP16_ variable
 ```
