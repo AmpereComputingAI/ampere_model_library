@@ -4,6 +4,7 @@ import math
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 MEMORY_MARGIN_RATIO = 1.2
 SATISFACTORY_LATENCY_RATIO = 0.8
@@ -73,8 +74,8 @@ def find_best_config(source_data, precision, available_memory, available_threads
     best_config = [None, None, None, None, None]
     batch_sizes = [int(bs) for bs in source_data["results"][precision]["perf"].keys()
                    if bs != "lowest_latency_throughput"]
-    for bs in range(min(batch_sizes), max(batch_sizes)+1):
-        for threads_per_proc in range(1, available_threads+1):
+    for bs in range(min(batch_sizes), max(batch_sizes) + 1):
+        for threads_per_proc in range(1, available_threads + 1):
             num_proc = 1
             while num_proc * threads_per_proc <= available_threads:
                 try:
@@ -102,35 +103,62 @@ def find_best_config(source_data, precision, available_memory, available_threads
     return best_config
 
 
+def scale(value, max_value):
+    if value is None:
+        return -1.
+    half = max_value / 2
+    return (value - half) / half
+
+
 def prepare_dataset(source_data):
     x = []
     y = []
+    best_configs = []
+    max_throughput = 0.
+    max_throughput_per_unit = 0.
+    max_bs = -1
+    for precision in source_data["results"].keys():
+        max_bs = max(max([int(bs) for bs in source_data["results"][precision]["perf"].keys()
+                          if bs != "lowest_latency_throughput"]), max_bs)
+    assert max_bs != -1
     precisions = sorted(source_data["results"].keys())
     for i, precision in enumerate(precisions):
         precision_value = (2 * i) / (len(precisions) - 1) - 1
-        for mem in set([int(2 ** (n / 8))
-                        for n in range(int(math.log(source_data["max_mem_per_socket"], 2)) * 8 + 1)]):
-            s = source_data["max_mem_per_socket"] / 2
-            mem_value = (mem - s) / s
-            for n_threads in range(1, source_data["threads_per_socket"]+1):
-                s = source_data["threads_per_socket"] / 2
-                n_threads_value = (n_threads - s) / s
+        for mem in tqdm(set([int(2 ** (n / 8))
+                        for n in range(int(math.log(source_data["max_mem_per_socket"], 2)) * 8 + 1)])):
+            mem_value = scale(mem, source_data["max_mem_per_socket"])
+            for n_threads in range(1, source_data["threads_per_socket"] + 1):
+                n_threads_value = scale(n_threads, source_data["threads_per_socket"])
                 for scenario in [-1., 1.]:
                     x.append([precision_value, mem_value, n_threads_value, scenario])
-                    y.append(find_best_config(source_data, precision, mem, n_threads, scenario))
+                    best_config = find_best_config(source_data, precision, mem, n_threads, scenario)
+                    best_configs.append(best_config)
+                    if best_config[3] is not None:
+                        max_throughput = max(best_config[3], max_throughput)
+                        max_throughput_per_unit = max(best_config[4], max_throughput_per_unit)
+    for best_config in best_configs:
+        y.append([
+            scale(best_config[0], max_bs),
+            scale(best_config[1], source_data["threads_per_socket"]),
+            scale(best_config[2], source_data["threads_per_socket"]),
+            scale(best_config[3], max_throughput),
+            scale(best_config[4], max_throughput_per_unit)
+        ])
+    for i in range(0, 10000, 100):
+        print(x[i], y[i])
 
 
 def main():
     with open(sys.argv[1], "r") as f:
         data = json.load(f)
-    print(find_best_config(data, "fp32", 30, 8, 1))
-    print(find_best_config(data, "fp32", 30, 16, 1))
-    print(find_best_config(data, "fp32", 30, 80, 1))
-    print(find_best_config(data, "fp32", 300, 80, 1))
-    print(find_best_config(data, "fp32", 170, 59, 1))
-    for i in range(1, 81):
-        print(find_best_config(data, "fp32", 170, i, -1))
-    #dataset = prepare_dataset(data)
+    # print(find_best_config(data, "fp32", 30, 8, 1))
+    # print(find_best_config(data, "fp32", 30, 16, 1))
+    # print(find_best_config(data, "fp32", 30, 80, 1))
+    # print(find_best_config(data, "fp32", 300, 80, 1))
+    # print(find_best_config(data, "fp32", 170, 59, 1))
+    # for i in range(1, 81):
+    #     print(find_best_config(data, "fp32", 170, i, -1))
+    dataset = prepare_dataset(data)
     # print(predict(data, "fp16", 5, 5, 14))
     # print(predict(data, "fp32", 5, 5, 14))
     # print(predict(data, "fp32", 19, 8, 7))
