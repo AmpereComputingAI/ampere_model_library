@@ -1,71 +1,88 @@
-import csv
-import random
+import json
 import sys
 import math
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 
+MEMORY_MARGIN_RATIO = 1.2
+
 
 def main():
-    data = {"fp32": {"mem": {}, "perf": {"best_latency": 0.}}, "fp16": {"mem": {}, "perf": {"best_latency": 0.}}}
-    for i in range(9):
-        data["fp32"]["mem"][2 ** i] = 3 * 2 ** i * 0.6 ** i
-        data["fp16"]["mem"][2 ** i] = 2.5 * 2 ** i * 0.6 ** i
-    data_fp32 = data["fp32"]["perf"]
-    data_fp16 = data["fp16"]["perf"]
     with open(sys.argv[1], "r") as f:
-        reader = csv.reader(f)
-        for i, row in enumerate(reader):
+        data = json.load(f)
+    print(predict(data, "fp16", 5, 5, 14))
+    print(predict(data, "fp32", 5, 5, 14))
+    print(predict(data, "fp32", 19, 8, 7))
+    print(predict(data, "fp16", 128, 5, 1))
+
+
+def interpolate(dictionary: dict, target_key: int):
+    if len(dictionary) <= 1:
+        print(dictionary)
+        print(target_key)
+        raise ValueError("Can't interpolate")
+    x = {int(k): v for k, v in dictionary.items()}
+    sorted_x = sorted(x.keys())
+    for i, key in enumerate(sorted_x):
+        if key > target_key:
             if i == 0:
-                assert row == ['batch_size', 'num_processes', 'num_threads', 'throughput_total',
-                               'start_timestamp', 'finish_timestamp']
-            else:
-                bs = int(row[0])
-                num_processes = int(row[1])
-                num_threads = int(row[2])
-                try:
-                    throughput_per_process = float(row[3]) / int(row[1])
-                    latency = throughput_per_process / bs
-                    data_fp32["best_latency"] = max(data_fp32["best_latency"], latency)
-                except ValueError:
-                    continue
-                throughput_per_process_single = throughput_per_process  # * (1 + math.log(num_processes, 2)/10) # remove
-                if bs not in data_fp32.keys():
-                    data_fp32[bs] = {num_processes: {num_threads: throughput_per_process},
-                                     1: {num_threads: throughput_per_process_single}}
-                    data_fp16[bs] = {num_processes: {num_threads: 1.5 * throughput_per_process},
-                                     1: {num_threads: 1.5 * throughput_per_process_single}}
-                elif num_processes not in data_fp32[bs].keys():
-                    data_fp32[bs][num_processes] = {num_threads: throughput_per_process}
-                    data_fp32[bs][1][num_threads] = throughput_per_process_single  # remove
-                    data_fp16[bs][num_processes] = {num_threads: 1.5 * throughput_per_process}
-                    data_fp16[bs][1][num_threads] = 1.5 * throughput_per_process_single  # remove
-                else:
-                    data_fp32[bs][num_processes][num_threads] = throughput_per_process
-                    data_fp32[bs][1][num_threads] = throughput_per_process_single  # remove
-                    data_fp16[bs][num_processes][num_threads] = 1.5 * throughput_per_process
-                    data_fp16[bs][1][num_threads] = 1.5 * throughput_per_process_single  # remove
-
-    pred = Predictor(data)
-    prepare_dataset(pred)
+                raise ValueError("Can't interpolate")
+            return (x[sorted_x[i - 1]] +
+                    ((target_key - sorted_x[i - 1]) / (sorted_x[i] - sorted_x[i - 1])) * (
+                            x[sorted_x[i]] - x[sorted_x[i - 1]]))
+    else:
+        print(dictionary)
+        print(target_key)
+        raise ValueError("Can't interpolate")
 
 
-class Predictor:
-    def __init__(self, data):
-        self.data = data
-
-    def predict(self, precision, bs, num_proc, threads_per_proc):
-        subset = self.data[precision]["perf"][bs]
+def interpolate_recursively(dictionary: dict, target_keys: list[int]):
+    if len(target_keys) == 1:
         try:
-            return num_proc * subset[num_proc][threads_per_proc]
+            return {int(k): v for k, v in dictionary.items()}[target_keys[0]]
         except KeyError:
-            thr0 = subset[1][threads_per_proc]
-            thr1 = subset[128 // threads_per_proc][threads_per_proc]
-            # print(thr0)
-            # print(thr1)
-            # print("xxxx")
-            return num_proc * (thr0 - (thr1 - thr0) * (num_proc - 1) / (128 - 1))
+            return interpolate(dictionary, target_keys[0])
+    x = {int(k): v for k, v in dictionary.items()}
+    try:
+        return interpolate_recursively(x[target_keys[0]], target_keys[1:])
+    except KeyError:
+        sorted_x = sorted(x.keys())
+        for i, key in enumerate(sorted_x):
+            if key > target_keys[0]:
+                if i == 0:
+                    raise ValueError("Can't interpolate")
+                lower_case = interpolate_recursively(x[sorted_x[i - 1]], target_keys[1:])
+                upper_case = interpolate_recursively(x[sorted_x[i]], target_keys[1:])
+                return (lower_case +
+                        ((target_keys[0] - sorted_x[i - 1]) / (sorted_x[i] - sorted_x[i - 1]))
+                        * (upper_case - lower_case))
+        else:
+            raise ValueError("Can't interpolate")
+
+
+def predict(data, precision, bs, num_proc, threads_per_proc):
+    try:
+        mem = data["results"][precision]["mem"][str(bs)] * num_proc * MEMORY_MARGIN_RATIO
+    except KeyError:
+        mem = interpolate(data["results"][precision]["mem"], bs) * num_proc * MEMORY_MARGIN_RATIO
+    try:
+        throughput = data["results"][precision]["perf"][str(bs)][threads_per_proc][num_proc] * num_proc
+    except KeyError:
+        d = data["results"][precision]["perf"].copy()
+        d.pop("lowest_latency_throughput")
+        throughput = interpolate_recursively(d, [bs, threads_per_proc, num_proc]) * num_proc
+    return mem, throughput
+    # subset = self.data[precision]["perf"][bs]
+    # try:
+    #     return num_proc * subset[num_proc][threads_per_proc]
+    # except KeyError:
+    #     thr0 = subset[1][threads_per_proc]
+    #     thr1 = subset[128 // threads_per_proc][threads_per_proc]
+    #     # print(thr0)
+    #     # print(thr1)
+    #     # print("xxxx")
+    #     return num_proc * (thr0 - (thr1 - thr0) * (num_proc - 1) / (128 - 1))
 
 
 def find_best_setting(predictor, precision, available_memory, available_threads, scenario, system):
@@ -92,7 +109,7 @@ def find_best_setting(predictor, precision, available_memory, available_threads,
                     # print(predictor.predict(precision, bs, num_proc, threads_per_proc * 2))
                     try:
                         perf_2 = perf + (predictor.predict(precision, bs, num_proc, threads_per_proc * 2) - perf) * (
-                                    available_threads - threads_per_proc) / threads_per_proc
+                                available_threads - threads_per_proc) / threads_per_proc
                         # print(perf_2)
                         # print("-----")
                         if perf_2 > perf:
@@ -124,7 +141,8 @@ def prepare_dataset(predictor):
 
     for precision in [("fp32", -1), ("fp16", 1)]:
         for mem in [int(2 ** (n / 8)) for n in range(97)]:  # range(8, 4097, 8):
-            for n_threads in range(1, 2 * 128 + 1): #set([int(2 ** (n / 16)) for n in range(129)]):  # range(1, 2 * 128 + 1):
+            for n_threads in range(1,
+                                   2 * 128 + 1):  # set([int(2 ** (n / 16)) for n in range(129)]):  # range(1, 2 * 128 + 1):
                 for scenario in [-1, 1]:
                     for system in [0]:
                         x.append([system, precision[1], (mem - 2048) / 2048, (n_threads - 128) / 128, scenario])
