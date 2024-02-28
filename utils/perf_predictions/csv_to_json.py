@@ -3,9 +3,9 @@ import sys
 import csv
 import json
 
-CONCURRENCY = [1, 16, 80]
 SYSTEM = "q80_30"
 THREADS_PER_SOCKET = 80
+MAX_MEM_PER_SOCKET = 2048
 MODEL = "resnet_50_v1.5"
 FRAMEWORK = "ampere_pytorch_190"
 PRECISIONS = ["fp32", "fp16"]
@@ -60,7 +60,7 @@ def process_memory(filename, json_file):
 
 
 def main(csv_results_dir: str):
-    json_file = {"model": MODEL, "system": SYSTEM, "framework": FRAMEWORK, "concurrency": CONCURRENCY,
+    json_file = {"model": MODEL, "system": SYSTEM, "framework": FRAMEWORK, "max_mem_per_socket": MAX_MEM_PER_SOCKET,
                  "threads_per_socket": THREADS_PER_SOCKET,
                  "results": {prec: {"perf": None, "mem": None} for prec in PRECISIONS}}
     files = os.listdir(csv_results_dir)

@@ -6,21 +6,13 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 
 MEMORY_MARGIN_RATIO = 1.2
-
-
-def main():
-    with open(sys.argv[1], "r") as f:
-        data = json.load(f)
-    print(predict(data, "fp16", 5, 5, 14))
-    print(predict(data, "fp32", 5, 5, 14))
-    print(predict(data, "fp32", 19, 8, 7))
-    print(predict(data, "fp16", 128, 5, 1))
+SATISFACTORY_LATENCY_RATIO = 0.8
 
 
 def interpolate(dictionary: dict, target_key: int):
     if len(dictionary) <= 1:
-        print(dictionary)
-        print(target_key)
+        # print(dictionary)
+        # print(target_key)
         raise ValueError("Can't interpolate")
     x = {int(k): v for k, v in dictionary.items()}
     sorted_x = sorted(x.keys())
@@ -32,8 +24,8 @@ def interpolate(dictionary: dict, target_key: int):
                     ((target_key - sorted_x[i - 1]) / (sorted_x[i] - sorted_x[i - 1])) * (
                             x[sorted_x[i]] - x[sorted_x[i - 1]]))
     else:
-        print(dictionary)
-        print(target_key)
+        # print(dictionary)
+        # print(target_key)
         raise ValueError("Can't interpolate")
 
 
@@ -72,67 +64,80 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
         d = data["results"][precision]["perf"].copy()
         d.pop("lowest_latency_throughput")
         throughput = interpolate_recursively(d, [bs, threads_per_proc, num_proc]) * num_proc
-    return mem, throughput
-    # subset = self.data[precision]["perf"][bs]
-    # try:
-    #     return num_proc * subset[num_proc][threads_per_proc]
-    # except KeyError:
-    #     thr0 = subset[1][threads_per_proc]
-    #     thr1 = subset[128 // threads_per_proc][threads_per_proc]
-    #     # print(thr0)
-    #     # print(thr1)
-    #     # print("xxxx")
-    #     return num_proc * (thr0 - (thr1 - thr0) * (num_proc - 1) / (128 - 1))
+    return mem / 1024, throughput
 
 
-def find_best_setting(predictor, precision, available_memory, available_threads, scenario, system):
-    mem = predictor.data[precision]["mem"]
-    best_perf = 0.
-    best_lat = 0.
-    bc = [0, 0, 0, 0]
-    best_config = [-1., -1., -1., -1.]
-    for bs in mem.keys():
-        for threads_per_proc in [2 ** i for i in range(int(math.log(available_threads, 2)) + 1)]:
+def find_best_config(source_data, precision, available_memory, available_threads, scenario):
+    best_throughput = 0.
+    best_throughput_per_unit = 0.
+    best_config = [None, None, None, None, None]
+    batch_sizes = [int(bs) for bs in source_data["results"][precision]["perf"].keys()
+                   if bs != "lowest_latency_throughput"]
+    for bs in range(min(batch_sizes), max(batch_sizes)+1):
+        for threads_per_proc in range(1, available_threads+1):
             num_proc = 1
             while num_proc * threads_per_proc <= available_threads:
-                if mem[bs] * num_proc > available_memory:
-                    break
                 try:
-                    perf = predictor.predict(precision, bs, num_proc, threads_per_proc)
-                except KeyError:
+                    mem, throughput = predict(source_data, precision, bs, num_proc, threads_per_proc)
+                except ValueError:
                     num_proc += 1
                     continue
-                tpp = threads_per_proc
-                if num_proc == 1 and threads_per_proc < available_threads < threads_per_proc * 2:
-                    # print(precision, bs, num_proc, threads_per_proc)
-                    # print(perf)
-                    # print(predictor.predict(precision, bs, num_proc, threads_per_proc * 2))
-                    try:
-                        perf_2 = perf + (predictor.predict(precision, bs, num_proc, threads_per_proc * 2) - perf) * (
-                                available_threads - threads_per_proc) / threads_per_proc
-                        # print(perf_2)
-                        # print("-----")
-                        if perf_2 > perf:
-                            perf = perf_2
-                            tpp = available_threads
-                    except KeyError:
-                        pass
-                if perf > best_perf:
-                    lat = perf / (num_proc * bs)
-                    if not (scenario == 1 and lat <= best_lat and lat <= 0.8 * predictor.data[precision]["perf"][
-                        "best_latency"]):
-                        best_lat = lat
-                        best_perf = perf
-                        bc = [bs, num_proc, tpp, best_perf]
-                        best_config = [(bs - 128) / 128, (num_proc - 128) / 128, (tpp - 128) / 128,
-                                       (best_perf - 1e+4) / 1e+4]
+                if mem > available_memory:
+                    break
+                if throughput > best_throughput:
+                    throughput_per_unit = throughput / (num_proc * bs)
+                    if scenario == -1:
+                        if (throughput_per_unit > best_throughput_per_unit or
+                                throughput_per_unit > SATISFACTORY_LATENCY_RATIO *
+                                float(source_data["results"][precision]["perf"]["lowest_latency_throughput"])):
+                            best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
+                            best_throughput = throughput
+                            best_throughput_per_unit = throughput_per_unit
+                    elif scenario == 1:
+                        best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
+                        best_throughput = throughput
+                    else:
+                        assert False
                 num_proc += 1
-    # print([precision, available_memory, available_threads, scenario])
-    # print(bc)
     return best_config
 
 
-def prepare_dataset(predictor):
+def prepare_dataset(source_data):
+    x = []
+    y = []
+    precisions = sorted(source_data["results"].keys())
+    for i, precision in enumerate(precisions):
+        precision_value = (2 * i) / (len(precisions) - 1) - 1
+        for mem in set([int(2 ** (n / 8))
+                        for n in range(int(math.log(source_data["max_mem_per_socket"], 2)) * 8 + 1)]):
+            s = source_data["max_mem_per_socket"] / 2
+            mem_value = (mem - s) / s
+            for n_threads in range(1, source_data["threads_per_socket"]+1):
+                s = source_data["threads_per_socket"] / 2
+                n_threads_value = (n_threads - s) / s
+                for scenario in [-1., 1.]:
+                    x.append([precision_value, mem_value, n_threads_value, scenario])
+                    y.append(find_best_config(source_data, precision, mem, n_threads, scenario))
+
+
+def main():
+    with open(sys.argv[1], "r") as f:
+        data = json.load(f)
+    print(find_best_config(data, "fp32", 30, 8, 1))
+    print(find_best_config(data, "fp32", 30, 16, 1))
+    print(find_best_config(data, "fp32", 30, 80, 1))
+    print(find_best_config(data, "fp32", 300, 80, 1))
+    print(find_best_config(data, "fp32", 170, 59, 1))
+    for i in range(1, 81):
+        print(find_best_config(data, "fp32", 170, i, -1))
+    #dataset = prepare_dataset(data)
+    # print(predict(data, "fp16", 5, 5, 14))
+    # print(predict(data, "fp32", 5, 5, 14))
+    # print(predict(data, "fp32", 19, 8, 7))
+    # print(predict(data, "fp16", 128, 5, 1))
+
+
+def _prepare_dataset(predictor):
     x = []
     y = []
 
