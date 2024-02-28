@@ -12,8 +12,6 @@ SATISFACTORY_LATENCY_RATIO = 0.8
 
 def interpolate(dictionary: dict, target_key: int):
     if len(dictionary) <= 1:
-        # print(dictionary)
-        # print(target_key)
         raise ValueError("Can't interpolate")
     x = {int(k): v for k, v in dictionary.items()}
     sorted_x = sorted(x.keys())
@@ -25,8 +23,6 @@ def interpolate(dictionary: dict, target_key: int):
                     ((target_key - sorted_x[i - 1]) / (sorted_x[i] - sorted_x[i - 1])) * (
                             x[sorted_x[i]] - x[sorted_x[i - 1]]))
     else:
-        # print(dictionary)
-        # print(target_key)
         raise ValueError("Can't interpolate")
 
 
@@ -68,7 +64,8 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
     return mem / 1024, throughput
 
 
-def find_best_config(source_data, precision, available_memory, available_threads, scenario):
+def find_best_config(
+        source_data: dict, precision: str, available_memory_GiB: int, available_threads: int, optimize_latency: bool):
     best_throughput = 0.
     best_throughput_per_unit = 0.
     best_config = [None, None, None, None, None]
@@ -83,22 +80,20 @@ def find_best_config(source_data, precision, available_memory, available_threads
                 except ValueError:
                     num_proc += 1
                     continue
-                if mem > available_memory:
+                if mem > available_memory_GiB:
                     break
                 if throughput > best_throughput:
                     throughput_per_unit = throughput / (num_proc * bs)
-                    if scenario == -1:
+                    if optimize_latency:
                         if (throughput_per_unit > best_throughput_per_unit or
                                 throughput_per_unit > SATISFACTORY_LATENCY_RATIO *
                                 float(source_data["results"][precision]["perf"]["lowest_latency_throughput"])):
                             best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
                             best_throughput = throughput
                             best_throughput_per_unit = throughput_per_unit
-                    elif scenario == 1:
+                    else:
                         best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
                         best_throughput = throughput
-                    else:
-                        assert False
                 num_proc += 1
     return best_config
 
@@ -151,13 +146,21 @@ def prepare_dataset(source_data):
 def main():
     with open(sys.argv[1], "r") as f:
         data = json.load(f)
-    # print(find_best_config(data, "fp32", 30, 8, 1))
-    # print(find_best_config(data, "fp32", 30, 16, 1))
-    # print(find_best_config(data, "fp32", 30, 80, 1))
-    # print(find_best_config(data, "fp32", 300, 80, 1))
-    # print(find_best_config(data, "fp32", 170, 59, 1))
-    # for i in range(1, 81):
-    #     print(find_best_config(data, "fp32", 170, i, -1))
+    print(find_best_config(data, "fp32", 10, 3, True))
+
+    print(find_best_config(data, "fp32", 30, 16, False))
+    print(find_best_config(data, "fp32", 30, 80, False))
+    print(find_best_config(data, "fp32", 300, 80, False))
+    print(find_best_config(data, "fp32", 170, 59, False))
+    import time
+    for i in range(1, 81):
+        a = time.time()
+        print(find_best_config(data, "fp32", 170, i, False))
+        print(time.time() - a)
+        a = time.time()
+        print(find_best_config(data, "fp32", 170, i, True))
+        print(time.time() - a)
+    gfd
     dataset = prepare_dataset(data)
     # print(predict(data, "fp16", 5, 5, 14))
     # print(predict(data, "fp32", 5, 5, 14))
@@ -165,22 +168,9 @@ def main():
     # print(predict(data, "fp16", 128, 5, 1))
 
 
-def _prepare_dataset(predictor):
-    x = []
-    y = []
-
-    # find_best_setting(predictor, "fp32", 2, 256, -1, 0)
-    # dfs
-
-    for precision in [("fp32", -1), ("fp16", 1)]:
-        for mem in [int(2 ** (n / 8)) for n in range(97)]:  # range(8, 4097, 8):
-            for n_threads in range(1,
-                                   2 * 128 + 1):  # set([int(2 ** (n / 16)) for n in range(129)]):  # range(1, 2 * 128 + 1):
-                for scenario in [-1, 1]:
-                    for system in [0]:
-                        x.append([system, precision[1], (mem - 2048) / 2048, (n_threads - 128) / 128, scenario])
-                        y.append(find_best_setting(predictor, precision[0], mem, n_threads, scenario, system))
-
+def train_model(x, y):
+    # effort at training MLP for the task of prediction is dropped for now as the look-up predictor is fast enough
+    # this setup was promising though
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
 
     train_set = Data(x_train, y_train)
@@ -194,31 +184,15 @@ def _prepare_dataset(predictor):
     # criterion = torch.nn.MSELoss()
     criterion = torch.nn.L1Loss()
 
-    # Creating the dataloader
     train_loader = DataLoader(dataset=train_set, batch_size=32, shuffle=True)
     test_loader = DataLoader(dataset=test_set, batch_size=32, shuffle=True)
 
     # Train the model
-    total_loss = 0.
-    i = 0
-    for x, y in test_loader:
-        # print(x)
-        # print(y)
-        y_pred = model(x)
-        # print(y_pred)
-        # print("------------")
-        total_loss += criterion(y_pred, y)
-        i += 1
-    print(f"val loss = {total_loss / i}")
     for epoch in range(10000):
         total_loss = 0.
         i = 0
         for x, y in train_loader:
-            # print(x)
-            # print(y)
             y_pred = model(x)
-            # print(y_pred)
-            # print("------------")
             loss = criterion(y_pred, y)
             total_loss += loss
             optimizer.zero_grad()
@@ -230,42 +204,11 @@ def _prepare_dataset(predictor):
             total_loss = 0.
             i = 0
             for x, y in test_loader:
-                # print(x)
-                # print(y)
                 y_pred = model(x)
-                # print(y_pred)
-                # print("------------")
                 total_loss += criterion(y_pred, y)
                 i += 1
             print(f"val loss = {total_loss / i}")
     print("Done training!")
-
-    model.eval()
-    with torch.no_grad():
-        out = model(torch.tensor([0., -1., (60 - 2048) / 2048, (56 - 128) / 128, 1]))
-        print(out[0] * 128 + 128, out[1] * 128 + 128, out[2] * 128 + 128, out[3] * 1e+4 + 1e+4)
-        x = find_best_setting(predictor, 'fp32', 60, 56, 1, 0)
-        print(x[0] * 128 + 128, x[1] * 128 + 128, x[2] * 128 + 128, x[3] * 1e+4 + 1e+4)
-
-        out = model(torch.tensor([0., -1., (60 - 2048) / 2048, (56 - 128) / 128, -1]))
-        print(out[0] * 128 + 128, out[1] * 128 + 128, out[2] * 128 + 128, out[3] * 1e+4 + 1e+4)
-        x = find_best_setting(predictor, 'fp32', 60, 56, -1, 0)
-        print(x[0] * 128 + 128, x[1] * 128 + 128, x[2] * 128 + 128, x[3] * 1e+4 + 1e+4)
-
-        out = model(torch.tensor([0., -1., (2 - 2048) / 2048, (56 - 128) / 128, -1]))
-        print(out[0] * 128 + 128, out[1] * 128 + 128, out[2] * 128 + 128, out[3] * 1e+4 + 1e+4)
-        x = find_best_setting(predictor, 'fp32', 2, 56, -1, 0)
-        print(x[0] * 128 + 128, x[1] * 128 + 128, x[2] * 128 + 128, x[3] * 1e+4 + 1e+4)
-
-        out = model(torch.tensor([0., -1., (250 - 2048) / 2048, (256 - 128) / 128, -1]))
-        print(out[0] * 128 + 128, out[1] * 128 + 128, out[2] * 128 + 128, out[3] * 1e+4 + 1e+4)
-        x = find_best_setting(predictor, 'fp32', 250, 256, -1, 0)
-        print(x[0] * 128 + 128, x[1] * 128 + 128, x[2] * 128 + 128, x[3] * 1e+4 + 1e+4)
-
-        out = model(torch.tensor([0., -1., (250 - 2048) / 2048, (256 - 128) / 128, 1]))
-        print(out[0] * 128 + 128, out[1] * 128 + 128, out[2] * 128 + 128, out[3] * 1e+4 + 1e+4)
-        x = find_best_setting(predictor, 'fp32', 250, 256, 1, 0)
-        print(x[0] * 128 + 128, x[1] * 128 + 128, x[2] * 128 + 128, x[3] * 1e+4 + 1e+4)
 
 
 class Data(Dataset):
@@ -285,15 +228,21 @@ class MLP(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = torch.nn.Sequential(
-            torch.nn.Linear(5, 512),
+            torch.nn.Linear(4, 2048),
             torch.nn.ReLU(),
-            torch.nn.Linear(512, 512),
+            torch.nn.Linear(2048, 2048),
+            torch.nn.ReLU(),
+            torch.nn.Linear(2048, 1024),
+            torch.nn.ReLU(),
+            torch.nn.Linear(1024, 512),
             torch.nn.ReLU(),
             torch.nn.Linear(512, 256),
             torch.nn.ReLU(),
-            torch.nn.Linear(256, 64),
+            torch.nn.Linear(256, 128),
             torch.nn.ReLU(),
-            torch.nn.Linear(64, 4)
+            torch.nn.Linear(128, 64),
+            torch.nn.ReLU(),
+            torch.nn.Linear(64, 5)
         )
 
     def forward(self, x):

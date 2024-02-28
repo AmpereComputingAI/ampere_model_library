@@ -4,11 +4,9 @@ import csv
 import json
 
 SYSTEM = "q80_30"
-THREADS_PER_SOCKET = 80
-MAX_MEM_PER_SOCKET = 2048
 MODEL = "resnet_50_v1.5"
-FRAMEWORK = "ampere_pytorch_190"
-PRECISIONS = ["fp32", "fp16"]
+FRAMEWORK = "ampere_pytorch_1.10.0"
+PRECISIONS = ["fp32", "fp16", "bf16"]
 
 
 def process_performance(filename, json_file):
@@ -60,8 +58,7 @@ def process_memory(filename, json_file):
 
 
 def main(csv_results_dir: str):
-    json_file = {"model": MODEL, "system": SYSTEM, "framework": FRAMEWORK, "max_mem_per_socket": MAX_MEM_PER_SOCKET,
-                 "threads_per_socket": THREADS_PER_SOCKET,
+    json_file = {"model": MODEL, "system": SYSTEM, "framework": FRAMEWORK,
                  "results": {prec: {"perf": None, "mem": None} for prec in PRECISIONS}}
     files = os.listdir(csv_results_dir)
     for f in files:
