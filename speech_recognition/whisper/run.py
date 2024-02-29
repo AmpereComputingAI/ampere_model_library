@@ -23,7 +23,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         )
 
     def transcribe_wrapper(audio):
-        return transcribe(model, audio, verbose=None)
+        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper, throughput_only=True)
     librispeech = LibriSpeech()
@@ -52,7 +52,7 @@ def run_pytorch_cuda(model_name, num_runs, timeout):
         )
 
     def transcribe_wrapper(audio):
-        return transcribe(model, audio, verbose=None)
+        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper)
     librispeech = LibriSpeech()
