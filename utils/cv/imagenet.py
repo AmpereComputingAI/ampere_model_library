@@ -146,7 +146,10 @@ class ImageNet(ImageDataset):
         :param top_5_indices: list of ints, indices of 5 predictions with highest confidence
         :return:
         """
-        ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
+        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and self.__batch_size > self.available_instances:
+            ground_truth = self.__labels[id_in_batch % self.available_instances]
+        else:
+            ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
 
