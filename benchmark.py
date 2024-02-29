@@ -1,9 +1,13 @@
 import os
 import sys
+import json
+import urllib.request
 
 LATEST_VERSION = "2.1.0a0+gite0a1120"
 SYSTEMS = {
-    "Altra": {},
+    "Altra": {
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json"
+    },
     "Altra Max": {},
     "AmpereOne": {},
     "AmpereOneX": {},
@@ -122,14 +126,44 @@ def identify_system():
     return system, num_sockets, num_threads_per_socket, memory_available
 
 
+class Runner:
+    def __init__(self, system, model_name, num_sockets, num_threads, memory, precisions):
+        with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
+            look_up_data = json.load(url)
+        from utils.perf_prediction.predictor import find_best_config
+        for precision in precisions:
+            print(f"{model_name}, {precision} precision")
+            x = find_best_config(look_up_data, precision, memory, num_threads, True)
+            num_proc = x[1] * num_sockets
+            print("Case minimizing latency:")
+            print(f"{''*3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{''*3}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{'' * 3}latency: {round(1000./x[4], 2)} ms")
+            print(f"{'' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
+            x = find_best_config(look_up_data, precision, memory, num_threads, False)
+            num_proc = x[1] * num_sockets
+            print("Case maximizing throughput:")
+            print(f"{'' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{'' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{'' * 3}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
+
+
+class ResNet50(Runner):
+    def __init__(self, system, num_sockets, num_threads, memory):
+        super().__init__(
+            system, "ResNet-50 v1.5", num_sockets, num_threads, memory, ["fp32", "fp16"])
+
+    def validate(self):
+        pass
+
+
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
+    print("Expected performance on your system:\n")
     runners = []
-    for model in MODELS:
-        runner = model(system)
-        runner.predict_perf(num_sockets, num_threads, memory)
-        runners.append(runner)
+    for model in [ResNet50]:
+        runners.append(model(system, num_sockets, num_threads, memory))
     if get_bool_answer("Do you want to run actual benchmark to validate?"):
         for runner in runners:
             runner.validate()
