@@ -4,7 +4,7 @@ from utils.nlp.alpaca_instruct import AlpacaInstruct
 from transformers import LlamaForCausalLM, AutoTokenizer
 
 
-def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
+def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=False):
     def run_single_pass(pytorch_runner, _dataset):
         input_tensor = tokenizer.encode(_dataset.get_input_string(), return_tensors="pt")
         input_tensor = torch.cat([input_tensor for _ in range(batch_size)], 0)
@@ -20,6 +20,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
 
     model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
     model.eval()
+    if use_torch_fp16:
+        model = model.half()
     model.generate = apply_compile(model.generate)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
@@ -37,6 +39,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path):
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path)
 
+def run_pytorch_fp16(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
+    return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=True)
 
 def main():
     from utils.helpers import DefaultArgParser
