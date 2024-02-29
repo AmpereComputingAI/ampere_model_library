@@ -9,6 +9,9 @@ SYSTEMS = {
     "AmpereOneX": {},
 }
 
+AFFIRMATIVE = ["y", "Y", "yes", "YES"]
+NEGATIVE = ["n", "N", "no", "NO"]
+
 
 def print_red(message):
     print(f"\033[91m{message}\033[0m")
@@ -47,6 +50,13 @@ def is_setup_done():
     print_green("Setup verified. You are good to go! 🔥")
 
 
+def get_bool_answer(question):
+    answer = None
+    while answer not in AFFIRMATIVE + NEGATIVE:
+        answer = input(f"{question} (y/n)").strip()
+    return answer in AFFIRMATIVE
+
+
 def identify_system():
     import psutil
     import subprocess
@@ -65,8 +75,8 @@ def identify_system():
                        if "Socket(s):" in n][0].split()[1])  # so ugly
     num_threads_per_socket = num_threads // num_sockets
     mem = psutil.virtual_memory()
-    memory_total = mem.total / 1024**3
-    memory_available = mem.available / 1024**3
+    memory_total = mem.total / 1024 ** 3
+    memory_available = mem.available / 1024 ** 3
 
     if all([item in altra_flags for item in flags]):
         if num_threads_per_socket > 80:
@@ -83,40 +93,45 @@ def identify_system():
 
     def system_identifed_as():
         print(f"\nSystem identified as {system}")
-        print(f"Sockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {memory_total} [GiB]\n")
+        print(f"Sockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {round(memory_total, 2)} [GiB]\n")
 
-    answer = "no"
-    affirmative = ["y", "Y", "yes", "YES"]
-    negative = ["n", "N", "no", "NO"]
+    run_selection = True
     if system is not None:
         system_identifed_as()
-        answer = input("Is this correct? (y/n)").strip()
-        while answer not in affirmative + negative:
-            answer = input("Is this correct? (y/n)").strip()
+        run_selection = not get_bool_answer("Is this correct?")
     else:
         print_red("\nCouldn't identify system. Are you running this on Ampere CPU?")
 
-    if answer in negative:
+    if run_selection:
         print("\nPlease select your system from the following list:")
         system_map = {}
         for i, system in enumerate(SYSTEMS.keys()):
             system_map[i] = system
-            print(f"{''*3}{i}: {system}")
+            print(f"{'' * 3}{i}: {system}")
         print()
         answer = None
         while answer not in system_map.keys():
             try:
-                answer = int(input(f"Input number for your system [0-{len(system_map)-1}]"))
+                answer = int(input(f"Input number for your system [0-{len(system_map) - 1}]"))
             except ValueError:
                 pass
         system = system_map[answer]
         system_identifed_as()
 
+    return system, num_sockets, num_threads_per_socket, memory_available
 
 
 def main():
     is_setup_done()
-    identify_system()
+    system, num_sockets, num_threads, memory = identify_system()
+    runners = []
+    for model in MODELS:
+        runner = model(system)
+        runner.predict_perf(num_sockets, num_threads, memory)
+        runners.append(runner)
+    if get_bool_answer("Do you want to run actual benchmark to validate?"):
+        for runner in runners:
+            runner.validate()
 
 
 if __name__ == "__main__":
