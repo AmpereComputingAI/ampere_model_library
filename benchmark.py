@@ -209,7 +209,7 @@ class Results:
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
         if not self.stable and not final_calc:
-            print("\r{}current throughput: {:.2f} ips".format(INDENT, throughput_total), end='')
+            print("\r{}total throughput: {:.2f} ips, stabilizing result".format(INDENT, throughput_total), end='')
 
         return throughput_total
 
@@ -360,6 +360,7 @@ def main():
     system, num_sockets, num_threads, memory = identify_system()
     for model in [ResNet50]:
         model(system, num_sockets, num_threads, memory)
+    print_green("Evaluation finished.")
 
 
 if __name__ == "__main__":
