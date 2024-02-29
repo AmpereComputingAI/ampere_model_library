@@ -133,10 +133,23 @@ def identify_system():
     return system, num_sockets, num_threads_per_socket, memory_available
 
 
-def gen_threads_config(num_threads, process_id):
-    threads_to_use = [str(t) for t in online_threads[num_threads * process_id:num_threads * (process_id + 1)]]
-    assert len(threads_to_use) == num_threads
-    return " ".join(threads_to_use), ",".join(threads_to_use)
+def get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc):
+    assert num_threads_per_proc <= num_threads_per_socket
+    thread_configs = []
+    start_idx = 0
+    end_idx = num_threads_per_proc
+    for n in range(num_proc):
+        a = start_idx // num_threads_per_socket
+        b = (end_idx - 1) // num_threads_per_socket
+        if a != b:
+            start_idx = (a + 1) * num_threads_per_socket
+            end_idx = start_idx + num_threads_per_proc
+        threads_to_use = [str(t) for t in range(start_idx, end_idx)]
+        assert len(threads_to_use) == num_threads_per_proc
+        thread_configs.append((" ".join(threads_to_use), ",".join(threads_to_use)))
+        start_idx += num_threads_per_proc
+        end_idx += num_threads_per_proc
+    return thread_configs
 
 
 class Results:
@@ -196,18 +209,11 @@ class Results:
         return throughput_total
 
 
-def run_benchmark(precision, model_script, num_sockets, num_proc, num_threads):
+def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc):
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
 
-    if precision == "fp32":
-        os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
-    elif precision == "fp16":
-        os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
-    else:
-        assert False
-
-    os.environ["AIO_NUM_THREADS"] = str(num_threads)
-    os.environ["OMP_NUM_THREADS"] = str(num_threads)
+    os.environ["AIO_NUM_THREADS"] = str(num_threads_per_proc)
+    os.environ["OMP_NUM_THREADS"] = str(num_threads_per_proc)
 
     results_dir = os.path.join(os.getcwd(), ".cache_aml")
     os.environ["RESULTS_DIR"] = results_dir
@@ -218,9 +224,10 @@ def run_benchmark(precision, model_script, num_sockets, num_proc, num_threads):
         os.mkdir(results_dir)
 
     results = Results(results_dir, num_proc)
+    thread_configs = get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc)
     current_subprocesses = list()
     for n in range(num_proc):
-        aio_numa_cpus, physcpubind = gen_threads_config(num_threads, n)
+        aio_numa_cpus, physcpubind = thread_configs[n]
         os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
         os.environ["DLS_NUMA_CPUS"] = aio_numa_cpus
         cmd = ["numactl", f"--physcpubind={physcpubind}",
@@ -274,7 +281,8 @@ class Runner:
             self.configs[precision] = {"latency": x}
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
-            print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{' ' * 3}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
+                  f"[num_sockets x num_proc x num_threads x bs]")
             print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
             print(f"{' ' * 3}latency: {round(1000. / x[4], 2)} ms")
             print(f"{' ' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
@@ -282,7 +290,8 @@ class Runner:
             self.configs[precision]["throughput"] = x
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
-            print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{' ' * 3}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
+                  f"[num_sockets x num_proc x num_threads x bs]")
             print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
             print(f"{' ' * 3}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
 
@@ -294,21 +303,47 @@ class ResNet50(Runner):
         super().__init__(
             system, self.model_name, num_sockets, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets)
+            self._validate(num_sockets, num_threads)
 
-    def _validate(self, num_sockets):
+    def _validate(self, num_sockets, num_threads):
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/classification/resnet_50_v15/run.py")
+        warm_up_completed = False
         for precision in self.precisions:
             try:
                 configs = self.configs[precision]
             except KeyError:
                 continue
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+
+            if (num_sockets > 1 or configs["latency"][1] > 1) and not warm_up_completed:
+                print("Setup run ...\n")
+                cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
+                run_benchmark(cmd, num_threads, 1, num_threads)
+                warm_up_completed = True
+
             print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
             cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
-            result = run_benchmark(precision, cmd, num_sockets, configs["latency"][1], configs["latency"][2])
-            print(result)
+            result = run_benchmark(cmd, num_threads, num_sockets * configs["latency"][1], configs["latency"][2])
+            print(f"{' ' * 3}setting: {num_sockets} x {configs['latency'][1]} x {configs['latency'][2]} x "
+                  f"{configs['latency'][0]} [num_sockets x num_proc x num_threads x bs]")
+            print(f"{' ' * 3}total throughput: {round(result, 2)} ips")
+            throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
+            print(f"{' ' * 3}latency: {round(1000. / throughput_per_unit, 2)} ms")
+
+            print("Case maximizing throughput:")
+            cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['throughput'][0]} "
+                   f"--timeout={DAY_IN_SEC}")
+            result = run_benchmark(cmd, num_threads, num_sockets * configs["throughput"][1], configs["throughput"][2])
+            print(f"{' ' * 3}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
+                  f"{configs['throughput'][0]} [num_sockets x num_proc x num_threads x bs]")
+            print(f"{' ' * 3}total throughput: {round(result, 2)} ips\n")
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
 
 
 def main():
