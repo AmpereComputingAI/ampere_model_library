@@ -2,6 +2,12 @@ import os
 import sys
 
 LATEST_VERSION = "2.1.0a0+gite0a1120"
+SYSTEMS = {
+    "Altra": {},
+    "Altra Max": {},
+    "AmpereOne": {},
+    "AmpereOneX": {},
+}
 
 
 def print_red(message):
@@ -42,7 +48,70 @@ def is_setup_done():
 
 
 def identify_system():
-    pass
+    import psutil
+    import subprocess
+    from cpuinfo import get_cpu_info
+    altra_flags = ['aes', 'asimd', 'asimddp', 'asimdhp', 'asimdrdm', 'atomics', 'cpuid', 'crc32', 'dcpop', 'evtstrm',
+                   'fp', 'fphp', 'lrcpc', 'pmull', 'sha1', 'sha2', 'ssbs']
+    aone_flags = ['aes', 'asimd', 'asimddp', 'asimdfhm', 'asimdhp', 'asimdrdm', 'atomics', 'bf16', 'bti', 'cpuid',
+                  'crc32', 'dcpodp', 'dcpop', 'dit', 'ecv', 'evtstrm', 'fcma', 'flagm', 'flagm2', 'fp', 'fphp', 'frint',
+                  'i8mm', 'ilrcpc', 'jscvt', 'lrcpc', 'paca', 'pacg', 'pmull', 'rng', 'sb', 'sha1', 'sha2', 'sha3',
+                  'sha512', 'sm3', 'sm4', 'ssbs', 'uscat']
+
+    cpu_info = get_cpu_info()
+    flags = cpu_info["flags"]
+    num_threads = cpu_info["count"]
+    num_sockets = int([n for n in subprocess.check_output(["lscpu"]).decode().split("\n")
+                       if "Socket(s):" in n][0].split()[1])  # so ugly
+    num_threads_per_socket = num_threads // num_sockets
+    mem = psutil.virtual_memory()
+    memory_total = mem.total / 1024**3
+    memory_available = mem.available / 1024**3
+
+    if all([item in altra_flags for item in flags]):
+        if num_threads_per_socket > 80:
+            system = "Altra Max"
+        else:
+            system = "Altra"
+    elif all([item in aone_flags for item in flags]):
+        if num_threads_per_socket > 160:
+            system = "AmpereOneX"
+        else:
+            system = "AmpereOne"
+    else:
+        system = None
+
+    def system_identifed_as():
+        print(f"\nSystem identified as {system}")
+        print(f"Sockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {memory_total} [GiB]\n")
+
+    answer = "no"
+    affirmative = ["y", "Y", "yes", "YES"]
+    negative = ["n", "N", "no", "NO"]
+    if system is not None:
+        system_identifed_as()
+        answer = input("Is this correct? (y/n)").strip()
+        while answer not in affirmative + negative:
+            answer = input("Is this correct? (y/n)").strip()
+    else:
+        print_red("\nCouldn't identify system. Are you running this on Ampere CPU?")
+
+    if answer in negative:
+        print("\nPlease select your system from the following list:")
+        system_map = {}
+        for i, system in enumerate(SYSTEMS.keys()):
+            system_map[i] = system
+            print(f"{''*3}{i}: {system}")
+        print()
+        answer = None
+        while answer not in system_map.keys():
+            try:
+                answer = int(input(f"Input number for your system [0-{len(system_map)-1}]"))
+            except ValueError:
+                pass
+        system = system_map[answer]
+        system_identifed_as()
+
 
 
 def main():

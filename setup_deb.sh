@@ -83,7 +83,8 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   numba==0.57.1
+   numba==0.57.1 \
+   py-cpuinfo==9.0.0
 
 pip3 install --no-build-isolation --upgrade \
    git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.36

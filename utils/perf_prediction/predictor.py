@@ -61,7 +61,7 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
         d = data["results"][precision]["perf"].copy()
         d.pop("lowest_latency_throughput")
         throughput = interpolate_recursively(d, [bs, threads_per_proc, num_proc]) * num_proc
-    return mem / 1024, throughput
+    return mem / (2 << 9), throughput
 
 
 def find_best_config(
@@ -88,11 +88,11 @@ def find_best_config(
                         if (throughput_per_unit > best_throughput_per_unit or
                                 throughput_per_unit > SATISFACTORY_LATENCY_RATIO *
                                 float(source_data["results"][precision]["perf"]["lowest_latency_throughput"])):
-                            best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
+                            best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
                             best_throughput = throughput
                             best_throughput_per_unit = throughput_per_unit
                     else:
-                        best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit]
+                        best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
                         best_throughput = throughput
                 num_proc += 1
     return best_config
