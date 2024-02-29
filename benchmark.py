@@ -66,6 +66,7 @@ def get_bool_answer(question):
     answer = None
     while answer not in AFFIRMATIVE + NEGATIVE:
         answer = input(f"{question} (y/n)").strip()
+    print()
     return answer in AFFIRMATIVE
 
 
@@ -207,7 +208,7 @@ class Results:
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
         if not self.stable and not final_calc:
-            print("Result not yet stable - current throughput: {:.2f} fps".format(throughput_total))
+            print("\r{}current throughput: {:.2f} fps".format(3*" ", throughput_total), end='')
 
         return throughput_total
 
@@ -241,7 +242,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
-        time.sleep(15)
+        time.sleep(5)
         try:
             results.calculate_throughput()
         except AssertionError:
@@ -274,6 +275,7 @@ class Runner:
         with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
             look_up_data = json.load(url)
         from utils.perf_prediction.predictor import find_best_config
+        print("Expected performance on your system:\n")
         self.configs = {}
         for precision in precisions:
             print(f"{model_name}, {precision} precision")
@@ -329,21 +331,21 @@ class ResNet50(Runner):
 
             print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
-            cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
-            result = run_benchmark(cmd, num_threads, num_sockets * configs["latency"][1], configs["latency"][2])
             print(f"{' ' * 3}setting: {num_sockets} x {configs['latency'][1]} x {configs['latency'][2]} x "
                   f"{configs['latency'][0]} [num_sockets x num_proc x num_threads x bs]")
-            print(f"{' ' * 3}total throughput: {round(result, 2)} ips")
+            cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
+            result = run_benchmark(cmd, num_threads, num_sockets * configs["latency"][1], configs["latency"][2])
+            print(f"\r{' ' * 3}total throughput: {round(result, 2)} ips")
             throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
             print(f"{' ' * 3}latency: {round(1000. / throughput_per_unit, 2)} ms")
 
             print("Case maximizing throughput:")
+            print(f"{' ' * 3}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
+                  f"{configs['throughput'][0]} [num_sockets x num_proc x num_threads x bs]")
             cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['throughput'][0]} "
                    f"--timeout={DAY_IN_SEC}")
             result = run_benchmark(cmd, num_threads, num_sockets * configs["throughput"][1], configs["throughput"][2])
-            print(f"{' ' * 3}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
-                  f"{configs['throughput'][0]} [num_sockets x num_proc x num_threads x bs]")
-            print(f"{' ' * 3}total throughput: {round(result, 2)} ips\n")
+            print(f"\r{' ' * 3}total throughput: {round(result, 2)} ips\n")
 
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
@@ -352,7 +354,6 @@ class ResNet50(Runner):
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
-    print("\nExpected performance on your system:\n")
     for model in [ResNet50]:
         model(system, num_sockets, num_threads, memory)
 
