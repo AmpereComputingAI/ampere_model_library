@@ -16,6 +16,11 @@ if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
+if [ ! -f "$SCRIPT_DIR/speech_recognition/whisper/whisper/README.md" ]; then
+   log "Please pull submodules first: git submodule update --init --recursive"
+   exit 1
+fi
+
 if [ "$FORCE_INSTALL" != "1" ]; then
    log "Checking for aarch64 system ..."
    sleep 1
