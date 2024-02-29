@@ -16,6 +16,9 @@ SYSTEMS = {
 AFFIRMATIVE = ["y", "Y", "yes", "YES"]
 NEGATIVE = ["n", "N", "no", "NO"]
 
+MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
+MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
+
 
 def print_red(message):
     print(f"\033[91m{message}\033[0m")
@@ -126,14 +129,87 @@ def identify_system():
     return system, num_sockets, num_threads_per_socket, memory_available
 
 
+def gen_threads_config(num_threads, process_id):
+    threads_to_use = [str(t) for t in online_threads[num_threads*process_id:num_threads*(process_id+1)]]
+    assert len(threads_to_use) == num_threads
+    return " ".join(threads_to_use), ",".join(threads_to_use)
+
+
+class Results:
+    def __init__(self, results_dir, processes_count):
+        self._results_dir = results_dir
+        self._prev_measurements_count = None
+        self._prev_throughput_total = None
+        self._processes_count = processes_count
+        self.stable = False
+
+    def calculate_throughput(self, final_calc=False):
+        from filelock import FileLock
+        logs = [log for log in os.listdir(self._results_dir) if "json" in log and "lock" not in log]
+        assert len(logs) == self._processes_count
+
+        loaded_logs = []
+        for log in logs:
+            log_filepath = os.path.join(self._results_dir, log)
+            with FileLock(f"{log_filepath}.lock", timeout=60):
+                with open(log_filepath, "r") as f:
+                    loaded_logs.append(json.load(f))
+
+        measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
+                               loaded_logs]
+        assert all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts)
+        latest_start = max(log["start_times"][0] for log in loaded_logs)
+        earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
+
+        measurements_completed_in_overlap_total = 0
+        throughput_total = 0.
+        for log in loaded_logs:
+            input_size_processed_per_process = 0
+            total_latency_per_process = 0.
+            measurements_completed_in_overlap = 0
+            for i in range(len(log["start_times"])):
+                start = log["start_times"][i]
+                finish = log["finish_times"][i]
+                if start >= latest_start and finish <= earliest_finish:
+                    input_size_processed_per_process += log["workload_size"][i]
+                    total_latency_per_process += finish - start
+                    measurements_completed_in_overlap += 1
+                elif earliest_finish < finish:
+                    break
+            assert measurements_completed_in_overlap >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT
+            measurements_completed_in_overlap_total += measurements_completed_in_overlap
+            throughput_total += input_size_processed_per_process / total_latency_per_process
+
+        if self._prev_measurements_count is not None and \
+                measurements_completed_in_overlap_total > self._prev_measurements_count:
+            self.stable = abs((throughput_total / self._prev_throughput_total) - 1.) <= MAX_DEVIATION
+        self._prev_throughput_total = throughput_total
+        self._prev_measurements_count = measurements_completed_in_overlap_total
+
+        if final_calc:
+            print("\nOverlap time of processes: {:.2f} s".format(earliest_finish - latest_start))
+            print("Total throughput: {:.2f} fps".format(throughput_total))
+        elif not self.stable:
+            print("Result not yet stable - current throughput: {:.2f} fps".format(throughput_total))
+
+        return {"throughput_total": throughput_total,
+                "start_timestamp": latest_start,
+                "finish_timestamp": earliest_finish}
+
+
 class Runner:
     def __init__(self, system, model_name, num_sockets, num_threads, memory, precisions):
         with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
             look_up_data = json.load(url)
         from utils.perf_prediction.predictor import find_best_config
+        self.configs = {}
         for precision in precisions:
             print(f"{model_name}, {precision} precision")
             x = find_best_config(look_up_data, precision, memory, num_threads, True)
+            if x[4] is None:
+                print_red("Not enough memory on the system to run\n")
+                continue
+            self.configs[precision] = {"latency": x}
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
             print(f"{' '*3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
@@ -141,6 +217,7 @@ class Runner:
             print(f"{' ' * 3}latency: {round(1000./x[4], 2)} ms")
             print(f"{' ' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory, num_threads, False)
+            self.configs[precision] = {"throughput": x}
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
             print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
@@ -152,21 +229,21 @@ class ResNet50(Runner):
     def __init__(self, system, num_sockets, num_threads, memory):
         super().__init__(
             system, "ResNet-50 v1.5", num_sockets, num_threads, memory, ["fp32", "fp16"])
+        if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
+            self._validate()
 
-    def validate(self):
+    def _validate(self):
         pass
+
+
 
 
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     print("\nExpected performance on your system:\n")
-    runners = []
     for model in [ResNet50]:
-        runners.append(model(system, num_sockets, num_threads, memory))
-    if get_bool_answer("Do you want to run actual benchmark to validate?"):
-        for runner in runners:
-            runner.validate()
+        model(system, num_sockets, num_threads, memory)
 
 
 if __name__ == "__main__":
