@@ -22,6 +22,7 @@ NEGATIVE = ["n", "N", "no", "NO"]
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
+INDENT = 3 * " "
 
 
 def print_red(message):
@@ -208,7 +209,7 @@ class Results:
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
         if not self.stable and not final_calc:
-            print("\r{}current throughput: {:.2f} fps".format(3*" ", throughput_total), end='')
+            print("\r{}current throughput: {:.2f} ips".format(INDENT, throughput_total), end='')
 
         return throughput_total
 
@@ -267,6 +268,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
             sys.exit(0)
         return None
     else:
+        print("\r" + 80 * " " + "\r", end='')
         return results.calculate_throughput(final_calc=True)
 
 
@@ -286,19 +288,19 @@ class Runner:
             self.configs[precision] = {"latency": x}
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
-            print(f"{' ' * 3}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
+            print(f"{INDENT}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
                   f"[num_sockets x num_proc x num_threads x bs]")
-            print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{' ' * 3}latency: {round(1000. / x[4], 2)} ms")
-            print(f"{' ' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
+            print(f"{INDENT}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{INDENT}latency: {round(1000. / x[4], 2)} ms")
+            print(f"{INDENT}memory usage: <{round(num_sockets * x[5], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory, num_threads, False)
             self.configs[precision]["throughput"] = x
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
-            print(f"{' ' * 3}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
+            print(f"{INDENT}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
                   f"[num_sockets x num_proc x num_threads x bs]")
-            print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{' ' * 3}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
+            print(f"{INDENT}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{INDENT}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
 
 
 class ResNet50(Runner):
@@ -331,21 +333,23 @@ class ResNet50(Runner):
 
             print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
-            print(f"{' ' * 3}setting: {num_sockets} x {configs['latency'][1]} x {configs['latency'][2]} x "
+            print(f"{INDENT}setting: {num_sockets} x {configs['latency'][1]} x {configs['latency'][2]} x "
                   f"{configs['latency'][0]} [num_sockets x num_proc x num_threads x bs]")
             cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
             result = run_benchmark(cmd, num_threads, num_sockets * configs["latency"][1], configs["latency"][2])
-            print(f"\r{' ' * 3}total throughput: {round(result, 2)} ips")
-            throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
-            print(f"{' ' * 3}latency: {round(1000. / throughput_per_unit, 2)} ms")
+            if result is not None:
+                print(f"{INDENT}total throughput: {round(result, 2)} ips")
+                throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
+                print(f"{INDENT}latency: {round(1000. / throughput_per_unit, 2)} ms")
 
             print("Case maximizing throughput:")
-            print(f"{' ' * 3}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
+            print(f"{INDENT}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
                   f"{configs['throughput'][0]} [num_sockets x num_proc x num_threads x bs]")
             cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['throughput'][0]} "
                    f"--timeout={DAY_IN_SEC}")
             result = run_benchmark(cmd, num_threads, num_sockets * configs["throughput"][1], configs["throughput"][2])
-            print(f"\r{' ' * 3}total throughput: {round(result, 2)} ips\n")
+            if result is not None:
+                print(f"{INDENT}total throughput: {round(result, 2)} ips\n")
 
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
