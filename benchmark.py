@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import subprocess
 import urllib.request
 
 LATEST_VERSION = "2.1.0a0+gite0a1120"
@@ -18,6 +19,9 @@ NEGATIVE = ["n", "N", "no", "NO"]
 
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
+DAY_IN_SEC = 60*60*24
+
+debug = os.environ.get("DEBUG") == "1"
 
 
 def print_red(message):
@@ -130,7 +134,7 @@ def identify_system():
 
 
 def gen_threads_config(num_threads, process_id):
-    threads_to_use = [str(t) for t in online_threads[num_threads*process_id:num_threads*(process_id+1)]]
+    threads_to_use = [str(t) for t in online_threads[num_threads * process_id:num_threads * (process_id + 1)]]
     assert len(threads_to_use) == num_threads
     return " ".join(threads_to_use), ",".join(threads_to_use)
 
@@ -186,15 +190,61 @@ class Results:
         self._prev_throughput_total = throughput_total
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
-        if final_calc:
-            print("\nOverlap time of processes: {:.2f} s".format(earliest_finish - latest_start))
-            print("Total throughput: {:.2f} fps".format(throughput_total))
-        elif not self.stable:
+        if not self.stable and not final_calc:
             print("Result not yet stable - current throughput: {:.2f} fps".format(throughput_total))
 
-        return {"throughput_total": throughput_total,
-                "start_timestamp": latest_start,
-                "finish_timestamp": earliest_finish}
+        return throughput_total
+
+
+def run_benchmark(model_script, num_sockets, num_proc, num_threads):
+    os.environ["IGNORE_DATASET_LIMITS"] = "1"
+
+    os.environ["AIO_NUM_THREADS"] = str(num_threads)
+    os.environ["OMP_NUM_THREADS"] = str(num_threads)
+
+    results_dir = os.path.join(os.getcwd(), ".cache_aml")
+    os.environ["RESULTS_DIR"] = results_dir
+    if os.path.exists(results_dir) and os.path.isdir(results_dir):
+        for filepath in os.listdir(results_dir):
+            os.remove(os.path.join(results_dir, filepath))
+    else:
+        os.mkdir(results_dir)
+
+    results = Results(results_dir, num_proc)
+    current_subprocesses = list()
+    for n in range(num_proc):
+        aio_numa_cpus, physcpubind = gen_threads_config(num_threads, n)
+        os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
+        os.environ["DLS_NUMA_CPUS"] = aio_numa_cpus
+        cmd = ["numactl", f"--physcpubind={physcpubind}",
+               "python3"] + model_script.split()
+        if debug:
+            current_subprocesses.append(subprocess.Popen(cmd))
+        else:
+            current_subprocesses.append(subprocess.Popen(
+                cmd, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')))
+
+    failure = False
+    while not all(p.poll() is not None for p in current_subprocesses):
+        time.sleep(15)
+        try:
+            results.calculate_throughput()
+        except AssertionError:
+            pass
+        failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
+        if results.stable or failure:
+            Path(os.path.join(results_dir, "STOP")).touch()
+            break
+
+    if not failure:
+        # wait for subprocesses to finish their job if all are alive till now
+        failure = any(p.wait() != 0 for p in current_subprocesses)
+
+    if failure:
+        print_red("FAIL: At least one process returned exit code other than 0 or died!")
+        sys.exit(1)
+
+    values = results.calculate_throughput(final_calc=True)
 
 
 class Runner:
@@ -212,12 +262,12 @@ class Runner:
             self.configs[precision] = {"latency": x}
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
-            print(f"{' '*3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
-            print(f"{' '*3}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{' ' * 3}latency: {round(1000./x[4], 2)} ms")
+            print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{' ' * 3}latency: {round(1000. / x[4], 2)} ms")
             print(f"{' ' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory, num_threads, False)
-            self.configs[precision] = {"throughput": x}
+            self.configs[precision]["throughput"] = x
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
             print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
@@ -227,15 +277,25 @@ class Runner:
 
 class ResNet50(Runner):
     def __init__(self, system, num_sockets, num_threads, memory):
+        self.model_name = "ResNet-50 v1.5"
+        self.precisions = ["fp32", "fp16"]
         super().__init__(
-            system, "ResNet-50 v1.5", num_sockets, num_threads, memory, ["fp32", "fp16"])
+            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate()
+            self._validate(num_sockets)
 
-    def _validate(self):
-        pass
-
-
+    def _validate(self, num_sockets):
+        path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                      "computer_vision/classification/resnet_50_v15/run.py")
+        for precision in self.precisions:
+            print(f"{self.model_name}, {precision} precision")
+            try:
+                configs = self.configs[precision]
+            except KeyError:
+                continue
+            print("Case minimizing latency:")
+            cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
+            run_benchmark(cmd, num_sockets, configs["latency"][1], configs["latency"][2])
 
 
 def main():
