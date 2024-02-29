@@ -41,11 +41,12 @@ def is_setup_done():
         go_ampere_message()
     if torch.__version__ != "2.1.0a0+gite0a1120":
         go_ampere_message()
-    if not os.path.exists(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".setup_completed")):
+    setup_confirmation = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".setup_completed")
+    if not os.path.exists(setup_confirmation):
         do_the_setup_message()
-    try:
-        from utils.perf_prediction.predictor import predict
-    except ImportError:
+    elif open(setup_confirmation, "r").read() != open("/etc/machine-id", "r").read():
+        do_the_setup_message()
+    if os.environ.get("PYTHONPATH") != os.path.dirname(os.path.realpath(__file__)):
         do_the_setup_message()
     print_green("Setup verified. You are good to go! 🔥")
 
