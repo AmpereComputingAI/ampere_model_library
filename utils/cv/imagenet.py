@@ -142,12 +142,13 @@ class ImageNet(ImageDataset):
         A function meant for submitting a class predictions for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided predictions relate to
-        :param top_1_index: int, index of a prediction with highest confidence
-        :param top_5_indices: list of ints, indices of 5 predictions with highest confidence
+        :param top_1_index: int, index of a prediction with the highest confidence
+        :param top_5_indices: list of ints, indices of 5 predictions with the highest confidence
         :return:
         """
         if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and self.__batch_size > self.available_instances:
-            ground_truth = self.__labels[id_in_batch % self.available_instances]
+            offset = self.__current_img - self.__batch_size % self.available_instances
+            ground_truth = self.__labels[(offset + id_in_batch) % self.available_instances]
         else:
             ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
