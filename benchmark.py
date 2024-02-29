@@ -136,16 +136,16 @@ class Runner:
             x = find_best_config(look_up_data, precision, memory, num_threads, True)
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
-            print(f"{''*3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
-            print(f"{''*3}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{'' * 3}latency: {round(1000./x[4], 2)} ms")
-            print(f"{'' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
+            print(f"{' '*3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{' '*3}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{' ' * 3}latency: {round(1000./x[4], 2)} ms")
+            print(f"{' ' * 3}memory usage: <{round(num_sockets * x[5], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory, num_threads, False)
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
-            print(f"{'' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
-            print(f"{'' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{'' * 3}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
+            print(f"{' ' * 3}best setting: {x[0]} x {num_proc} x {x[2]} [bs x num_proc x num_threads]")
+            print(f"{' ' * 3}total throughput: {round(num_sockets * x[3], 2)} ips")
+            print(f"{' ' * 3}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
 
 
 class ResNet50(Runner):
@@ -160,7 +160,7 @@ class ResNet50(Runner):
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
-    print("Expected performance on your system:\n")
+    print("\nExpected performance on your system:\n")
     runners = []
     for model in [ResNet50]:
         runners.append(model(system, num_sockets, num_threads, memory))
