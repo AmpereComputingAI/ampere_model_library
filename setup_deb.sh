@@ -16,6 +16,11 @@ if [ -z ${SCRIPT_DIR+x} ]; then
   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
+if [ ! -f "$SCRIPT_DIR/speech_recognition/whisper/whisper/README.md" ]; then
+   log "Please pull submodules first: git submodule update --init --recursive"
+   exit 1
+fi
+
 if [ "$FORCE_INSTALL" != "1" ]; then
    log "Checking for aarch64 system ..."
    sleep 1
@@ -84,7 +89,8 @@ pip3 install --no-deps --upgrade \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
    numba==0.57.1 \
-   py-cpuinfo==9.0.0
+   py-cpuinfo==9.0.0 \
+   cchardet==2.1.7
 
 pip3 install --no-build-isolation --upgrade \
    git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.36
