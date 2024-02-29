@@ -107,8 +107,8 @@ def identify_system():
         system = None
 
     def system_identifed_as():
-        print(f"\nSystem identified as {system} [out of {', '.join(SYSTEMS.keys())}]")
-        print(f"Sockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {round(memory_total, 2)} [GiB]\n")
+        print(f"\nSystem identified as {system}\n[out of {', '.join(SYSTEMS.keys())}]")
+        print(f"\nSockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {round(memory_total, 2)} [GiB]\n")
 
     run_selection = True
     if system is not None:
