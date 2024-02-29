@@ -234,6 +234,9 @@ class COCODataset(COCOBaseDataset):
         try:
             image_id = self._image_ids[self._current_img]
         except IndexError:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                if self.reset():
+                    return self._get_path_to_img()
             raise utils.OutOfInstances("No more COCO images to process in the directory provided")
         self._current_image_ids.append(image_id)
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext

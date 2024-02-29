@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
+import os
 
 import numpy as np
 import json
@@ -60,7 +61,7 @@ class Squad_v1_1(Dataset):
             dataset_json = json.load(dataset_file)
             encountered_version = dataset_json["version"]
             if encountered_version != expected_version:
-                print_goodbye_message_and_die(
+                utils.print_goodbye_message_and_die(
                     f"Expected SQUAD version {expected_version} but encountered version {encountered_version}")
             dataset = dataset_json["data"]
         return dataset
@@ -89,6 +90,9 @@ class Squad_v1_1(Dataset):
                 try:
                     context, question, correct_answers = next(self.__example_iterator)
                 except StopIteration:
+                    if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                        if self.reset():
+                            return self.__load_next_inputs_maybe()
                     raise utils.OutOfInstances("No more examples to process in the Squad file provided.")
                 contextes.append(context)
                 questions.append(question)

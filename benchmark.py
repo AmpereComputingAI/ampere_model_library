@@ -2,7 +2,9 @@ import os
 import sys
 import json
 import subprocess
+import time
 import urllib.request
+from pathlib import Path
 
 LATEST_VERSION = "2.1.0a0+gite0a1120"
 SYSTEMS = {
@@ -20,8 +22,6 @@ NEGATIVE = ["n", "N", "no", "NO"]
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60*60*24
-
-debug = os.environ.get("DEBUG") == "1"
 
 
 def print_red(message):
@@ -196,8 +196,15 @@ class Results:
         return throughput_total
 
 
-def run_benchmark(model_script, num_sockets, num_proc, num_threads):
+def run_benchmark(precision, model_script, num_sockets, num_proc, num_threads):
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
+
+    if precision == "fp32":
+        os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
+    elif precision == "fp16":
+        os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+    else:
+        assert False
 
     os.environ["AIO_NUM_THREADS"] = str(num_threads)
     os.environ["OMP_NUM_THREADS"] = str(num_threads)
@@ -218,11 +225,9 @@ def run_benchmark(model_script, num_sockets, num_proc, num_threads):
         os.environ["DLS_NUMA_CPUS"] = aio_numa_cpus
         cmd = ["numactl", f"--physcpubind={physcpubind}",
                "python3"] + model_script.split()
-        if debug:
-            current_subprocesses.append(subprocess.Popen(cmd))
-        else:
-            current_subprocesses.append(subprocess.Popen(
-                cmd, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb')))
+        log_filename = f"/tmp/aml_log_{n}"
+        current_subprocesses.append(subprocess.Popen(
+                cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
@@ -241,10 +246,17 @@ def run_benchmark(model_script, num_sockets, num_proc, num_threads):
         failure = any(p.wait() != 0 for p in current_subprocesses)
 
     if failure:
-        print_red("FAIL: At least one process returned exit code other than 0 or died!")
-        sys.exit(1)
-
-    values = results.calculate_throughput(final_calc=True)
+        print_red("\nFAIL: At least one process returned exit code other than 0 or died!")
+        if get_bool_answer("Do you want to print output of failed processes?"):
+            for i, p in enumerate(current_subprocesses):
+                if p.poll() != 0:
+                    print_red(f"\nOutput of process {i}:")
+                    print(open(f"/tmp/aml_log_{i}", "r").read())
+        if not get_bool_answer("Do you want to continue evaluation?"):
+            sys.exit(0)
+        return None
+    else:
+        return results.calculate_throughput(final_calc=True)
 
 
 class Runner:
@@ -288,14 +300,15 @@ class ResNet50(Runner):
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/classification/resnet_50_v15/run.py")
         for precision in self.precisions:
-            print(f"{self.model_name}, {precision} precision")
             try:
                 configs = self.configs[precision]
             except KeyError:
                 continue
+            print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
             cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
-            run_benchmark(cmd, num_sockets, configs["latency"][1], configs["latency"][2])
+            result = run_benchmark(precision, cmd, num_sockets, configs["latency"][1], configs["latency"][2])
+            print(result)
 
 
 def main():

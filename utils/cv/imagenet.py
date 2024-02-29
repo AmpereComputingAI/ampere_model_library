@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
+import os
 
 import numpy as np
 import pathlib
@@ -76,6 +77,9 @@ class ImageNet(ImageDataset):
         try:
             file_name = self.__file_names[self.__current_img]
         except IndexError:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                if self.reset():
+                    return self.__get_path_to_img()
             raise utils.OutOfInstances("No more ImageNet images to process in the directory provided")
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
