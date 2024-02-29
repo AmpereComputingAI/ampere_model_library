@@ -1,4 +1,5 @@
 import argparse
+import os
 from typing import List
 from utils.misc import print_warning_message
 
@@ -38,6 +39,9 @@ class DefaultArgParser:
 
 class Dataset:
     available_instances = None
+
+    def do_skip(self) -> bool:
+        return os.environ.get("IGNORE_DATASET_LIMITS") == "1"
 
     def reset(self) -> bool:
         raise NotImplementedError

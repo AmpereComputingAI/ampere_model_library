@@ -166,7 +166,8 @@ class Squad_v1_1(Dataset):
         :param model_max_length: int, maximum length of input a model can take, value of tokenizer.model_max_length
         :return: list, list containing inputs in various shapes for model warmup
         """
-        return [np.zeros(shape=(self.__batch_size, padding), dtype=np.int32) for padding in range(pad_to_multiple_of, model_max_length, pad_to_multiple_of)]
+        return [np.zeros(shape=(self.__batch_size, padding), dtype=np.int32)
+                for padding in range(pad_to_multiple_of, model_max_length, pad_to_multiple_of)]
 
     def extract_answer(self, id_in_batch: int, answer_start_id: int, answer_end_id: int):
         """
@@ -187,6 +188,9 @@ class Squad_v1_1(Dataset):
         :param id_in_batch: int, index in input batch that answer relates to
         :param answer: string, detokenized answer
         """
+
+        if self.do_skip():
+            return
 
         def normalize(answer_string):
             """
@@ -269,6 +273,9 @@ class Squad_v1_1(Dataset):
         :return: dict, dictionary containing two metrics produced: exact_match signifying the ratio of perfect answers
         and f1 metric
         """
+        if self.do_skip():
+            return {}
+
         if self.__unanswered_questions_count != 0:
             utils.print_goodbye_message_and_die(
                 "Answers for some of the issued questions have not been submitted.")

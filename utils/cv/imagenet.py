@@ -146,11 +146,10 @@ class ImageNet(ImageDataset):
         :param top_5_indices: list of ints, indices of 5 predictions with the highest confidence
         :return:
         """
-        if os.environ.get("IGNORE_DATASET_LIMITS") == "1" and self.__batch_size > self.available_instances:
-            offset = self.__current_img - self.__batch_size % self.available_instances
-            ground_truth = self.__labels[(offset + id_in_batch) % self.available_instances]
-        else:
-            ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
+        if self.do_skip():
+            return
+
+        ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
 
@@ -159,6 +158,9 @@ class ImageNet(ImageDataset):
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_predictions() function.
         """
+        if self.do_skip():
+            return {}
+
         top_1_accuracy = self.__top_1_count / self.__current_img
         #print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
 

@@ -23,6 +23,9 @@ class RandomDataset(Dataset):
         pass
 
     def submit_predictions(self, prediction):
+        if self.do_skip():
+            return
+
         self.__predictions.append(prediction)
 
     def summarize_accuracy(self):
