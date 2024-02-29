@@ -21,7 +21,7 @@ NEGATIVE = ["n", "N", "no", "NO"]
 
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
-DAY_IN_SEC = 60*60*24
+DAY_IN_SEC = 60 * 60 * 24
 
 
 def print_red(message):
@@ -83,8 +83,11 @@ def identify_system():
     cpu_info = get_cpu_info()
     flags = cpu_info["flags"]
     num_threads = cpu_info["count"]
-    num_sockets = int([n for n in subprocess.check_output(["lscpu"]).decode().split("\n")
-                       if "Socket(s):" in n][0].split()[1])  # so ugly
+    try:
+        num_sockets = int([n for n in subprocess.check_output(["lscpu"]).decode().split("\n")
+                           if "Socket(s):" in n][0].split()[1])  # so ugly
+    except (ValueError, IndexError):
+        num_sockets = 1
     num_threads_per_socket = num_threads // num_sockets
     mem = psutil.virtual_memory()
     memory_total = mem.total / 1024 ** 3
@@ -104,7 +107,7 @@ def identify_system():
         system = None
 
     def system_identifed_as():
-        print(f"\nSystem identified as {system}")
+        print(f"\nSystem identified as {system} [out of {', '.join(SYSTEMS.keys())}]")
         print(f"Sockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {round(memory_total, 2)} [GiB]\n")
 
     run_selection = True
@@ -234,7 +237,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
                "python3"] + model_script.split()
         log_filename = f"/tmp/aml_log_{n}"
         current_subprocesses.append(subprocess.Popen(
-                cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
+            cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
