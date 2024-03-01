@@ -8,7 +8,7 @@ on:
 jobs:
   test_x86:
     runs-on: ubuntu-22.04
-    name: Ubuntu 22.04 x86-64 AML test
+    name: x86-64
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -33,13 +33,15 @@ jobs:
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
           
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 speech_recognition/whisper/run.py -m small.en
+          
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
 
   test_pytorch_arm64:
     runs-on: self-hosted
     container: amperecomputingai/pytorch:latest
-    name: Ampere optimized PyTorch arm64 AML test
+    name: Ampere optimized PyTorch
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v3
@@ -52,7 +54,14 @@ jobs:
 
       - name: AML smoke test
         run: |
+          PYTHONPATH=./ IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
+          PYTHONPATH=./ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 speech_recognition/whisper/run.py -m tiny.en 
           PYTHONPATH=./ AIO_NUM_THREADS=8 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
-                         
-          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          PYTHONPATH=./ AIO_NUM_THREADS=8 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt
+          PYTHONPATH=./ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
+          wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1
+          PYTHONPATH=./ AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
+
+      - name: benchmark.py test
+        run: |
+          { echo "y"; echo "y"; } | PYTHONPATH=./ python3 benchmark.py
