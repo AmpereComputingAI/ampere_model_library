@@ -288,7 +288,7 @@ class Runner:
         self.configs = {}
         for precision in precisions:
             print(f"{model_name}, {precision} precision")
-            x = find_best_config(look_up_data, precision, memory, num_threads, True)
+            x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, True)
             if x[4] is None:
                 print_red("Not enough memory on the system to run\n")
                 continue
@@ -302,7 +302,7 @@ class Runner:
                 latency_msg += f" [{num_proc} parallel streams each offering this latency]"
             print(latency_msg)
             print(f"{INDENT}memory usage: <{round(num_sockets * x[5], 2)} GiB")
-            x = find_best_config(look_up_data, precision, memory, num_threads, False)
+            x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, False)
             self.configs[precision]["throughput"] = x
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
