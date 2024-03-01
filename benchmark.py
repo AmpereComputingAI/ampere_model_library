@@ -52,8 +52,6 @@ def is_setup_done():
         go_ampere_message()
     if '_aio_profiler_print' not in dir(torch._C) or torch.__version__ != LATEST_VERSION:
         go_ampere_message()
-    if torch.__version__ != "2.1.0a0+gite0a1120":
-        go_ampere_message()
     setup_confirmation = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".setup_completed")
     if not os.path.exists(setup_confirmation):
         do_the_setup_message()
