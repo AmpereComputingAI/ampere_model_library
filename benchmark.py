@@ -54,14 +54,10 @@ def is_setup_done():
         go_ampere_message()
     setup_confirmation = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".setup_completed")
     if not os.path.exists(setup_confirmation):
-        print("x")
         do_the_setup_message()
     elif open(setup_confirmation, "r").read() != open("/etc/machine-id", "r").read():
-        print("y")
         do_the_setup_message()
     if os.environ.get("PYTHONPATH") != os.path.dirname(os.path.realpath(__file__)):
-        print(os.environ.get("PYTHONPATH"))
-        print(os.path.dirname(os.path.realpath(__file__)))
         do_the_setup_message()
     print_green("Setup verified. You are good to go! 🔥")
 
