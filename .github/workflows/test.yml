@@ -75,7 +75,7 @@ jobs:
           submodules: true
 
       - name: Set up AML
-        run:
+        run: |
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
@@ -84,7 +84,6 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
-          cat ~/.cache/huggingface/token
           wget https://ampereaimodelzoo.s3.amazonaws.com/alpaca_data.json > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
           
