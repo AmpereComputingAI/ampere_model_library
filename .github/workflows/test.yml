@@ -81,6 +81,7 @@ jobs:
 
       - name: benchmark.py test
         run: |
+          source set_env_variables.sh
           { echo "y"; echo "y"; } | python3 benchmark.py
 
       - name: AML smoke test
