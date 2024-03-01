@@ -79,6 +79,10 @@ jobs:
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
+      - name: benchmark.py test
+        run: |
+          { echo "y"; echo "y"; } | python3 benchmark.py
+
       - name: AML smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
@@ -100,10 +104,6 @@ jobs:
           
           wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1 > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
-
-      - name: benchmark.py test
-        run: |
-          { echo "y"; echo "y"; } | python3 benchmark.py
 
   test_tensorflow_arm64:
     runs-on: self-hosted
