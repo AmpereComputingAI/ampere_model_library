@@ -103,7 +103,7 @@ jobs:
 
       - name: benchmark.py test
         run: |
-          { echo "y"; echo "y"; } | PYTHONPATH=./ python3 benchmark.py
+          { echo "y"; echo "y"; } | python3 benchmark.py
 
   test_tensorflow_arm64:
     runs-on: self-hosted
