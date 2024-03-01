@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 MEMORY_MARGIN_RATIO = 1.2
+THROUGHPUT_MARGIN_RATIO = 0.95
 SATISFACTORY_LATENCY_RATIO = 0.8
 
 
@@ -61,7 +62,7 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
         d = data["results"][precision]["perf"].copy()
         d.pop("lowest_latency_throughput")
         throughput = interpolate_recursively(d, [bs, threads_per_proc, num_proc]) * num_proc
-    return mem / (2 << 9), throughput
+    return mem / (2 << 9), THROUGHPUT_MARGIN_RATIO * throughput
 
 
 def find_best_config(
