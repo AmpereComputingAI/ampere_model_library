@@ -8,6 +8,7 @@ on:
 jobs:
   test_x86:
     runs-on: ubuntu-22.04
+    container: ubuntu:22.04
     name: x86-64 - all frameworks
     env:
       PYTHONPATH: ./
@@ -22,11 +23,11 @@ jobs:
       
       - name: Set up AML
         run:
-          sudo -s FORCE_INSTALL=1 bash setup_deb.sh
+          FORCE_INSTALL=1 bash setup_deb.sh
       
       - name: AML imports test
         run:
-          sudo -s python3 utils/tests/setup_test_utils/attempt_imports.py
+          python3 utils/tests/setup_test_utils/attempt_imports.py
       
       - name: AML smoke test
         run: |            
@@ -34,17 +35,17 @@ jobs:
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
-          sudo -s python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
-          sudo -s python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          sudo -s python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
           
-          sudo -s python3 speech_recognition/whisper/run.py -m small.en
+          python3 speech_recognition/whisper/run.py -m small.en
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
-          sudo -s python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
 
   test_pytorch_arm64:
     runs-on: self-hosted
