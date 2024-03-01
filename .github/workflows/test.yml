@@ -4,10 +4,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
-  test_setup:
+  test_x86:
     runs-on: ubuntu-22.04
     name: Ubuntu 22.04 x86-64 AML test
     steps:
@@ -31,11 +30,29 @@ jobs:
           
           sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
-          tar -xvf aio_objdet_dataset.tar.gz > /dev/null 2>&1
-          
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+
+  test_pytorch_arm64:
+    runs-on: self-hosted
+    container: amperecomputingai/pytorch:latest
+    name: Ampere optimized PyTorch arm64 AML test
+    steps:
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run:
+          bash setup_deb.sh
+
+      - name: AML smoke test
+        run: |
+          PYTHONPATH=./ AIO_NUM_THREADS=8 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+                         
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
+          PYTHONPATH=./ AIO_NUM_THREADS=8 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
