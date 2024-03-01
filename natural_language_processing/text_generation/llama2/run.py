@@ -43,7 +43,7 @@ def run_pytorch_fp16(model_name, batch_size, num_runs, timeout, dataset_path, **
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=True)
 
 def run_pytorch_int8(model_name, batch_size, num_runs, timeout, dataset_path, revision, **kwargs):
-    return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=True, revision=revision)
+    return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, revision=revision)
 
 
 def main():
