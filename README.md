@@ -46,6 +46,8 @@ It's incredibly user-friendly and designed to assist you in getting the best out
 python3 benchmark.py
 ```
 
+![Evaluation results](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/Screenshot+2024-03-01+at+19.53.08.png "Evaluation results")
+
 ### Running particular AI architectures
 
 Architectures are categorized based on the task they were originally envisioned for. Therefore, you will find ResNet and VGG under computer_vision and BERT under natural_language_processing.
