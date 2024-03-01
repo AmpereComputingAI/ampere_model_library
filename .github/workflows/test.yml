@@ -50,6 +50,13 @@ jobs:
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          
+          wget https://zenodo.org/record/2592612/files/resnet50_v1.onnx > /dev/null 2>&1
+          python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          
+          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
+          tar -xf vgg16.tar.gz > /dev/null
+          python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_pytorch_arm64:
     runs-on: self-hosted
