@@ -81,8 +81,7 @@ jobs:
 
       - name: benchmark.py test
         run: |
-          source set_env_variables.sh
-          { echo "y"; echo "y"; } | python3 benchmark.py
+          { echo "y"; echo "y"; } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
 
       - name: AML smoke test
         run: |
