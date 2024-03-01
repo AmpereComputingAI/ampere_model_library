@@ -283,6 +283,7 @@ class Runner:
         with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
             look_up_data = json.load(url)
         from utils.perf_prediction.predictor import find_best_config
+        self._results = {precision: {} for precision in precisions}
         print("Expected performance on your system:\n")
         self.configs = {}
         for precision in precisions:
@@ -309,11 +310,19 @@ class Runner:
             print(f"{INDENT}total throughput: {round(num_sockets * x[3], 2)} ips")
             print(f"{INDENT}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
 
+    def get_results(self):
+        for values in self._results.values():
+            if len(values) > 0:
+                return self._results
+        else:
+            return None
+
 
 class ResNet50(Runner):
+    model_name = "ResNet-50 v1.5"
+    precisions = ["fp32", "fp16"]
+
     def __init__(self, system, num_sockets, num_threads, memory):
-        self.model_name = "ResNet-50 v1.5"
-        self.precisions = ["fp32", "fp16"]
         super().__init__(
             system, self.model_name, num_sockets, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
@@ -346,12 +355,22 @@ class ResNet50(Runner):
             cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
             result = run_benchmark(cmd, num_threads, num_proc, configs["latency"][2])
             if result is not None:
-                print(f"{INDENT}total throughput: {round(result, 2)} ips")
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips")
                 throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
-                latency_msg = f"{INDENT}latency: {round(1000. / throughput_per_unit, 2)} ms"
+                latency = round(1000. / throughput_per_unit, 2)
+                latency_msg = f"{INDENT}latency: {latency} ms"
                 if num_proc > 1:
                     latency_msg += f" [{num_proc} parallel streams each offering this latency]"
                 print(latency_msg)
+                self._results[precision]["latency"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['latency'][2],
+                        "batch_size": configs['latency'][0]},
+                    "throughput": throughput,
+                    "latency_ms": latency
+                }
 
             print("Case maximizing throughput:")
             num_proc = num_sockets * configs["throughput"][1]
@@ -361,7 +380,15 @@ class ResNet50(Runner):
                    f"--timeout={DAY_IN_SEC}")
             result = run_benchmark(cmd, num_threads, num_proc, configs["throughput"][2])
             if result is not None:
-                print(f"{INDENT}total throughput: {round(result, 2)} ips\n")
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips\n")
+                self._results[precision]["throughput"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['throughput'][2],
+                        "batch_size": configs['throughput'][0]},
+                    "throughput": throughput
+                }
 
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
@@ -370,8 +397,16 @@ class ResNet50(Runner):
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
+    results_all = {}
     for model in [ResNet50]:
-        model(system, num_sockets, num_threads, memory)
+        results = model(system, num_sockets, num_threads, memory).get_results()
+        if results is not None:
+            results_all[model.model_name] = results
+    if len(results_all) > 0:
+        filename = "evaluation_results.json"
+        print(f"Dumping results to {filename} file.")
+        with open(filename, "w") as f:
+            json.dump(results_all, f)
     print_green("Evaluation finished.")
 
 
