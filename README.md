@@ -9,22 +9,44 @@ Visit [our dockerhub](https://hub.docker.com/u/amperecomputingai) for our framew
 
 
 ```bash
-apt update && apt install -y docker.io git
-git clone --recursive https://github.com/AmpereComputingAI/ampere_model_library.git
-cd ampere_model_library
-docker run --privileged=true -v $PWD/:/aml -it amperecomputingai/pytorch:latest  # we also offer onnxruntime and tensorflow
+sudo apt update && sudo apt install -y docker.io
+sudo docker run --privileged=true -it amperecomputingai/pytorch:latest
+# we also offer onnxruntime and tensorflow
 ```
+You should see terminal output similar to that one:
+
 ![Ampere docker welcome prompt](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/Screenshot+2024-02-16+at+20.16.37.png "Ampere docker welcome prompt")
-Now you should be inside the docker, to setup AML please run:
+
+Now, inside the Docker container, run:
 
 ```bash
-cd /aml
+git clone --recursive https://github.com/AmpereComputingAI/ampere_model_library.git
+cd ampere_model_library
 bash setup_deb.sh
 source set_env_variables.sh
 ```
 
+You are good to go! 👌
+
 
 ## Examples
+
+### The go-to solution is benchmark.py script
+Benchmark script allows you to quickly evaluate performance of your Ampere system on the example of:
+- ResNet-50 v1.5
+- Whisper medium EN
+- DLRM
+- BERT large
+- YOLO v8s
+
+It's incredibly user-friendly and designed to assist you in getting the best out of your system.
+
+After completing setup with Ampere Optimized PyTorch (see [AML setup](#aml-setup)), it's as easy as:
+```bash
+python3 benchmark.py
+```
+
+### Running particular AI architectures
 
 Architectures are categorized based on the task they were originally envisioned for. Therefore, you will find ResNet and VGG under computer_vision and BERT under natural_language_processing.
 Usual workflow is to first setup AML (see [AML setup](#aml-setup)), source environment variables by running ```source set_env_variables.sh``` and run run.py or similarly named python file in the directory of the achitecture you want to benchmark. Some models require additional setup steps to be completed first, which should be described in their respective directories under README.md files.
