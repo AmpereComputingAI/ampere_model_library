@@ -164,10 +164,15 @@ class Results:
         self._processes_count = processes_count
         self.stable = False
 
+    def _ask_for_patience(self):
+        print(f"\r{INDENT}benchmark on-going, stay put 🙏 ...", end='')
+
     def calculate_throughput(self, final_calc=False):
         from filelock import FileLock
         logs = [log for log in os.listdir(self._results_dir) if "json" in log and "lock" not in log]
-        assert len(logs) == self._processes_count
+        if len(logs) != self._processes_count:
+            self._ask_for_patience()
+            return None
 
         loaded_logs = []
         for log in logs:
@@ -178,7 +183,9 @@ class Results:
 
         measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
                                loaded_logs]
-        assert all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts)
+        if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
+            self._ask_for_patience()
+            return None
         latest_start = max(log["start_times"][0] for log in loaded_logs)
         earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
 
@@ -197,7 +204,9 @@ class Results:
                     measurements_completed_in_overlap += 1
                 elif earliest_finish < finish:
                     break
-            assert measurements_completed_in_overlap >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT
+            if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
+                self._ask_for_patience()
+                return None
             measurements_completed_in_overlap_total += measurements_completed_in_overlap
             throughput_total += input_size_processed_per_process / total_latency_per_process
 
@@ -208,7 +217,8 @@ class Results:
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
         if not self.stable and not final_calc:
-            print("\r{}total throughput: {:.2f} ips, stabilizing result".format(INDENT, throughput_total), end='')
+            print("\r{}total throughput: {:.2f} ips, stabilizing result ...".format(
+                INDENT, throughput_total), end='')
 
         return throughput_total
 
@@ -243,10 +253,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
         time.sleep(5)
-        try:
-            results.calculate_throughput()
-        except AssertionError:
-            pass
+        results.calculate_throughput()
         failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
         if results.stable or failure:
             Path(os.path.join(results_dir, "STOP")).touch()
@@ -287,17 +294,18 @@ class Runner:
             self.configs[precision] = {"latency": x}
             num_proc = x[1] * num_sockets
             print("Case minimizing latency:")
-            print(f"{INDENT}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
-                  f"[num_sockets x num_proc x num_threads x bs]")
+            print(f"{INDENT}best setting: {num_proc} x {x[2]} x {x[0]} [streams x threads x bs]")
             print(f"{INDENT}total throughput: {round(num_sockets * x[3], 2)} ips")
-            print(f"{INDENT}latency: {round(1000. / x[4], 2)} ms")
+            latency_msg = f"{INDENT}latency: {round(1000. / x[4], 2)} ms"
+            if num_proc > 1:
+                latency_msg += f" [{num_proc} parallel streams each offering this latency]"
+            print(latency_msg)
             print(f"{INDENT}memory usage: <{round(num_sockets * x[5], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory, num_threads, False)
             self.configs[precision]["throughput"] = x
             num_proc = x[1] * num_sockets
             print("Case maximizing throughput:")
-            print(f"{INDENT}best setting: {num_sockets} x {num_proc} x {x[2]} x {x[0]} "
-                  f"[num_sockets x num_proc x num_threads x bs]")
+            print(f"{INDENT}best setting: {num_proc} x {x[2]} x {x[0]} [streams x threads x bs]")
             print(f"{INDENT}total throughput: {round(num_sockets * x[3], 2)} ips")
             print(f"{INDENT}memory usage: <{num_sockets * round(x[5], 2)} GiB\n")
 
@@ -332,21 +340,26 @@ class ResNet50(Runner):
 
             print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
-            print(f"{INDENT}setting: {num_sockets} x {configs['latency'][1]} x {configs['latency'][2]} x "
-                  f"{configs['latency'][0]} [num_sockets x num_proc x num_threads x bs]")
+            num_proc = num_sockets * configs["latency"][1]
+            print(f"{INDENT}setting: {num_proc} x {configs['latency'][2]} x {configs['latency'][0]} "
+                  f"[streams x threads x bs]")
             cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency'][0]} --timeout={DAY_IN_SEC}"
-            result = run_benchmark(cmd, num_threads, num_sockets * configs["latency"][1], configs["latency"][2])
+            result = run_benchmark(cmd, num_threads, num_proc, configs["latency"][2])
             if result is not None:
                 print(f"{INDENT}total throughput: {round(result, 2)} ips")
                 throughput_per_unit = result / (configs['latency'][0] * num_sockets * configs['latency'][1])
-                print(f"{INDENT}latency: {round(1000. / throughput_per_unit, 2)} ms")
+                latency_msg = f"{INDENT}latency: {round(1000. / throughput_per_unit, 2)} ms"
+                if num_proc > 1:
+                    latency_msg += f" [{num_proc} parallel streams each offering this latency]"
+                print(latency_msg)
 
             print("Case maximizing throughput:")
-            print(f"{INDENT}setting: {num_sockets} x {configs['throughput'][1]} x {configs['throughput'][2]} x "
-                  f"{configs['throughput'][0]} [num_sockets x num_proc x num_threads x bs]")
+            num_proc = num_sockets * configs["throughput"][1]
+            print(f"{INDENT}setting: {num_proc} x {configs['throughput'][2]} x {configs['throughput'][0]} "
+                  f"[streams x threads x bs]")
             cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['throughput'][0]} "
                    f"--timeout={DAY_IN_SEC}")
-            result = run_benchmark(cmd, num_threads, num_sockets * configs["throughput"][1], configs["throughput"][2])
+            result = run_benchmark(cmd, num_threads, num_proc, configs["throughput"][2])
             if result is not None:
                 print(f"{INDENT}total throughput: {round(result, 2)} ips\n")
 

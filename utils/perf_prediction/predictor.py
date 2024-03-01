@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 MEMORY_MARGIN_RATIO = 1.2
-THROUGHPUT_MARGIN_RATIO = 0.95
+THROUGHPUT_MARGIN_RATIO = 0.9
 SATISFACTORY_LATENCY_RATIO = 0.8
 
 
