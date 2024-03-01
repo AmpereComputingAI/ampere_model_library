@@ -14,7 +14,7 @@ jobs:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
-      OMP_NUM_THREADS: 2
+      OMP_NUM_THREADS: 4
     steps:
       - name: Install git
         run:
