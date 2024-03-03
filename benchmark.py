@@ -224,6 +224,8 @@ class Results:
 
 
 def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc, start_delay=0):
+    assert start_delay >= 0
+
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
 
     os.environ["AIO_NUM_THREADS"] = str(num_threads_per_proc)
