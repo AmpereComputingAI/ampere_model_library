@@ -27,7 +27,10 @@ def process_performance(filename, json_file):
                 map[bs][num_threads] = {}
             throughput_per_proc = float(x[3]) / num_proc
             throughput_per_proc_per_unit = throughput_per_proc / bs
-            map[bs][num_threads][num_proc] = throughput_per_proc
+            try:
+                map[bs][num_threads][num_proc] = min(map[bs][num_threads][num_proc], throughput_per_proc)
+            except KeyError:
+                map[bs][num_threads][num_proc] = throughput_per_proc
             map["lowest_latency_throughput"] = max(map["lowest_latency_throughput"], throughput_per_proc_per_unit)
     for prec in PRECISIONS:
         if prec in filename:

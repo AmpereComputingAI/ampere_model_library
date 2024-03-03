@@ -223,7 +223,7 @@ class Results:
         return throughput_total
 
 
-def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc):
+def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc, start_delay=0):
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
 
     os.environ["AIO_NUM_THREADS"] = str(num_threads_per_proc)
@@ -249,7 +249,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         log_filename = f"/tmp/aml_log_{n}"
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
-        time.sleep(1)
+        time.sleep(start_delay)
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
