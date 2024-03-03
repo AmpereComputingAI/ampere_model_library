@@ -249,6 +249,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         log_filename = f"/tmp/aml_log_{n}"
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
+        time.sleep(1)
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
