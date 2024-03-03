@@ -6,6 +6,24 @@ on:
     branches: [ main ]
 
 jobs:
+  linter:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    name: Lint - Flake8
+    steps:
+      - name: Install git & flake8
+        run:
+          apt-get update && apt-get install -y git python3-pip && pip3 install flake8
+
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Lint with flake8
+        run:
+          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
+
   test_x86:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
@@ -21,7 +39,7 @@ jobs:
           apt-get update && apt-get install -y git
 
       - name: Git checkout & pull submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       
@@ -70,7 +88,7 @@ jobs:
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -117,7 +135,7 @@ jobs:
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -150,7 +168,7 @@ jobs:
       AIO_NUM_THREADS: 16
     steps:
       - name: Git checkout & pull submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
