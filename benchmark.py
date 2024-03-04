@@ -312,7 +312,7 @@ class Runner:
             print("Case maximizing throughput:")
             print(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
             print(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
-            print(f"{INDENT}memory usage: <{num_sockets * round(x['mem'], 2)} GiB\n")
+            print(f"{INDENT}memory usage: <{num_sockets * round(x['memory'], 2)} GiB\n")
 
     def get_results(self):
         for values in self._results.values():
