@@ -2,11 +2,13 @@ import os
 import sys
 import csv
 import json
+from predictor import test_lookup
 
 SYSTEM = "q80_30"
+NUM_THREADS = 80
 MODEL = "resnet_50_v1.5"
 FRAMEWORK = "ampere_pytorch_1.10.0"
-PRECISIONS = ["fp32", "fp16", "bf16"]
+PRECISIONS = ["fp32", "fp16"]
 
 
 def process_performance(filename, json_file):
@@ -45,7 +47,12 @@ def process_memory(filename, json_file):
     bs_to_mem = {}
     with open(filename, "r") as f:
         reader = csv.reader(f)
-        for x in reader:
+        for i, x in enumerate(reader):
+            if i == 0:
+                assert x == ["batch_size", "num_processes", "num_threads", "memory_MiB"]
+                continue
+            if x[3] == "F":
+                continue
             bs = int(x[0])
             if bs not in bs_to_mem.keys():
                 bs_to_mem[bs] = float(x[3]) / int(x[1])
@@ -61,20 +68,31 @@ def process_memory(filename, json_file):
 
 
 def main(csv_results_dir: str):
-    json_file = {"model": MODEL, "system": SYSTEM, "framework": FRAMEWORK,
-                 "results": {prec: {"perf": None, "mem": None} for prec in PRECISIONS}}
     files = os.listdir(csv_results_dir)
+
+    for prec in PRECISIONS:
+        for filename in files:
+            if prec in filename:
+                break
+        else:
+            assert False, f"{prec} data not found in directory {csv_results_dir}"
+
+    json_file = {"model": MODEL, "system": SYSTEM, "num_threads": NUM_THREADS, "framework": FRAMEWORK,
+                 "results": {prec: {"perf": None, "mem": None} for prec in PRECISIONS}}
     for f in files:
         assert MODEL in f
-        if "offline" in f:
+        if "memory" not in f:
             json_file = process_performance(os.path.join(csv_results_dir, f), json_file)
         elif "memory" in f:
             json_file = process_memory(os.path.join(csv_results_dir, f), json_file)
         else:
             assert False
-    with open(f"{SYSTEM}@{FRAMEWORK}@{MODEL}.json", "w") as f:
+
+    filename = f"{SYSTEM}@{FRAMEWORK}@{MODEL}.json"
+    with open(filename, "w") as f:
         json.dump(json_file, f)
+    return filename
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    test_lookup(main(sys.argv[1]))

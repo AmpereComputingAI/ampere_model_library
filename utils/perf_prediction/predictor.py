@@ -66,7 +66,7 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
 
 
 def find_best_config(
-        source_data: dict, precision: str, available_memory_GiB: int, available_threads: int, optimize_latency: bool):
+        source_data: dict, precision: str, available_memory_GiB: float, available_threads: int, optimize_latency: bool):
     best_throughput = 0.
     best_throughput_per_unit = 0.
     best_config = {
@@ -138,7 +138,7 @@ def prepare_dataset(source_data):
     for i, precision in enumerate(precisions):
         precision_value = (2 * i) / (len(precisions) - 1) - 1
         for mem in tqdm(set([int(2 ** (n / 8))
-                        for n in range(int(math.log(source_data["max_mem_per_socket"], 2)) * 8 + 1)])):
+                             for n in range(int(math.log(source_data["max_mem_per_socket"], 2)) * 8 + 1)])):
             mem_value = scale(mem, source_data["max_mem_per_socket"])
             for n_threads in range(1, source_data["threads_per_socket"] + 1):
                 n_threads_value = scale(n_threads, source_data["threads_per_socket"])
@@ -161,29 +161,28 @@ def prepare_dataset(source_data):
         print(x[i], y[i])
 
 
-def main():
-    with open(sys.argv[1], "r") as f:
+def test_lookup(filepath):
+    with open(filepath, "r") as f:
         data = json.load(f)
-    print(find_best_config(data, "fp32", 10, 3, True))
 
-    print(find_best_config(data, "fp32", 30, 16, False))
-    print(find_best_config(data, "fp32", 30, 80, False))
-    print(find_best_config(data, "fp32", 300, 80, False))
-    print(find_best_config(data, "fp32", 170, 59, False))
-    import time
-    for i in range(1, 81):
-        a = time.time()
-        print(find_best_config(data, "fp32", 170, i, False))
-        print(time.time() - a)
-        a = time.time()
-        print(find_best_config(data, "fp32", 170, i, True))
-        print(time.time() - a)
-    gfd
-    dataset = prepare_dataset(data)
-    # print(predict(data, "fp16", 5, 5, 14))
-    # print(predict(data, "fp32", 5, 5, 14))
-    # print(predict(data, "fp32", 19, 8, 7))
-    # print(predict(data, "fp16", 128, 5, 1))
+    for precision in data["results"].keys():
+        for mem in tqdm([2 ** (i / 4) for i in range(12 * 4 + 1)], desc=precision):
+            for i in range(1, data["num_threads"] + 1):
+                pass
+                # _ = find_best_config(data, precision, mem, i, False)
+                # _ = find_best_config(data, precision, mem, i, True)
+
+    for precision in data["results"].keys():
+        for mem in [2 ** i for i in range(13)]:
+            for threads in [1, 3, 7, 14, 16, 39, 67, 80, 81, 97, 111, 128, 159, 160, 186, 192]:
+                if threads > data["num_threads"]:
+                    break
+                for scenario in [True, False]:
+                    print(f"\nExample - precision: {precision}, mem: {mem}, threads: {threads}, latency: {scenario}")
+                    try:
+                        print(find_best_config(data, precision, mem, threads, scenario))
+                    except LookupError:
+                        print("Can't run.")
 
 
 def train_model(x, y):
@@ -265,7 +264,3 @@ class MLP(torch.nn.Module):
 
     def forward(self, x):
         return self.layers(x)
-
-
-if __name__ == "__main__":
-    main()
