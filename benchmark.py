@@ -6,11 +6,14 @@ import time
 import urllib.request
 from pathlib import Path
 
-#LATEST_VERSION = "2.1.0a0+gite0a1120"
+# LATEST_VERSION = "2.1.0a0+gite0a1120"
 LATEST_VERSION = "2.1.0a0+gitcaf1dd7"
 SYSTEMS = {
     "Altra": {
-        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json"
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
     },
     "Altra Max": {},
     "AmpereOne": {},
@@ -321,6 +324,105 @@ class Runner:
         else:
             return None
 
+    def _validate(self, num_sockets, num_threads):
+        raise NotImplementedError
+
+
+class YOLO(Runner):
+    model_name = "YOLO v8s"
+    precisions = ["fp32", "fp16"]
+
+    def __init__(self, system, num_sockets, num_threads, memory):
+        super().__init__(
+            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+        if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
+            self._validate(num_sockets, num_threads)
+
+    def _download_maybe(self):
+        from utils.downloads.utils import get_downloads_path
+        target_dir = os.path.join(get_downloads_path(), "aio_objdet_dataset")
+        if not os.path.exists(target_dir):
+            _ = subprocess.check_output(
+                ["wget", "-P", "/tmp",
+                 "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz"]
+            )
+            _ = subprocess.check_output(["tar", "-xf", "/tmp/aio_objdet_dataset.tar.gz", "-C", target_dir])
+            _ = subprocess.check_output(["rm", "/tmp/aio_objdet_dataset.tar.gz"])
+        target_dir = os.path.join(get_downloads_path(), "yolov8s.pt")
+        if not os.path.exists(target_dir):
+            _ = subprocess.check_output(
+                ["wget", "-P", get_downloads_path(),
+                 "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"]
+            )
+        return target_dir
+
+    def _validate(self, num_sockets, num_threads):
+        model_filepath = self._download_maybe()
+        path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                      "computer_vision/object_detection/yolo_v8/run.py")
+        warm_up_completed = False
+        for precision in self.precisions:
+            try:
+                configs = self.configs[precision]
+            except KeyError:
+                continue
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+
+            if (num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
+                print("Setup run ...\n")
+                cmd = f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
+                run_benchmark(cmd, num_threads, 1, num_threads)
+                warm_up_completed = True
+
+            print(f"{self.model_name}, {precision} precision")
+            print("Case minimizing latency:")
+            num_proc = num_sockets * configs["latency"]["num_proc"]
+            print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
+                  f"[streams x threads x bs]")
+            cmd = (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {configs['latency']['bs']} "
+                   f"--timeout={DAY_IN_SEC}")
+            result = run_benchmark(cmd, num_threads, num_proc, configs["latency"]["num_threads"])
+            if result is not None:
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips")
+                throughput_per_unit = result / (configs['latency']['bs'] * num_sockets * configs['latency']['num_proc'])
+                latency = round(1000. / throughput_per_unit, 2)
+                latency_msg = f"{INDENT}latency: {latency} ms"
+                if num_proc > 1:
+                    latency_msg += f" [{num_proc} parallel streams each offering this latency]"
+                print(latency_msg)
+                self._results[precision]["latency"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['latency']['num_threads'],
+                        "batch_size": configs['latency']['bs']},
+                    "throughput": throughput,
+                    "latency_ms": latency
+                }
+
+            print("Case maximizing throughput:")
+            num_proc = num_sockets * configs["throughput"]['num_proc']
+            print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
+                  f"{configs['throughput']['bs']} [streams x threads x bs]")
+            cmd = (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {configs['throughput']['bs']} "
+                   f"--timeout={DAY_IN_SEC}")
+            result = run_benchmark(cmd, num_threads, num_proc, configs["throughput"]['num_threads'])
+            if result is not None:
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips\n")
+                self._results[precision]["throughput"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['throughput']['num_threads'],
+                        "batch_size": configs['throughput']['bs']},
+                    "throughput": throughput
+                }
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
+
 
 class ResNet50(Runner):
     model_name = "ResNet-50 v1.5"
@@ -403,7 +505,7 @@ def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50]:
+    for model in [ResNet50, YOLO]:
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results

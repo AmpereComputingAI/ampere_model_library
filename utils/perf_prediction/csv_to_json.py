@@ -6,7 +6,7 @@ from predictor import test_lookup
 
 SYSTEM = "q80_30"
 NUM_THREADS = 80
-MODEL = "resnet_50_v1.5"
+MODEL = "dlrm_torchbench"
 FRAMEWORK = "ampere_pytorch_1.10.0"
 PRECISIONS = ["fp32", "fp16"]
 
