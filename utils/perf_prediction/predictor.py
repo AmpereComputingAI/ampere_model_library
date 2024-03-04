@@ -67,6 +67,7 @@ def predict(data, precision, bs, num_proc, threads_per_proc):
 
 def find_best_config(
         source_data: dict, precision: str, available_memory_GiB: float, available_threads: int, optimize_latency: bool):
+    resolution = 1000
     best_throughput = 0.
     best_throughput_per_unit = 0.
     best_config = {
@@ -81,7 +82,8 @@ def find_best_config(
                    if bs != "lowest_latency_throughput"]
     satisfactory_throughput_per_unit = (SATISFACTORY_LATENCY_RATIO *
                                         float(source_data["results"][precision]["perf"]["lowest_latency_throughput"]))
-    for bs in range(min(batch_sizes), max(batch_sizes) + 1):
+    jump = (max(batch_sizes) - min(batch_sizes)) / (resolution - 1)
+    for bs in set([min(batch_sizes)+int(x * jump) for x in range(resolution)]):
         for threads_per_proc in range(1, available_threads + 1):
             num_proc = 1
             while num_proc * threads_per_proc <= available_threads:
@@ -113,6 +115,8 @@ def find_best_config(
                 num_proc += 1
     if any([value is None for value in best_config.values()]):
         raise LookupError
+    if best_config["bs"] % 2 == 1 and best_config["bs"] != 1:
+        best_config["bs"] += 1
     return best_config
 
 
