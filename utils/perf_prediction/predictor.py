@@ -82,8 +82,15 @@ def find_best_config(
                    if bs != "lowest_latency_throughput"]
     satisfactory_throughput_per_unit = (SATISFACTORY_LATENCY_RATIO *
                                         float(source_data["results"][precision]["perf"]["lowest_latency_throughput"]))
-    jump = (max(batch_sizes) - min(batch_sizes)) / (resolution - 1)
-    for bs in set([min(batch_sizes)+int(x * jump) for x in range(resolution)]):
+
+    min_log = math.log(min(batch_sizes), 2)
+    max_log = math.log(max(batch_sizes), 2)
+    diff = max_log - min_log
+    assert diff >= 0
+    if diff > 0:
+        batch_sizes = set([int(2 ** (min_log + p / ((resolution - 1) / diff))) for p in range(resolution)])
+
+    for bs in batch_sizes:
         for threads_per_proc in range(1, available_threads + 1):
             num_proc = 1
             while num_proc * threads_per_proc <= available_threads:
