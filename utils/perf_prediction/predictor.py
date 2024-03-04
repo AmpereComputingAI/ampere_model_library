@@ -79,6 +79,8 @@ def find_best_config(
     }
     batch_sizes = [int(bs) for bs in source_data["results"][precision]["perf"].keys()
                    if bs != "lowest_latency_throughput"]
+    satisfactory_throughput_per_unit = (SATISFACTORY_LATENCY_RATIO *
+                                        float(source_data["results"][precision]["perf"]["lowest_latency_throughput"]))
     for bs in range(min(batch_sizes), max(batch_sizes) + 1):
         for threads_per_proc in range(1, available_threads + 1):
             num_proc = 1
@@ -90,26 +92,24 @@ def find_best_config(
                     continue
                 if mem > available_memory_GiB:
                     break
-                if throughput > best_throughput:
-                    throughput_per_unit = throughput / (num_proc * bs)
-                    if optimize_latency:
-                        if (throughput_per_unit > best_throughput_per_unit or
-                                throughput_per_unit > SATISFACTORY_LATENCY_RATIO *
-                                float(source_data["results"][precision]["perf"]["lowest_latency_throughput"])):
-                            for key, value in zip(
-                                    best_config.keys(),
-                                    [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
-                            ):
-                                best_config[key] = value
-                            best_throughput = throughput
-                            best_throughput_per_unit = throughput_per_unit
-                    else:
-                        for key, value in zip(
-                                best_config.keys(),
-                                [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
-                        ):
-                            best_config[key] = value
-                        best_throughput = throughput
+
+                throughput_per_unit = throughput / (num_proc * bs)
+                if optimize_latency:
+                    update = ((throughput_per_unit > satisfactory_throughput_per_unit and throughput > best_throughput)
+                              or (best_throughput_per_unit < satisfactory_throughput_per_unit and
+                                  throughput_per_unit > best_throughput_per_unit))
+                else:
+                    update = throughput > best_throughput
+
+                if update:
+                    for key, value in zip(
+                            best_config.keys(),
+                            [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
+                    ):
+                        best_config[key] = value
+                    best_throughput = throughput
+                    best_throughput_per_unit = throughput_per_unit
+
                 num_proc += 1
     if any([value is None for value in best_config.values()]):
         raise LookupError
