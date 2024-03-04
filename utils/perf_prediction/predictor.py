@@ -69,7 +69,14 @@ def find_best_config(
         source_data: dict, precision: str, available_memory_GiB: int, available_threads: int, optimize_latency: bool):
     best_throughput = 0.
     best_throughput_per_unit = 0.
-    best_config = [None, None, None, None, None]
+    best_config = {
+        "bs": None,
+        "num_proc": None,
+        "num_threads": None,
+        "total_throughput": None,
+        "throughput_per_unit": None,
+        "memory": None
+    }
     batch_sizes = [int(bs) for bs in source_data["results"][precision]["perf"].keys()
                    if bs != "lowest_latency_throughput"]
     for bs in range(min(batch_sizes), max(batch_sizes) + 1):
@@ -89,13 +96,23 @@ def find_best_config(
                         if (throughput_per_unit > best_throughput_per_unit or
                                 throughput_per_unit > SATISFACTORY_LATENCY_RATIO *
                                 float(source_data["results"][precision]["perf"]["lowest_latency_throughput"])):
-                            best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
+                            for key, value in zip(
+                                    best_config.keys(),
+                                    [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
+                            ):
+                                best_config[key] = value
                             best_throughput = throughput
                             best_throughput_per_unit = throughput_per_unit
                     else:
-                        best_config = [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
+                        for key, value in zip(
+                                best_config.keys(),
+                                [bs, num_proc, threads_per_proc, throughput, throughput_per_unit, mem]
+                        ):
+                            best_config[key] = value
                         best_throughput = throughput
                 num_proc += 1
+    if any([value is None for value in best_config.values()]):
+        raise LookupError
     return best_config
 
 
