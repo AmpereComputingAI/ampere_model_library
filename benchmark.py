@@ -480,7 +480,7 @@ class BERT(Runner):
         filename = "bert_large_mlperf.pt"
         target_dir = os.path.join(get_downloads_path(), filename)
         if not os.path.exists(target_dir):
-            subprocess.run(["wget", "-P", get_downloads_path(), "-O", filename,
+            subprocess.run(["wget", "-O", target_dir,
                             "https://zenodo.org/records/3733896/files/model.pytorch?download=1"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return target_dir
