@@ -405,6 +405,8 @@ class Runner:
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
 
+        get_bool_answer("Continue?")
+
 
 class YOLO(Runner):
     model_name = "YOLO v8s"
@@ -418,7 +420,8 @@ class YOLO(Runner):
 
     def _download_maybe(self):
         from utils.downloads.utils import get_downloads_path
-        if not os.path.exists(os.path.join(get_downloads_path(), "aio_objdet_dataset")):
+        dataset_dir = os.path.join(get_downloads_path(), "aio_objdet_dataset")
+        if not os.path.exists(dataset_dir):
             subprocess.run(["wget", "-P", "/tmp",
                             "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -426,6 +429,8 @@ class YOLO(Runner):
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(["rm", "/tmp/aio_objdet_dataset.tar.gz"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        os.environ["COCO_IMG_PATH"] = dataset_dir
+        os.environ["COCO_ANNO_PATH"] = os.path.join(dataset_dir, "annotations.json")
         target_dir = os.path.join(get_downloads_path(), "yolov8s.pt")
         if not os.path.exists(target_dir):
             subprocess.run(["wget", "-P", get_downloads_path(),
@@ -567,13 +572,10 @@ def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    models = [ResNet50, YOLO, BERT, DLRM, Whisper]
-    for i, model in enumerate(models):
+    for model in [ResNet50, YOLO, BERT, DLRM, Whisper]:
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results
-        if i < len(models) - 1:
-            get_bool_answer("Continue?")
     if len(results_all) > 0:
         filename = "evaluation_results.json"
         print(f"Dumping results to {filename} file.")
