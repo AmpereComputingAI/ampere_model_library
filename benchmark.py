@@ -373,7 +373,6 @@ class Runner:
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
 
             if (self.num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
-                print("Setup run ...\n")
                 run_benchmark(get_cmd("warm_up"), self.num_threads, 1, self.num_threads)
                 warm_up_completed = True
 
