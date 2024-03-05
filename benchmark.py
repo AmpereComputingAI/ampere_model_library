@@ -293,7 +293,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
-        time.sleep(5)
+        time.sleep(15)
         results.calculate_throughput()
         failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
         if results.stable or failure:
