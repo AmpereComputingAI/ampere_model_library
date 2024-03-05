@@ -164,8 +164,9 @@ def get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc):
     return thread_configs
 
 
-def ask_for_patience():
-    print(f"\r{INDENT}benchmark on-going, stay put 🙏 ...", end='')
+def ask_for_patience(text):
+    print("\r" + 80 * " " + "\r", end='')
+    print(f"\r{INDENT}{text}, stay put 🙏 ...", end='')
 
 
 class Results:
@@ -180,7 +181,7 @@ class Results:
         from filelock import FileLock
         logs = [log for log in os.listdir(self._results_dir) if "json" in log and "lock" not in log]
         if len(logs) != self._processes_count:
-            ask_for_patience()
+            ask_for_patience("benchmark starting")
             return None
 
         loaded_logs = []
@@ -193,7 +194,7 @@ class Results:
         measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
                                loaded_logs]
         if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
-            ask_for_patience()
+            ask_for_patience("benchmark on-going")
             return None
         latest_start = max(log["start_times"][0] for log in loaded_logs)
         earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
@@ -214,7 +215,7 @@ class Results:
                 elif earliest_finish < finish:
                     break
             if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
-                ask_for_patience()
+                ask_for_patience("benchmark on-going")
                 return None
             measurements_completed_in_overlap_total += measurements_completed_in_overlap
             throughput_total += input_size_processed_per_process / total_latency_per_process
@@ -263,7 +264,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
         if start_delay > 0:
-            ask_for_patience()
+            ask_for_patience("benchmark starting")
             time.sleep(start_delay)
 
     failure = False
