@@ -463,12 +463,13 @@ class YOLO(Runner):
                                       "computer_vision/object_detection/yolo_v8/run.py")
 
         def get_cmd(scenario, config=None):
-            return {"warm_up": f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
-                    "latency": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
-                                f"--timeout={DAY_IN_SEC}"),
-                    "throughput": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
-                                   f"--timeout={DAY_IN_SEC}")
-                    }[scenario]
+            if scenario == "warm_up":
+                return f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
+            elif scenario in ["latency", "throughput"]:
+                return (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                        f"--timeout={DAY_IN_SEC}")
+            else:
+                assert False
 
         self._run_benchmark(get_cmd, start_delay=5)
 
@@ -488,12 +489,12 @@ class ResNet50(Runner):
                                       "computer_vision/classification/resnet_50_v15/run.py")
 
         def get_cmd(scenario, config=None):
-            return {"warm_up": f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
-                    "latency": (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {config['bs']} "
-                                f"--timeout={DAY_IN_SEC}"),
-                    "throughput": (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {config['bs']} "
-                                   f"--timeout={DAY_IN_SEC}")
-                    }[scenario]
+            if scenario == "warm_up":
+                return f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
+            elif scenario in ["latency", "throughput"]:
+                return f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}"
+            else:
+                assert False
 
         self._run_benchmark(get_cmd)
 
@@ -525,12 +526,13 @@ class BERT(Runner):
             "natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py")
 
         def get_cmd(scenario, config=None):
-            return {"warm_up": f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
-                    "latency": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
-                                f"--timeout={DAY_IN_SEC}"),
-                    "throughput": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
-                                   f"--timeout={DAY_IN_SEC}")
-                    }[scenario]
+            if scenario == "warm_up":
+                return f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
+            elif scenario in ["latency", "throughput"]:
+                return (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                        f"--timeout={DAY_IN_SEC}")
+            else:
+                assert False
 
         self._run_benchmark(get_cmd)
 
@@ -550,10 +552,12 @@ class DLRM(Runner):
             os.path.dirname(os.path.realpath(__file__)), "recommendation/dlrm_torchbench/run.py")
 
         def get_cmd(scenario, config=None):
-            return {"warm_up": f"{path_to_runner} -p fp32 -f pytorch -b 1024 --timeout={DAY_IN_SEC}",
-                    "latency": f"{path_to_runner} -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}",
-                    "throughput": f"{path_to_runner} -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}"
-                    }[scenario]
+            if scenario == "warm_up":
+                return f"{path_to_runner} -p fp32 -f pytorch -b 1024 --timeout={DAY_IN_SEC}"
+            elif scenario in ["latency", "throughput"]:
+                return f"{path_to_runner} -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}"
+            else:
+                assert False
 
         self._run_benchmark(get_cmd)
 
@@ -572,11 +576,8 @@ class Whisper(Runner):
         path_to_runner = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "speech_recognition/whisper/run.py")
 
-        def get_cmd(scenario, _):
-            return {"warm_up": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}",
-                    "latency": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}",
-                    "throughput": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
-                    }[scenario]
+        def get_cmd(_, __):
+            return f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
 
         self._run_benchmark(get_cmd)
 
