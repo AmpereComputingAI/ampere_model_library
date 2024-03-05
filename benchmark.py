@@ -298,7 +298,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
             for i, p in enumerate(current_subprocesses):
                 if p.poll() != 0:
                     print_red(f"\nOutput of process {i}:")
-                    print(open(f"/tmp/aml_log_{i}", "r").read())
+                    print(open(f"/tmp/aml_log_{i}", "rb").read())
         if not get_bool_answer("Do you want to continue evaluation?"):
             sys.exit(0)
         return None
