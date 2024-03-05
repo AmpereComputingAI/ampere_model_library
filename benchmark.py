@@ -68,6 +68,13 @@ def is_setup_done():
     print_green("Setup verified. You are good to go! 🔥")
 
 
+def press_enter_to_continue():
+    if no_interactive:
+        return
+    input("Press ENTER to continue")
+    print()
+
+
 def get_bool_answer(question):
     if no_interactive:
         return True
@@ -405,7 +412,7 @@ class Runner:
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
 
-        get_bool_answer("Continue?")
+        press_enter_to_continue()
 
 
 class YOLO(Runner):
