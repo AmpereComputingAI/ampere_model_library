@@ -32,6 +32,11 @@ INDENT = 3 * " "
 no_interactive = None
 
 
+def print_maybe(text):
+    if not no_interactive:
+        print(text)
+
+
 def print_red(message):
     print(f"\033[91m{message}\033[0m")
 
@@ -312,32 +317,34 @@ class Runner:
             look_up_data = json.load(url)
         from utils.perf_prediction.predictor import find_best_config
         self._results = {precision: {} for precision in precisions}
-        print("Expected performance on your system:\n")
+        print_maybe("Expected performance on your system:\n")
         self.configs = {}
         for precision in precisions:
-            print(f"{model_name}, {precision} precision")
+            print_maybe(f"{model_name}, {precision} precision")
             try:
                 x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, True)
             except LookupError:
+                if no_interactive:
+                    print(f"{model_name}, {precision} precision")
                 print_red("Not enough resources on the system to run\n")
                 continue
             self.configs[precision] = {"latency": x}
             num_proc = x["num_proc"] * num_sockets
-            print("Case minimizing latency:")
-            print(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
-            print(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
+            print_maybe("Case minimizing latency:")
+            print_maybe(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
+            print_maybe(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
             latency_msg = f"{INDENT}latency: {round(1000. / x['throughput_per_unit'], 2)} ms"
             if num_proc > 1:
                 latency_msg += f" [{num_proc} parallel streams each offering this latency]"
-            print(latency_msg)
-            print(f"{INDENT}memory usage: <{round(num_sockets * x['memory'], 2)} GiB")
+            print_maybe(latency_msg)
+            print_maybe(f"{INDENT}memory usage: <{round(num_sockets * x['memory'], 2)} GiB")
             x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, False)
             self.configs[precision]["throughput"] = x
             num_proc = x['num_proc'] * num_sockets
-            print("Case maximizing throughput:")
-            print(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
-            print(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
-            print(f"{INDENT}memory usage: <{num_sockets * round(x['memory'], 2)} GiB\n")
+            print_maybe("Case maximizing throughput:")
+            print_maybe(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
+            print_maybe(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
+            print_maybe(f"{INDENT}memory usage: <{num_sockets * round(x['memory'], 2)} GiB\n")
 
     def get_results(self):
         for values in self._results.values():
