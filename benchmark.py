@@ -15,6 +15,7 @@ SYSTEMS = {
         "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
         "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
         "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
     },
     "Altra Max": {},
     "AmpereOne": {},
@@ -534,6 +535,29 @@ class DLRM(Runner):
         self._run_benchmark(get_cmd)
 
 
+class Whisper(Runner):
+    model_name = "Whisper medium EN"
+    precisions = ["fp32", "fp16"]
+
+    def __init__(self, system, num_sockets, num_threads, memory):
+        super().__init__(
+            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+        if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
+            self._validate(num_sockets, num_threads)
+
+    def _validate(self, num_sockets, num_threads):
+        path_to_runner = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "speech_recognition/whisper/run.py")
+
+        def get_cmd(scenario, _):
+            return {"warm_up": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}",
+                    "latency": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}",
+                    "throughput": f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
+                    }[scenario]
+
+        self._run_benchmark(get_cmd)
+
+
 def main():
     parser = argparse.ArgumentParser(prog="AML benchmarking tool")
     parser.add_argument("--no-interactive", action="store_true", help="Don't ask for user input")
@@ -544,7 +568,7 @@ def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50, YOLO, BERT, DLRM]:
+    for model in [ResNet50, YOLO, BERT, DLRM, Whisper]:
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results

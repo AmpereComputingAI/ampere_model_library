@@ -6,7 +6,7 @@ from predictor import test_lookup
 
 SYSTEM = "q80_30"
 NUM_THREADS = 80
-MODEL = "dlrm_torchbench"
+MODEL = "whisper_medium.en"
 FRAMEWORK = "ampere_pytorch_1.10.0"
 PRECISIONS = ["fp32", "fp16"]
 

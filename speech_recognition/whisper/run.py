@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 
 
 def run_pytorch_fp32(model_name, num_runs, timeout):
