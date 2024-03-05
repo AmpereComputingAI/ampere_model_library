@@ -88,7 +88,7 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   numba==0.57.1 \
+   numba==0.59.0 \
    py-cpuinfo==9.0.0 \
    cchardet==2.1.7
 
@@ -141,7 +141,7 @@ pip3 install --no-deps --upgrade \
    jiwer==3.0.2 \
    click==8.1.3 \
    rapidfuzz==2.13.7 \
-   llvmlite==0.40.1 \
+   llvmlite==0.42.0 \
    decorator==5.1.1 \
    fsspec==2023.6.0 \
    unicode==2.9 \
