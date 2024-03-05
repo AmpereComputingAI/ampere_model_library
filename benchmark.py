@@ -499,11 +499,34 @@ class BERT(Runner):
         self._run_benchmark(get_cmd)
 
 
+class DLRM(Runner):
+    model_name = "DLRM"
+    precisions = ["fp32", "fp16"]
+
+    def __init__(self, system, num_sockets, num_threads, memory):
+        super().__init__(
+            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+        if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
+            self._validate(num_sockets, num_threads)
+
+    def _validate(self, num_sockets, num_threads):
+        path_to_runner = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "recommendation/dlrm_torchbench/run.py")
+
+        def get_cmd(scenario, config=None):
+            return {"warm_up": f"{path_to_runner} -p fp32 -f pytorch -b 1024 --timeout={DAY_IN_SEC}",
+                    "latency": f"{path_to_runner} -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}",
+                    "throughput": f"{path_to_runner} -p fp32 -f pytorch -b {config['bs']} --timeout={DAY_IN_SEC}"
+                    }[scenario]
+
+        self._run_benchmark(get_cmd)
+
+
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50, YOLO, BERT]:
+    for model in [ResNet50, YOLO, BERT, DLRM]:
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results
