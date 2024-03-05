@@ -43,7 +43,7 @@ It's incredibly user-friendly and designed to assist you in getting the best out
 
 **After completing setup with Ampere Optimized PyTorch (see [AML setup](#aml-setup)), it's as easy as:**
 ```bash
-python3 benchmark.py
+python3 benchmark.py --no-interactive  # remove --no-interactive if you want a quick estimation of performance
 ```
 
 ![Evaluation results](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/Screenshot+2024-03-01+at+19.53.08.png "Evaluation results")
