@@ -228,6 +228,8 @@ class Results:
 
 def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc, start_delay=0):
     assert start_delay >= 0
+    if num_proc == 1:
+        start_delay = 0
 
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
 
@@ -331,7 +333,7 @@ class Runner:
     def _validate(self, num_sockets, num_threads):
         raise NotImplementedError
 
-    def _run_benchmark(self, get_cmd):
+    def _run_benchmark(self, get_cmd, start_delay=0):
         warm_up_completed = False
         for precision in self.precisions:
             try:
@@ -353,8 +355,8 @@ class Runner:
             print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
                   f"[streams x threads x bs]")
 
-            result = run_benchmark(
-                get_cmd("latency", configs['latency']), self.num_threads, num_proc, configs["latency"]["num_threads"])
+            result = run_benchmark(get_cmd("latency", configs['latency']), self.num_threads, num_proc,
+                                   configs["latency"]["num_threads"], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips")
@@ -379,7 +381,7 @@ class Runner:
             print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
                   f"{configs['throughput']['bs']} [streams x threads x bs]")
             result = run_benchmark(get_cmd("latency", configs['throughput']), self.num_threads,
-                                   num_proc, configs["throughput"]['num_threads'])
+                                   num_proc, configs["throughput"]['num_threads'], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips\n")
@@ -410,15 +412,16 @@ class YOLO(Runner):
         if not os.path.exists(os.path.join(get_downloads_path(), "aio_objdet_dataset")):
             subprocess.run(["wget", "-P", "/tmp",
                             "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz"],
-                           check=True, stdout=subprocess.DEVNULL)
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(["tar", "-xf", "/tmp/aio_objdet_dataset.tar.gz", "-C", get_downloads_path()],
-                           check=True, stdout=subprocess.DEVNULL)
-            subprocess.run(["rm", "/tmp/aio_objdet_dataset.tar.gz"], check=True, stdout=subprocess.DEVNULL)
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["rm", "/tmp/aio_objdet_dataset.tar.gz"],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         target_dir = os.path.join(get_downloads_path(), "yolov8s.pt")
         if not os.path.exists(target_dir):
             subprocess.run(["wget", "-P", get_downloads_path(),
                             "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"],
-                           check=True, stdout=subprocess.DEVNULL)
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return target_dir
 
     def _validate(self, num_sockets, num_threads):
@@ -434,7 +437,7 @@ class YOLO(Runner):
                                    f"--timeout={DAY_IN_SEC}")
                     }[scenario]
 
-        self._run_benchmark(get_cmd)
+        self._run_benchmark(get_cmd, start_delay=5)
 
 
 class ResNet50(Runner):
@@ -479,7 +482,7 @@ class BERT(Runner):
         if not os.path.exists(target_dir):
             subprocess.run(["wget", "-P", get_downloads_path(), "-O", filename,
                             "https://zenodo.org/records/3733896/files/model.pytorch?download=1"],
-                           check=True, stdout=subprocess.DEVNULL)
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return target_dir
 
     def _validate(self, num_sockets, num_threads):
