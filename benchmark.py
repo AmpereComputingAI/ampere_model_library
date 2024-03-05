@@ -405,8 +405,6 @@ class Runner:
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
 
-        get_bool_answer("Continue?")
-
 
 class YOLO(Runner):
     model_name = "YOLO v8s"
@@ -569,10 +567,13 @@ def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50, YOLO, BERT, DLRM, Whisper]:
+    models = [ResNet50, YOLO, BERT, DLRM, Whisper]
+    for i, model in enumerate(models):
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results
+        if i < len(models) - 1:
+            get_bool_answer("Continue?")
     if len(results_all) > 0:
         filename = "evaluation_results.json"
         print(f"Dumping results to {filename} file.")
