@@ -88,7 +88,7 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl \
+   numba==0.59.0 \
    py-cpuinfo==9.0.0 \
    cchardet==2.1.7
 
@@ -141,7 +141,7 @@ pip3 install --no-deps --upgrade \
    jiwer==3.0.2 \
    click==8.1.3 \
    rapidfuzz==2.13.7 \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+   llvmlite==0.42.0 \
    decorator==5.1.1 \
    fsspec==2023.6.0 \
    unicode==2.9 \
@@ -173,6 +173,12 @@ pip3 install --no-deps --upgrade \
    invisible-watermark>=0.1.5 \
    streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
+
+if [ "${ARCH}" = "aarch64" ]; then
+pip3 install --upgrade --no-deps \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
+fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
