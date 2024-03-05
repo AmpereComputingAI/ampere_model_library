@@ -73,7 +73,7 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
           python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
-          wget https://zenodo.org/record/2592612/files/resnet50_v1.onnx > /dev/null 2>&1
+          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
           python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
           wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
@@ -119,14 +119,14 @@ jobs:
           
           IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
           
-          # AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
           
           python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
           
-          wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1 > /dev/null 2>&1
+          wget -O bert_large_mlperf.pt https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
 
   test_tensorflow_arm64:
@@ -187,7 +187,7 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null
 
-          wget https://zenodo.org/record/2592612/files/resnet50_v1.onnx > /dev/null 2>&1
+          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
           wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
