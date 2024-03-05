@@ -407,20 +407,18 @@ class YOLO(Runner):
 
     def _download_maybe(self):
         from utils.downloads.utils import get_downloads_path
-        silence = [">", "/dev/null", "2>&1"]
         if not os.path.exists(os.path.join(get_downloads_path(), "aio_objdet_dataset")):
-            _ = subprocess.check_output(
-                ["wget", "-P", "/tmp",
-                 "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz"] + silence
-            )
-            _ = subprocess.check_output(["tar", "-xf", "/tmp/aio_objdet_dataset.tar.gz", "-C", get_downloads_path()])
-            _ = subprocess.check_output(["rm", "/tmp/aio_objdet_dataset.tar.gz"])
+            subprocess.run(["wget", "-P", "/tmp",
+                            "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz"],
+                           check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(["tar", "-xf", "/tmp/aio_objdet_dataset.tar.gz", "-C", get_downloads_path()],
+                           check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(["rm", "/tmp/aio_objdet_dataset.tar.gz"], check=True, stdout=subprocess.DEVNULL)
         target_dir = os.path.join(get_downloads_path(), "yolov8s.pt")
         if not os.path.exists(target_dir):
-            _ = subprocess.check_output(
-                ["wget", "-P", get_downloads_path(),
-                 "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"] + silence
-            )
+            subprocess.run(["wget", "-P", get_downloads_path(),
+                            "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"],
+                           check=True, stdout=subprocess.DEVNULL)
         return target_dir
 
     def _validate(self, num_sockets, num_threads):
