@@ -6,7 +6,7 @@ from predictor import test_lookup
 
 SYSTEM = "q80_30"
 NUM_THREADS = 80
-MODEL = "whisper_medium.en"
+MODEL = "bert_large_mlperf_squad"
 FRAMEWORK = "ampere_pytorch_1.10.0"
 PRECISIONS = ["fp32", "fp16"]
 
@@ -30,7 +30,7 @@ def process_performance(filename, json_file):
             throughput_per_proc = float(x[3]) / num_proc
             throughput_per_proc_per_unit = throughput_per_proc / bs
             try:
-                map[bs][num_threads][num_proc] = min(map[bs][num_threads][num_proc], throughput_per_proc)
+                map[bs][num_threads][num_proc] = max(map[bs][num_threads][num_proc], throughput_per_proc)
             except KeyError:
                 map[bs][num_threads][num_proc] = throughput_per_proc
             map["lowest_latency_throughput"] = max(map["lowest_latency_throughput"], throughput_per_proc_per_unit)
