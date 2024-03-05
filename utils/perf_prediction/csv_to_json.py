@@ -4,9 +4,9 @@ import csv
 import json
 from predictor import test_lookup
 
-SYSTEM = "siryn"
-NUM_THREADS = 160
-MODEL = "dlrm_torchbench"
+SYSTEM = "banshee"
+NUM_THREADS = 192
+MODEL = "bert_large_mlperf_squad"
 FRAMEWORK = "ampere_pytorch_1.10.0"
 PRECISIONS = ["fp32", "fp16"]
 

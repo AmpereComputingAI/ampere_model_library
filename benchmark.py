@@ -24,7 +24,13 @@ SYSTEMS = {
         "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
         "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
     },
-    "AmpereOneX": {},
+    "AmpereOneX": {
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
+    },
 }
 
 AFFIRMATIVE = ["y", "Y", "yes", "YES"]
@@ -35,6 +41,8 @@ MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
 INDENT = 3 * " "
 no_interactive = None
+
+os.environ["AIO_SKIP_MASTER_THREAD"] = "1"
 
 
 def print_maybe(text):
@@ -274,7 +282,6 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
     for n in range(num_proc):
         aio_numa_cpus, physcpubind = thread_configs[n]
         os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
-        os.environ["DLS_NUMA_CPUS"] = aio_numa_cpus
         cmd = ["numactl", f"--physcpubind={physcpubind}",
                "python3"] + model_script.split()
         log_filename = f"/tmp/aml_log_{n}"
