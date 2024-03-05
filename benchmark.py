@@ -286,6 +286,10 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
 
 class Runner:
     def __init__(self, system, model_name, num_sockets, num_threads, memory, precisions):
+        self.model_name = model_name
+        self.num_sockets = num_sockets
+        self.num_threads = num_threads
+        self.precisions = precisions
         with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
             look_up_data = json.load(url)
         from utils.perf_prediction.predictor import find_best_config
@@ -327,6 +331,69 @@ class Runner:
     def _validate(self, num_sockets, num_threads):
         raise NotImplementedError
 
+    def _run_benchmark(self, get_cmd):
+        warm_up_completed = False
+        for precision in self.precisions:
+            try:
+                configs = self.configs[precision]
+            except KeyError:
+                continue
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+
+            if (self.num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
+                print("Setup run ...\n")
+                run_benchmark(get_cmd("warm_up"), self.num_threads, 1, self.num_threads)
+                warm_up_completed = True
+
+            print(f"{self.model_name}, {precision} precision")
+            print("Case minimizing latency:")
+            num_proc = self.num_sockets * configs["latency"]["num_proc"]
+            print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
+                  f"[streams x threads x bs]")
+
+            result = run_benchmark(
+                get_cmd("latency", configs['latency']), self.num_threads, num_proc, configs["latency"]["num_threads"])
+            if result is not None:
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips")
+                throughput_per_unit = (
+                        result / (configs['latency']['bs'] * self.num_sockets * configs['latency']['num_proc']))
+                latency = round(1000. / throughput_per_unit, 2)
+                latency_msg = f"{INDENT}latency: {latency} ms"
+                if num_proc > 1:
+                    latency_msg += f" [{num_proc} parallel streams each offering this latency]"
+                print(latency_msg)
+                self._results[precision]["latency"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['latency']['num_threads'],
+                        "batch_size": configs['latency']['bs']},
+                    "throughput": throughput,
+                    "latency_ms": latency
+                }
+
+            print("Case maximizing throughput:")
+            num_proc = self.num_sockets * configs["throughput"]['num_proc']
+            print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
+                  f"{configs['throughput']['bs']} [streams x threads x bs]")
+            result = run_benchmark(get_cmd("latency", configs['throughput']), self.num_threads,
+                                   num_proc, configs["throughput"]['num_threads'])
+            if result is not None:
+                throughput = round(result, 2)
+                print(f"{INDENT}total throughput: {throughput} ips\n")
+                self._results[precision]["throughput"] = {
+                    "config": {
+                        "streams": num_proc,
+                        "threads": configs['throughput']['num_threads'],
+                        "batch_size": configs['throughput']['bs']},
+                    "throughput": throughput
+                }
+
+            if precision == "fp16":
+                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
+
 
 class YOLO(Runner):
     model_name = "YOLO v8s"
@@ -360,68 +427,16 @@ class YOLO(Runner):
         model_filepath = self._download_maybe()
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/object_detection/yolo_v8/run.py")
-        warm_up_completed = False
-        for precision in self.precisions:
-            try:
-                configs = self.configs[precision]
-            except KeyError:
-                continue
 
-            if precision == "fp16":
-                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+        def get_cmd(scenario, config=None):
+            return {"warm_up": f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
+                    "latency": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                                f"--timeout={DAY_IN_SEC}"),
+                    "throughput": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                                   f"--timeout={DAY_IN_SEC}")
+                    }[scenario]
 
-            if (num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
-                print("Setup run ...\n")
-                cmd = f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
-                run_benchmark(cmd, num_threads, 1, num_threads)
-                warm_up_completed = True
-
-            print(f"{self.model_name}, {precision} precision")
-            print("Case minimizing latency:")
-            num_proc = num_sockets * configs["latency"]["num_proc"]
-            print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
-                  f"[streams x threads x bs]")
-            cmd = (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {configs['latency']['bs']} "
-                   f"--timeout={DAY_IN_SEC}")
-            result = run_benchmark(cmd, num_threads, num_proc, configs["latency"]["num_threads"])
-            if result is not None:
-                throughput = round(result, 2)
-                print(f"{INDENT}total throughput: {throughput} ips")
-                throughput_per_unit = result / (configs['latency']['bs'] * num_sockets * configs['latency']['num_proc'])
-                latency = round(1000. / throughput_per_unit, 2)
-                latency_msg = f"{INDENT}latency: {latency} ms"
-                if num_proc > 1:
-                    latency_msg += f" [{num_proc} parallel streams each offering this latency]"
-                print(latency_msg)
-                self._results[precision]["latency"] = {
-                    "config": {
-                        "streams": num_proc,
-                        "threads": configs['latency']['num_threads'],
-                        "batch_size": configs['latency']['bs']},
-                    "throughput": throughput,
-                    "latency_ms": latency
-                }
-
-            print("Case maximizing throughput:")
-            num_proc = num_sockets * configs["throughput"]['num_proc']
-            print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
-                  f"{configs['throughput']['bs']} [streams x threads x bs]")
-            cmd = (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {configs['throughput']['bs']} "
-                   f"--timeout={DAY_IN_SEC}")
-            result = run_benchmark(cmd, num_threads, num_proc, configs["throughput"]['num_threads'])
-            if result is not None:
-                throughput = round(result, 2)
-                print(f"{INDENT}total throughput: {throughput} ips\n")
-                self._results[precision]["throughput"] = {
-                    "config": {
-                        "streams": num_proc,
-                        "threads": configs['throughput']['num_threads'],
-                        "batch_size": configs['throughput']['bs']},
-                    "throughput": throughput
-                }
-
-            if precision == "fp16":
-                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
+        self._run_benchmark(get_cmd)
 
 
 class ResNet50(Runner):
@@ -437,68 +452,16 @@ class ResNet50(Runner):
     def _validate(self, num_sockets, num_threads):
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/classification/resnet_50_v15/run.py")
-        warm_up_completed = False
-        for precision in self.precisions:
-            try:
-                configs = self.configs[precision]
-            except KeyError:
-                continue
 
-            if precision == "fp16":
-                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
+        def get_cmd(scenario, config=None):
+            return {"warm_up": f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
+                    "latency": (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {config['bs']} "
+                                f"--timeout={DAY_IN_SEC}"),
+                    "throughput": (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {config['bs']} "
+                                   f"--timeout={DAY_IN_SEC}")
+                    }[scenario]
 
-            if (num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
-                print("Setup run ...\n")
-                cmd = f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}"
-                run_benchmark(cmd, num_threads, 1, num_threads)
-                warm_up_completed = True
-
-            print(f"{self.model_name}, {precision} precision")
-            print("Case minimizing latency:")
-            num_proc = num_sockets * configs["latency"]["num_proc"]
-            print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
-                  f"[streams x threads x bs]")
-            cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['latency']['bs']} "
-                   f"--timeout={DAY_IN_SEC}")
-            result = run_benchmark(cmd, num_threads, num_proc, configs["latency"]["num_threads"])
-            if result is not None:
-                throughput = round(result, 2)
-                print(f"{INDENT}total throughput: {throughput} ips")
-                throughput_per_unit = result / (configs['latency']['bs'] * num_sockets * configs['latency']['num_proc'])
-                latency = round(1000. / throughput_per_unit, 2)
-                latency_msg = f"{INDENT}latency: {latency} ms"
-                if num_proc > 1:
-                    latency_msg += f" [{num_proc} parallel streams each offering this latency]"
-                print(latency_msg)
-                self._results[precision]["latency"] = {
-                    "config": {
-                        "streams": num_proc,
-                        "threads": configs['latency']['num_threads'],
-                        "batch_size": configs['latency']['bs']},
-                    "throughput": throughput,
-                    "latency_ms": latency
-                }
-
-            print("Case maximizing throughput:")
-            num_proc = num_sockets * configs["throughput"]['num_proc']
-            print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
-                  f"{configs['throughput']['bs']} [streams x threads x bs]")
-            cmd = (f"{path_to_runner} -m resnet50 -p fp32 -f pytorch -b {configs['throughput']['bs']} "
-                   f"--timeout={DAY_IN_SEC}")
-            result = run_benchmark(cmd, num_threads, num_proc, configs["throughput"]['num_threads'])
-            if result is not None:
-                throughput = round(result, 2)
-                print(f"{INDENT}total throughput: {throughput} ips\n")
-                self._results[precision]["throughput"] = {
-                    "config": {
-                        "streams": num_proc,
-                        "threads": configs['throughput']['num_threads'],
-                        "batch_size": configs['throughput']['bs']},
-                    "throughput": throughput
-                }
-
-            if precision == "fp16":
-                os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
+        self._run_benchmark(get_cmd)
 
 
 def main():
