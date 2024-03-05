@@ -1,4 +1,5 @@
 import json
+import random
 import sys
 import math
 import torch
@@ -184,8 +185,9 @@ def test_lookup(filepath):
                 # _ = find_best_config(data, precision, mem, i, True)
 
     for precision in data["results"].keys():
-        for mem in [2 ** i for i in range(13)]:
-            for threads in [1, 3, 7, 14, 16, 39, 67, 80, 81, 97, 111, 128, 159, 160, 186, 192]:
+        for mem in random.choices([2 ** (i/4) for i in range(49)], k=4):
+            for threads in random.choices(
+                    [1, 3, 7, 14, 16, 39, 67, 80, 81, 97, 111, 128, 159, 160, 186, 192], k=4):
                 if threads > data["num_threads"]:
                     break
                 for scenario in [True, False]:
