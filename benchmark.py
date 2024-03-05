@@ -1,8 +1,9 @@
 import os
 import sys
 import json
-import subprocess
 import time
+import argparse
+import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -27,6 +28,7 @@ MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between 
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
 INDENT = 3 * " "
+no_interactive = None
 
 
 def print_red(message):
@@ -66,6 +68,8 @@ def is_setup_done():
 
 
 def get_bool_answer(question):
+    if no_interactive:
+        return True
     answer = None
     while answer not in AFFIRMATIVE + NEGATIVE:
         answer = input(f"{question} (y/n)").strip()
@@ -159,6 +163,10 @@ def get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc):
     return thread_configs
 
 
+def ask_for_patience():
+    print(f"\r{INDENT}benchmark on-going, stay put 🙏 ...", end='')
+
+
 class Results:
     def __init__(self, results_dir, processes_count):
         self._results_dir = results_dir
@@ -167,14 +175,11 @@ class Results:
         self._processes_count = processes_count
         self.stable = False
 
-    def _ask_for_patience(self):
-        print(f"\r{INDENT}benchmark on-going, stay put 🙏 ...", end='')
-
     def calculate_throughput(self, final_calc=False):
         from filelock import FileLock
         logs = [log for log in os.listdir(self._results_dir) if "json" in log and "lock" not in log]
         if len(logs) != self._processes_count:
-            self._ask_for_patience()
+            ask_for_patience()
             return None
 
         loaded_logs = []
@@ -187,7 +192,7 @@ class Results:
         measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
                                loaded_logs]
         if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
-            self._ask_for_patience()
+            ask_for_patience()
             return None
         latest_start = max(log["start_times"][0] for log in loaded_logs)
         earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
@@ -208,7 +213,7 @@ class Results:
                 elif earliest_finish < finish:
                     break
             if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
-                self._ask_for_patience()
+                ask_for_patience()
                 return None
             measurements_completed_in_overlap_total += measurements_completed_in_overlap
             throughput_total += input_size_processed_per_process / total_latency_per_process
@@ -256,7 +261,9 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         log_filename = f"/tmp/aml_log_{n}"
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
-        time.sleep(start_delay)
+        if start_delay > 0:
+            ask_for_patience()
+            time.sleep(start_delay)
 
     failure = False
     while not all(p.poll() is not None for p in current_subprocesses):
@@ -396,6 +403,8 @@ class Runner:
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ""
 
+        get_bool_answer("Continue?")
+
 
 class YOLO(Runner):
     model_name = "YOLO v8s"
@@ -526,6 +535,12 @@ class DLRM(Runner):
 
 
 def main():
+    parser = argparse.ArgumentParser(prog="AML benchmarking tool")
+    parser.add_argument("--no-interactive", action="store_true", help="Don't ask for user input")
+    args = parser.parse_args()
+    global no_interactive
+    no_interactive = args.no_interactive
+
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
