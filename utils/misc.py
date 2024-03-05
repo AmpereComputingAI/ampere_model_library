@@ -125,6 +125,7 @@ def download_squad_1_1_dataset():
             subprocess.run(["wget", dataset_link1])
             subprocess.run(["mkdir", squad_data])
             subprocess.run(["unzip", 'squad1.1.zip'])
+            subprocess.run(["rm", "squad1.1.zip"])
             subprocess.run(["mv", 'dev-v1.1.json', squad_data])
             subprocess.run(["mv", 'train-v1.1.json', squad_data])
 
