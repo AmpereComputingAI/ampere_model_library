@@ -462,11 +462,48 @@ class ResNet50(Runner):
         self._run_benchmark(get_cmd)
 
 
+class BERT(Runner):
+    model_name = "BERT large"
+    precisions = ["fp32", "fp16"]
+
+    def __init__(self, system, num_sockets, num_threads, memory):
+        super().__init__(
+            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+        if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
+            self._validate(num_sockets, num_threads)
+
+    def _download_maybe(self):
+        from utils.downloads.utils import get_downloads_path
+        filename = "bert_large_mlperf.pt"
+        target_dir = os.path.join(get_downloads_path(), filename)
+        if not os.path.exists(target_dir):
+            subprocess.run(["wget", "-P", get_downloads_path(), "-O", filename,
+                            "https://zenodo.org/records/3733896/files/model.pytorch?download=1"],
+                           check=True, stdout=subprocess.DEVNULL)
+        return target_dir
+
+    def _validate(self, num_sockets, num_threads):
+        model_filepath = self._download_maybe()
+        path_to_runner = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py")
+
+        def get_cmd(scenario, config=None):
+            return {"warm_up": f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b 1 --timeout={DAY_IN_SEC}",
+                    "latency": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                                f"--timeout={DAY_IN_SEC}"),
+                    "throughput": (f"{path_to_runner} -m {model_filepath} -p fp32 -f pytorch -b {config['bs']} "
+                                   f"--timeout={DAY_IN_SEC}")
+                    }[scenario]
+
+        self._run_benchmark(get_cmd)
+
+
 def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50, YOLO]:
+    for model in [ResNet50, YOLO, BERT]:
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results

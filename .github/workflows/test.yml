@@ -99,9 +99,9 @@ jobs:
 
       - name: benchmark.py test
         run: |
-          { echo "y"; echo "y"; echo "y"; } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
+          { echo "y"; echo "y"; echo "y"; echo "y"; } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
           # test second time to ensure that left-over files don't interrupt, etc.
-          { echo "y"; echo "y"; echo "y"; } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
+          { echo "y"; echo "y"; echo "y"; echo "y"; } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
 
       - name: AML smoke test
         run: |
