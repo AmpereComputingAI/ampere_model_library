@@ -82,13 +82,15 @@ jobs:
 
   test_pytorch_arm64:
     runs-on: self-hosted
-    container: amperecomputingai/pytorch:latest
+    container:
+      image: amperecomputingai/pytorch:latest
+      options: --memory=170g
     name: Ampere Altra - Ampere optimized PyTorch
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
-      AIO_NUM_THREADS: 16
+      AIO_NUM_THREADS: 32
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -131,13 +133,15 @@ jobs:
 
   test_tensorflow_arm64:
     runs-on: self-hosted
-    container: amperecomputingai/tensorflow:latest
+    container:
+      image: amperecomputingai/tensorflow:latest
+      options: --memory=170g
     name: Ampere Altra - Ampere optimized TensorFlow
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
-      AIO_NUM_THREADS: 16
+      AIO_NUM_THREADS: 32
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -165,13 +169,15 @@ jobs:
 
   test_onnxrt_arm64:
     runs-on: self-hosted
-    container: amperecomputingai/onnxruntime:latest
+    container:
+      image: amperecomputingai/onnxruntime:latest
+      options: --memory=170g
     name: Ampere Altra - Ampere optimized ONNXRunTime
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
-      AIO_NUM_THREADS: 16
+      AIO_NUM_THREADS: 32
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
