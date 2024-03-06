@@ -175,9 +175,9 @@ pip3 install --no-deps --upgrade \
    safetensors>=0.3.1
 
 if [ "${ARCH}" = "aarch64" ]; then
-pip3 install --upgrade --no-deps \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
+  pip3 install --upgrade --no-deps \
+    https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+    https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
 fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
