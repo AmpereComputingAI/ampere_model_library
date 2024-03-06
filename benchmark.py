@@ -145,7 +145,7 @@ def identify_system(args):
     else:
         for s in SYSTEMS.keys():
             if args.system == convert_name(s):
-                system = args.system
+                system = s
                 break
         else:
             assert False
