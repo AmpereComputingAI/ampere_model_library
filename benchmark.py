@@ -45,7 +45,7 @@ NEGATIVE = ["n", "N", "no", "NO"]
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
-TIMEOUT = 60 * 60
+TIMEOUT = 30 * 60
 INDENT = 3 * " "
 no_interactive = None
 
@@ -647,7 +647,7 @@ class Whisper(Runner):
         def get_cmd(scenario, config=None):
             return f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
 
-        self._run_benchmark(get_cmd, start_delay=30)
+        self._run_benchmark(get_cmd)
 
 
 def convert_name(text):
