@@ -589,8 +589,12 @@ class Whisper(Runner):
 
 
 def main():
+    models = [ResNet50, YOLO, BERT, DLRM, Whisper]
     parser = argparse.ArgumentParser(prog="AML benchmarking tool")
-    parser.add_argument("--no-interactive", action="store_true", help="Don't ask for user input")
+    parser.add_argument("--no-interactive", action="store_true", help="don't ask for user input")
+    parser.add_argument("-m", "--model",
+                        type=str, choices=[model.model_name for model in models],
+                        help="choose architecture to run, otherwise all will be run")
     args = parser.parse_args()
     global no_interactive
     no_interactive = args.no_interactive
@@ -598,7 +602,9 @@ def main():
     is_setup_done()
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
-    for model in [ResNet50, YOLO, BERT, DLRM, Whisper]:
+    for model in models:
+        if args.model is not None and model.model_name != args.model:
+            continue
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results
