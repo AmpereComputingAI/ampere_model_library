@@ -45,7 +45,7 @@ NEGATIVE = ["n", "N", "no", "NO"]
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
-TIMEOUT = 30 * 60
+TIMEOUT = 60 * 60
 INDENT = 3 * " "
 no_interactive = None
 
@@ -353,12 +353,15 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
         for p in current_subprocesses:
             exit_codes.append(p.poll())
             p.terminate()
-        print_red("\nFAIL: At least one process returned exit code other than 0 or timeout hit!")
-        if get_bool_answer("Do you want to print output of failed processes?"):
-            for i, p in enumerate(current_subprocesses):
-                if exit_codes[i] != 0 and exit_codes[i] is not None:
-                    print_red(f"\nOutput of process {i}:")
-                    print(open(f"/tmp/aml_log_{i}", "r", encoding="utf8", errors="ignore").read())
+        if any([code is not None and code != 0 for code in exit_codes]):
+            print_red("\nFAIL: At least one process returned exit code other than 0")
+            if get_bool_answer("Do you want to print output of failed processes?"):
+                for i, p in enumerate(current_subprocesses):
+                    if exit_codes[i] != 0 and exit_codes[i] is not None:
+                        print_red(f"\nOutput of process {i}:")
+                        print(open(f"/tmp/aml_log_{i}", "r", encoding="utf8", errors="ignore").read())
+        else:
+            print_red(f"\nFAIL: Timeout hit [{TIMEOUT} sec]")
         if not get_bool_answer("Do you want to continue evaluation?"):
             sys.exit(0)
         return None
@@ -644,7 +647,7 @@ class Whisper(Runner):
         def get_cmd(scenario, config=None):
             return f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
 
-        self._run_benchmark(get_cmd)
+        self._run_benchmark(get_cmd, start_delay=30)
 
 
 def convert_name(text):
