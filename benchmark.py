@@ -511,6 +511,7 @@ class YOLO(Runner):
         os.environ["COCO_ANNO_PATH"] = os.path.join(dataset_dir, "annotations.json")
         target_dir = os.path.join(get_downloads_path(), "yolov8s.pt")
         if not os.path.exists(target_dir):
+            ask_for_patience(f"downloading {self.model_name} model")
             subprocess.run(["wget", "-P", get_downloads_path(),
                             "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -573,6 +574,7 @@ class BERT(Runner):
         filename = "bert_large_mlperf.pt"
         target_dir = os.path.join(get_downloads_path(), filename)
         if not os.path.exists(target_dir):
+            ask_for_patience(f"downloading {self.model_name} model")
             subprocess.run(["wget", "-O", target_dir,
                             "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
