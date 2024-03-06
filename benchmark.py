@@ -136,12 +136,12 @@ def identify_system(args):
         memory_available = min(args.memory, memory_available)
 
     if args.system is None:
-        if all([item in altra_flags for item in flags]):
+        if set(altra_flags) == set(flags):
             if num_threads_per_socket > 80:
                 system = "Altra Max"
             else:
                 system = "Altra"
-        elif all([item in aone_flags for item in flags]):
+        elif set(aone_flags) == set(flags):
             if num_threads_per_socket > 160:
                 system = "AmpereOneX"
             else:
