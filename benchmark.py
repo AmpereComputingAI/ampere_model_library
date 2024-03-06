@@ -189,8 +189,12 @@ def get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc):
     return thread_configs
 
 
-def ask_for_patience(text):
+def clean_line():
     print("\r" + 80 * " " + "\r", end='')
+
+
+def ask_for_patience(text):
+    clean_line()
     print(f"\r{INDENT}{text}, stay put 🙏 ...", end='')
 
 
@@ -315,7 +319,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
             sys.exit(0)
         return None
     else:
-        print("\r" + 80 * " " + "\r", end='')
+        clean_line()
         return results.calculate_throughput(final_calc=True)
 
 
@@ -334,7 +338,9 @@ class Runner:
         for precision in precisions:
             print_maybe(f"{model_name}, {precision} precision")
             try:
+                ask_for_patience("looking up best configuration")
                 x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, True)
+                clean_line()
             except LookupError:
                 if no_interactive:
                     print(f"{model_name}, {precision} precision")
@@ -350,7 +356,9 @@ class Runner:
                 latency_msg += f" [{num_proc} parallel streams each offering this latency]"
             print_maybe(latency_msg)
             print_maybe(f"{INDENT}memory usage: <{round(num_sockets * x['memory'], 2)} GiB")
+            ask_for_patience("looking up best configuration")
             x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, False)
+            clean_line()
             self.configs[precision]["throughput"] = x
             num_proc = x['num_proc'] * num_sockets
             print_maybe("Case maximizing throughput:")
