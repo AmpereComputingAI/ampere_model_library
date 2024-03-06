@@ -515,6 +515,7 @@ class YOLO(Runner):
             subprocess.run(["wget", "-P", get_downloads_path(),
                             "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            clean_line()
         return target_dir
 
     def _validate(self, num_sockets, num_threads):
@@ -578,6 +579,7 @@ class BERT(Runner):
             subprocess.run(["wget", "-O", target_dir,
                             "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            clean_line()
         return target_dir
 
     def _validate(self, num_sockets, num_threads):
