@@ -349,12 +349,14 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
 
     clean_line()
     if failure:
+        exit_codes = []
         for p in current_subprocesses:
+            exit_codes.append(p.poll())
             p.terminate()
         print_red("\nFAIL: At least one process returned exit code other than 0 or timeout hit!")
         if get_bool_answer("Do you want to print output of failed processes?"):
             for i, p in enumerate(current_subprocesses):
-                if p.poll() != 0:
+                if exit_codes[i] != 0 and exit_codes[i] is not None:
                     print_red(f"\nOutput of process {i}:")
                     print(open(f"/tmp/aml_log_{i}", "r", encoding="utf8", errors="ignore").read())
         if not get_bool_answer("Do you want to continue evaluation?"):
