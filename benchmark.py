@@ -110,7 +110,7 @@ def get_bool_answer(question):
     return answer in AFFIRMATIVE
 
 
-def which_ampere_cpu(flags, num_threads_per_socket):
+def which_ampere_cpu(flags, num_threads_per_node):
     altra_flags = ['aes', 'asimd', 'asimddp', 'asimdhp', 'asimdrdm', 'atomics', 'cpuid', 'crc32', 'dcpop', 'evtstrm',
                    'fp', 'fphp', 'lrcpc', 'pmull', 'sha1', 'sha2', 'ssbs']
     aone_flags = ['aes', 'asimd', 'asimddp', 'asimdfhm', 'asimdhp', 'asimdrdm', 'atomics', 'bf16', 'bti', 'cpuid',
@@ -123,7 +123,7 @@ def which_ampere_cpu(flags, num_threads_per_socket):
                    'sha3', 'sha512', 'sm3', 'sm4', 'ssbs', 'uscat']
 
     if set(altra_flags) == set(flags):
-        if num_threads_per_socket > 80:
+        if num_threads_per_node > 80:
             system = "Altra Max"
         else:
             system = "Altra"
@@ -146,11 +146,11 @@ def identify_system(args):
     flags = cpu_info["flags"]
     num_threads = cpu_info["count"]
     try:
-        num_sockets = int([n for n in subprocess.check_output(["lscpu"]).decode().split("\n")
-                           if "Socket(s):" in n][0].split()[1])  # so ugly
+        numa_nodes = int([n for n in subprocess.check_output(["lscpu"]).decode().split("\n")
+                          if "NUMA node(s):" in n][0].split()[2])
     except (ValueError, IndexError):
-        num_sockets = 1
-    num_threads_per_socket = num_threads // num_sockets
+        numa_nodes = 1
+    num_threads_per_node = num_threads // numa_nodes
     mem = psutil.virtual_memory()
     memory_total = mem.total / 1024 ** 3
     memory_available = mem.available / 1024 ** 3
@@ -158,7 +158,7 @@ def identify_system(args):
         memory_available = min(args.memory, memory_available)
 
     if args.system is None:
-        system = which_ampere_cpu(flags, num_threads_per_socket)
+        system = which_ampere_cpu(flags, num_threads_per_node)
     else:
         for s in SYSTEMS.keys():
             if args.system == convert_name(s):
@@ -169,7 +169,7 @@ def identify_system(args):
 
     def system_identified_as():
         print(f"\nSystem identified as {system}\n[out of {', '.join(SYSTEMS.keys())}]")
-        print(f"\nSockets: {num_sockets}\nThreads: {num_threads_per_socket}\nMemory: {round(memory_total, 2)} [GiB]\n")
+        print(f"\nNUMA nodes: {numa_nodes}\nThreads: {num_threads_per_node}\nMemory: {round(memory_total, 2)} [GiB]\n")
 
     run_selection = True
     if system is not None:
@@ -195,19 +195,19 @@ def identify_system(args):
         system_identified_as()
 
     if args.max_threads is not None:
-        num_threads_per_socket = min(num_threads_per_socket, args.max_threads)
+        num_threads_per_node = min(num_threads_per_node, args.max_threads)
 
-    return system, num_sockets, num_threads_per_socket, memory_available
+    return system, numa_nodes, num_threads_per_node, memory_available
 
 
-def get_thread_configs(num_sockets, socket_idx, num_threads_socket, num_proc, num_threads_per_proc):
+def get_thread_configs(numa_nodes, node_idx, num_threads_node, num_proc, num_threads_per_proc):
     from cpuinfo import get_cpu_info
-    num_threads = get_cpu_info()["count"] // num_sockets
-    assert num_threads >= num_threads_socket
-    assert num_threads_per_proc * num_proc <= num_threads_socket
+    num_threads = get_cpu_info()["count"] // numa_nodes
+    assert num_threads >= num_threads_node
+    assert num_threads_per_proc * num_proc <= num_threads_node
 
     thread_configs = []
-    start_idx = socket_idx * num_threads
+    start_idx = node_idx * num_threads
     end_idx = start_idx + num_threads_per_proc
     for n in range(num_proc):
         threads_to_use = [str(t) for t in range(start_idx, end_idx)]
@@ -292,9 +292,9 @@ class Results:
         return throughput_total
 
 
-def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket, num_threads_per_proc, start_delay=0):
+def run_benchmark(model_script, numa_nodes, num_threads_node, num_proc_node, num_threads_per_proc, start_delay=0):
     assert start_delay >= 0
-    if num_proc_socket * num_sockets == 1:
+    if num_proc_node * numa_nodes == 1:
         start_delay = 0
 
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
@@ -311,13 +311,13 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
         os.mkdir(results_dir)
 
     mem_bind = []
-    results = Results(results_dir, num_proc_socket * num_sockets)
+    results = Results(results_dir, num_proc_node * numa_nodes)
     current_subprocesses = list()
-    for i in range(num_sockets):
-        thread_configs = get_thread_configs(num_sockets, i, num_threads_socket, num_proc_socket, num_threads_per_proc)
-        if num_sockets > 1:
+    for i in range(numa_nodes):
+        thread_configs = get_thread_configs(numa_nodes, i, num_threads_node, num_proc_node, num_threads_per_proc)
+        if numa_nodes > 1:
             mem_bind = [f"--membind={i}"]
-        for n in range(num_proc_socket):
+        for n in range(num_proc_node):
             aio_numa_cpus, physcpubind = thread_configs[n]
             os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
             cmd = ["numactl", f"--physcpubind={physcpubind}"] + mem_bind + ["python3"] + model_script.split()
@@ -326,7 +326,7 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
                 cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
             if start_delay > 0:
                 ask_for_patience("benchmark starting, {:>3} / {} streams online".format(
-                    i * num_proc_socket + n + 1, num_proc_socket * num_sockets))
+                    i * num_proc_node + n + 1, num_proc_node * numa_nodes))
                 time.sleep(start_delay)
 
     failure = False
@@ -346,7 +346,8 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
         # wait for subprocesses to finish their job if all are alive till now
         ask_for_patience("benchmark finishing")
         try:
-            failure = any(p.wait(timeout=max(0, int(TIMEOUT-(time.time() - start)))) != 0 for p in current_subprocesses)
+            failure = any(
+                p.wait(timeout=max(0, int(TIMEOUT - (time.time() - start)))) != 0 for p in current_subprocesses)
         except subprocess.TimeoutExpired:
             failure = True
 
@@ -373,9 +374,9 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
 
 
 class Runner:
-    def __init__(self, system, model_name, num_sockets, num_threads, memory, precisions):
+    def __init__(self, system, model_name, numa_nodes, num_threads, memory, precisions):
         self.model_name = model_name
-        self.num_sockets = num_sockets
+        self.numa_nodes = numa_nodes
         self.num_threads = num_threads
         self.precisions = precisions
         with urllib.request.urlopen(SYSTEMS[system][model_name]) as url:
@@ -388,7 +389,7 @@ class Runner:
             print_maybe(f"{model_name}, {precision} precision")
             try:
                 ask_for_patience("looking up best configuration")
-                x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, True)
+                x = find_best_config(look_up_data, precision, memory / numa_nodes, num_threads, True)
                 clean_line()
             except LookupError:
                 clean_line()
@@ -397,24 +398,24 @@ class Runner:
                 print_red("Not enough resources on the system to run\n")
                 continue
             self.configs[precision] = {"latency": x}
-            num_proc = x["num_proc"] * num_sockets
+            num_proc = x["num_proc"] * numa_nodes
             print_maybe("Case minimizing latency:")
             print_maybe(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
-            print_maybe(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
+            print_maybe(f"{INDENT}total throughput: {round(numa_nodes * x['total_throughput'], 2)} ips")
             latency_msg = f"{INDENT}latency: {round(1000. / x['throughput_per_unit'], 2)} ms"
             if num_proc > 1:
                 latency_msg += f" [{num_proc} parallel streams each offering this latency]"
             print_maybe(latency_msg)
-            print_maybe(f"{INDENT}memory usage: <{round(num_sockets * x['memory'], 2)} GiB")
+            print_maybe(f"{INDENT}memory usage: <{round(numa_nodes * x['memory'], 2)} GiB")
             ask_for_patience("looking up best configuration")
-            x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, False)
+            x = find_best_config(look_up_data, precision, memory / numa_nodes, num_threads, False)
             clean_line()
             self.configs[precision]["throughput"] = x
-            num_proc = x['num_proc'] * num_sockets
+            num_proc = x['num_proc'] * numa_nodes
             print_maybe("Case maximizing throughput:")
             print_maybe(f"{INDENT}best setting: {num_proc} x {x['num_threads']} x {x['bs']} [streams x threads x bs]")
-            print_maybe(f"{INDENT}total throughput: {round(num_sockets * x['total_throughput'], 2)} ips")
-            print_maybe(f"{INDENT}memory usage: <{num_sockets * round(x['memory'], 2)} GiB\n")
+            print_maybe(f"{INDENT}total throughput: {round(numa_nodes * x['total_throughput'], 2)} ips")
+            print_maybe(f"{INDENT}memory usage: <{numa_nodes * round(x['memory'], 2)} GiB\n")
 
     def get_results(self):
         for values in self._results.values():
@@ -423,7 +424,7 @@ class Runner:
         else:
             return None
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         raise NotImplementedError
 
     def _run_benchmark(self, get_cmd, start_delay=0):
@@ -437,7 +438,7 @@ class Runner:
             if precision == "fp16":
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
 
-            if (self.num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
+            if (self.numa_nodes > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
                 if run_benchmark(
                         get_cmd("warm_up"), 1, self.num_threads, 1, self.num_threads
                 ) is None:
@@ -446,18 +447,18 @@ class Runner:
 
             print(f"{self.model_name}, {precision} precision")
             print("Case minimizing latency:")
-            num_proc = self.num_sockets * configs["latency"]["num_proc"]
+            num_proc = self.numa_nodes * configs["latency"]["num_proc"]
             print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
                   f"[streams x threads x bs]")
 
             result = run_benchmark(
-                get_cmd("latency", configs['latency']), self.num_sockets, self.num_threads,
+                get_cmd("latency", configs['latency']), self.numa_nodes, self.num_threads,
                 configs["latency"]["num_proc"], configs["latency"]["num_threads"], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips")
                 throughput_per_unit = (
-                        result / (configs['latency']['bs'] * self.num_sockets * configs['latency']['num_proc']))
+                        result / (configs['latency']['bs'] * self.numa_nodes * configs['latency']['num_proc']))
                 latency = round(1000. / throughput_per_unit, 2)
                 latency_msg = f"{INDENT}latency: {latency} ms"
                 if num_proc > 1:
@@ -473,11 +474,11 @@ class Runner:
                 }
 
             print("Case maximizing throughput:")
-            num_proc = self.num_sockets * configs["throughput"]['num_proc']
+            num_proc = self.numa_nodes * configs["throughput"]['num_proc']
             print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
                   f"{configs['throughput']['bs']} [streams x threads x bs]")
             result = run_benchmark(
-                get_cmd("latency", configs['throughput']), self.num_sockets, self.num_threads,
+                get_cmd("latency", configs['throughput']), self.numa_nodes, self.num_threads,
                 configs["throughput"]['num_proc'], configs["throughput"]['num_threads'], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
@@ -500,11 +501,10 @@ class YOLO(Runner):
     model_name = "YOLO v8s"
     precisions = ["fp32", "fp16"]
 
-    def __init__(self, system, num_sockets, num_threads, memory):
-        super().__init__(
-            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+    def __init__(self, system, numa_nodes, num_threads, memory):
+        super().__init__(system, self.model_name, numa_nodes, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets, num_threads)
+            self._validate(numa_nodes, num_threads)
 
     def _download_maybe(self):
         from utils.downloads.utils import get_downloads_path
@@ -528,7 +528,7 @@ class YOLO(Runner):
             clean_line()
         return target_dir
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         model_filepath = self._download_maybe()
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/object_detection/yolo_v8/run.py")
@@ -549,13 +549,13 @@ class ResNet50(Runner):
     model_name = "ResNet-50 v1.5"
     precisions = ["fp32", "fp16"]
 
-    def __init__(self, system, num_sockets, num_threads, memory):
+    def __init__(self, system, numa_nodes, num_threads, memory):
         super().__init__(
-            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+            system, self.model_name, numa_nodes, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets, num_threads)
+            self._validate(numa_nodes, num_threads)
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         path_to_runner = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                       "computer_vision/classification/resnet_50_v15/run.py")
 
@@ -574,11 +574,11 @@ class BERT(Runner):
     model_name = "BERT large"
     precisions = ["fp32", "fp16"]
 
-    def __init__(self, system, num_sockets, num_threads, memory):
+    def __init__(self, system, numa_nodes, num_threads, memory):
         super().__init__(
-            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+            system, self.model_name, numa_nodes, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets, num_threads)
+            self._validate(numa_nodes, num_threads)
 
     def _download_maybe(self):
         from utils.downloads.utils import get_downloads_path
@@ -592,7 +592,7 @@ class BERT(Runner):
             clean_line()
         return target_dir
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         model_filepath = self._download_maybe()
         path_to_runner = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
@@ -614,13 +614,13 @@ class DLRM(Runner):
     model_name = "DLRM"
     precisions = ["fp32", "fp16"]
 
-    def __init__(self, system, num_sockets, num_threads, memory):
+    def __init__(self, system, numa_nodes, num_threads, memory):
         super().__init__(
-            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+            system, self.model_name, numa_nodes, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets, num_threads)
+            self._validate(numa_nodes, num_threads)
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         path_to_runner = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "recommendation/dlrm_torchbench/run.py")
 
@@ -639,13 +639,13 @@ class Whisper(Runner):
     model_name = "Whisper medium EN"
     precisions = ["fp32", "fp16"]
 
-    def __init__(self, system, num_sockets, num_threads, memory):
+    def __init__(self, system, numa_nodes, num_threads, memory):
         super().__init__(
-            system, self.model_name, num_sockets, num_threads, memory, self.precisions)
+            system, self.model_name, numa_nodes, num_threads, memory, self.precisions)
         if len(self.configs) > 0 and get_bool_answer("Do you want to run actual benchmark to validate?"):
-            self._validate(num_sockets, num_threads)
+            self._validate(numa_nodes, num_threads)
 
-    def _validate(self, num_sockets, num_threads):
+    def _validate(self, numa_nodes, num_threads):
         path_to_runner = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "speech_recognition/whisper/run.py")
 
@@ -668,18 +668,18 @@ def main():
     parser.add_argument("--system", type=str, choices=[convert_name(system) for system in SYSTEMS.keys()],
                         help="specify Ampere CPU")
     parser.add_argument("--memory", type=int, help="limit memory to a specified value [GiB]")
-    parser.add_argument("--max-threads", type=int, help="limit number of threads to use per socket")
+    parser.add_argument("--max-threads", type=int, help="limit number of threads to use per NUMA node")
     args = parser.parse_args()
     global no_interactive
     no_interactive = args.no_interactive
 
     is_setup_done()
-    system, num_sockets, num_threads, memory = identify_system(args)
+    system, numa_nodes, num_threads, memory = identify_system(args)
     results_all = {}
     for model in models:
         if args.model is not None and convert_name(model.model_name) != args.model:
             continue
-        results = model(system, num_sockets, num_threads, memory).get_results()
+        results = model(system, numa_nodes, num_threads, memory).get_results()
         if results is not None:
             results_all[model.model_name] = results
     if len(results_all) > 0:
