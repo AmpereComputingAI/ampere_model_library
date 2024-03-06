@@ -200,17 +200,16 @@ def identify_system(args):
     return system, num_sockets, num_threads_per_socket, memory_available
 
 
-def get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc):
-    assert num_threads_per_proc <= num_threads_per_socket
+def get_thread_configs(num_sockets, socket_idx, num_threads_socket, num_proc, num_threads_per_proc):
+    from cpuinfo import get_cpu_info
+    num_threads = get_cpu_info()["count"] // num_sockets
+    assert num_threads >= num_threads_socket
+    assert num_threads_per_proc * num_proc <= num_threads_socket
+
     thread_configs = []
-    start_idx = 0
-    end_idx = num_threads_per_proc
+    start_idx = socket_idx * num_threads
+    end_idx = start_idx + num_threads_per_proc
     for n in range(num_proc):
-        a = start_idx // num_threads_per_socket
-        b = (end_idx - 1) // num_threads_per_socket
-        if a != b:
-            start_idx = (a + 1) * num_threads_per_socket
-            end_idx = start_idx + num_threads_per_proc
         threads_to_use = [str(t) for t in range(start_idx, end_idx)]
         assert len(threads_to_use) == num_threads_per_proc
         thread_configs.append((" ".join(threads_to_use), ",".join(threads_to_use)))
@@ -293,9 +292,9 @@ class Results:
         return throughput_total
 
 
-def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_per_proc, start_delay=0):
+def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket, num_threads_per_proc, start_delay=0):
     assert start_delay >= 0
-    if num_proc == 1:
+    if num_proc_socket * num_sockets == 1:
         start_delay = 0
 
     os.environ["IGNORE_DATASET_LIMITS"] = "1"
@@ -311,20 +310,21 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
     else:
         os.mkdir(results_dir)
 
-    results = Results(results_dir, num_proc)
-    thread_configs = get_thread_configs(num_threads_per_socket, num_proc, num_threads_per_proc)
+    results = Results(results_dir, num_proc_socket * num_sockets)
     current_subprocesses = list()
-    for n in range(num_proc):
-        aio_numa_cpus, physcpubind = thread_configs[n]
-        os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
-        cmd = ["numactl", f"--physcpubind={physcpubind}",
-               "python3"] + model_script.split()
-        log_filename = f"/tmp/aml_log_{n}"
-        current_subprocesses.append(subprocess.Popen(
-            cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
-        if start_delay > 0:
-            ask_for_patience("benchmark starting, {:>3} / {} streams online".format(n + 1, num_proc))
-            time.sleep(start_delay)
+    for i in range(num_sockets):
+        thread_configs = get_thread_configs(num_sockets, i, num_threads_socket, num_proc_socket, num_threads_per_proc)
+        for n in range(num_proc_socket):
+            aio_numa_cpus, physcpubind = thread_configs[n]
+            os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
+            cmd = ["numactl", f"--physcpubind={physcpubind}", f"--membind={i}", "python3"] + model_script.split()
+            log_filename = f"/tmp/aml_log_{n}"
+            current_subprocesses.append(subprocess.Popen(
+                cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
+            if start_delay > 0:
+                ask_for_patience("benchmark starting, {:>3} / {} streams online".format(
+                    i * num_proc_socket + n + 1, num_proc_socket * num_sockets))
+                time.sleep(start_delay)
 
     failure = False
     start = time.time()
@@ -430,7 +430,8 @@ class Runner:
                 os.environ["AIO_IMPLICIT_FP16_TRANSFORM_FILTER"] = ".*"
 
             if (self.num_sockets > 1 or configs["latency"]["num_proc"] > 1) and not warm_up_completed:
-                run_benchmark(get_cmd("warm_up"), self.num_threads, 1, self.num_threads)
+                run_benchmark(
+                    get_cmd("warm_up"), 1, self.num_threads, 1, self.num_threads)
                 warm_up_completed = True
 
             print(f"{self.model_name}, {precision} precision")
@@ -439,8 +440,9 @@ class Runner:
             print(f"{INDENT}setting: {num_proc} x {configs['latency']['num_threads']} x {configs['latency']['bs']} "
                   f"[streams x threads x bs]")
 
-            result = run_benchmark(get_cmd("latency", configs['latency']), self.num_threads, num_proc,
-                                   configs["latency"]["num_threads"], start_delay=start_delay)
+            result = run_benchmark(
+                get_cmd("latency", configs['latency']), self.num_sockets, self.num_threads,
+                configs["latency"]["num_proc"], configs["latency"]["num_threads"], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips")
@@ -464,8 +466,9 @@ class Runner:
             num_proc = self.num_sockets * configs["throughput"]['num_proc']
             print(f"{INDENT}setting: {num_proc} x {configs['throughput']['num_threads']} x "
                   f"{configs['throughput']['bs']} [streams x threads x bs]")
-            result = run_benchmark(get_cmd("latency", configs['throughput']), self.num_threads,
-                                   num_proc, configs["throughput"]['num_threads'], start_delay=start_delay)
+            result = run_benchmark(
+                get_cmd("latency", configs['throughput']), self.num_sockets, self.num_threads,
+                configs["throughput"]['num_proc'], configs["throughput"]['num_threads'], start_delay=start_delay)
             if result is not None:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips\n")
