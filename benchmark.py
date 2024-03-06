@@ -109,16 +109,37 @@ def get_bool_answer(question):
     return answer in AFFIRMATIVE
 
 
-def identify_system(args):
-    import psutil
-    import subprocess
-    from cpuinfo import get_cpu_info
+def which_ampere_cpu(flags, num_threads_per_socket):
     altra_flags = ['aes', 'asimd', 'asimddp', 'asimdhp', 'asimdrdm', 'atomics', 'cpuid', 'crc32', 'dcpop', 'evtstrm',
                    'fp', 'fphp', 'lrcpc', 'pmull', 'sha1', 'sha2', 'ssbs']
     aone_flags = ['aes', 'asimd', 'asimddp', 'asimdfhm', 'asimdhp', 'asimdrdm', 'atomics', 'bf16', 'bti', 'cpuid',
                   'crc32', 'dcpodp', 'dcpop', 'dit', 'ecv', 'evtstrm', 'fcma', 'flagm', 'flagm2', 'fp', 'fphp', 'frint',
                   'i8mm', 'ilrcpc', 'jscvt', 'lrcpc', 'paca', 'pacg', 'pmull', 'rng', 'sb', 'sha1', 'sha2', 'sha3',
-                  'sha512', 'sm3', 'sm4', 'ssbs', 'uscat']
+                  'sha512', 'ssbs', 'uscat']
+    aonex_flags = ['aes', 'asimd', 'asimddp', 'asimdfhm', 'asimdhp', 'asimdrdm', 'atomics', 'bf16', 'bti', 'cpuid',
+                   'crc32', 'dcpodp', 'dcpop', 'dit', 'ecv', 'evtstrm', 'fcma', 'flagm', 'flagm2', 'fp', 'fphp',
+                   'frint', 'i8mm', 'ilrcpc', 'jscvt', 'lrcpc', 'paca', 'pacg', 'pmull', 'rng', 'sb', 'sha1', 'sha2',
+                   'sha3', 'sha512', 'sm3', 'sm4', 'ssbs', 'uscat']
+
+    if set(altra_flags) == set(flags):
+        if num_threads_per_socket > 80:
+            system = "Altra Max"
+        else:
+            system = "Altra"
+    elif set(aone_flags) == set(flags):
+        system = "AmpereOne"
+    elif set(aonex_flags) == set(flags):
+        system = "AmpereOneX"
+    else:
+        system = None
+
+    return system
+
+
+def identify_system(args):
+    import psutil
+    import subprocess
+    from cpuinfo import get_cpu_info
 
     cpu_info = get_cpu_info()
     flags = cpu_info["flags"]
@@ -136,18 +157,7 @@ def identify_system(args):
         memory_available = min(args.memory, memory_available)
 
     if args.system is None:
-        if set(altra_flags) == set(flags):
-            if num_threads_per_socket > 80:
-                system = "Altra Max"
-            else:
-                system = "Altra"
-        elif set(aone_flags) == set(flags):
-            if num_threads_per_socket > 160:
-                system = "AmpereOneX"
-            else:
-                system = "AmpereOne"
-        else:
-            system = None
+        system = which_ampere_cpu(flags, num_threads_per_socket)
     else:
         for s in SYSTEMS.keys():
             if args.system == convert_name(s):
@@ -312,7 +322,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
         if start_delay > 0:
-            ask_for_patience("benchmark starting, {:>3} / {} streams online".format(n+1, num_proc))
+            ask_for_patience("benchmark starting, {:>3} / {} streams online".format(n + 1, num_proc))
             time.sleep(start_delay)
 
     failure = False

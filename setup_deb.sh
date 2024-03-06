@@ -175,7 +175,7 @@ pip3 install --no-deps --upgrade \
    streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
 
-if [ "${CPU_FLAGS}" = "fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint i8mm bf16 rng bti ecv" ]; then
+if [ "$(python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
    # Only on AmpereOne family
    pip3 install --upgrade --no-deps \
    https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
