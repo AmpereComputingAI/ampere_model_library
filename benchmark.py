@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import time
-import signal
 import argparse
 import subprocess
 import urllib.request
@@ -344,17 +343,14 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         # wait for subprocesses to finish their job if all are alive till now
         ask_for_patience("benchmark finishing")
         try:
-            failure = any(p.wait(timeout=max(0, TIMEOUT-(time.time() - start))) != 0 for p in current_subprocesses)
+            failure = any(p.wait(timeout=max(0, int(TIMEOUT-(time.time() - start)))) != 0 for p in current_subprocesses)
         except TimeoutError:
             failure = True
 
     clean_line()
     if failure:
         for p in current_subprocesses:
-            try:
-                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-            except ProcessLookupError:
-                continue
+            p.terminate()
         print_red("\nFAIL: At least one process returned exit code other than 0 or timeout hit!")
         if get_bool_answer("Do you want to print output of failed processes?"):
             for i, p in enumerate(current_subprocesses):
