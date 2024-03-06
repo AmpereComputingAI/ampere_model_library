@@ -306,8 +306,10 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
 
     if not failure:
         # wait for subprocesses to finish their job if all are alive till now
+        ask_for_patience("benchmark finishing")
         failure = any(p.wait() != 0 for p in current_subprocesses)
 
+    clean_line()
     if failure:
         print_red("\nFAIL: At least one process returned exit code other than 0 or died!")
         if get_bool_answer("Do you want to print output of failed processes?"):
@@ -319,7 +321,6 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
             sys.exit(0)
         return None
     else:
-        clean_line()
         return results.calculate_throughput(final_calc=True)
 
 
