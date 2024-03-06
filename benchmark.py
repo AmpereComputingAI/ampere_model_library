@@ -344,7 +344,7 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
         ask_for_patience("benchmark finishing")
         try:
             failure = any(p.wait(timeout=max(0, int(TIMEOUT-(time.time() - start)))) != 0 for p in current_subprocesses)
-        except TimeoutError:
+        except subprocess.TimeoutExpired:
             failure = True
 
     clean_line()
