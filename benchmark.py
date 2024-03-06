@@ -310,14 +310,17 @@ def run_benchmark(model_script, num_sockets, num_threads_socket, num_proc_socket
     else:
         os.mkdir(results_dir)
 
+    mem_bind = []
     results = Results(results_dir, num_proc_socket * num_sockets)
     current_subprocesses = list()
     for i in range(num_sockets):
         thread_configs = get_thread_configs(num_sockets, i, num_threads_socket, num_proc_socket, num_threads_per_proc)
+        if num_sockets > 1:
+            mem_bind = [f"--membind={i}"]
         for n in range(num_proc_socket):
             aio_numa_cpus, physcpubind = thread_configs[n]
             os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
-            cmd = ["numactl", f"--physcpubind={physcpubind}", f"--membind={i}", "python3"] + model_script.split()
+            cmd = ["numactl", f"--physcpubind={physcpubind}"] + mem_bind + ["python3"] + model_script.split()
             log_filename = f"/tmp/aml_log_{n}"
             current_subprocesses.append(subprocess.Popen(
                 cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
