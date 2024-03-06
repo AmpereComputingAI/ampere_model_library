@@ -311,7 +311,7 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
         current_subprocesses.append(subprocess.Popen(
             cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
         if start_delay > 0:
-            ask_for_patience("benchmark starting")
+            ask_for_patience("benchmark starting, {:>3} / {} streams online".format(n+1, num_proc))
             time.sleep(start_delay)
 
     failure = False
