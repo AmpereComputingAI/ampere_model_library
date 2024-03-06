@@ -230,7 +230,7 @@ class Results:
         from filelock import FileLock
         logs = [log for log in os.listdir(self._results_dir) if "json" in log and "lock" not in log]
         if len(logs) != self._processes_count:
-            ask_for_patience("benchmark starting, CPU util: {:>2.0f}%".format(psutil.cpu_percent()))
+            ask_for_patience("benchmark starting, CPU util: {:>3.0f}%".format(psutil.cpu_percent()))
             return None
 
         loaded_logs = []
@@ -243,7 +243,7 @@ class Results:
         measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
                                loaded_logs]
         if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
-            ask_for_patience("benchmark on-going, CPU util: {:>2.0f}%".format(psutil.cpu_percent()))
+            ask_for_patience("benchmark on-going, CPU util: {:>3.0f}%".format(psutil.cpu_percent()))
             return None
         latest_start = max(log["start_times"][0] for log in loaded_logs)
         earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
@@ -264,7 +264,7 @@ class Results:
                 elif earliest_finish < finish:
                     break
             if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
-                ask_for_patience("benchmark on-going, CPU util: {:>2.0f}%".format(psutil.cpu_percent()))
+                ask_for_patience("benchmark on-going, CPU util: {:>3.0f}%".format(psutil.cpu_percent()))
                 return None
             measurements_completed_in_overlap_total += measurements_completed_in_overlap
             throughput_total += input_size_processed_per_process / total_latency_per_process
@@ -276,7 +276,7 @@ class Results:
         self._prev_measurements_count = measurements_completed_in_overlap_total
 
         if not self.stable and not final_calc:
-            print("\r{}total throughput: {:.2f} ips, CPU util: {:>2.0f}%, stabilizing result ...".format(
+            print("\r{}total throughput: {:.2f} ips, CPU util: {:>3.0f}%, stabilizing result ...".format(
                 INDENT, psutil.cpu_percent(), throughput_total), end='')
 
         return throughput_total
