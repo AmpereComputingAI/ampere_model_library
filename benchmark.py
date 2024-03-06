@@ -321,7 +321,7 @@ def run_benchmark(model_script, numa_nodes, num_threads_node, num_proc_node, num
             aio_numa_cpus, physcpubind = thread_configs[n]
             os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
             cmd = ["numactl", f"--physcpubind={physcpubind}"] + mem_bind + ["python3"] + model_script.split()
-            log_filename = f"/tmp/aml_log_{n}"
+            log_filename = f"/tmp/aml_log_{i * num_proc_node + n}"
             current_subprocesses.append(subprocess.Popen(
                 cmd, stdout=open(log_filename, 'wb'), stderr=open(log_filename, 'wb')))
             if start_delay > 0:
