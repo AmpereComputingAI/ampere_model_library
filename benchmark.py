@@ -277,7 +277,7 @@ class Results:
 
         if not self.stable and not final_calc:
             print("\r{}total throughput: {:.2f} ips, CPU util: {:>3.0f}%, stabilizing result ...".format(
-                INDENT, psutil.cpu_percent(), throughput_total), end='')
+                INDENT, throughput_total, psutil.cpu_percent()), end='')
 
         return throughput_total
 
