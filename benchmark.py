@@ -588,11 +588,15 @@ class Whisper(Runner):
         self._run_benchmark(get_cmd)
 
 
+def convert_name(text):
+    return text.replace(" ", "_").replace("-", "_").lower()
+
+
 def main():
     models = [ResNet50, YOLO, BERT, DLRM, Whisper]
     parser = argparse.ArgumentParser(prog="AML benchmarking tool")
     parser.add_argument("--no-interactive", action="store_true", help="don't ask for user input")
-    parser.add_argument("--model", type=str, choices=[model.model_name for model in models],
+    parser.add_argument("--model", type=str, choices=[convert_name(model.model_name) for model in models],
                         help="choose a single model to evaluate")
     args = parser.parse_args()
     global no_interactive
@@ -602,7 +606,7 @@ def main():
     system, num_sockets, num_threads, memory = identify_system()
     results_all = {}
     for model in models:
-        if args.model is not None and model.model_name != args.model:
+        if args.model is not None and convert_name(model.model_name) != args.model:
             continue
         results = model(system, num_sockets, num_threads, memory).get_results()
         if results is not None:
