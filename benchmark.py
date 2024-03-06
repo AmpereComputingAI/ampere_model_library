@@ -103,7 +103,7 @@ def get_bool_answer(question):
     return answer in AFFIRMATIVE
 
 
-def identify_system():
+def identify_system(args):
     import psutil
     import subprocess
     from cpuinfo import get_cpu_info
@@ -126,19 +126,29 @@ def identify_system():
     mem = psutil.virtual_memory()
     memory_total = mem.total / 1024 ** 3
     memory_available = mem.available / 1024 ** 3
+    if args.memory is not None:
+        memory_available = min(args.memory, memory_available)
 
-    if all([item in altra_flags for item in flags]):
-        if num_threads_per_socket > 80:
-            system = "Altra Max"
+    if args.system is None:
+        if all([item in altra_flags for item in flags]):
+            if num_threads_per_socket > 80:
+                system = "Altra Max"
+            else:
+                system = "Altra"
+        elif all([item in aone_flags for item in flags]):
+            if num_threads_per_socket > 160:
+                system = "AmpereOneX"
+            else:
+                system = "AmpereOne"
         else:
-            system = "Altra"
-    elif all([item in aone_flags for item in flags]):
-        if num_threads_per_socket > 160:
-            system = "AmpereOneX"
-        else:
-            system = "AmpereOne"
+            system = None
     else:
-        system = None
+        for s in SYSTEMS.keys():
+            if args.system == convert_name(s):
+                system = args.system
+                break
+        else:
+            assert False
 
     def system_identified_as():
         print(f"\nSystem identified as {system}\n[out of {', '.join(SYSTEMS.keys())}]")
@@ -166,6 +176,9 @@ def identify_system():
                 pass
         system = system_map[answer]
         system_identified_as()
+
+    if args.max_threads is not None:
+        num_threads_per_socket = min(num_threads_per_socket, args.max_threads)
 
     return system, num_sockets, num_threads_per_socket, memory_available
 
@@ -607,12 +620,16 @@ def main():
     parser.add_argument("--no-interactive", action="store_true", help="don't ask for user input")
     parser.add_argument("--model", type=str, choices=[convert_name(model.model_name) for model in models],
                         help="choose a single model to evaluate")
+    parser.add_argument("--system", type=str, choices=[convert_name(system) for system in SYSTEMS.keys()],
+                        help="specify Ampere CPU")
+    parser.add_argument("--memory", type=int, help="limit memory to a specified value [GiB]")
+    parser.add_argument("--max-threads", type=int, help="limit number of threads to use per socket")
     args = parser.parse_args()
     global no_interactive
     no_interactive = args.no_interactive
 
     is_setup_done()
-    system, num_sockets, num_threads, memory = identify_system()
+    system, num_sockets, num_threads, memory = identify_system(args)
     results_all = {}
     for model in models:
         if args.model is not None and convert_name(model.model_name) != args.model:
