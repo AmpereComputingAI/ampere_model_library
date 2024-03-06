@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import signal
 import argparse
 import subprocess
 import urllib.request
@@ -45,6 +46,7 @@ NEGATIVE = ["n", "N", "no", "NO"]
 MAX_DEVIATION = 0.01  # max deviation [abs((value_n+1 / value_n) - 1.)] between sample n and sample n+1
 MIN_MEASUREMENTS_IN_OVERLAP_COUNT = 10
 DAY_IN_SEC = 60 * 60 * 24
+TIMEOUT = 30 * 60
 INDENT = 3 * " "
 no_interactive = None
 
@@ -326,10 +328,14 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
             time.sleep(start_delay)
 
     failure = False
+    start = time.time()
     while not all(p.poll() is not None for p in current_subprocesses):
         time.sleep(5)
         results.calculate_throughput()
-        failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
+        if time.time() - start < TIMEOUT:
+            failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
+        else:
+            failure = True
         if results.stable or failure:
             Path(os.path.join(results_dir, "STOP")).touch()
             break
@@ -337,11 +343,19 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
     if not failure:
         # wait for subprocesses to finish their job if all are alive till now
         ask_for_patience("benchmark finishing")
-        failure = any(p.wait() != 0 for p in current_subprocesses)
+        try:
+            failure = any(p.wait(timeout=max(0, TIMEOUT-(time.time() - start))) != 0 for p in current_subprocesses)
+        except TimeoutError:
+            failure = True
 
     clean_line()
     if failure:
-        print_red("\nFAIL: At least one process returned exit code other than 0 or died!")
+        for p in current_subprocesses:
+            try:
+                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+            except ProcessLookupError:
+                continue
+        print_red("\nFAIL: At least one process returned exit code other than 0 or timeout hit!")
         if get_bool_answer("Do you want to print output of failed processes?"):
             for i, p in enumerate(current_subprocesses):
                 if p.poll() != 0:
