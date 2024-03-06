@@ -49,6 +49,7 @@ INDENT = 3 * " "
 no_interactive = None
 
 os.environ["AIO_SKIP_MASTER_THREAD"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 
 def print_maybe(text):
