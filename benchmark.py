@@ -356,6 +356,7 @@ class Runner:
                 x = find_best_config(look_up_data, precision, memory / num_sockets, num_threads, True)
                 clean_line()
             except LookupError:
+                clean_line()
                 if no_interactive:
                     print(f"{model_name}, {precision} precision")
                 print_red("Not enough resources on the system to run\n")
