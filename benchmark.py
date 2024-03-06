@@ -612,7 +612,7 @@ class Whisper(Runner):
         path_to_runner = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "speech_recognition/whisper/run.py")
 
-        def get_cmd(_, __):
+        def get_cmd(scenario, config=None):
             return f"{path_to_runner} -m medium.en --timeout={DAY_IN_SEC}"
 
         self._run_benchmark(get_cmd)
