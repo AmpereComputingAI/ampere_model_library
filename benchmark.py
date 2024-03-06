@@ -313,11 +313,16 @@ def run_benchmark(model_script, numa_nodes, num_threads_node, num_proc_node, num
     mem_bind = []
     results = Results(results_dir, num_proc_node * numa_nodes)
     current_subprocesses = list()
+    failure = False
     for i in range(numa_nodes):
+        if failure:
+            break
         thread_configs = get_thread_configs(numa_nodes, i, num_threads_node, num_proc_node, num_threads_per_proc)
         if numa_nodes > 1:
             mem_bind = [f"--membind={i}"]
         for n in range(num_proc_node):
+            if failure:
+                break
             aio_numa_cpus, physcpubind = thread_configs[n]
             os.environ["AIO_NUMA_CPUS"] = aio_numa_cpus
             cmd = ["numactl", f"--physcpubind={physcpubind}"] + mem_bind + ["python3"] + model_script.split()
@@ -328,10 +333,10 @@ def run_benchmark(model_script, numa_nodes, num_threads_node, num_proc_node, num
                 ask_for_patience("benchmark starting, {:>3} / {} streams online".format(
                     i * num_proc_node + n + 1, num_proc_node * numa_nodes))
                 time.sleep(start_delay)
+                failure = any(p.poll() is not None and p.poll() != 0 for p in current_subprocesses)
 
-    failure = False
     start = time.time()
-    while not all(p.poll() is not None for p in current_subprocesses):
+    while not all(p.poll() is not None for p in current_subprocesses) and not failure:
         time.sleep(5)
         results.calculate_throughput()
         if time.time() - start < TIMEOUT:
