@@ -291,7 +291,6 @@ def run_benchmark(model_script, num_threads_per_socket, num_proc, num_threads_pe
 
     os.environ["AIO_NUM_THREADS"] = str(num_threads_per_proc)
     os.environ["OMP_NUM_THREADS"] = str(num_threads_per_proc)
-    os.environ["OPENBLAS_NUM_THREADS"] = str(num_threads_per_proc)
 
     results_dir = os.path.join(os.getcwd(), ".cache_aml")
     os.environ["RESULTS_DIR"] = results_dir

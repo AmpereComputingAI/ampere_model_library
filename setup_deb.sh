@@ -11,9 +11,10 @@ log() {
 }
 
 ARCH=$( uname -m )
+CPU_FLAGS=$( lscpu | grep "Flags:"  | sed 's/^.*: //' )
 
 if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 fi
 
 if [ ! -f "$SCRIPT_DIR/speech_recognition/whisper/whisper/README.md" ]; then
@@ -57,8 +58,8 @@ log "done.\n"
 log "Setup LD_PRELOAD ..."
 sleep 1
 if [ "${ARCH}" = "aarch64" ]; then
-   python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
+   python3 "$SCRIPT_DIR"/utils/setup/gen_ld_preload.py
+   LD_PRELOAD=$(cat "$SCRIPT_DIR"/utils/setup/.ld_preload)
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export LD_PRELOAD=$LD_PRELOAD
@@ -174,17 +175,19 @@ pip3 install --no-deps --upgrade \
    streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
 
-if [ "${ARCH}" = "aarch64" ]; then
-  pip3 install --upgrade --no-deps \
-    https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
-    https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
+if [ "${CPU_FLAGS}" = "fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm ssbs sb paca pacg dcpodp flagm2 frint i8mm bf16 rng bti ecv" ]; then
+   # Only on AmpereOne family
+   pip3 install --upgrade --no-deps \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
 fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
-	# Torchvision version has to match PyTorch version following this table: https://github.com/pytorch/vision?tab=readme-ov-file#installation
-        pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
+	 # Torchvision version has to match PyTorch version following this table:
+	 # https://github.com/pytorch/vision?tab=readme-ov-file#installation
+	 pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
 fi
 log "done.\n"
 
