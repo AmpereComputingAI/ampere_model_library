@@ -139,7 +139,7 @@ jobs:
     steps:
       - name: Install Ampere optimized PyTorch
         run:
-          bash -c "$(wget -qO- https://ampereaidevelopus.s3.amazonaws.com/releases/1.10.0/binaries/install_ampere_pytorch_u22_1_10_0.sh"
+          bash -c "$(wget -qO- https://ampereaidevelopus.s3.amazonaws.com/releases/1.10.0/binaries/install_ampere_pytorch_u22_1_10_0.sh)"
 
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
