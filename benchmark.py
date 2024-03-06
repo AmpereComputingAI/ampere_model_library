@@ -592,9 +592,8 @@ def main():
     models = [ResNet50, YOLO, BERT, DLRM, Whisper]
     parser = argparse.ArgumentParser(prog="AML benchmarking tool")
     parser.add_argument("--no-interactive", action="store_true", help="don't ask for user input")
-    parser.add_argument("-m", "--model",
-                        type=str, choices=[model.model_name for model in models],
-                        help="choose architecture to run, otherwise all will be run")
+    parser.add_argument("--model", type=str, choices=[model.model_name for model in models],
+                        help="choose a single model to evaluate")
     args = parser.parse_args()
     global no_interactive
     no_interactive = args.no_interactive
