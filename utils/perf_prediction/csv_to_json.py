@@ -4,9 +4,9 @@ import csv
 import json
 from predictor import test_lookup
 
-SYSTEM = "banshee"
-NUM_THREADS = 192
-MODEL = "bert_large_mlperf_squad"
+SYSTEM = "m128_30"
+NUM_THREADS = 128
+MODEL = "whisper_medium.en"
 FRAMEWORK = "ampere_pytorch_1.10.0"
 PRECISIONS = ["fp32", "fp16"]
 
@@ -14,7 +14,7 @@ PRECISIONS = ["fp32", "fp16"]
 def process_performance(filename, json_file):
     map = {"lowest_latency_throughput": 0.}
     with open(filename, "r") as f:
-        reader = csv.reader(f)
+        reader = csv.reader((row.replace('\0', '') for row in f))
         for i, x in enumerate(reader):
             if i == 0:
                 assert x == ['batch_size', 'num_processes', 'num_threads', 'throughput_total',
