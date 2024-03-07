@@ -104,7 +104,9 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
-def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, **kwargs):
+
+def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False,
+                     **kwargs):
     from utils.pytorch import PyTorchRunner
     import torch
     import torchvision

@@ -1,4 +1,5 @@
 import argparse
+import os
 from typing import List
 from utils.misc import print_warning_message
 
@@ -39,6 +40,9 @@ class DefaultArgParser:
 class Dataset:
     available_instances = None
 
+    def do_skip(self) -> bool:
+        return os.environ.get("IGNORE_DATASET_LIMITS") == "1"
+
     def reset(self) -> bool:
         raise NotImplementedError
 
@@ -49,7 +53,7 @@ class Dataset:
         accuracy_results = self.summarize_accuracy()
         assert type(accuracy_results) is dict
         if len(accuracy_results) == 0:
-            print_warning_message("Accuracy metrics not implemented.")
+            print_warning_message("Accuracy metrics not available.")
         else:
             max_len = 14
             indent = 2 * " "

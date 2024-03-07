@@ -96,7 +96,9 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
                 squad.extract_answer(i, answer_start_id, answer_end_id)
             )
 
-    tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad", padding=True, truncation=True, model_max_length=512)
+    tokenizer = AutoTokenizer.from_pretrained(
+        "bert-large-uncased-whole-word-masking-finetuned-squad",
+        padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
         return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")

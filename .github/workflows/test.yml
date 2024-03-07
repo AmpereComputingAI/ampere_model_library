@@ -4,38 +4,273 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
 
 jobs:
-  test_setup:
-    runs-on: ubuntu-22.04
-    name: Ubuntu 22.04 x86-64 AML test
+  linter:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    name: Lint - Flake8
     steps:
+      - name: Install git & flake8
+        run:
+          apt-get update && apt-get install -y git python3-pip && pip3 install flake8
+
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Lint with flake8
+        run:
+          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
+
+  test_x86:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    name: x86-64 - Ubuntu 22.04 - all frameworks (native)
+    env:
+      PYTHONPATH: ./
+      COCO_IMG_PATH: aio_objdet_dataset
+      COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      OMP_NUM_THREADS: 4
+    steps:
+      - name: Install git
+        run:
+          apt-get update && apt-get install -y git
+
       - name: Git checkout & pull submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       
       - name: Set up AML
         run:
-          sudo -s FORCE_INSTALL=1 bash setup_deb.sh
+          FORCE_INSTALL=1 bash setup_deb.sh
       
       - name: AML imports test
         run:
-          sudo -s PYTHONPATH=./ python3 utils/tests/setup_test_utils/attempt_imports.py
+          python3 utils/tests/setup_test_utils/attempt_imports.py
       
       - name: AML smoke test
-        run: |             
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
-          
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
-          
+        run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
-          tar -xvf aio_objdet_dataset.tar.gz > /dev/null 2>&1
+          tar -xf aio_objdet_dataset.tar.gz > /dev/null
+          
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          
+          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          
+          python3 speech_recognition/whisper/run.py -m small.en
           
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
-          sudo -s PYTHONPATH=./ OMP_NUM_THREADS=2 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60 --images_path=aio_objdet_dataset --anno_path=aio_objdet_dataset/annotations.json
+          python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          
+          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
+          python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          
+          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
+          tar -xf vgg16.tar.gz > /dev/null
+          python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+
+  test_arm64:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+      options: --memory=170g
+    name: ARM64 - Ubuntu 22.04 - all frameworks (native)
+    env:
+      PYTHONPATH: ./
+      COCO_IMG_PATH: aio_objdet_dataset
+      COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      OMP_NUM_THREADS: 32
+    steps:
+      - name: Install git
+        run:
+          apt-get update && apt-get install -y git
+
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run:
+          bash setup_deb.sh
+
+      - name: AML smoke test
+        run: |            
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
+          tar -xf aio_objdet_dataset.tar.gz > /dev/null
+          
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          
+          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
+          python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          
+          python3 speech_recognition/whisper/run.py -m small.en
+          
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+          python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          
+          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
+          python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          
+          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
+          tar -xf vgg16.tar.gz > /dev/null
+          python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+
+  test_pytorch_arm64_sh:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+      options: --memory=170g
+    name: Ampere Altra - Ampere optimized PyTorch (shell installer)
+    steps:
+      - name: Install Ampere optimized PyTorch
+        run: |
+          apt-get update && apt-get install -y wget
+          bash -c "$(wget -qO- https://ampereaidevelopus.s3.amazonaws.com/releases/1.10.0/binaries/install_ampere_pytorch_u22_1_10_0.sh)"
+
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run:
+          bash setup_deb.sh
+
+      - name: benchmark.py test
+        run: |
+          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive
+
+  test_pytorch_arm64_docker:
+    runs-on: self-hosted
+    container:
+      image: amperecomputingai/pytorch:latest
+      options: --memory=170g
+    name: Ampere Altra - Ampere optimized PyTorch (Docker image)
+    env:
+      PYTHONPATH: ./
+      COCO_IMG_PATH: aio_objdet_dataset
+      COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      AIO_NUM_THREADS: 32
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
+    steps:
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run: |
+          bash setup_deb.sh
+          echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
+
+      - name: benchmark.py test
+        run: |
+          { echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y";  } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
+          # testing second time to ensure that left-over files don't interrupt, etc. - this time no-interactive mode
+          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive --memory 30 --max-threads 24
+
+      - name: AML smoke test
+        run: |
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
+          tar -xf aio_objdet_dataset.tar.gz > /dev/null
+          
+          wget https://ampereaimodelzoo.s3.amazonaws.com/alpaca_data.json > /dev/null 2>&1
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
+          
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 recommendation/dlrm_torchbench/run.py -p fp32
+          
+          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
+          
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
+          
+          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          
+          wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt > /dev/null 2>&1
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
+          
+          wget -O bert_large_mlperf.pt https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch > /dev/null 2>&1
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
+
+  test_tensorflow_arm64:
+    runs-on: self-hosted
+    container:
+      image: amperecomputingai/tensorflow:latest
+      options: --memory=170g
+    name: Ampere Altra - Ampere optimized TensorFlow (Docker image)
+    env:
+      PYTHONPATH: ./
+      COCO_IMG_PATH: aio_objdet_dataset
+      COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      AIO_NUM_THREADS: 32
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
+    steps:
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run: |
+          bash setup_deb.sh
+          echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
+
+      - name: AML smoke test
+        run: |
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
+          tar -xf aio_objdet_dataset.tar.gz > /dev/null
+          
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_huggingface.py -m bert-large-cased-whole-word-masking-finetuned-squad 
+
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -b 32 -p fp32 -f tf --timeout=60
+          
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -b 8 -p fp32 --timeout=60
+
+  test_onnxrt_arm64:
+    runs-on: self-hosted
+    container:
+      image: amperecomputingai/onnxruntime:latest
+      options: --memory=170g
+    name: Ampere Altra - Ampere optimized ONNXRunTime (Docker image)
+    env:
+      PYTHONPATH: ./
+      COCO_IMG_PATH: aio_objdet_dataset
+      COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      AIO_NUM_THREADS: 32
+    steps:
+      - name: Git checkout & pull submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up AML
+        run:
+          bash setup_deb.sh
+
+      - name: AML smoke test
+        run: |
+          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
+          tar -xvf aio_objdet_dataset.tar.gz > /dev/null
+
+          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          
+          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
+          tar -xf vgg16.tar.gz > /dev/null
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort

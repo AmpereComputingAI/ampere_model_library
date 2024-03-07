@@ -1,3 +1,4 @@
+import os
 from evaluate import load
 from datasets import load_dataset
 from utils.misc import OutOfInstances
@@ -17,9 +18,15 @@ class LibriSpeech(Dataset):
         try:
             return self._librispeech["audio"][self._idx]["array"]
         except IndexError:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                if self.reset():
+                    return self.get_input_array()
             raise OutOfInstances
 
     def submit_transcription(self, text: str):
+        if self.do_skip():
+            return
+
         self._transcriptions.append(text)
         self._idx += 1
 
@@ -29,6 +36,9 @@ class LibriSpeech(Dataset):
         return True
 
     def summarize_accuracy(self):
+        if self.do_skip():
+            return {}
+
         assert len(self._transcriptions) == len(self._librispeech["text"][:self._idx])
         wer_score = load("wer").compute(
             references=self._librispeech["text"][:self._idx], predictions=self._transcriptions

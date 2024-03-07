@@ -152,11 +152,17 @@ class COCOBaseDataset(ImageDataset):
         :param category: int, index of class / category in COCO order (starting with idx = 1)
         :return:
         """
+        if self.do_skip():
+            return
+
         assert self._task == "bbox"
         instance = [self._current_image_ids[id_in_batch]] + self.rescale_bbox(id_in_batch, bbox) + [score, category]
         self._predictions.append(instance)
 
     def submit_mask_prediction(self, id_in_batch, bbox, score, category, mask):
+        if self.do_skip():
+            return
+
         assert self._task == "segm"
         self._predictions.append({
             "image_id": self._current_image_ids[id_in_batch],
@@ -171,6 +177,9 @@ class COCOBaseDataset(ImageDataset):
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_bbox_prediction() function.
         """
+        if self.do_skip():
+            return {}
+
         if self._task == "bbox":
             predictions = np.array(self._predictions)
         elif self._task == "segm":
@@ -234,6 +243,9 @@ class COCODataset(COCOBaseDataset):
         try:
             image_id = self._image_ids[self._current_img]
         except IndexError:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                if self.reset():
+                    return self._get_path_to_img()
             raise utils.OutOfInstances("No more COCO images to process in the directory provided")
         self._current_image_ids.append(image_id)
         image_path = self.__images_filename_base[:-len(str(image_id))] + str(image_id) + self.__images_filename_ext

@@ -271,7 +271,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         requested_instances_num = (WARM_UP_RUNS + 1) * batch_size
     else:
         requested_instances_num = num_runs * batch_size
-    if dataset.available_instances < requested_instances_num:
+    if dataset.available_instances < requested_instances_num and os.environ.get("IGNORE_DATASET_LIMITS") != "1":
         utils.print_goodbye_message_and_die(
             "Number of runs requested exceeds number of instances available in dataset! "
             f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")
