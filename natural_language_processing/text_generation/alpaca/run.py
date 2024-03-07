@@ -3,7 +3,7 @@ from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
 
 
-def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False):
+def run_pytorch(model_path, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=False, revision=None):
     from transformers import AutoModelForCausalLM, AutoTokenizer
   
     def run_single_pass(pytorch_runner, _dataset):
@@ -13,7 +13,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
         _dataset.submit_prediction(response)
 
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path, revision=revision)
     if use_torch_fp16:
         model = model.half()
     model.eval()
@@ -30,10 +30,13 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
 
 
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
-    return run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False)
+    return run_pytorch(model_path, num_runs, timeout, dataset_path)
 
 def run_pytorch_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=True)
+
+def run_pytorch_int8(model_name, batch_size, num_runs, timeout, dataset_path, revision, **kwargs):
+    return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, revision=revision)
 
   
 def run_pytorch_cuda(model_path, num_runs, timeout, dataset_path, **kwargs):
