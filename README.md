@@ -1,5 +1,10 @@
 ![Ampere AI](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_logo_®_primary_stacked_rgb.png "Ampere AI")
 # Ampere Model Library
+![CI tests](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
+![Docker Pulls](https://img.shields.io/docker/pulls/amperecomputingai/pytorch?logo=pytorch&label=PyTorch&labelColor=%23ffc9bb&color=%23ffa590&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Fpytorch)
+![TF Pulls](https://img.shields.io/docker/pulls/amperecomputingai/tensorflow?logo=tensorflow&label=TensorFlow&labelColor=%23e6cc00&color=%23e69b00&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Ftensorflow)
+![ORT Pulls](https://img.shields.io/docker/pulls/amperecomputingai/onnxruntime?logo=onnx&logoColor=black&label=ONNXRT&labelColor=%23e5e5e5&color=%23cccccc&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Fonnxruntime)
+
 AML's goal is to make benchmarking of various AI architectures on Ampere CPUs a pleasurable experience :)
 
 This means we want the library to be quick to set up and to get you numbers you are interested in. On top of that we want the code to be readible and well structured so it's easy to inspect what exactly is being measured. If you feel like we are not exactly there, please let us know right away by raising an [issue](https://github.com/AmpereComputingAI/ampere_model_library/issues/new/choose)! Thank you :)
