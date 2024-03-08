@@ -30,7 +30,7 @@ jobs:
 
       - name: Enforce intellectual property
         run:
-          git submodules --update --init
+          git submodule --update --init
           python3 tests/ip.py --check links
           python3 tests/ip.py --check modules
 
