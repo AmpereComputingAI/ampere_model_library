@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2022, Ampere Computing LLC
 
-# import argparse
-
+import torch
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.saved_model import tag_constants
@@ -28,17 +27,16 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
 
 
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
-    from utils.tf import TFSavedModelRunner
+    from utils.pytorch import PyTorchRunnerV2
 
-    def run_single_pass(tf_runner, kits):
-        output = tf_runner.run(1, tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
+    def run_single_pass(pytorch_runner, kits):
+        output = pytorch_runner.run(1, tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
         output = output["output_0"]
         kits.submit_predictions(output)
 
     dataset = KiTS19(dataset_dir_path=kits_path)
-    runner = TFSavedModelRunner()
-    saved_model_loaded = tf.saved_model.load(model_path, tags=[tag_constants.SERVING])
-    runner.model = saved_model_loaded.signatures['serving_default']
+    model = torch.jit.load(model_path)
+    runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
