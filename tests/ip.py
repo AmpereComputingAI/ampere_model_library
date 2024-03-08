@@ -1,10 +1,9 @@
-import argparse
-import json
 import os
 import sys
+import json
 import pathlib
+import argparse
 from datetime import date
-from tqdm import tqdm
 from urlextract import URLExtract
 
 DOMAINS_TO_CHECK = ["ampereaimodelzoo", "ampereaidevelop", "ampereaidevelopus", "dropbox"]
@@ -33,7 +32,7 @@ def check_links():
     all_urls = {}
     extractor = URLExtract()
     all_paths = list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*"))
-    for path in tqdm(all_paths):
+    for path in all_paths:
         if path.is_dir():
             continue
         with open(path, "r") as f:

@@ -592,7 +592,7 @@ class BERT(Runner):
         if not os.path.exists(target_dir):
             ask_for_patience(f"downloading {self.model_name} model")
             subprocess.run(["wget", "-O", target_dir,
-                            "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch"],
+                            "https://zenodo.org/records/3733896/files/model.pytorch?download=1"],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             clean_line()
         return target_dir
