@@ -35,7 +35,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
         kits.submit_predictions(output)
 
     dataset = KiTS19(dataset_dir_path=kits_path)
-    model = torch.jit.load(model_path)
+    model = torch.jit.load(model_path, map_location=torch.device('cpu'))
     runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
