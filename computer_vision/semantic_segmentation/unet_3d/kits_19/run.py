@@ -60,8 +60,6 @@ def main():
                         help="path to directory with KiTS19 dataset")
 
     args = parser.parse()
-    print(args)
-    quit()
     if args.framework == 'tf':
         run_tf_fp32(**vars(parser.parse()))
     else:
