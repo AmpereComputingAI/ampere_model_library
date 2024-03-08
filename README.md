@@ -88,7 +88,7 @@ Note that the example uses PyTorch - we recommend using Ampere Optimized PyTorch
 **Before running this example you need to be granted access by Meta to LLaMA2 model. Go here: [Meta](https://ai.meta.com/resources/models-and-libraries/llama-downloads) and here: [HF](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) to learn more.**
 ```bash
 source set_env_variables.sh
-wget https://ampereaimodelzoo.s3.amazonaws.com/alpaca_data.json
+wget https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json
 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" AIO_NUM_THREADS=32 python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
 ```
 The command above will run the model utilizing 32 threads, implicit conversion to FP16 datatype will be applied - you can default to fp32 precision by not setting the **AIO_IMPLICIT_FP16_TRANSFORM_FILTER** variable.

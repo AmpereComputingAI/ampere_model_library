@@ -1,19 +1,13 @@
+import argparse
+import json
 import os
 import sys
+import pathlib
 from datetime import date
+from tqdm import tqdm
+from urlextract import URLExtract
 
-# before adding make sure that the licensing permits legal use in AML
-APPROVED_SUBMODULES = {
-    "utils/cv/nnUNet": "Copyright [2019] [Division of Medical Image Computing, German Cancer Research Center (DKFZ), "
-                       "Heidelberg, Germany]",
-    "utils/recommendation/dlrm": "Copyright (c) Facebook, Inc. and its affiliates.",
-    "computer_vision/semantic_segmentation/segment_anything/segment_anything": None,
-    "natural_language_processing/text_generation/nanogpt/nanoGPT": "Copyright (c) 2022 Andrej Karpathy",
-    "utils/recommendation/DeepCTR": "Copyright 2017-present Weichen Shen",
-    "speech_recognition/whisper/whisper": "Copyright (c) 2022 OpenAI",
-    "text_to_image/stable_diffusion/stablediffusion": "Copyright (c) 2022 Stability AI",
-    "speech_recognition/whisper/openai_whisper": "Copyright (c) 2022 OpenAI"
-}
+DOMAINS_TO_CHECK = ["ampereaimodelzoo", "ampereaidevelop", "ampereaidevelopus", "dropbox"]
 
 
 def get_issue_printer():
@@ -28,28 +22,77 @@ def get_issue_printer():
     return print_issue
 
 
-def run_legal_audit():
+def check_links():
+    aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    approved_urls_file = "licensing/approved_urls.json"
+    with open(os.path.join(aml_dir, approved_urls_file), "r") as f:
+        approved_urls = json.load(f)["approved"]
     print_issue = get_issue_printer()
     failure = False
 
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".gitmodules"), "r") as f:
+    all_urls = {}
+    extractor = URLExtract()
+    all_paths = list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*"))
+    for path in tqdm(all_paths):
+        if path.is_dir():
+            continue
+        with open(path, "r") as f:
+            try:
+                urls = extractor.find_urls(f.read())
+            except UnicodeDecodeError:
+                continue
+            if len(urls) > 0:
+                all_urls[path] = urls
+
+    files = {}
+    missing_urls = set()
+    for path, urls in all_urls.items():
+        for url in urls:
+            for restricted_domain in DOMAINS_TO_CHECK:
+                if restricted_domain in url and url not in approved_urls:
+                    missing_urls.add(url)
+                    if url in files.keys():
+                        files[url].add(str(path).replace(aml_dir, ""))
+                    else:
+                        files[url] = {str(path).replace(aml_dir, "")}
+
+    for url in missing_urls:
+        failure = print_issue(
+            f"\033[91m{url}\033[0m not listed in {approved_urls_file}, found in files: [{', '.join(files[url])}]")
+
+    for url in missing_urls:
+        print(f"\"{url}\",")
+
+    if failure:
+        sys.exit(1)
+
+
+def check_submodules():
+    aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    approved_submodules_file = "licensing/approved_submodules.json"
+    with open(os.path.join(aml_dir, approved_submodules_file), "r") as f:
+        approved_submodules = json.load(f)["approved"]
+    print_issue = get_issue_printer()
+    failure = False
+
+    with open(os.path.join(aml_dir, ".gitmodules"), "r") as f:
         submodules = [
             submodule.replace(
                 "\tpath = ", "") for submodule in f.read().splitlines() if "path" in submodule
         ]
 
     for submodule in submodules:
-        if submodule not in APPROVED_SUBMODULES.keys():
-            failure = print_issue(f"Submodule {submodule} not in APPROVED_SUBMODULES")
-        elif APPROVED_SUBMODULES[submodule] is not None:
+        if submodule not in approved_submodules.keys():
+            failure = print_issue(f"Submodule \033[91m{submodule}\033[0m not listed in {approved_submodules_file}")
+        elif approved_submodules[submodule] is not None:
             with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", submodule, "LICENSE"), "r") as f:
                 for line in f.read().splitlines():
-                    if APPROVED_SUBMODULES[submodule] in line:
+                    if approved_submodules[submodule] in line:
                         break
                 else:
-                    failure = print_issue(f"'{APPROVED_SUBMODULES[submodule]}' not found in {submodule}/LICENSE file")
+                    failure = print_issue(f"'{approved_submodules[submodule]}' not found in {submodule}/LICENSE file")
 
-    copyright_mentions = {i: False for i, j in APPROVED_SUBMODULES.items() if j is not None}
+    copyright_mentions = {i: False for i, j in approved_submodules.items() if j is not None}
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "LICENSE"), "r") as f:
         for line in f.read().splitlines():
             if "Copyright (c)" in line and "Ampere Computing LLC" in line:
@@ -62,18 +105,28 @@ def run_legal_audit():
                     failure = print_issue(f"Happy New Year! Please set year for Ampere LLC in Copyright section of "
                                           f"LICENSE file to {current_year}.")
             else:
-                for submodule, copyright_header in APPROVED_SUBMODULES.items():
+                for submodule, copyright_header in approved_submodules.items():
                     if copyright_header is None:
                         continue
                     if copyright_header in line:
                         copyright_mentions[submodule] = True
     for submodule, success in copyright_mentions.items():
         if not success:
-            failure = print_issue(f"'{APPROVED_SUBMODULES[submodule]}' not listed in AML's LICENSE file")
+            failure = print_issue(f"'{approved_submodules[submodule]}' not listed in AML's LICENSE file")
 
     if failure:
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    run_legal_audit()
+    parser = argparse.ArgumentParser(prog="Intellectual property tester")
+    parser.add_argument("--check", choices=["links", "modules", "headers"], required=True)
+    args = parser.parse_args()
+    if args.check == "links":
+        check_links()
+    elif args.check == "modules":
+        check_submodules()
+    elif args.check == "headers":
+        pass
+    else:
+        assert False

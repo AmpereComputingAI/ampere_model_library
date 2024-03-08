@@ -29,7 +29,7 @@ The dataset needs to be converted before use. You can do it using a script that 
 python convert_librispeech.py --input_dir path/to/dev-clean --dest_dir path/to/dev-clean-wav --output_json path/to/dev-clean-wav.json
 ```
 
-Alternatively, you can download preconverted dataset from here: https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/LibriSpeech.tar.gz
+Alternatively, you can download preconverted dataset from here: censored due to licensing
 
 PyTorch model in fp32 precision can be downloaded here: https://zenodo.org/record/3662521/files/DistributedDataParallel_1576581068.9962234-epoch-100.pt
 
