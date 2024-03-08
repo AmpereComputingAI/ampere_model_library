@@ -15,9 +15,9 @@ jobs:
     container: ubuntu:22.04
     name: Flake8, intellectual property
     steps:
-      - name: Install git & flake8
+      - name: Install deps
         run:
-          apt-get update && apt-get install -y git python3-pip && pip3 install flake8
+          apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
 
       - name: Git checkout
         uses: actions/checkout@v4
