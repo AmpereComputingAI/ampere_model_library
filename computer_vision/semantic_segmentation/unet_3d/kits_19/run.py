@@ -46,7 +46,7 @@ def run_tf_fp32(model_path, num_runs, timeout, kits_path, **kwargs):
 
 
 def run_pytorch_fp32(model_path, num_runs, timeout, kits_path, **kwargs):
-    return run_tf_fp(model_path, num_runs, timeout, kits_path)
+    return run_pytorch_fp(model_path, num_runs, timeout, kits_path)
 
 
 def main():
