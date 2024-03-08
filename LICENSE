@@ -187,12 +187,18 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright (c) 2022, Ampere Computing LLC
+   Copyright (c) 2024, Ampere Computing LLC
+   Copyright (c) 2022 Andrej Karpathy
+   Copyright (c) 2022 OpenAI
+   Copyright (c) 2022 Stability AI
    Copyright 2021 The MLPerf Authors. All Rights Reserved.
    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+   Copyright [2019] [Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany]
    Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
    Copyright (c) 2019, Myrtle Software Limited. All rights reserved.
    Copyright (c) 2017 Keith Ito
+   Copyright 2017-present Weichen Shen
+   Copyright (c) Facebook, Inc. and its affiliates.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
