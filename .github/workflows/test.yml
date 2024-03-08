@@ -19,7 +19,7 @@ jobs:
         run:
           apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
 
-      - name: Git checkout
+      - name: Git checkout w/o submodules
         uses: actions/checkout@v4
         with:
           submodules: false
@@ -28,9 +28,13 @@ jobs:
         run:
           python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
 
+      - name: Git checkout w/ submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: True
+
       - name: Enforce intellectual property
-        run:
-          git submodule --update --init
+        run: |
           python3 tests/ip.py --check links
           python3 tests/ip.py --check modules
 
