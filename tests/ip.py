@@ -11,7 +11,8 @@ from urlextract import URLExtract
 
 DOMAINS_TO_CHECK = ["ampereaimodelzoo", "ampereaidevelop", "ampereaidevelopus", "dropbox"]
 HEADER_IGNORE = [".git", "LICENSE"]
-HEADER_IGNORE_EXTENSIONS = ["md", "sample", "xml", "json", "html", "txt", "ipynb", "sh"]
+HEADER_EXTENSIONS = ["py"]
+# HEADER_IGNORE_EXTENSIONS = ["md", "sample", "xml", "json", "html", "txt", "ipynb", "sh"]
 
 
 def get_issue_printer():
@@ -45,7 +46,7 @@ def check_headers():
     all_paths = list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*"))
     for path in all_paths:
         do_continue = False
-        if path.is_dir() or str(path).split(".")[-1] in HEADER_IGNORE_EXTENSIONS:
+        if path.is_dir() or str(path).split(".")[-1] not in HEADER_EXTENSIONS:
             continue
         for path_to_ignore in paths_to_ignore:
             if path_to_ignore in str(path):
@@ -56,18 +57,18 @@ def check_headers():
 
         with open(path, "r") as f:
             try:
-                lines = [f.readline().strip() for _ in range(2)]
+                lines = ["# " + f.readline().split("#")[1].strip() for _ in range(2)]
             except UnicodeDecodeError:
                 continue
             git_cmd = f"git log -1 --format=%cd --date=format:%Y -- {path}"
             target_lines = get_header(int(subprocess.check_output(git_cmd.split()).decode().strip()))
             if lines != target_lines:
                 failure = print_issue(
-                    f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
+                    f"Header missing or out-dated in file \033[91m{str(path).replace(aml_dir, '')}\033[0m")
 
     if failure:
         header = "\n".join(get_header(date.today().year))
-        print(f"\nFollowing copyright header should be placed in first two lines of each file:\n"
+        print(f"\nFollowing copyright header should be placed in first two lines of each listed file:\n"
               f"\033[91m{header}\033[0m\n")
         sys.exit(1)
 
@@ -169,7 +170,7 @@ def check_submodules():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Intellectual property tester")
+    parser = argparse.ArgumentParser(prog="🚔 AML intellectual property enforcer 👮")
     parser.add_argument("--check", choices=["links", "modules", "headers"], required=True)
     args = parser.parse_args()
     if args.check == "links":
