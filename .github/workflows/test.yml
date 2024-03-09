@@ -28,12 +28,19 @@ jobs:
         run:
           python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
 
+      - name: Determine ref
+        run: echo "REF=${{ github.event.pull_request.head.sha || github.ref }}" >> $GITHUB_ENV
+
+      - name: Git checkout HEAD branch w/o submodules
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+          submodules: false
+
       - name: Enforce intellectual property - copyright headers
         run: |
           git config --global --add safe.directory $(pwd)
-          git log HEAD@{1} -1 -- utils/profiling.py
-          #git log -2 --reverse --first-parent -- utils/profiling.py
-          python3 tests/ip.py --check headers --merge
+          python3 tests/ip.py --check headers
 
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4

@@ -59,13 +59,8 @@ def check_headers(after_merge=False):
                 lines = [f.readline().strip() for _ in range(2)]
             except UnicodeDecodeError:
                 continue
-            if after_merge:
-                git_cmd = f"git log -2 --reverse --first-parent --format=%cd --date=format:%Y -- {path}"
-                year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip().split("\n")[1])
-            else:
-                git_cmd = f"git log -1 --format=%cd --date=format:%Y -- {path}"
-                year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip())
-            target_lines = get_header(year_of_last_mod)
+            git_cmd = f"git log -1 --format=%cd --date=format:%Y -- {path}"
+            target_lines = get_header(int(subprocess.check_output(git_cmd.split()).decode().strip()))
             if lines != target_lines:
                 failure = print_issue(
                     f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
@@ -176,13 +171,12 @@ def check_submodules():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Intellectual property tester")
     parser.add_argument("--check", choices=["links", "modules", "headers"], required=True)
-    parser.add_argument("--merge", action="store_true", help="test run after git merge")
     args = parser.parse_args()
     if args.check == "links":
         check_links()
     elif args.check == "modules":
         check_submodules()
     elif args.check == "headers":
-        check_headers(args.merge)
+        check_headers()
     else:
         assert False
