@@ -28,12 +28,16 @@ jobs:
         run:
           python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
 
+      - name: Enforce intellectual property - copyright headers
+        run:
+          python3 tests/ip.py --check headers
+
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
         with:
           submodules: True
 
-      - name: Enforce intellectual property
+      - name: Enforce intellectual property - git modules and URLs
         run: |
           python3 tests/ip.py --check links
           python3 tests/ip.py --check modules

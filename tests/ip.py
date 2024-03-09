@@ -21,6 +21,38 @@ def get_issue_printer():
     return print_issue
 
 
+def check_headers():
+    aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    print_issue = get_issue_printer()
+    failure = False
+
+    with open(os.path.join(aml_dir, ".gitmodules"), "r") as f:
+        submodules = [
+            os.path.join(aml_dir, submodule.replace("\tpath = ", ""))
+            for submodule in f.read().splitlines() if "path" in submodule
+        ]
+
+    all_paths = list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*"))
+    for path in all_paths:
+        if path.is_dir():
+            continue
+        for module in submodules:
+            if module in str(path):
+                continue
+        with open(path, "r") as f:
+            try:
+                x = f.readlines(2)
+            except UnicodeDecodeError:
+                continue
+            if str(path).split(".")[-1] in ["py"]:
+                continue
+            print(path)
+            print(x)
+             # git log -1 --format=%cd --date=format:%Y -- utils/profiling.py
+
+
+
+
 def check_links():
     aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
     approved_urls_file = "licensing/approved_urls.json"
@@ -126,6 +158,6 @@ if __name__ == "__main__":
     elif args.check == "modules":
         check_submodules()
     elif args.check == "headers":
-        pass
+        check_headers()
     else:
         assert False
