@@ -30,7 +30,7 @@ def get_header(year):
     return ["# SPDX-License-Identifier: Apache-2.0", f"# Copyright (c) {year}, Ampere Computing LLC"]
 
 
-def check_headers():
+def check_headers(after_merge=False):
     aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
     print_issue = get_issue_printer()
     failure = False
@@ -59,11 +59,13 @@ def check_headers():
                 lines = [f.readline().strip() for _ in range(2)]
             except UnicodeDecodeError:
                 continue
-            year_of_last_mod = int(
-                subprocess.check_output(f"git log -1 --format=%cd --date=format:%Y -- {path}".split()).decode().strip())
+            if after_merge:
+                git_cmd = f"git log -2 --format=%cd --date=format:%Y -- {path}"
+            else:
+                git_cmd = f"git log -1 --format=%cd --date=format:%Y -- {path}"
+            year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip())
             target_lines = get_header(year_of_last_mod)
             if lines != target_lines:
-                print(year_of_last_mod)
                 failure = print_issue(
                     f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
 
@@ -173,12 +175,13 @@ def check_submodules():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Intellectual property tester")
     parser.add_argument("--check", choices=["links", "modules", "headers"], required=True)
+    parser.add_argument("--merge", action="store_true", help="test run after git merge")
     args = parser.parse_args()
     if args.check == "links":
         check_links()
     elif args.check == "modules":
         check_submodules()
     elif args.check == "headers":
-        check_headers()
+        check_headers(args.merge)
     else:
         assert False
