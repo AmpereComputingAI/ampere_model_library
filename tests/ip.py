@@ -63,6 +63,7 @@ def check_headers():
                 subprocess.check_output(f"git log -1 --format=%cd --date=format:%Y -- {path}".split()).decode().strip())
             target_lines = get_header(year_of_last_mod)
             if lines != target_lines:
+                print(year_of_last_mod)
                 failure = print_issue(
                     f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
 
