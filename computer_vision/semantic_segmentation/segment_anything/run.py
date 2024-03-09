@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
 import numpy as np
@@ -26,8 +28,8 @@ def run_pytorch(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
     mask_generator = SamAutomaticMaskGenerator(build_sam(checkpoint=model_path), output_mode="coco_rle")
     runner = PyTorchRunnerV2(mask_generator.generate)
-    coco = COCODataset(
-        batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True, task="segm")
+    coco = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
+                       anno_path, sort_ascending=True, task="segm")
     coco.summarize_accuracy = lambda: print_warning_message("Accuracy testing unavailable for the SAM model (yet).")
     return run_model(single_pass_pytorch, runner, coco, batch_size, num_runs, timeout)
 
