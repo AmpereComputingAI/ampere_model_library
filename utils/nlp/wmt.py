@@ -1,11 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import string
 import subprocess
-
 from sacrebleu.metrics import BLEU
-
 import utils.misc as utils
 from utils.helpers import Dataset
 

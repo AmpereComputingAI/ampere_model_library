@@ -1,7 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
-
 import time
-
 import numpy as np
 import torch
 import torchvision

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import ssl
 from urllib.request import urlopen
 
@@ -29,7 +31,9 @@ if latest_release_url is not None:
 
 try:
     ssl._create_default_https_context = ssl._create_unverified_context
-    logo = urlopen("https://raw.githubusercontent.com/AmpereComputingAI/ampere_model_library/main/utils/setup/aio_logo.txt").read().decode('ascii')
+    logo = urlopen(
+        "https://raw.githubusercontent.com/AmpereComputingAI/ampere_model_library/main/utils/setup/aio_logo.txt"
+    ).read().decode('ascii')
 except:
     logo = None
 
@@ -53,7 +57,8 @@ if logo is not None:
 if versiontuple(this_release) >= versiontuple(latest_release):
     print("\nThank you for choosing AIO!")
 else:
-    print(f"\n{CRED}New version of AIO available!\nYou are using release {this_release}, while latest release is {latest_release}.{CEND}")
+    print(f"\n{CRED}New version of AIO available!\nYou are using release {this_release}, while latest release is "
+          f"{latest_release}.{CEND}")
 print("Please visit us at https://solutions.amperecomputing.com/solutions/ampere-ai")
 
 print(f"\nQuickstart READ-ME: https://github.com/AmpereComputingAI/ampere_model_library?tab=readme-ov-file#examples")

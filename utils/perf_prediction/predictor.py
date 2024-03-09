@@ -1,6 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import json
 import random
-import sys
 import math
 import torch
 from torch.utils.data import Dataset, DataLoader

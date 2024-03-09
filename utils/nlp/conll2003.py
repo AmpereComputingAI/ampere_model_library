@@ -1,6 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import numpy as np
 import string
-
 import utils.misc as utils
 from utils.helpers import Dataset
 
