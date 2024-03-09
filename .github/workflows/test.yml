@@ -19,15 +19,6 @@ jobs:
         run:
           apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
 
-      - name: Git checkout w/o submodules
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-
-      - name: Lint with flake8
-        run:
-          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
-
       - name: Determine ref
         run: echo "REF=${{ github.event.pull_request.head.sha || github.ref }}" >> $GITHUB_ENV
 
@@ -47,6 +38,15 @@ jobs:
           git log -2 -- utils/profiling.py
           echo "bytnia"
           python3 tests/ip.py --check headers
+
+      - name: Git checkout w/o submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Lint with flake8
+        run:
+          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
 
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
