@@ -19,34 +19,24 @@ jobs:
         run:
           apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
 
-      - name: Determine ref
-        run: echo "REF=${{ github.event.pull_request.head.sha || github.ref }}" >> $GITHUB_ENV
-
-      - name: Git checkout HEAD branch w/o submodules
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.REF }}
-          fetch-depth: 2
-          submodules: false
-
-      - name: Enforce intellectual property - copyright headers
-        run: |
-          git config --global --add safe.directory $(pwd)
-          git checkout $REF
-          git log -1
-          echo "byt"
-          git log -2 -- utils/profiling.py
-          echo "bytnia"
-          python3 tests/ip.py --check headers
-
       - name: Git checkout w/o submodules
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: false
 
       - name: Lint with flake8
         run:
           python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
+
+      - name: Enforce intellectual property - copyright headers
+        run: |
+          git config --global --add safe.directory $(pwd)
+          git log -1
+          echo "byt"
+          git log -2 -- utils/profiling.py
+          echo "bytnia"
+          python3 tests/ip.py --check headers
 
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
