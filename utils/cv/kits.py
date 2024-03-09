@@ -1,4 +1,5 @@
-# Copyright (c) 2022, Ampere Computing LLC
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 # Copyright 2021 The MLPerf Authors. All Rights Reserved.
 #
@@ -13,14 +14,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import json
 import pathlib
 import numpy as np
 import nibabel as nib
 from pathlib import Path
 from scipy import signal
-
 import utils.misc as utils
 from utils.cv.kits_preprocessing import preprocess_with_multiproc, ROI_SHAPE, SLIDE_OVERLAP_FACTOR
 from utils.helpers import Dataset

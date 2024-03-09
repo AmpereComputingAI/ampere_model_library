@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# coding=utf-8
-# Copyright (c) 2022, Ampere Computing LLC
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 # Copyright 2021 The MLPerf Authors. All Rights Reserved.
 #
@@ -31,7 +30,7 @@ import os
 import argparse
 import hashlib
 import json
-from multiprocessing import Process, Pool
+from multiprocessing import Pool
 
 import nibabel
 import numpy as np
@@ -389,8 +388,7 @@ class Preprocessor:
                     (bounds[1] // 2, bounds[1] - bounds[1] // 2),
                     (bounds[2] // 2, bounds[2] - bounds[2] // 2)]
 
-        padded_volume = np.pad(
-            volume, paddings, mode='constant', constant_values=[padding_val])
+        padded_volume = np.pad(volume, paddings, mode='constant', constant_values=[padding_val])
         return padded_volume, paddings
 
     def save(self, image, label, aux):
