@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
 from utils.nlp.alpaca_instruct import AlpacaInstruct

@@ -1,8 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import tiktoken
 import torch
-
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.nlp.lambada import Lambada
