@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import json
 import pathlib
@@ -7,6 +8,8 @@ from datetime import date
 from urlextract import URLExtract
 
 DOMAINS_TO_CHECK = ["ampereaimodelzoo", "ampereaidevelop", "ampereaidevelopus", "dropbox"]
+HEADER_IGNORE = [".git", "LICENSE"]
+HEADER_IGNORE_EXTENSIONS = ["md", "sample", "xml", "json", "html", "txt", "ipynb", "sh"]
 
 
 def get_issue_printer():
@@ -21,6 +24,10 @@ def get_issue_printer():
     return print_issue
 
 
+def get_header(year):
+    return ["# SPDX-License-Identifier: Apache-2.0", f"# Copyright (c) {year}, Ampere Computing LLC"]
+
+
 def check_headers():
     aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
     print_issue = get_issue_printer()
@@ -31,26 +38,37 @@ def check_headers():
             os.path.join(aml_dir, submodule.replace("\tpath = ", ""))
             for submodule in f.read().splitlines() if "path" in submodule
         ]
+    paths_to_ignore = submodules + [os.path.join(aml_dir, path) for path in HEADER_IGNORE]
 
     all_paths = list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*"))
     for path in all_paths:
-        if path.is_dir():
+        do_continue = False
+        if path.is_dir() or str(path).split(".")[-1] in HEADER_IGNORE_EXTENSIONS:
             continue
-        for module in submodules:
-            if module in str(path):
-                continue
+        for path_to_ignore in paths_to_ignore:
+            if path_to_ignore in str(path):
+                do_continue = True
+                break
+        if do_continue:
+            continue
+
         with open(path, "r") as f:
             try:
-                x = f.readlines(2)
+                lines = [f.readline().strip() for _ in range(2)]
             except UnicodeDecodeError:
                 continue
-            if str(path).split(".")[-1] in ["py"]:
-                continue
-            print(path)
-            print(x)
-             # git log -1 --format=%cd --date=format:%Y -- utils/profiling.py
+            year_of_last_mod = int(
+                subprocess.check_output(f"git log -1 --format=%cd --date=format:%Y -- {path}".split()).decode().strip())
+            target_lines = get_header(year_of_last_mod)
+            if lines != target_lines:
+                failure = print_issue(
+                    f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
 
-
+    if failure:
+        print("\nFollowing copyright header should be placed in two first lines of each file:")
+        for line in get_header(date.today().year):
+            print(line)
+        sys.exit(1)
 
 
 def check_links():
