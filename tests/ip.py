@@ -68,7 +68,7 @@ def check_headers():
     if failure:
         header = "\n".join(get_header(date.today().year))
         print(f"\nFollowing copyright header should be placed in first two lines of each file:\n"
-              f"\033[91m{header}\033[0m")
+              f"\033[91m{header}\033[0m\n")
         sys.exit(1)
 
 
