@@ -40,6 +40,7 @@ jobs:
       - name: Enforce intellectual property - copyright headers
         run: |
           git config --global --add safe.directory $(pwd)
+          git log -2 --format=%cd --date=format:%Y -- utils/profiling.py
           python3 tests/ip.py --check headers
 
       - name: Git checkout w/ submodules

@@ -30,7 +30,7 @@ def get_header(year):
     return ["# SPDX-License-Identifier: Apache-2.0", f"# Copyright (c) {year}, Ampere Computing LLC"]
 
 
-def check_headers(after_merge=False):
+def check_headers():
     aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
     print_issue = get_issue_printer()
     failure = False
