@@ -29,7 +29,8 @@ jobs:
           python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
 
       - name: Enforce intellectual property - copyright headers
-        run:
+        run: |
+          git config --global --add safe.directory .
           python3 tests/ip.py --check headers
 
       - name: Git checkout w/ submodules
