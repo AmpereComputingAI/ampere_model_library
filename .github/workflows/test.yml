@@ -30,7 +30,7 @@ jobs:
 
       - name: Enforce intellectual property - copyright headers
         run: |
-          git config --system --add safe.directory .
+          git config --global --add safe.directory $(pwd)
           python3 tests/ip.py --check headers
 
       - name: Git checkout w/ submodules
