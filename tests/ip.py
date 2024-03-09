@@ -65,9 +65,9 @@ def check_headers():
                     f"Ampere's copyright header missing in file {str(path).replace(aml_dir, '')}")
 
     if failure:
-        print("\nFollowing copyright header should be placed in two first lines of each file:")
-        for line in get_header(date.today().year):
-            print(line)
+        header = "\n".join(get_header(date.today().year))
+        print(f"\nFollowing copyright header should be placed in first two lines of each file:\n"
+              f"\033[91m{header}\033[0m")
         sys.exit(1)
 
 

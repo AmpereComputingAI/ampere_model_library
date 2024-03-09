@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
+
 class Frame:
     def __init__(self, frame):
         self.frame = frame
