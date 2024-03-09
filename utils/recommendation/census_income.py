@@ -1,6 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright 2017-present Weichen Shen
-# Copyright (c) 2022, Ampere Computing LLC
-
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score

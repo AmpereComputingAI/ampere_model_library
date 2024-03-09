@@ -1,13 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
 import torch
 import numpy as np
 from pathlib import Path
 from sklearn.metrics import roc_auc_score
-
 import utils.misc as utils
 from utils.helpers import Dataset
 
