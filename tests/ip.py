@@ -60,10 +60,11 @@ def check_headers(after_merge=False):
             except UnicodeDecodeError:
                 continue
             if after_merge:
-                git_cmd = f"git log --reverse --first-parent --format=%cd --date=format:%Y -- {path}"
+                git_cmd = f"git log -2 --reverse --first-parent --format=%cd --date=format:%Y -- {path}"
+                year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip().split("\n")[1])
             else:
                 git_cmd = f"git log -1 --format=%cd --date=format:%Y -- {path}"
-            year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip())
+                year_of_last_mod = int(subprocess.check_output(git_cmd.split()).decode().strip())
             target_lines = get_header(year_of_last_mod)
             if lines != target_lines:
                 failure = print_issue(
