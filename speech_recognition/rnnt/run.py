@@ -43,11 +43,11 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, di
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, libri_speech):
-        
+
         input_arrays = libri_speech.get_input_arrays()
         _, _, output = pytorch_runner.run(batch_size, input_arrays)
         libri_speech.submit_predictions(output)
-    
+
     rnnt_vocab = rnnt_config['labels']['labels']
     featurizer_config = rnnt_config['input_eval']
 

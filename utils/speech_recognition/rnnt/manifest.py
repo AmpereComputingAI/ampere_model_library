@@ -74,8 +74,8 @@ class Manifest(object):
             # _ -> underscore
             # % -> percent
             # If a punctuation symbol is inside our vocab, we do not remove from text
-            for l in labels:
-                punctuation = punctuation.replace(l, "")
+            for ll in labels:
+                punctuation = punctuation.replace(ll, "")
             # Turn all punctuation to whitespace
             table = str.maketrans(punctuation, " " * len(punctuation))
         for manifest_path in manifest_paths:

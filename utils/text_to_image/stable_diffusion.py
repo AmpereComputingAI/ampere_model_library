@@ -16,8 +16,9 @@ class StableDiffusion(Dataset):
         actions = ["sings", "rides a triceratop", "rides a horse", "eats a burger", "washes clothes", "looks at hands"]
         seed(42)
 
-        return (adjectives[randint(0, len(adjectives) - 1)] + " " + nouns[randint(0, len(nouns) - 1)] +
-                " " + actions[randint(0, len(actions) - 1)])
+        a = adjectives[randint(0, len(adjectives) - 1)] + " "
+        b = nouns[randint(0, len(nouns) - 1)] + " " + actions[randint(0, len(actions) - 1)]
+        return a + b
 
     def submit_count(self, batch_size, images):
         self._idx += batch_size

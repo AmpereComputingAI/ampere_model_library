@@ -77,7 +77,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     runner = TFLiteRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
-  
+
 
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.ort import OrtRunner
@@ -110,7 +110,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_p
 
 def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
-  
+
 
 def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
@@ -139,7 +139,7 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
-            
+
         if args.precision == "fp16":
             run_ort_fp16(**vars(args))
         else:

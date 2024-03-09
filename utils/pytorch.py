@@ -1,15 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+import os
+import time
 import torch
 import types
 import hashlib
 import pkg_resources
-from utils.profiling import *
+from utils.profiling import aio_profiler_enabled
 from torch.autograd.profiler import profile
 from pathlib import Path
 from packaging import version
 from contextlib import nullcontext
-from utils.benchmark import *
+from utils.benchmark import Runner, get_intra_op_parallelism_threads
+import utils.misc as utils
 
 
 class PyTorchRunner(Runner):
@@ -24,7 +27,7 @@ class PyTorchRunner(Runner):
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(
-                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+                "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
             utils.check_memory_settings()
         else:
             utils.advertise_aio("Torch")
@@ -149,7 +152,7 @@ class PyTorchRunnerV2(Runner):
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(
-                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+                "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
             utils.check_memory_settings()
         else:
             utils.advertise_aio("Torch")
@@ -228,7 +231,7 @@ def check_if_cached(model):
 def load_from_cache_or_apply(model, conversion):
     is_cached, cached_path = check_if_cached(model)
     if is_cached:
-        print(f"Loading from cache ...")
+        print("Loading from cache ...")
         return torch.jit.load(cached_path)
     else:
         model = torch.jit.freeze(conversion())

@@ -112,7 +112,8 @@ def run_pytorch_cuda(model_path, config, steps, scale, batch_size, num_runs, tim
                                     shape=shape,
                                     verbose=False,
                                     unconditional_guidance_scale=scale,
-                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
+                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""])
+                                    if scale != 1.0 else None,
                                     eta=0.0,
                                     x_T=None)
         x_samples = model.decode_first_stage(samples)

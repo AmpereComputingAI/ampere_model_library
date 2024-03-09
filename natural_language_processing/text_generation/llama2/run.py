@@ -41,8 +41,10 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path)
 
+
 def run_pytorch_fp16(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=True)
+
 
 def main():
     from utils.helpers import DefaultArgParser

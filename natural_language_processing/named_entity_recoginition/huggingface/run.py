@@ -80,7 +80,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, conll_path, disable_j
 
         input = torch.tensor(np.array(conll2003.get_input_ids_array(), dtype=np.int32))
         output = pytorch_runner.run(batch_size, (input))
-        if type(output) == tuple:
+        if isinstance(output, tuple):
             # After jit_freeze, the output of the model has different type
             output = namedtuple("TokenClassifierOutput", "logits")(output[0])
 

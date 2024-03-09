@@ -63,7 +63,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
         ln_bot=ln_bot,
         ln_top=ln_top,
         arch_interaction_op="dot",
-        sigmoid_top=ln_top.size-2,
+        sigmoid_top=ln_top.size - 2,
         qr_operation="mult",
         qr_collisions=4,
         qr_threshold=200,
@@ -102,7 +102,7 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, de
         ln_bot=ln_bot,
         ln_top=ln_top,
         arch_interaction_op="dot",
-        sigmoid_top=ln_top.size-2,
+        sigmoid_top=ln_top.size - 2,
         qr_operation="mult",
         qr_collisions=4,
         qr_threshold=200,
@@ -121,7 +121,7 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, de
 
 def main():
     args = parse_args()
-     
+
     if args.framework == "pytorch":
         if args.model_path is None:
             print_goodbye_message_and_die(

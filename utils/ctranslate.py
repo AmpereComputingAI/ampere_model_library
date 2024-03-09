@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+import time
 import ctranslate2
 import sentencepiece
-from utils.benchmark import *
+from utils.benchmark import Runner, get_intra_op_parallelism_threads
 from utils.profiling import aio_profiler_enabled
 
 

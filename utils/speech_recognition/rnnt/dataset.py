@@ -24,6 +24,7 @@ from torch.utils.data import Dataset
 
 from .manifest import Manifest
 
+
 class AudioDataset(Dataset):
     def __init__(self, dataset_dir, manifest_filepath, labels, featurizer, max_duration=None, pad_to_max=False,
                  min_duration=None, blank_index=0, max_utts=0, normalize=True, sort_by_duration=False,

@@ -60,8 +60,8 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
                            disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
-  
-  
+
+
 def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
     from utils.ort import OrtRunner
 
@@ -106,7 +106,7 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
-            
+
         if args.precision == "fp32":
             run_ort_fp32(**vars(args))
         else:

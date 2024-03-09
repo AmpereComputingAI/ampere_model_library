@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+import os
+import time
 import tensorflow as tf
-from utils.benchmark import *
+from utils.benchmark import Runner, get_intra_op_parallelism_threads
 from utils.misc import advertise_aio
 
 
@@ -48,7 +50,7 @@ class TFLiteRunner(Runner):
         """
         return self._interpreter.get_tensor(output_index)
 
-    def run(self, task_size: int=None, *args, **kwargs):
+    def run(self, task_size: int = None, *args, **kwargs):
         """
         A function executing single pass over the network, measuring the time needed and number of passes.
 

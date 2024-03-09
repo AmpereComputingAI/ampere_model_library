@@ -6,7 +6,6 @@ import re
 import subprocess
 from pathlib import Path
 
-
 # generate the list of preload files
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ld_preload = list()
@@ -35,8 +34,6 @@ except OSError as e:
     print(e)
     for path in Path("/lib").rglob("libGLdispatch.so.0"):
         ld_preload.append(str(path))
-
-
 
 # test the preload for errors
 os.environ["LD_PRELOAD"] = ":".join(ld_preload)

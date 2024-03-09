@@ -3,15 +3,13 @@
 import argparse
 import torch
 import os
+from utils.cv.coco import COCODataset
+from utils.benchmark import run_model
+from utils.misc import print_goodbye_message_and_die
 
 os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
 # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to
 # set it to True if needed
-from ultralytics.yolo.utils import ops
-
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
@@ -48,6 +46,7 @@ def parse_args():
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
     from utils.ort import OrtRunner
+    from ultralytics.yolo.utils import ops
 
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
@@ -75,6 +74,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
     from utils.pytorch import PyTorchRunner
+    from ultralytics.yolo.utils import ops
 
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
@@ -118,7 +118,7 @@ def run_pytorch_cuda(
             for d in range(output[i].boxes.xywh.shape[0]):
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d,:].tolist()),
+                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d, :].tolist()),
                     output[i].boxes.conf[d].item(),
                     coco.translate_cat_id_to_coco(output[i].boxes.cls[d].item())
                 )

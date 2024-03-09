@@ -177,7 +177,7 @@ class Squad_v1_1(Dataset):
         :param answer_end_id: int, index of answer end in context text
         :return: string, detokenized answer
         """
-        answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id+1]
+        answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id + 1]
         return self.__detokenize_func(answer)
 
     def submit_prediction(self, id_in_batch: int, answer: string):
@@ -280,10 +280,10 @@ class Squad_v1_1(Dataset):
                 "Answers for some of the issued questions have not been submitted.")
 
         exact_match = self.__exact_match_count / self.__questions_count
-        #print("\n Exact match = {:.3f}".format(exact_match))
+        # print("\n Exact match = {:.3f}".format(exact_match))
 
         f1 = self.__f1_count / self.__questions_count
-        #print(" F1 = {:.3f}".format(f1))
+        # print(" F1 = {:.3f}".format(f1))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
         return {"exact_match": exact_match, "f1": f1}

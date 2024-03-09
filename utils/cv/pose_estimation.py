@@ -143,8 +143,8 @@ class PoseEstimationDataset:
 
 class DataGenerator(Sequence):
 
-    def __init__(self, df, base_dir, input_dim, output_dim, num_hg_blocks, shuffle=False, \
-                 batch_size=12, online_fetch=False, is_eval=False, bbox_slack=1.3):
+    def __init__(self, df, base_dir, input_dim, output_dim, num_hg_blocks, shuffle=False, batch_size=12,
+                 online_fetch=False, is_eval=False, bbox_slack=1.3):
 
         self.df = df  # df of the the annotations we want
         self.base_dir = base_dir  # where to read imgs from in collab runtime
@@ -201,7 +201,7 @@ class DataGenerator(Sequence):
         Returns a batch from the dataset
         ### Parameters:
         idx : {int-type} Batch number to retrieve
-        ### Returns:    
+        ### Returns:
         X : ndarray of shape (batch number, input_dim1, input_dim2, 3)
             This corresponds to a batch of images, normalized from [0,255] to [0,1]
         """
@@ -249,7 +249,7 @@ class DataGenerator(Sequence):
 
 
 class MoveNetCoco:
-    ## taking pred of movenet and translate back keypoints(along with person) to original coco image dims
+    # taking pred of movenet and translate back keypoints(along with person) to original coco image dims
     def __call__(self, metadata, untransformed_predictions):
         metadata = self._undo_bounding_box_transformations(metadata, untransformed_predictions)
         oks = self._create_oks_obj(metadata)

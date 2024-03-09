@@ -118,9 +118,9 @@ class Criteo(Dataset):
         recall = self.true_positives / (self.true_positives + self.false_negatives)
         auc = roc_auc_score(np.concatenate(self.predictions), np.concatenate(self.targets))
 
-        #print("\n Accuracy = {:.3f}".format(accuracy.item()))
-        #print("\n Precision = {:.3f}".format(precision.item()))
-        #print("\n Recall = {:.3f}".format(recall.item()))
-        #print("\n AUC = {:.3f}".format(auc))
-        #print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
+        # print("\n Accuracy = {:.3f}".format(accuracy.item()))
+        # print("\n Precision = {:.3f}".format(precision.item()))
+        # print("\n Recall = {:.3f}".format(recall.item()))
+        # print("\n AUC = {:.3f}".format(auc))
+        # print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
         return {"accuracy": accuracy, "precision": precision, "recall": recall, "auc": auc}

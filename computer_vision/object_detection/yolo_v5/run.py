@@ -98,6 +98,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
+
 def run_pytorch_cuda(
         model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunnerV2
@@ -111,7 +112,7 @@ def run_pytorch_cuda(
             for d in range(output[i].boxes.xywh.shape[0]):
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d,:].tolist()),
+                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d, :].tolist()),
                     output[i].boxes.conf[d].item(),
                     coco.translate_cat_id_to_coco(output[i].boxes.cls[d].item())
                 )

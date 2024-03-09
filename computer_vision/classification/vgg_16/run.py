@@ -99,12 +99,14 @@ def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, label
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing='PyTorch', is1001classes=False, order='NCHW')
-    runner = PyTorchRunner(torchvision.models.__dict__[model_name](pretrained=True), disable_jit_freeze=disable_jit_freeze)
+    runner = PyTorchRunner(
+        torchvision.models.__dict__[model_name](pretrained=True), disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, **kwargs):
+def run_pytorch_cuda(
+        model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False, **kwargs):
     import torch
     import torchvision
     from utils.pytorch import PyTorchRunner

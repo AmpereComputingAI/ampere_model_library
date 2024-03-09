@@ -48,7 +48,7 @@ if logo is not None:
     for n in range(rows):
         colorized += CRED
         for i in range(cols):
-            colorized += logo[n*cols+i]
+            colorized += logo[n * cols + i]
             if i > 46:
                 colorized += CEND
 
@@ -61,4 +61,4 @@ else:
           f"{latest_release}.{CEND}")
 print("Please visit us at https://solutions.amperecomputing.com/solutions/ampere-ai")
 
-print(f"\nQuickstart READ-ME: https://github.com/AmpereComputingAI/ampere_model_library?tab=readme-ov-file#examples")
+print("\nQuickstart READ-ME: https://github.com/AmpereComputingAI/ampere_model_library?tab=readme-ov-file#examples")

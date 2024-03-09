@@ -11,28 +11,28 @@ native_frameworks = list()
 
 # TensorFlow
 try:
-    import tensorflow as tf
+    import tensorflow  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow"])
     native_frameworks.append("TensorFlow")
 
 # ONNXRunTime
 try:
-    import onnxruntime as ort
+    import onnxruntime  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"onnxruntime"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime"])
     native_frameworks.append("ONNXRunTime")
 
 # PyTorch
 try:
-    import torch
+    import torch  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch<2.2"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch<2.2"])
     native_frameworks.append("PyTorch")
 try:
-    import torchvision
+    import torchvision  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision==0.16.2"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision==0.16.2"])
 
 # summary
 len_native_frameworks = len(native_frameworks)

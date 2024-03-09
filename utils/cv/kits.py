@@ -58,6 +58,7 @@ class KiTS19(Dataset):
         """
         Function delegating the offline pre-processing work to slightly modified MLCommons script.
         """
+
         class ArgsSubstitute:
             def __init__(self, raw_data_dir, results_dir, num_proc=4):
                 self.data_dir = raw_data_dir
@@ -106,12 +107,7 @@ class KiTS19(Dataset):
 
         def __populate_norm_map(self, norm_map_array):
             for i, j, k in self.__slice_indices:
-                norm_map_slice = norm_map_array[
-                                 ...,
-                                 i:(ROI_SHAPE[0] + i),
-                                 j:(ROI_SHAPE[1] + j),
-                                 k:(ROI_SHAPE[2] + k)
-                                 ]
+                norm_map_slice = norm_map_array[..., i:(ROI_SHAPE[0] + i), j:(ROI_SHAPE[1] + j), k:(ROI_SHAPE[2] + k)]
                 norm_map_slice += self.__norm_patch
             return norm_map_array
 
@@ -144,21 +140,12 @@ class KiTS19(Dataset):
         def get_next_input_slice(self):
             assert self.all_issued is False and self.empty is False
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            return self.__full_image[
-                          ...,
-                          i:(ROI_SHAPE[0] + i),
-                          j:(ROI_SHAPE[1] + j),
-                          k:(ROI_SHAPE[2] + k)
-                          ]
+            return self.__full_image[..., i:(ROI_SHAPE[0] + i), j:(ROI_SHAPE[1] + j), k:(ROI_SHAPE[2] + k)]
 
         def accumulate_result_slice(self, output):
             i, j, k = self.__slice_indices[self.__current_slice_id]
-            self.__result[
-            ...,
-            i:(ROI_SHAPE[0] + i),
-            j:(ROI_SHAPE[1] + j),
-            k:(ROI_SHAPE[2] + k)
-            ] += output * self.__norm_patch
+            self.__result[..., i:(ROI_SHAPE[0] + i), j:(ROI_SHAPE[1] + j), k:(ROI_SHAPE[2] + k)]\
+                += output * self.__norm_patch
             self.__current_slice_id += 1
             if self.__current_slice_id == len(self.__slice_indices):
                 self.all_issued = True
@@ -254,13 +241,13 @@ class KiTS19(Dataset):
             return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}
 
         mean_kidney = self.__kidney_score / self.__current_img_id
-        #print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
+        # print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
 
         mean_tumor = self.__tumor_score / self.__current_img_id
-        #print(" Mean tumor segmentation accuracy = {:.3f}".format(mean_tumor))
+        # print(" Mean tumor segmentation accuracy = {:.3f}".format(mean_tumor))
 
         mean_composite = (mean_kidney + mean_tumor) / 2
-        #print(" Mean composite accuracy = {:.3f}".format(mean_composite))
+        # print(" Mean composite accuracy = {:.3f}".format(mean_composite))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_img_id} images.")
         return {"mean_kidney_acc": mean_kidney, "mean_tumor_acc": mean_tumor, "mean_composite_acc": mean_composite}

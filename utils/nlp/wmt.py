@@ -22,7 +22,7 @@ class WMT(Dataset):
             env_var = "WMT_TARGETS_PATH"
             targets_path = utils.get_env_variable(
                 env_var, f"Path to WMT targets files has not been specified with {env_var} flag")
-        
+
         self.dataset_path = dataset_path
         self.targets_path = targets_path
 
@@ -85,7 +85,6 @@ class WMT(Dataset):
                     self.__unanswered_questions_count += 1
             self.__current_inputs = sentences
 
-
     def reset(self):
         self.__example_iterator = self.__examples()
         self.__questions_count = 0
@@ -95,11 +94,9 @@ class WMT(Dataset):
         self.__outputs = []
         return True
 
-
     def get_input_array(self):
         self.__load_next_inputs_maybe()
         return self.__current_inputs
-
 
     def submit_prediction(self, id_in_batch: int, translation: string):
         """
@@ -125,7 +122,7 @@ class WMT(Dataset):
                 "Answers for some of the issued questions have not been submitted.")
 
         bleu = self.__metric.corpus_score(self.__outputs, self.__targets).score
-        #print("\n BLEU = {:.3f}".format(bleu))
+        # print("\n BLEU = {:.3f}".format(bleu))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} translated sentences.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} translated sentences.")
         return {"bleu": bleu}

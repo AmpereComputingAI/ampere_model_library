@@ -27,7 +27,7 @@ jobs:
 
       - name: Lint with flake8
         run:
-          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
+          python3 -m flake8
 
       - name: Enforce intellectual property - copyright headers
         run: |

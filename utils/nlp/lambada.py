@@ -155,7 +155,7 @@ class Lambada(Dataset):
         self.__exact_match_count += metric_max_over_ground_truths(exact_match_score, answer, ground_truths)
         self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
         self.__unsubmitted_count -= 1
-    
+
     def summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
@@ -169,11 +169,10 @@ class Lambada(Dataset):
                 "Answers for some of the issued questions have not been submitted.")
 
         exact_match = self.__exact_match_count / self.__texts_count
-        #print("\n Exact match = {:.3f}".format(exact_match))
+        # print("\n Exact match = {:.3f}".format(exact_match))
 
         f1 = self.__f1_count / self.__texts_count
-        #print(" F1 = {:.3f}".format(f1))
+        # print(" F1 = {:.3f}".format(f1))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} questions answered.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} questions answered.")
         return {"exact_match": exact_match, "f1": f1}
-    

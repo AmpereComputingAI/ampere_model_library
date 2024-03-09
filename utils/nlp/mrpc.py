@@ -93,8 +93,7 @@ class MRPC(Dataset):
         """
 
         correct = self.__correct / self.__current_sentence
-        #print("\n Accuracy = {:.3f}".format(correct))
+        # print("\n Accuracy = {:.3f}".format(correct))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
         return {"Correct": correct}
-

@@ -12,32 +12,32 @@ from pathlib import Path
 LATEST_VERSION = "2.1.0a0+gite0a1120"
 SYSTEMS = {
     "Altra": {
-        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
-        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
-        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
-        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
-        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",  # noqa
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",  # noqa
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",  # noqa
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
     },
     "Altra Max": {
-        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
-        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
-        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
-        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
-        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",  # noqa
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",  # noqa
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",  # noqa
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
     },
     "AmpereOne": {
-        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
-        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
-        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
-        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
-        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40yolo_v8_s.json",  # noqa
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",  # noqa
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",  # noqa
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/siryn%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
     },
     "AmpereOneX": {
-        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",
-        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
-        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",
-        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",
-        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40whisper_medium.en.json"
+        "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
+        "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40yolo_v8_s.json",  # noqa
+        "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",  # noqa
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",  # noqa
+        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
     },
 }
 
@@ -74,7 +74,7 @@ def go_ampere_message():
 
 
 def do_the_setup_message():
-    print_red(f"\nBefore running this script please run `bash setup_deb.sh && source set_env_variables.sh`")
+    print_red("\nBefore running this script please run `bash setup_deb.sh && source set_env_variables.sh`")
     sys.exit(1)
 
 
@@ -465,7 +465,7 @@ class Runner:
                 throughput = round(result, 2)
                 print(f"{INDENT}total throughput: {throughput} ips")
                 throughput_per_unit = (
-                        result / (configs['latency']['bs'] * self.numa_nodes * configs['latency']['num_proc']))
+                        result / (configs['latency']['bs'] * self.numa_nodes * configs['latency']['num_proc']))  # noqa
                 latency = round(1000. / throughput_per_unit, 2)
                 latency_msg = f"{INDENT}latency: {latency} ms"
                 if num_proc > 1:
