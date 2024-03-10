@@ -2,6 +2,7 @@
 # Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
+import torch
 
 
 def run_pytorch_fp32(model_name, num_runs, timeout):
@@ -69,7 +70,6 @@ if __name__ == "__main__":
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
 
-    import torch
     if torch.cuda.is_available():
         run_pytorch_cuda(**vars(parser.parse()))
     else:
