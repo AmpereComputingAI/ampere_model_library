@@ -13,7 +13,7 @@ jobs:
   linter:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
-    name: Flake8, intellectual property
+    name: Flake8, intellectual property compliance
     steps:
       - name: Install deps
         run:
@@ -37,7 +37,7 @@ jobs:
       - name: Check for intellectual property compliance
         run: |
           git config --global --add safe.directory $(pwd)
-          python3 -m unittest tests.test_ip.TestIntellectualPropertyCompliance
+          python3 -m unittest tests.test_ip
 
   test_x86:
     runs-on: ubuntu-latest
@@ -63,8 +63,12 @@ jobs:
       - name: Set up AML
         run:
           FORCE_INSTALL=1 bash setup_deb.sh
+
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
       
-      - name: AML end-user smoke test
+      - name: End-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -116,7 +120,11 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML end-user smoke test
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
+
+      - name: End-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -162,6 +170,10 @@ jobs:
         run:
           bash setup_deb.sh
 
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
+
       - name: benchmark.py test
         run: |
           PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive
@@ -188,6 +200,10 @@ jobs:
         run: |
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
+
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
 
       - name: benchmark.py test
         run: |
