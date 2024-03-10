@@ -13,7 +13,8 @@ class LLaMA2(unittest.TestCase):
         url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
         self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
         if not self.dataset_path.exists():
-            subprocess.run(f"wget -P {get_downloads_path()} {url}".split())
+            subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
                      "too little memory")
@@ -21,7 +22,7 @@ class LLaMA2(unittest.TestCase):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.290
         acc, _ = run_pytorch_fp32(model_name="meta-llama/Llama-2-7b-chat-hf",
-                                     batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
+                                  batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
@@ -30,7 +31,7 @@ class LLaMA2(unittest.TestCase):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.164
         acc, _ = run_pytorch_fp32(model_name="meta-llama/Llama-2-13b-chat-hf",
-                                     batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
+                                  batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
@@ -58,14 +59,18 @@ class DLRM(unittest.TestCase):
         if not self.dataset_path.exists():
             url = os.environ.get("S3_URL_CRITEO_DATASET")
             assert url is not None
-            subprocess.run(f"wget -P /tmp {url}".split())
-            subprocess.run(f"tar -xf /tmp/criteo_preprocessed.tar.gz -C {get_downloads_path()}".split())
-            subprocess.run(f"rm /tmp/criteo_preprocessed.tar.gz".split())
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"tar -xf /tmp/criteo_preprocessed.tar.gz -C {get_downloads_path()}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/criteo_preprocessed.tar.gz".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.model_path = pathlib.Path(get_downloads_path(), "tb0875_10M.pt")
         if not self.model_path.exists():
             subprocess.run(
                 f"wget -P {get_downloads_path()} "
-                f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split())
+                f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split(),
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
                      "too little memory")
