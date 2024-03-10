@@ -22,27 +22,22 @@ jobs:
       - name: Git checkout w/o submodules
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           submodules: false
 
       - name: Lint with flake8
         run:
           python3 -m flake8
 
-      - name: Enforce intellectual property - copyright headers
-        run: |
-          git config --global --add safe.directory $(pwd)
-          python3 tests/ip.py --check headers
-
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: True
 
-      - name: Enforce intellectual property - git modules and URLs
+      - name: Check for intellectual property compliance
         run: |
-          python3 tests/ip.py --check links
-          python3 tests/ip.py --check modules
+          git config --global --add safe.directory $(pwd)
+          python3 -m unittest tests.test_ip.TestIntellectualPropertyCompliance
 
   test_x86:
     runs-on: ubuntu-latest
@@ -69,7 +64,7 @@ jobs:
         run:
           FORCE_INSTALL=1 bash setup_deb.sh
       
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -121,7 +116,7 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -200,7 +195,7 @@ jobs:
           # testing second time to ensure that left-over files don't interrupt, etc. - this time no-interactive mode
           PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive --memory 30 --max-threads 24
 
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -247,7 +242,7 @@ jobs:
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -281,7 +276,7 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null
