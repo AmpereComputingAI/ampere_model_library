@@ -35,6 +35,35 @@ class LLaMA2(unittest.TestCase):
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
+class Alpaca(unittest.TestCase):
+    def setUp(self):
+        url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
+        self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
+        if not self.dataset_path.exists():
+            subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.model_path = pathlib.Path(get_downloads_path(), "alpaca_recovered")
+        if not self.model_path.exists():
+            url = os.environ.get("S3_URL_ALPACA_PYTORCH_FP32")
+            assert url is not None
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"tar -xf /tmp/alpaca_recovered.tar.gz -C {get_downloads_path()}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/alpaca_recovered.tar.gz".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
+                     "too little memory")
+    def test_alpaca(self):
+        from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
+        exact_match_ref, f1_ref = 0.100, 0.317
+        acc, _ = run_pytorch_fp32(model_path=self.model_path,
+                                  batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
+        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+
+
 class Whisper(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
                      "too little memory")
