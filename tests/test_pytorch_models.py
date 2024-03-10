@@ -68,27 +68,33 @@ class Alpaca(unittest.TestCase):
 
 
 class Whisper(unittest.TestCase):
+    def setUp(self):
+        from speech_recognition.whisper.run import run_pytorch_fp32
+
+        def wrapper(model_name, num_runs, timeout, q):
+            q.put(run_pytorch_fp32(model_name=model_name, num_runs=num_runs, timeout=timeout)[0])
+
+        self.wrapper = wrapper
+
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
-        from speech_recognition.whisper.run import run_pytorch_fp32
-        def wrapper(model_name, num_runs, timeout, q):
-            q.put(run_pytorch_fp32(model_name=model_name, num_runs=num_runs, timeout=timeout))
         wer_ref = 0.155
         output_queue = Queue()
-        # acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
-        p = Process(target=wrapper,
+        p = Process(target=self.wrapper,
                     kwargs={"model_name": "tiny.en", "num_runs": 30, "timeout": None, "q": output_queue})
         p.start()
         p.join()
-        print(output_queue.get())
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+        self.assertTrue(wer_ref / output_queue.get()["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_whisper_large(self):
-        from speech_recognition.whisper.run import run_pytorch_fp32
         wer_ref = 0.124
-        acc, _ = run_pytorch_fp32(model_name="large", num_runs=30, timeout=None)
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+        output_queue = Queue()
+        p = Process(target=self.wrapper,
+                    kwargs={"model_name": "large", "num_runs": 30, "timeout": None, "q": output_queue})
+        p.start()
+        p.join()
+        self.assertTrue(wer_ref / output_queue.get()["wer_score"] > 0.95)
 
 
 class DLRM(unittest.TestCase):
