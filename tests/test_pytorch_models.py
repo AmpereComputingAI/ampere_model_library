@@ -71,10 +71,13 @@ class Whisper(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
+        def wrapper(model_name, num_runs, timeout, q):
+            q.put(run_pytorch_fp32(model_name=model_name, num_runs=num_runs, timeout=timeout))
         wer_ref = 0.155
         output_queue = Queue()
         # acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
-        p = Process(target=run_pytorch_fp32, kwargs={"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        p = Process(target=wrapper,
+                    kwargs={"model_name": "tiny.en", "num_runs": 30, "timeout": None, "q": output_queue})
         p.start()
         p.join()
         print(output_queue.get())
