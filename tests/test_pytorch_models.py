@@ -26,7 +26,7 @@ class LLaMA2(unittest.TestCase):
                                   batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 150, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_13b(self):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
@@ -66,7 +66,7 @@ class Alpaca(unittest.TestCase):
 
 
 class Whisper(unittest.TestCase):
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
         wer_ref = 0.155
@@ -103,10 +103,10 @@ class DLRM(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_dlrm_debug(self):
         from recommendation.dlrm.run import run_pytorch_fp32
-        acc_ref = 0.7882
+        auc_ref = 0.583
         acc, _ = run_pytorch_fp32(model_path=self.model_path, dataset_path=self.dataset_path,
                                   batch_size=2048, num_runs=30, timeout=None, debug=True)
-        self.assertTrue(acc["accuracy"] / acc_ref > 0.95)
+        self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
 if __name__ == "__main__":
