@@ -115,7 +115,7 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, de
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, debug):
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug)
 
 
