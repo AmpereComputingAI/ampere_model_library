@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+import multiprocessing
 import os
 import unittest
 import subprocess
@@ -7,6 +8,7 @@ import pathlib
 import psutil
 import torch
 from utils.downloads.utils import get_downloads_path
+from multiprocessing import Process, Queue
 
 
 class LLaMA2(unittest.TestCase):
@@ -70,7 +72,12 @@ class Whisper(unittest.TestCase):
     def test_whisper_tiny_en(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
         wer_ref = 0.155
-        acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
+        output_queue = Queue()
+        # acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
+        p = Process(target=run_pytorch_fp32, kwargs={"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        p.start()
+        p.join()
+        print(output_queue.get())
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
