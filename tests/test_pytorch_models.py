@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import multiprocessing
 import os
 import unittest
 import subprocess
@@ -67,34 +66,35 @@ class Alpaca(unittest.TestCase):
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
+def run_process(wrapper, kwargs):
+    output_queue = Queue()
+    kwargs.update({"q": output_queue})
+    p = Process(target=wrapper, kwargs=kwargs)
+    p.start()
+    p.join()
+    return output_queue.get()
+
+
 class Whisper(unittest.TestCase):
     def setUp(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
 
-        def wrapper(model_name, num_runs, timeout, q):
-            q.put(run_pytorch_fp32(model_name=model_name, num_runs=num_runs, timeout=timeout)[0])
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
         self.wrapper = wrapper
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
         wer_ref = 0.155
-        output_queue = Queue()
-        p = Process(target=self.wrapper,
-                    kwargs={"model_name": "tiny.en", "num_runs": 30, "timeout": None, "q": output_queue})
-        p.start()
-        p.join()
-        self.assertTrue(wer_ref / output_queue.get()["wer_score"] > 0.95)
+        acc = run_process(self.wrapper, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_whisper_large(self):
         wer_ref = 0.124
-        output_queue = Queue()
-        p = Process(target=self.wrapper,
-                    kwargs={"model_name": "large", "num_runs": 30, "timeout": None, "q": output_queue})
-        p.start()
-        p.join()
-        self.assertTrue(wer_ref / output_queue.get()["wer_score"] > 0.95)
+        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None})
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
 
 class DLRM(unittest.TestCase):
@@ -119,9 +119,13 @@ class DLRM(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_dlrm_debug(self):
         from recommendation.dlrm.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
         auc_ref = 0.583
-        acc, _ = run_pytorch_fp32(model_path=self.model_path, dataset_path=self.dataset_path,
-                                  batch_size=2048, num_runs=30, timeout=None, debug=True)
+        acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
+                                    "batch_size": 2048, "num_runs": 30, "timeout": None, "debug": True})
         self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
