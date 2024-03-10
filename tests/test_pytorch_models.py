@@ -5,6 +5,7 @@ import unittest
 import subprocess
 import pathlib
 import psutil
+import torch
 from utils.downloads.utils import get_downloads_path
 
 
@@ -16,8 +17,8 @@ class LLaMA2(unittest.TestCase):
             subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_7b(self):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.290
@@ -25,8 +26,8 @@ class LLaMA2(unittest.TestCase):
                                   batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_13b(self):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.164
@@ -53,8 +54,8 @@ class Alpaca(unittest.TestCase):
             subprocess.run("rm /tmp/alpaca_recovered.tar.gz".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_alpaca(self):
         from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
         exact_match_ref, f1_ref = 0.100, 0.317
@@ -65,16 +66,14 @@ class Alpaca(unittest.TestCase):
 
 
 class Whisper(unittest.TestCase):
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_whisper_tiny_en(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
         wer_ref = 0.155
         acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_whisper_large(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
         wer_ref = 0.124
@@ -101,8 +100,7 @@ class DLRM(unittest.TestCase):
                 f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
-                     "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     def test_dlrm_debug(self):
         from recommendation.dlrm.run import run_pytorch_fp32
         acc_ref = 0.7882
