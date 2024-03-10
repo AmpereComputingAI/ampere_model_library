@@ -48,8 +48,10 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 4
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
         run:
@@ -104,8 +106,10 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 32
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
         run:
@@ -155,6 +159,11 @@ jobs:
       image: ubuntu:22.04
       options: --memory=170g
     name: Ampere Altra - Ampere optimized PyTorch (shell installer)
+    env:
+      PYTHONPATH: ./
+      AIO_NUM_THREADS: 32
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install Ampere optimized PyTorch
         run: |
@@ -189,6 +198,7 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       AIO_NUM_THREADS: 32
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -258,7 +268,7 @@ jobs:
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
-      - name: AML end-user smoke test
+      - name: End-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
@@ -292,7 +302,7 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML end-user smoke test
+      - name: End-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null

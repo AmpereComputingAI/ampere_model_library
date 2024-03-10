@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+import os
 import unittest
 import subprocess
 import pathlib
@@ -19,7 +20,7 @@ class LLaMA2(unittest.TestCase):
     def test_llama2_7b(self):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.290
-        acc, perf = run_pytorch_fp32(model_name="meta-llama/Llama-2-7b-chat-hf",
+        acc, _ = run_pytorch_fp32(model_name="meta-llama/Llama-2-7b-chat-hf",
                                      batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
@@ -28,9 +29,52 @@ class LLaMA2(unittest.TestCase):
     def test_llama2_13b(self):
         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
         f1_ref = 0.164
-        acc, perf = run_pytorch_fp32(model_name="meta-llama/Llama-2-13b-chat-hf",
+        acc, _ = run_pytorch_fp32(model_name="meta-llama/Llama-2-13b-chat-hf",
                                      batch_size=1, num_runs=50, timeout=None, dataset_path=self.dataset_path)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
+
+
+class Whisper(unittest.TestCase):
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
+                     "too little memory")
+    def test_whisper_tiny_en(self):
+        from speech_recognition.whisper.run import run_pytorch_fp32
+        wer_ref = 0.155
+        acc, _ = run_pytorch_fp32(model_name="tiny.en", num_runs=30, timeout=None)
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
+                     "too little memory")
+    def test_whisper_large(self):
+        from speech_recognition.whisper.run import run_pytorch_fp32
+        wer_ref = 0.124
+        acc, _ = run_pytorch_fp32(model_name="large", num_runs=30, timeout=None)
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+
+
+class DLRM(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path = pathlib.Path(get_downloads_path(), "criteo_preprocessed")
+        if not self.dataset_path.exists():
+            url = os.environ.get("S3_URL_CRITEO_DATASET")
+            assert url is not None
+            subprocess.run(f"wget -P /tmp {url}".split())
+            subprocess.run(f"tar -xf /tmp/criteo_preprocessed.tar.gz -C {get_downloads_path()}".split())
+            subprocess.run(f"rm /tmp/criteo_preprocessed.tar.gz".split())
+        self.model_path = pathlib.Path(get_downloads_path(), "tb0875_10M.pt")
+        if not self.model_path.exists():
+            subprocess.run(
+                f"wget -P {get_downloads_path()} "
+                f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split())
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100,
+                     "too little memory")
+    def test_dlrm_debug(self):
+        from recommendation.dlrm.run import run_pytorch_fp32
+        acc_ref = 0.7882
+        acc, _ = run_pytorch_fp32(model_path=self.model_path, dataset_path=self.dataset_path,
+                                  batch_size=2048, num_runs=30, timeout=None, debug=True)
+        self.assertTrue(acc["accuracy"] / acc_ref > 0.95)
 
 
 if __name__ == "__main__":
