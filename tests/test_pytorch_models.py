@@ -48,7 +48,7 @@ class LLaMA2(unittest.TestCase):
                            "timeout": None, "dataset_path": self.dataset_path})
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 150, "too little memory")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_13b(self):
         f1_ref = 0.195
