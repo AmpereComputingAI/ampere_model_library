@@ -113,9 +113,9 @@ class Criteo(Dataset):
         self.false_negatives += sum(torch.logical_and(prediction == 0, self.__labels == 1))
 
     def summarize_accuracy(self):
-        accuracy = self.correct_count / self.total_count
-        precision = self.true_positives / (self.true_positives + self.false_positives)
-        recall = self.true_positives / (self.true_positives + self.false_negatives)
+        accuracy = float(self.correct_count / self.total_count)
+        precision = float(self.true_positives / (self.true_positives + self.false_positives))
+        recall = float(self.true_positives / (self.true_positives + self.false_negatives))
         auc = roc_auc_score(np.concatenate(self.predictions), np.concatenate(self.targets))
 
         # print("\n Accuracy = {:.3f}".format(accuracy.item()))

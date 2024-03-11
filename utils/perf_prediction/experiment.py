@@ -31,4 +31,17 @@ for i in range(num_cases):
         result = 0
     cases_done[case] = result
 print(cases_done)
-print(sorted(cases_done.items(), key=lambda x: x[1]))
+batch_sizes = []
+num_proc = []
+num_threads = []
+for i in sorted(cases_done.items(), key=lambda x: x[1])[int(0.3*len(cases_done)):]:
+    batch_sizes.append(i[0][0])
+    num_proc.append(i[0][1])
+    num_threads.append(i[0][2])
+batch_sizes = list(set(batch_sizes))
+num_proc = []
+num_threads = []
+
+print(batch_sizes)
+print(num_proc)
+print(num_threads)
