@@ -185,11 +185,11 @@ jobs:
 
       - name: Unittest
         run: |
-          python3 -m unittest tests.test_pytorch_models
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 -m unittest tests.test_pytorch_models
 
       - name: benchmark.py test
         run: |
-          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive
+          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive --model resnet_50_v1.5 
 
   test_pytorch_arm64_docker:
     runs-on: self-hosted
@@ -219,7 +219,7 @@ jobs:
 
       - name: Unittest
         run: |
-          python3 -m unittest tests.test_pytorch_models
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 -m unittest tests.test_pytorch_models
 
       - name: benchmark.py test
         run: |
