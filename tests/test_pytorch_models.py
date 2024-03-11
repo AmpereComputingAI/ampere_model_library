@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import os
+import time
 import unittest
 import subprocess
 import pathlib
@@ -9,14 +10,18 @@ import torch
 from utils.downloads.utils import get_downloads_path
 from multiprocessing import Process, Queue
 
+TIMEOUT = 3 * 60 * 60
+
 
 def run_process(wrapper, kwargs):
+    start = time.time()
     output_queue = Queue()
     kwargs.update({"q": output_queue})
     p = Process(target=wrapper, kwargs=kwargs)
     p.start()
-    p.join()
-    return output_queue.get()
+    output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    return output
 
 
 class LLaMA2(unittest.TestCase):
@@ -37,7 +42,7 @@ class LLaMA2(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_7b(self):
-        f1_ref = 0.290
+        f1_ref = 0.349
         acc = run_process(self.wrapper,
                           {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
                            "timeout": None, "dataset_path": self.dataset_path})
@@ -46,7 +51,7 @@ class LLaMA2(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 150, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_llama2_13b(self):
-        f1_ref = 0.164
+        f1_ref = 0.195
         acc = run_process(self.wrapper,
                           {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
                            "timeout": None, "dataset_path": self.dataset_path})
@@ -79,7 +84,7 @@ class Alpaca(unittest.TestCase):
         def wrapper(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        exact_match_ref, f1_ref = 0.100, 0.317
+        exact_match_ref, f1_ref = 0.260, 0.616
         acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
                                     "timeout": None, "dataset_path": self.dataset_path})
         self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
