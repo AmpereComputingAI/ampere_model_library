@@ -107,6 +107,7 @@ class Whisper(unittest.TestCase):
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
     def test_whisper_large(self):
         wer_ref = 0.124
         acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None})
