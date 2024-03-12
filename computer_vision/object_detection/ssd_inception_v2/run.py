@@ -1,11 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
-import os
-import time
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
-import utils.misc as utils
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
@@ -57,7 +52,8 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path)
                     int(output["detection_classes:0"][i][d])
                 )
 
-    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path, sort_ascending=True)
+    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path,
+                          anno_path, sort_ascending=True)
     runner = TFFrozenModelRunner(
         model_path, ["detection_classes:0", "detection_boxes:0", "detection_scores:0", "num_detections:0"])
 

@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import json
 import pathlib
 import utils.misc as utils
@@ -12,9 +11,8 @@ class OpenImagesDataset(COCOBaseDataset):
     A class providing facilities to measure accuracy of object detection models trained on OpenImages dataset.
     """
 
-    def __init__(self,
-                 batch_size: int, color_model: str,
-                 images_path=None, annotations_path=None, pre_processing=None, sort_ascending=False, order="NHWC"):
+    def __init__(self, batch_size: int, color_model: str, images_path=None, annotations_path=None, pre_processing=None,
+                 sort_ascending=False, order="NHWC"):
         """
         A function initializing the class.
         :param batch_size: int, size of batch intended to be processed
@@ -38,7 +36,7 @@ class OpenImagesDataset(COCOBaseDataset):
         self.__annotations_path = annotations_path
         self.__file_names = self.__parse_annotations_file(self.__annotations_path)
         super().__init__(batch_size, color_model, annotations_path, pre_processing, order, sort_ascending)
-    
+
     def __parse_annotations_file(self, annotations_path):
         """
         A function parsing annotation file for OpenImages validation dataset.

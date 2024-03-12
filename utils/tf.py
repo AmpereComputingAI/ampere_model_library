@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
+import os
+import time
 from datetime import datetime
 import tensorflow as tf
-from utils.benchmark import *
+from utils.benchmark import Runner, get_intra_op_parallelism_threads
 from utils.misc import advertise_aio, check_memory_settings
 
 
@@ -29,8 +31,8 @@ class TFFrozenModelRunner(Runner):
         """
         A function initializing runner by providing path to model and list of output names (can be easily checked with
         Netron app).
-        :param path_to_model: str, eg. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
-        :param output_names: list of str, eg. ["detection_classes:0", "detection_boxes:0"]
+        :param path_to_model: str, e.g. "ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb"
+        :param output_names: list of str, e.g. ["detection_classes:0", "detection_boxes:0"]
         """
         super().__init__(throughput_only)
         try:
@@ -51,11 +53,10 @@ class TFFrozenModelRunner(Runner):
 
         print("\nRunning with TensorFlow\n")
 
-    def _create_config(self, intra_threads: int, inter_threads=1):
+    def _create_config(self, intra_threads: int, inter_threads: int = 1):
         """
         A function creating TF config for given num of threads.
-        :param intra_threads: int
-        :param inter_threads: int
+        :param intra_threads: int        :param inter_threads: int
         :return: TensorFlow config
         """
         if os.environ.get("ENABLE_BF16_X86") == "1":
@@ -95,7 +96,7 @@ class TFFrozenModelRunner(Runner):
         """
         self._feed_dict[self._graph.get_tensor_by_name(input_name)] = input_array
 
-    def run(self, task_size: int=None, *args, **kwargs):
+    def run(self, task_size: int = None, *args, **kwargs):
         """
         A function executing single pass over the network, measuring the time needed and returning the output.
         :return: dict, output dictionary with tensor names and corresponding output
@@ -148,7 +149,7 @@ class TFSavedModelRunner(Runner):
 
         print("\nRunning with TensorFlow\n")
 
-    def run(self, task_size: int=None, *args, **kwargs):
+    def run(self, task_size: int = None, *args, **kwargs):
         """
         A function assigning values to input tensor, executing single pass over the network, measuring the time needed
         and finally returning the output.

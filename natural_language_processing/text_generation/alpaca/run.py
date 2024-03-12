@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from utils.nlp.alpaca_instruct import AlpacaInstruct
 from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
@@ -5,7 +7,7 @@ from utils.benchmark import run_model
 
 def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False):
     from transformers import AutoModelForCausalLM, AutoTokenizer
-  
+
     def run_single_pass(pytorch_runner, _dataset):
         inputs = encode(_dataset.get_input_string())
         outputs = pytorch_runner.run(inputs=inputs.input_ids, max_new_tokens=100)
@@ -32,10 +34,11 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
 def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False)
 
+
 def run_pytorch_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=True)
 
-  
+
 def run_pytorch_cuda(model_path, num_runs, timeout, dataset_path, **kwargs):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -45,7 +48,6 @@ def run_pytorch_cuda(model_path, num_runs, timeout, dataset_path, **kwargs):
         pytorch_runner.set_task_size(outputs.shape[1] - inputs.input_ids.shape[1])
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
         dataset.submit_prediction(response)
-
 
     model = AutoModelForCausalLM.from_pretrained(model_path).cuda()
     model.eval()
@@ -67,7 +69,7 @@ def main():
     parser.add_argument("--dataset_path",
                         type=str,
                         help="path to JSON file with instructions")
-    
+
     import torch
     if torch.cuda.is_available():
         run_pytorch_cuda(**vars(parser.parse()))

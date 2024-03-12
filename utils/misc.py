@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
 import hashlib
@@ -91,26 +90,29 @@ def check_memory_settings():
 
     try:
         kernel_page_size = int(subprocess.check_output(
-            """grep -ir KernelPageSize /proc/self/smaps | head -1 | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+            """grep -ir KernelPageSize /proc/self/smaps | head -1 | awk '{split($0, a, " "); print a[2]}'""",
+            shell=True))
         if kernel_page_size != 64:
             print_warning_message(f"KernelPageSize is {kernel_page_size} kB, consider using 64k pages.")
     except ValueError:
         pass
 
     thp = subprocess.check_output(
-        r"""cat /sys/kernel/mm/transparent_hugepage/enabled | sed -n 's/.*\[\(.*\)\].*/\1/p'""", shell=True).decode(
-        'utf-8').strip()
+        r"""cat /sys/kernel/mm/transparent_hugepage/enabled | sed -n 's/.*\[\(.*\)\].*/\1/p'""",
+        shell=True).decode('utf-8').strip()
     if thp != "always":
         print_warning_message(f"Transparent_hugepage is set to {thp}. Consider using 'always'.")
-    
+
     try:
         sockets = int(
-            subprocess.check_output("""lscpu | grep Socket | awk '{split($0, a, " "); print a[2]}'""", shell=True))
+            subprocess.check_output(
+                """lscpu | grep Socket | awk '{split($0, a, " "); print a[2]}'""", shell=True))
         nodes = int(
-            subprocess.check_output("""lscpu | grep 'NUMA node(s)' | awk '{split($0, a, " "); print a[3]}'""", shell=True))
+            subprocess.check_output(
+                """lscpu | grep 'NUMA node(s)' | awk '{split($0, a, " "); print a[3]}'""", shell=True))
         if sockets != nodes:
-            print_warning_message(
-                f"Number of sockets detected is {sockets} and there are {nodes} NUMA nodes. Consider using 'Monolithic' mode.")
+            print_warning_message(f"Number of sockets detected is {sockets} and there are {nodes} NUMA nodes. "
+                                  f"Consider using 'Monolithic' mode.")
     except ValueError:
         pass
 

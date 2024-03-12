@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 
 config = {
     "input": {
@@ -58,6 +58,7 @@ config = {
         "dropout": 0.32,
     },
     "labels": {
-        "labels": [" ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "'", "<BLANK>"]
+        "labels": [" ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
+                   "t", "u", "v", "w", "x", "y", "z", "'", "<BLANK>"]
     }
 }

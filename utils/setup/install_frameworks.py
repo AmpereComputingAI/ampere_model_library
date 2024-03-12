@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
-import os
+# Copyright (c) 2024, Ampere Computing LLC
 import sys
 import subprocess
-from packaging import version
 
 native_frameworks = list()
 
@@ -14,41 +11,40 @@ native_frameworks = list()
 
 # TensorFlow
 try:
-    import tensorflow as tf
+    import tensorflow  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"tensorflow"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow"])
     native_frameworks.append("TensorFlow")
 
 # ONNXRunTime
 try:
-    import onnxruntime as ort
+    import onnxruntime  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"onnxruntime"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime"])
     native_frameworks.append("ONNXRunTime")
 
 # PyTorch
 try:
-    import torch
+    import torch  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torch<2.2"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch<2.2"])
     native_frameworks.append("PyTorch")
 try:
-    import torchvision
+    import torchvision  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision==0.16.2"])
-
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision==0.16.2"])
 
 # summary
 len_native_frameworks = len(native_frameworks)
 if len_native_frameworks > 0:
     native_frameworks_string = ""
     for i in range(len_native_frameworks):
-            if i+2 == len_native_frameworks:
-                native_frameworks_string += f"{native_frameworks[i]} and "
-            elif i+1 == len_native_frameworks:
-                native_frameworks_string += f"{native_frameworks[i]}"
-            else:
-                native_frameworks_string += f"{native_frameworks[i]}, "      
+        if i + 2 == len_native_frameworks:
+            native_frameworks_string += f"{native_frameworks[i]} and "
+        elif i + 1 == len_native_frameworks:
+            native_frameworks_string += f"{native_frameworks[i]}"
+        else:
+            native_frameworks_string += f"{native_frameworks[i]}, "
     print(f"\033[1;31m \nCAUTION: {native_frameworks_string} frameworks have been installed in their native versions "
           f"missing Ampere optimizations. Consider using AI-dedicated Docker images for increased performance. "
           f"Available at: https://solutions.amperecomputing.com/solutions/ampere-ai")

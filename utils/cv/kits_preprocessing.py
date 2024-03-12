@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# coding=utf-8
-# Copyright (c) 2022, Ampere Computing LLC
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 # Copyright 2021 The MLPerf Authors. All Rights Reserved.
 #
@@ -17,6 +16,13 @@
 # limitations under the License.
 
 # TODO: clean-up
+import os
+import json
+from multiprocessing import Pool
+import nibabel
+import numpy as np
+from scipy.ndimage.interpolation import zoom
+from pathlib import Path
 
 MEAN_VAL = 101.0
 STDDEV_VAL = 76.9
@@ -27,34 +33,25 @@ TARGET_SPACING = [1.6, 1.2, 1.2]
 ROI_SHAPE = [128, 128, 128]
 SLIDE_OVERLAP_FACTOR = 0.5
 
-import os
-import argparse
-import hashlib
-import json
-from multiprocessing import Process, Pool
-
-import nibabel
-import numpy as np
-
-from scipy.ndimage.interpolation import zoom
-from pathlib import Path
-
-
 __doc__ = """
 Takes KiTS19 RAW data, returns reshaped data with the same voxel spacing.
 Preprocess dataset that is used for inference:
     python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode preprocess
 Preprocess dataset that is used for calibration:
-    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode preprocess --calibration
+    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode preprocess
+     --calibration
 (Re)generate MD5 hashes for data integrity check on inference dataset
     python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode gen-hash
 (Re)generate MD5 hashes for data integrity check on calibration dataset
-    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode gen-hash --calibration
+    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode gen-hash
+     --calibration
 Verify MD5 hashes stored from original run for data integrity check on inference dataset
     python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode verify
 Verify MD5 hashes stored from original run for data integrity check on calibration dataset
-    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode verify --calibration
-Optionally, add -num_proc=$(NUMBER_PROCESSES) to use as many processes as $(NUMBER_PROCESSES) to shorten the turnaround time
+    python3 preprocess.py --raw_data_dir $(RAW_DATA_DIR) --results_dir $(PREPROCESSED_DATA_DIR) --mode verify
+     --calibration
+Optionally, add -num_proc=$(NUMBER_PROCESSES) to use as many processes as $(NUMBER_PROCESSES) to shorten the turnaround
+ time
 """
 
 
@@ -67,11 +64,11 @@ class Stats:
         collects average values in the preprocessed images
     std: list
         collects standard deviation of values in the preprocessed images
-    d: 
+    d:
         collects depths of the preprocessed images
-    h: 
+    h:
         collects heights of the preprocessed images
-    w: 
+    w:
         collects widths of the preprocessed images
     Methods
     -------
@@ -92,11 +89,11 @@ class Stats:
             collects average values in the preprocessed images
         std: list
             collects standard deviation of values in the preprocessed images
-        d: 
+        d:
             collects depths of the preprocessed images
-        h: 
+        h:
             collects heights of the preprocessed images
-        w: 
+        w:
             collects widths of the preprocessed images
         """
         self.mean = []
@@ -178,7 +175,7 @@ class Preprocessor:
     pad_to_min_shape(image, label):
         pads image/label so that the shape is equal or larger than ROI shape
     load_and_resample(case):
-        gets a pair of CT-imaging/segmentation data for the case, then, 
+        gets a pair of CT-imaging/segmentation data for the case, then,
         resample to the same, predetermined common voxel spacing
     normalize_intensity(image):
         normalize intensity for a given target stats
@@ -357,16 +354,14 @@ class Preprocessor:
         strides = [int(roi_shape[i] * (1 - overlap)) for i in range(dim)]
 
         bounds = [image_shape[i] % strides[i] for i in range(dim)]
-        bounds = [bounds[i] if bounds[i] <
-                  strides[i] // 2 else 0 for i in range(dim)]
-        image = image[...,
-                      bounds[0] // 2: image_shape[0] - (bounds[0] - bounds[0] // 2),
-                      bounds[1] // 2: image_shape[1] - (bounds[1] - bounds[1] // 2),
-                      bounds[2] // 2: image_shape[2] - (bounds[2] - bounds[2] // 2)]
-        label = label[...,
-                      bounds[0] // 2: image_shape[0] - (bounds[0] - bounds[0] // 2),
-                      bounds[1] // 2: image_shape[1] - (bounds[1] - bounds[1] // 2),
-                      bounds[2] // 2: image_shape[2] - (bounds[2] - bounds[2] // 2)]
+        bounds = [bounds[i] if bounds[i] < strides[i] // 2 else 0 for i in range(dim)]
+        image = image[..., bounds[0] // 2: image_shape[0] - (bounds[0] - bounds[0] // 2),  # noqa
+                bounds[1] // 2: image_shape[1] - (bounds[1] - bounds[1] // 2),  # noqa
+                bounds[2] // 2: image_shape[2] - (bounds[2] - bounds[2] // 2)]  # noqa
+        label = label[...,  # noqa
+                bounds[0] // 2: image_shape[0] - (bounds[0] - bounds[0] // 2),  # noqa
+                bounds[1] // 2: image_shape[1] - (bounds[1] - bounds[1] // 2),  # noqa
+                bounds[2] // 2: image_shape[2] - (bounds[2] - bounds[2] // 2)]  # noqa
         image, paddings = self.constant_pad_volume(
             image, roi_shape, strides, self.padding_val)
         label, paddings = self.constant_pad_volume(
@@ -389,8 +384,7 @@ class Preprocessor:
                     (bounds[1] // 2, bounds[1] - bounds[1] // 2),
                     (bounds[2] // 2, bounds[2] - bounds[2] // 2)]
 
-        padded_volume = np.pad(
-            volume, paddings, mode='constant', constant_values=[padding_val])
+        padded_volume = np.pad(volume, paddings, mode='constant', constant_values=[padding_val])
         return padded_volume, paddings
 
     def save(self, image, label, aux):
@@ -446,19 +440,21 @@ def save_preprocessed_info(preproc_dir, aux, targets):
     """
     Saves list of preprocessed files and the associated aux info into preprocessed_files.pkl
     """
+
     def calc_inferences(image_shape):
         dims = len(image_shape)
         strides = [int(ROI_SHAPE[i] * (1 - SLIDE_OVERLAP_FACTOR)) for i in range(dims)]
         size = [(image_shape[i] - ROI_SHAPE[i]) // strides[i] + 1 for i in range(dims)]
 
         return len(range(0, strides[0] * size[0], strides[0])) * len(range(0, strides[1] * size[1], strides[1])) \
-               * len(range(0, strides[2] * size[2], strides[2]))
+            * len(range(0, strides[2] * size[2], strides[2]))
 
     cases_info = {"cases": list(), "inferences_needed": 0}
     for case in aux["cases"].keys():
         cases_info["cases"].append(case)
         cases_info["inferences_needed"] += calc_inferences(aux["cases"][case]["image_shape"][1:])
     json.dump(cases_info, open(Path(preproc_dir, "preprocessed", "cases.json"), "w"))
+
 
 def preprocess_with_multiproc(args):
     """
@@ -472,145 +468,10 @@ def preprocess_with_multiproc(args):
     }
     with Pool(args.num_proc) as p:
         pool_out = p.starmap(preprocess_multiproc_helper,
-                             zip([preproc]*len(cases), cases))
+                             zip([preproc] * len(cases), cases))
 
     for _d in pool_out:
         aux['cases'][_d['case']] = _d
     save_preprocessed_info(preproc.results_dir, aux, preproc.target_cases)
     p.join()
     p.close()
-
-
-def generate_hash_from_volume(vol_path):
-    """
-    Generates MD5 hash from a single preprocessed file
-    """
-    with open(vol_path, 'rb') as f:
-        data = f.read()
-        md5_hash = hashlib.md5(data).hexdigest()
-    f.close()
-    return (os.path.basename(vol_path), md5_hash)
-
-
-def generate_hash_from_dataset(args):
-    """
-    Generates MD5 hash from all the preprocessed files and store them for future verification
-    """
-    results_dir = args.results_dir
-    num_proc = args.num_proc
-    checksum = dict()
-    CHECKSUM_FILE = CHECKSUM_CALIB_FILE if args.calibration else CHECKSUM_INFER_FILE
-    results = [f for f in os.listdir(results_dir) if f.startswith(
-        'case') and f.endswith('pkl')]
-    vol_path = [os.path.join(results_dir, v) for v in results]
-
-    print(
-        f"Generating checksum file checksum.json from preprocessed data in {results_dir}...")
-    with Pool(num_proc) as p:
-        pool_out = p.map(generate_hash_from_volume, vol_path)
-
-    for vol, md5 in pool_out:
-        checksum[vol] = md5
-
-    with open(CHECKSUM_FILE, 'w') as f:
-        json.dump(dict(sorted(checksum.items())), f, indent=4, sort_keys=True)
-    f.close()
-
-    p.join()
-    p.close()
-    print(f"{CHECKSUM_FILE} has been successfully created")
-
-
-def verify_dataset(args):
-    """
-    Verifies preprocessed data's integrity by comparing MD5 hashes stored from original run
-    """
-    results_dir = args.results_dir
-    num_proc = args.num_proc
-    results = [f for f in os.listdir(results_dir) if f.startswith(
-        'case') and f.endswith('pkl')]
-    vol_path = [os.path.join(results_dir, v) for v in results]
-    violations = dict()
-
-    print(f"Verifying checksums of preprocessed data in {results_dir}...")
-    source = CHECKSUMS
-    assert len(source) == len(results),\
-        "checksum.json has {} entries while {} volumes found".format(
-            len(source), len(results))
-
-    with Pool(num_proc) as p:
-        pool_out = p.map(generate_hash_from_volume, vol_path)
-
-    for vol, md5 in pool_out:
-        if md5 != source[vol]:
-            violations[vol] = (md5, source[vol])
-
-    if any(violations):
-        for vol, (res, ref) in violations.items():
-            print(f"{vol} -- Invalid hash, got {res} while expecting {ref}")
-        assert False,\
-            "Verification failed, {}/{} mismatch(es) found".format(
-                len(violations), len(results))
-
-    p.join()
-    p.close()
-    print("Verification completed. All files' checksums match")
-
-
-def parse_args():
-    """
-    Args used for preprocessing
-    """
-    PARSER = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawTextHelpFormatter)
-
-    PARSER.add_argument('--raw_data_dir',
-                        dest='data_dir',
-                        required=True,
-                        help="Dir where KiTS19 GIT repo is cloned")
-    PARSER.add_argument('--results_dir',
-                        dest='results_dir',
-                        required=True,
-                        help="Dir to store preprocessed data")
-    PARSER.add_argument('--mode',
-                        dest='mode',
-                        choices=["preprocess", "verify", "gen_hash"],
-                        default="preprocess",
-                        help="""preprocess for generating inference dataset, 
-                                gen_hash for generating new checksum file, 
-                                verify for verifying the checksums against stored checksum file""")
-    PARSER.add_argument('--calibration',
-                        dest='calibration',
-                        action='store_true',
-                        help="Preprocess calibration dataset instead of inference dataset")
-    PARSER.add_argument('--num_proc',
-                        dest='num_proc',
-                        type=int,
-                        choices=list(range(1, 17)),
-                        default=4,
-                        help="Number of processes to be used")
-
-    args = PARSER.parse_args()
-
-    return args
-
-
-def main():
-    """
-    Runs preprocess, verify integrity or regenerate MD5 hashes
-    """
-    args = parse_args()
-
-    if args.mode == "preprocess":
-        preprocess_with_multiproc(args)
-        verify_dataset(args)
-
-    if args.mode == "gen_hash":
-        generate_hash_from_dataset(args)
-
-    if args.mode == "verify":
-        verify_dataset(args)
-
-
-if __name__ == '__main__':
-    main()

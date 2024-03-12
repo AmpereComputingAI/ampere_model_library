@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 def run_tf(model_path, batch_size, num_runs, timeout, dataset_path):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner

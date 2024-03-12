@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from utils.pytorch import PyTorchRunnerV2, apply_compile
 from utils.benchmark import run_model
 from utils.nlp.alpaca_instruct import AlpacaInstruct
@@ -39,8 +41,10 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path)
 
+
 def run_pytorch_fp16(model_name, batch_size, num_runs, timeout, dataset_path, **kwargs):
     return run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=True)
+
 
 def main():
     from utils.helpers import DefaultArgParser

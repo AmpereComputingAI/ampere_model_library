@@ -11,7 +11,6 @@ log() {
 }
 
 ARCH=$( uname -m )
-CPU_FLAGS=$( lscpu | grep "Flags:"  | sed 's/^.*: //' )
 
 if [ -z ${SCRIPT_DIR+x} ]; then
    SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )

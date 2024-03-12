@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 
 import argparse
 import numpy as np
@@ -134,6 +134,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     import torch
     from utils.pytorch import PyTorchRunner
+    from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
 
     def run_single_pass(pytorch_runner, squad):
 
@@ -147,7 +148,8 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disa
                 squad.extract_answer(i, answer_start_id, answer_end_id)
             )
 
-    tokenizer = AutoTokenizer.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad", padding=True, truncation=True, model_max_length=512)
+    tokenizer = AutoTokenizer.from_pretrained(
+        "bert-large-uncased-whole-word-masking-finetuned-squad", padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
         return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")

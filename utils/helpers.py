@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
 import os
 from typing import List
@@ -8,7 +10,7 @@ SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 class DefaultArgParser:
     def __init__(self, supported_frameworks: List[str], default_timeout=60.):
-        self.parser = argparse.ArgumentParser(prog=f"AML model-dedicated runner")
+        self.parser = argparse.ArgumentParser(prog="AML model-dedicated runner")
 
         if len(supported_frameworks) >= 2:
             for framework in supported_frameworks:

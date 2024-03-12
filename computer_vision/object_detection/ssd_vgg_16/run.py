@@ -1,13 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
-import time
 import argparse
-import warnings
-
 import torchvision
-
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
@@ -63,8 +58,8 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
                     output[i]['labels'][d].item()
                 )
 
-    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path, anno_path,
-                          pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
+    dataset = COCODataset(batch_size, "BGR", "COCO_val2014_000000000000", images_path,
+                          anno_path, pre_processing="PyTorch_objdet", sort_ascending=True, order="NCHW")
     runner = PyTorchRunner(torchvision.models.detection.ssd300_vgg16(pretrained=True),
                            disable_jit_freeze=disable_jit_freeze)
 

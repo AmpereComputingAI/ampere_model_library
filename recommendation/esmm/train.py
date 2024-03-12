@@ -1,5 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from sklearn.metrics import roc_auc_score
-
 from utils.recommendation.DeepCTR.deepctr.models import ESMM
 from utils.recommendation.census_income import CensusIncome
 

@@ -1,13 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
-import os
-import sys
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import torch
 import numpy as np
-
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from utils.recommendation.criteo import Criteo, append_dlrm_to_pypath
@@ -68,7 +63,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
         ln_bot=ln_bot,
         ln_top=ln_top,
         arch_interaction_op="dot",
-        sigmoid_top=ln_top.size-2,
+        sigmoid_top=ln_top.size - 2,
         qr_operation="mult",
         qr_collisions=4,
         qr_threshold=200,
@@ -107,7 +102,7 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, de
         ln_bot=ln_bot,
         ln_top=ln_top,
         arch_interaction_op="dot",
-        sigmoid_top=ln_top.size-2,
+        sigmoid_top=ln_top.size - 2,
         qr_operation="mult",
         qr_collisions=4,
         qr_threshold=200,
@@ -120,13 +115,13 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, dataset_path, de
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, debug):
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, debug, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debug)
 
 
 def main():
     args = parse_args()
-     
+
     if args.framework == "pytorch":
         if args.model_path is None:
             print_goodbye_message_and_die(

@@ -1,6 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2019, Myrtle Software Limited. All rights reserved.
 # Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
-# Copyright (c) 2022, Ampere Computing LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@ from typing import List, Optional, Tuple
 import torch
 
 import torch.nn.functional as F
+
 
 class ScriptGreedyDecoder(torch.nn.Module):
     """A greedy transducer decoder.
@@ -100,7 +102,8 @@ class ScriptGreedyDecoder(torch.nn.Module):
 
         return label
 
-    def _pred_step(self, label: int, hidden: Optional[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def _pred_step(self, label: int, hidden: Optional[Tuple[torch.Tensor, torch.Tensor]])\
+            -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         if label == self._SOS:
             return self._model.prediction(None, hidden)
         if label > self._blank_id:
@@ -108,7 +111,7 @@ class ScriptGreedyDecoder(torch.nn.Module):
         label = torch.tensor([[label]], dtype=torch.int64)
         return self._model.prediction(label, hidden)
 
-    def _joint_step(self, enc: torch.Tensor, pred: torch.Tensor, log_normalize: bool=False) -> torch.Tensor:
+    def _joint_step(self, enc: torch.Tensor, pred: torch.Tensor, log_normalize: bool = False) -> torch.Tensor:
         logits = self._model.joint(enc, pred)[:, 0, 0, :]
         if not log_normalize:
             return logits

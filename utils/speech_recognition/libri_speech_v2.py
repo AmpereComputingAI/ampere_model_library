@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 from evaluate import load
 from datasets import load_dataset
@@ -43,6 +45,6 @@ class LibriSpeech(Dataset):
         wer_score = load("wer").compute(
             references=self._librispeech["text"][:self._idx], predictions=self._transcriptions
         )
-        #print("\n  WER score = {:.3f}".format(wer_score))
-        #print(f"\n  Accuracy figures above calculated on the basis of {self._idx} sample(s).")
+        # print("\n  WER score = {:.3f}".format(wer_score))
+        # print(f"\n  Accuracy figures above calculated on the basis of {self._idx} sample(s).")
         return {"wer_score": wer_score}

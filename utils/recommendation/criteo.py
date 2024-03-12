@@ -1,13 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
 import torch
 import numpy as np
 from pathlib import Path
 from sklearn.metrics import roc_auc_score
-
 import utils.misc as utils
 from utils.helpers import Dataset
 
@@ -115,14 +113,14 @@ class Criteo(Dataset):
         self.false_negatives += sum(torch.logical_and(prediction == 0, self.__labels == 1))
 
     def summarize_accuracy(self):
-        accuracy = self.correct_count / self.total_count
-        precision = self.true_positives / (self.true_positives + self.false_positives)
-        recall = self.true_positives / (self.true_positives + self.false_negatives)
+        accuracy = float(self.correct_count / self.total_count)
+        precision = float(self.true_positives / (self.true_positives + self.false_positives))
+        recall = float(self.true_positives / (self.true_positives + self.false_negatives))
         auc = roc_auc_score(np.concatenate(self.predictions), np.concatenate(self.targets))
 
-        #print("\n Accuracy = {:.3f}".format(accuracy.item()))
-        #print("\n Precision = {:.3f}".format(precision.item()))
-        #print("\n Recall = {:.3f}".format(recall.item()))
-        #print("\n AUC = {:.3f}".format(auc))
-        #print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
+        # print("\n Accuracy = {:.3f}".format(accuracy.item()))
+        # print("\n Precision = {:.3f}".format(precision.item()))
+        # print("\n Recall = {:.3f}".format(recall.item()))
+        # print("\n AUC = {:.3f}".format(auc))
+        # print(f"\nAccuracy figures above calculated on the basis of {self.total_count} samples.")
         return {"accuracy": accuracy, "precision": precision, "recall": recall, "auc": auc}

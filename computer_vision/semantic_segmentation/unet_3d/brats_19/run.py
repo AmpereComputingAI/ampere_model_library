@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import argparse
 import pickle
@@ -113,11 +112,10 @@ def main():
             run_pytorch_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
-                "this model seems to be unsupported in a specified precision: " + args.precision)    
+                "this model seems to be unsupported in a specified precision: " + args.precision)
 
     else:
-        print_goodbye_message_and_die(
-            "this model seems to be unsupported in a specified framework: " + args.framework)
+        print_goodbye_message_and_die("this model seems to be unsupported in a specified framework: " + args.framework)
 
 
 if __name__ == "__main__":
