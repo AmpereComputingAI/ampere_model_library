@@ -52,6 +52,10 @@ jobs:
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
       S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
@@ -111,6 +115,10 @@ jobs:
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
       S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
@@ -167,6 +175,10 @@ jobs:
       AIO_DEBUG_MODE: 0
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install Ampere optimized PyTorch
@@ -205,6 +217,10 @@ jobs:
       AIO_DEBUG_MODE: 0
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -263,6 +279,10 @@ jobs:
       AIO_DEBUG_MODE: 0
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -300,6 +320,13 @@ jobs:
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       AIO_NUM_THREADS: 32
       AIO_DEBUG_MODE: 0
+      S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
+      S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
