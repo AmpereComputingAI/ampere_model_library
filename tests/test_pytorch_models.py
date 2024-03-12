@@ -150,7 +150,7 @@ class BERT(unittest.TestCase):
     def setUp(self):
         self.dataset_path = pathlib.Path(get_downloads_path(), "dev-v1.1.json")
         if not self.dataset_path.exists():
-            subprocess.run(f"wget -P /tmp https://data.deepai.org/squad1.1.zip".split(),
+            subprocess.run("wget -P /tmp https://data.deepai.org/squad1.1.zip".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(f"unzip /tmp/squad1.1.zip -d {get_downloads_path()}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -289,17 +289,17 @@ def download_coco_maybe():
 class YOLO(unittest.TestCase):
     def setUp(self):
         self.dataset_path, self.annotations_path = download_coco_maybe()
-        self.yolo_v5_m_path = pathlib.Path(get_downloads_path(), "yolov5m.pt")
+        self.yolo_v5_m_path = pathlib.Path(get_downloads_path(), "yolov5mu.pt")
         if not self.yolo_v5_m_path.exists():
             subprocess.run(
                 f"wget -P {get_downloads_path()} "
-                f"{'https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5m.pt'}".split(),
+                f"{'https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov5mu.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.yolo_v8_s_path = pathlib.Path(get_downloads_path(), "yolov8s.pt")
         if not self.yolo_v8_s_path.exists():
             subprocess.run(
                 f"wget -P {get_downloads_path()} "
-                f"{'https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt'}".split(),
+                f"{'https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def test_yolo_v5_m(self):
