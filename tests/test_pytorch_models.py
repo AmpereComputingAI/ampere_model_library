@@ -146,5 +146,186 @@ class DLRM(unittest.TestCase):
         self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
+class BERT(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path = pathlib.Path(get_downloads_path(), "dev-v1.1.json")
+        if not self.dataset_path.exists():
+            subprocess.run(f"wget -P /tmp https://data.deepai.org/squad1.1.zip".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"unzip /tmp/squad1.1.zip -d {get_downloads_path()}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/squad1.1.zip".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.model_path = pathlib.Path(get_downloads_path(), "bert_large_mlperf.pt")
+        if not self.model_path.exists():
+            subprocess.run(
+                f"wget -O {str(self.model_path)} "
+                f"{'https://zenodo.org/records/3733896/files/model.pytorch?download=1'}".split(),
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def test_bert_large_mlperf(self):
+        from natural_language_processing.extractive_question_answering.bert_large.run_mlperf import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        exact_match_ref, f1_ref = 0.792, 0.825
+        acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
+                                    "batch_size": 1, "num_runs": 24, "timeout": None, "disable_jit_freeze": False})
+        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+
+
+def download_imagenet_maybe():
+    dataset_path = pathlib.Path(get_downloads_path(), "ILSVRC2012_onspecta")
+    if not dataset_path.exists():
+        url = os.environ.get("S3_URL_IMAGENET_DATASET")
+        assert url is not None
+        subprocess.run(f"wget -P /tmp {url}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f"tar -xf /tmp/ILSVRC2012_onspecta.tar.gz -C {get_downloads_path()}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run("rm /tmp/ILSVRC2012_onspecta.tar.gz".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    labels_path = pathlib.Path(get_downloads_path(), "imagenet_labels_onspecta.txt")
+    if not labels_path.exists():
+        url = os.environ.get("S3_URL_IMAGENET_DATASET_LABELS")
+        assert url is not None
+        subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return dataset_path, labels_path
+
+
+class DenseNet(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path, self.labels_path = download_imagenet_maybe()
+
+    def test_densenet_121(self):
+        from computer_vision.classification.densenet_121.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        top_1_ref, top_5_ref = 0.717, 0.905
+        acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+                                    "disable_jit_freeze": False})
+        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+
+
+class Inception(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path, self.labels_path = download_imagenet_maybe()
+
+    def test_inception_v3(self):
+        from computer_vision.classification.inception_v3.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        top_1_ref, top_5_ref = 0.765, 0.932
+        acc = run_process(wrapper, {"model_name": "inception_v3", "images_path": self.dataset_path,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+                                    "disable_jit_freeze": False})
+        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+
+
+class ResNet(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path, self.labels_path = download_imagenet_maybe()
+
+    def test_resnet_50_v15(self):
+        from computer_vision.classification.resnet_50_v15.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        top_1_ref, top_5_ref = 0.717, 0.904
+        acc = run_process(wrapper, {"model_name": "resnet50", "images_path": self.dataset_path,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None})
+        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+
+
+class VGG(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path, self.labels_path = download_imagenet_maybe()
+
+    def test_vgg16(self):
+        from computer_vision.classification.vgg_16.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        top_1_ref, top_5_ref = 0.661, 0.896
+        acc = run_process(wrapper, {"model_name": "vgg16", "images_path": self.dataset_path,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None})
+        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+
+
+def download_coco_maybe():
+    dataset_path = pathlib.Path(get_downloads_path(), "COCO2014_onspecta")
+    if not dataset_path.exists():
+        url = os.environ.get("S3_URL_COCO_DATASET")
+        assert url is not None
+        subprocess.run(f"wget -P /tmp {url}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f"tar -xf /tmp/COCO2014_onspecta.tar.gz -C {get_downloads_path()}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run("rm /tmp/COCO2014_onspecta.tar.gz".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    annotations_path = pathlib.Path(get_downloads_path(), "COCO2014_anno_onspecta.json")
+    if not annotations_path.exists():
+        url = os.environ.get("S3_URL_COCO_DATASET_ANNOTATIONS")
+        assert url is not None
+        subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return dataset_path, annotations_path
+
+
+class YOLO(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path, self.annotations_path = download_coco_maybe()
+        self.yolo_v5_m_path = pathlib.Path(get_downloads_path(), "yolov5m.pt")
+        if not self.yolo_v5_m_path.exists():
+            subprocess.run(
+                f"wget -P {get_downloads_path()} "
+                f"{'https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5m.pt'}".split(),
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.yolo_v8_s_path = pathlib.Path(get_downloads_path(), "yolov8s.pt")
+        if not self.yolo_v8_s_path.exists():
+            subprocess.run(
+                f"wget -P {get_downloads_path()} "
+                f"{'https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt'}".split(),
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def test_yolo_v5_m(self):
+        from computer_vision.object_detection.yolo_v5.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        coco_map_ref = 0.492
+        acc = run_process(wrapper, {"model_path": self.yolo_v5_m_path, "images_path": self.dataset_path,
+                                    "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 100,
+                                    "timeout": None, "disable_jit_freeze": False})
+        self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
+
+    def test_yolo_v8_s(self):
+        from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        coco_map_ref = 0.353
+        acc = run_process(wrapper, {"model_path": self.yolo_v8_s_path, "images_path": self.dataset_path,
+                                    "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 465,
+                                    "timeout": None, "disable_jit_freeze": False})
+        self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
+
+
 if __name__ == "__main__":
     unittest.main()
