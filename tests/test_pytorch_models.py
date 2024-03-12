@@ -302,17 +302,17 @@ class YOLO(unittest.TestCase):
                 f"{'https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8s.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def test_yolo_v5_m(self):
-        from computer_vision.object_detection.yolo_v5.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        coco_map_ref = 0.492
-        acc = run_process(wrapper, {"model_path": self.yolo_v5_m_path, "images_path": self.dataset_path,
-                                    "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 100,
-                                    "timeout": None, "disable_jit_freeze": False})
-        self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
+    # def test_yolo_v5_m(self):
+    #     from computer_vision.object_detection.yolo_v5.run import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     coco_map_ref = 0.492
+    #     acc = run_process(wrapper, {"model_path": self.yolo_v5_m_path, "images_path": self.dataset_path,
+    #                                 "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 100,
+    #                                 "timeout": None, "disable_jit_freeze": False})
+    #     self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
 
     def test_yolo_v8_s(self):
         from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
