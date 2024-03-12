@@ -31,8 +31,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
 
     def run_single_pass(pytorch_runner, kits):
         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
-        output = output["output_0"]
-        kits.submit_predictions(output)
+        kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
 
     dataset = KiTS19(dataset_dir_path=kits_path)
     model = torch.jit.load(model_path, map_location=torch.device('cpu'))
