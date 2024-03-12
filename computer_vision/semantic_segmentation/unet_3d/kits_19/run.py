@@ -30,7 +30,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
     from utils.pytorch import PyTorchRunnerV2
 
     def run_single_pass(pytorch_runner, kits):
-        output = pytorch_runner.run(1, tf.constant(np.expand_dims(kits.get_input_array(), axis=0)))
+        output = pytorch_runner.run(1, kits.get_input_array())
         output = output["output_0"]
         kits.submit_predictions(output)
 
