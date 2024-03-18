@@ -48,7 +48,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
         kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
 
     dataset = KiTS19(dataset_dir_path=kits_path)
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=torch.device('cpu'))
     model.eval()
     model = apply_jit_script(model)
     runner = PyTorchRunnerV2(model)
