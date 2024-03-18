@@ -26,22 +26,22 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
+# def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
+#     from utils.pytorch import PyTorchRunnerV2
+#
+#     def run_single_pass(pytorch_runner, kits):
+#         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
+#         kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
+#
+#     dataset = KiTS19(dataset_dir_path=kits_path)
+#     model = torch.jit.load(model_path, map_location=torch.device('cpu'))
+#     runner = PyTorchRunnerV2(model)
+#
+#     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+
+
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
-    from utils.pytorch import PyTorchRunnerV2
-
-    def run_single_pass(pytorch_runner, kits):
-        output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
-        kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
-
-    dataset = KiTS19(dataset_dir_path=kits_path)
-    model = torch.jit.load(model_path, map_location=torch.device('cpu'))
-    runner = PyTorchRunnerV2(model)
-
-    return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
-
-
-def run_pytorch_fp_1(model_path, num_runs, timeout, kits_path):
-    from utils.pytorch import PyTorchRunnerV2, apply_jit_script, apply_jit_trace
+    from utils.pytorch import PyTorchRunnerV2, apply_jit_script
 
     def run_single_pass(pytorch_runner, kits):
         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
@@ -64,13 +64,9 @@ def run_pytorch_fp32(model_path, num_runs, timeout, kits_path, **kwargs):
     return run_pytorch_fp(model_path, num_runs, timeout, kits_path)
 
 
-def run_pytorch_fp32_1(model_path, num_runs, timeout, kits_path, **kwargs):
-    return run_pytorch_fp_1(model_path, num_runs, timeout, kits_path)
-
-
 def main():
     from utils.helpers import DefaultArgParser
-    parser = DefaultArgParser(["tf", "pytorch", "pytorch_1"])
+    parser = DefaultArgParser(["tf", "pytorch"])
     parser.require_model_path()
     parser.add_argument("--kits_path",
                         type=str,
@@ -79,10 +75,8 @@ def main():
     args = parser.parse()
     if args.framework == 'tf':
         run_tf_fp32(**vars(parser.parse()))
-    elif args.framework == 'pytorch':
-        run_pytorch_fp32(**vars(parser.parse()))
     else:
-        run_pytorch_fp32_1(**vars(parser.parse()))
+        run_pytorch_fp32(**vars(parser.parse()))
 
 
 if __name__ == "__main__":
