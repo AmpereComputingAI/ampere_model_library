@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from evaluate import load
 from datasets import load_dataset
 import utils.misc as utils
