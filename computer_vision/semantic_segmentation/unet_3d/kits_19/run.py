@@ -70,7 +70,7 @@ def run_pytorch_fp32_1(model_path, num_runs, timeout, kits_path, **kwargs):
 
 def main():
     from utils.helpers import DefaultArgParser
-    parser = DefaultArgParser(["tf", "pytorch"])
+    parser = DefaultArgParser(["tf", "pytorch", "pytorch_1"])
     parser.require_model_path()
     parser.add_argument("--kits_path",
                         type=str,
@@ -79,8 +79,10 @@ def main():
     args = parser.parse()
     if args.framework == 'tf':
         run_tf_fp32(**vars(parser.parse()))
-    else:
+    elif args.framework == 'pytorch':
         run_pytorch_fp32(**vars(parser.parse()))
+    else:
+        run_pytorch_fp32_1(**vars(parser.parse()))
 
 
 if __name__ == "__main__":
