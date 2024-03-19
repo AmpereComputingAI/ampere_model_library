@@ -27,7 +27,7 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
 
 
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
-    from utils.pytorch import PyTorchRunnerV2
+    from utils.pytorch import PyTorchRunnerV2, apply_jit_script, apply_jit_trace
 
     def run_single_pass(pytorch_runner, kits):
         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
@@ -36,6 +36,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
     dataset = KiTS19(dataset_dir_path=kits_path)
     model = torch.jit.load(model_path, map_location=torch.device('cpu'))
     model.eval()
+    model = apply_jit_script(model)
     runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
