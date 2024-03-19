@@ -26,34 +26,36 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-# def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
-#     from utils.pytorch import PyTorchRunnerV2
-#
-#     def run_single_pass(pytorch_runner, kits):
-#         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
-#         kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
-#
-#     dataset = KiTS19(dataset_dir_path=kits_path)
-#     model = torch.jit.load(model_path, map_location=torch.device('cpu'))
-#     runner = PyTorchRunnerV2(model)
-#
-#     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
-
-
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
-    from utils.pytorch import PyTorchRunnerV2, apply_jit_script
+    from utils.pytorch import PyTorchRunnerV2
 
     def run_single_pass(pytorch_runner, kits):
         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
         kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
 
     dataset = KiTS19(dataset_dir_path=kits_path)
-    model = torch.load(model_path, map_location=torch.device('cpu'))
+    model = torch.jit.load(model_path, map_location=torch.device('cpu'))
     model.eval()
-    model = apply_jit_script(model)
     runner = PyTorchRunnerV2(model)
 
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
+
+
+# def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
+#     from utils.pytorch import PyTorchRunnerV2, apply_jit_script
+#
+#     def run_single_pass(pytorch_runner, kits):
+#         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
+#         kits.submit_predictions(tf.convert_to_tensor(output.numpy()))
+#
+#     dataset = KiTS19(dataset_dir_path=kits_path)
+#     dlrm.load_state_dict(torch.load(model_path)["state_dict"])
+#     model = torch.load(model_path, map_location=torch.device('cpu'))
+#     model.eval()
+#     model = apply_jit_script(model)
+#     runner = PyTorchRunnerV2(model)
+#
+#     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
 def run_tf_fp32(model_path, num_runs, timeout, kits_path, **kwargs):
