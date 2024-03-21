@@ -5,7 +5,7 @@ import sys
 import torch
 
 
-def run_pytorch_fp32(model_name, num_runs, timeout, **kwargs):
+def run_pytorch_fp32(model_name, num_runs, timeout, dataset_path, **kwargs):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -28,7 +28,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout, **kwargs):
         return transcribe(model, audio, verbose=None, task="translate", language="ja")
 
     runner = PyTorchRunnerV2(translate_wrapper, throughput_only=True)
-    librispeech = Covost2()
+    librispeech = Covost2(dataset_path)
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
@@ -39,5 +39,5 @@ if __name__ == "__main__":
     whisper_variants = ["tiny", "base", "small", "medium", "large"]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
-
+    parser.add_argument("--dataset_path", type=str, required=True, help="path to the CommonVoice Japanese dataset directory")
     run_pytorch_fp32(**vars(parser.parse()))
