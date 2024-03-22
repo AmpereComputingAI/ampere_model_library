@@ -36,7 +36,7 @@ def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
     dataset = KiTS19(dataset_dir_path=kits_path)
     model = torch.jit.load(model_path, map_location=torch.device('cpu'))
     model.eval()
-    torch.jit.freeze(model)
+    model = torch.jit.freeze(model)
     # model = apply_jit_script(model)
     # model = apply_jit_trace(model, torch.from_numpy(np.expand_dims(dataset.get_input_array(), axis=0)))
     runner = PyTorchRunnerV2(model)
