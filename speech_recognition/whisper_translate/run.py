@@ -39,5 +39,6 @@ if __name__ == "__main__":
     whisper_variants = ["tiny", "base", "small", "medium", "large"]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
-    parser.add_argument("--dataset_path", type=str, required=True, help="path to the CommonVoice Japanese dataset directory")
+    parser.add_argument("--dataset_path", type=str, required=True,
+                        help="path to the CommonVoice Japanese dataset directory")
     run_pytorch_fp32(**vars(parser.parse()))
