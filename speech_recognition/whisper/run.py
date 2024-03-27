@@ -2,8 +2,7 @@ import os
 import sys
 import torch
 
-
-def run_pytorch_fp32(model_name, num_runs, timeout):
+def run_pytorch(model_name, num_runs, timeout, use_torch_fp16=False):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -14,6 +13,10 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     from speech_recognition.whisper.whisper.whisper.transcribe import transcribe
     model = load_model(model_name)
     model.eval()
+    if use_torch_fp16:
+        model = model.half()
+        model._encoder.half()
+        model._decoder.half()
 
     def single_pass_pytorch(_runner, _librispeech):
         array = _librispeech.get_input_array()
@@ -22,8 +25,10 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
             _runner.run(batch_size * array.shape[0], audio)["text"].lstrip().replace(".", "").upper()
         )
 
+    decode_options = {"fp16": use_torch_fp16}
+
     def transcribe_wrapper(audio):
-        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None)
+        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None, **decode_options)
 
     runner = PyTorchRunnerV2(transcribe_wrapper, throughput_only=True)
     librispeech = LibriSpeech()
@@ -31,6 +36,11 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
 
+def run_pytorch_fp32(model_name, num_runs, timeout):
+    return run_pytorch(model_name, num_runs, timeout, use_torch_fp16=False)
+
+def run_pytorch_fp16(model_name, num_runs, timeout):
+    return run_pytorch(model_name, num_runs, timeout, use_torch_fp16=True)
 
 def run_pytorch_cuda(model_name, num_runs, timeout):
     batch_size = 1
