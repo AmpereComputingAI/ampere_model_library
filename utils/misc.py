@@ -38,8 +38,8 @@ class FrameworkUnsupportedError(Exception):
 
 def ensure_no_override(func):
     def check(self, *args, **kwargs):
-        assert self.__class__.__dict__.get(
-            func.__name__) is func, f"{self.__class__.__name__}.{func.__name__} has been overridden"
+        assert self.__class__.__dict__.get(func.__name__) is func, \
+            f"{self.__class__.__name__}.{func.__name__} has been overridden"
         return func(self, *args, **kwargs)
     return check
 
