@@ -1,6 +1,7 @@
-# Copyright (c) 2017 Keith Ito
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2017 Keith Ito
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Regular expression matching whitespace:
+import re
+from unidecode import unidecode
+from .numbers import normalize_numbers
+
 """ from https://github.com/keithito/tacotron
 Modified to add punctuation removal
 """
@@ -22,11 +28,6 @@ Modified to add punctuation removal
 Cleaners are transformations that run over the input text at both training and eval time.
 '''
 
-
-# Regular expression matching whitespace:
-import re
-from unidecode import unidecode
-from .numbers import normalize_numbers
 _whitespace_re = re.compile(r'\s+')
 
 # List of (regular expression, replacement) pairs for abbreviations:
@@ -57,11 +58,13 @@ def expand_abbreviations(text):
         text = re.sub(regex, replacement, text)
     return text
 
+
 def remove_punctuation(text, table):
     text = text.translate(table)
     text = re.sub(r'&', " and ", text)
     text = re.sub(r'\+', " plus ", text)
     return text
+
 
 def english_cleaners(text, table=None):
     '''Pipeline for English text, including number and abbreviation expansion.'''

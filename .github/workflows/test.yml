@@ -13,20 +13,31 @@ jobs:
   linter:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
-    name: Lint - Flake8
+    name: Flake8, intellectual property compliance
     steps:
-      - name: Install git & flake8
+      - name: Install deps
         run:
-          apt-get update && apt-get install -y git python3-pip && pip3 install flake8
+          apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
 
-      - name: Git checkout
+      - name: Git checkout w/o submodules
         uses: actions/checkout@v4
         with:
           submodules: false
 
       - name: Lint with flake8
         run:
-          python3 -m flake8 --max-complexity=10 --max-line-length=120 --statistics --exit-zero
+          python3 -m flake8
+
+      - name: Git checkout w/ submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: True
+
+      - name: Check for intellectual property compliance
+        run: |
+          git config --global --add safe.directory $(pwd)
+          python3 -m unittest tests.test_ip
 
   test_x86:
     runs-on: ubuntu-latest
@@ -37,6 +48,15 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 4
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
+      S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
+      S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
         run:
@@ -50,17 +70,17 @@ jobs:
       - name: Set up AML
         run:
           FORCE_INSTALL=1 bash setup_deb.sh
+
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
       
-      - name: AML imports test
-        run:
-          python3 utils/tests/setup_test_utils/attempt_imports.py
-      
-      - name: AML smoke test
+      - name: End-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
           python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
           python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
@@ -70,7 +90,7 @@ jobs:
           
           python3 speech_recognition/whisper/run.py -m small.en
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
           python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
           wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
@@ -91,6 +111,15 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 32
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
+      S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
+      S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
         run:
@@ -105,12 +134,16 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML smoke test
+      - name: Unittest
+        run: |
+          python3 -m unittest tests.test_pytorch_models
+
+      - name: End-user smoke test
         run: |            
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
           python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
           python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
@@ -120,7 +153,7 @@ jobs:
           
           python3 speech_recognition/whisper/run.py -m small.en
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
           python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
           wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
@@ -136,6 +169,17 @@ jobs:
       image: ubuntu:22.04
       options: --memory=170g
     name: Ampere Altra - Ampere optimized PyTorch (shell installer)
+    env:
+      PYTHONPATH: ./
+      AIO_NUM_THREADS: 32
+      AIO_DEBUG_MODE: 0
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
+      S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install Ampere optimized PyTorch
         run: |
@@ -151,9 +195,13 @@ jobs:
         run:
           bash setup_deb.sh
 
+      - name: Unittest
+        run: |
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 -m unittest tests.test_pytorch_models
+
       - name: benchmark.py test
         run: |
-          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive
+          PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive --model resnet_50_v1.5 
 
   test_pytorch_arm64_docker:
     runs-on: self-hosted
@@ -166,6 +214,13 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       AIO_NUM_THREADS: 32
+      AIO_DEBUG_MODE: 0
+      S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
+      S3_URL_ALPACA_PYTORCH_FP32: ${{ secrets.S3_URL_ALPACA_PYTORCH_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -178,18 +233,22 @@ jobs:
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
+      - name: Unittest
+        run: |
+          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 -m unittest tests.test_pytorch_models
+
       - name: benchmark.py test
         run: |
           { echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y"; echo "y";  } | PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py
           # testing second time to ensure that left-over files don't interrupt, etc. - this time no-interactive mode
           PYTHONPATH=/__w/ampere_model_library/ampere_model_library python3 benchmark.py --no-interactive --memory 30 --max-threads 24
 
-      - name: AML smoke test
+      - name: AML end-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
-          wget https://ampereaimodelzoo.s3.amazonaws.com/alpaca_data.json > /dev/null 2>&1
+          wget https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
           
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 recommendation/dlrm_torchbench/run.py -p fp32
@@ -203,7 +262,7 @@ jobs:
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
           
-          wget -O bert_large_mlperf.pt https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/bert_large_pytorch_fp32.pytorch > /dev/null 2>&1
+          wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1 > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
 
   test_tensorflow_arm64:
@@ -217,6 +276,13 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       AIO_NUM_THREADS: 32
+      AIO_DEBUG_MODE: 0
+      S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
+      S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -229,17 +295,17 @@ jobs:
           bash setup_deb.sh
           echo $HF_HUB_TOKEN > ~/.cache/huggingface/token
 
-      - name: AML smoke test
+      - name: End-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_huggingface.py -m bert-large-cased-whole-word-masking-finetuned-squad 
 
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/resnet_50_v15_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
           IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -b 32 -p fp32 -f tf --timeout=60
           
-          wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ssd_inception_v2_tf_fp32.pb > /dev/null 2>&1
+          wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -b 8 -p fp32 --timeout=60
 
   test_onnxrt_arm64:
@@ -253,6 +319,14 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       AIO_NUM_THREADS: 32
+      AIO_DEBUG_MODE: 0
+      S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
+      S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
+      S3_URL_IMAGENET_DATASET: ${{ secrets.S3_URL_IMAGENET_DATASET }}
+      S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
+      S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
+      S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
@@ -263,7 +337,7 @@ jobs:
         run:
           bash setup_deb.sh
 
-      - name: AML smoke test
+      - name: End-user smoke test
         run: |
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null

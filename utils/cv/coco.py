@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import pathlib
 import numpy as np
@@ -192,7 +191,7 @@ class COCOBaseDataset(ImageDataset):
         coco_eval.evaluate()
         coco_eval.accumulate()
         coco_eval.summarize()
-        #print(f"\nAccuracy figures above calculated on the basis of {self._current_img} images.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self._current_img} images.")
         return {"coco_map": coco_eval.stats[0]}
 
 

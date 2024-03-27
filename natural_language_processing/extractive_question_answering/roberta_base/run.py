@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
 import numpy as np
 from utils.benchmark import run_model
@@ -102,6 +101,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
 
 def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
     from utils.pytorch import PyTorchRunner
+    from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
     def run_single_pass(pytorch_runner, squad):
         output = pytorch_runner.run(batch_size, **{k: v.cuda() for k, v in squad.get_input_arrays().items()})

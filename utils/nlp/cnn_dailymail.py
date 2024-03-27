@@ -1,9 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import numpy as np
 import re
 import string
 from collections import Counter
 import pathlib
-
 import utils.misc as utils
 from utils.helpers import Dataset
 
@@ -32,7 +33,7 @@ class CNN_DailyMail(Dataset):
         self.available_instances = sum(1 for _ in self.__load(dataset_path))
         self.__current_inputs = None
         self.__rouge2_count = 0
-    
+
     def __load(self, dataset_path):
         """
         A function loading CNN/DailyMail dataset.
@@ -41,7 +42,7 @@ class CNN_DailyMail(Dataset):
         :return: dictionary with nested dictionaries / lists, dataset
         """
         return pathlib.Path(dataset_path).rglob("*.story")
-    
+
     def __examples(self):
         """
         A generator of examples iterating over the dataset with per story stepping.
@@ -90,7 +91,6 @@ class CNN_DailyMail(Dataset):
                 self.__texts_count += 1
                 self.__unsubmitted_count += 1
             self.__current_inputs = self.__tokenize_func(texts)
-            
 
     def __get_input_array(self, input_name: string):
         """
@@ -143,7 +143,6 @@ class CNN_DailyMail(Dataset):
 
     def get_token_type_ids_array(self):
         return self.__get_input_array("token_type_ids")
-
 
     def submit_prediction(self, id_in_batch: int, summary: string):
         """
@@ -199,7 +198,7 @@ class CNN_DailyMail(Dataset):
             recall = 1.0 * num_same / len(ground_truth_tokens)
             rouge2 = (2 * precision * recall) / (precision + recall)
             return rouge2
-        
+
         def get_bigrams(text):
             """
             A function splitting text into bigrams (a sequence of two adjacent words).
@@ -226,7 +225,7 @@ class CNN_DailyMail(Dataset):
                 "Summaries for some of the issued texts have not been submitted.")
 
         rouge2 = self.__rouge2_count / self.__texts_count
-        #print(" ROUGE-2 = {:.3f}".format(rouge2))
+        # print(" ROUGE-2 = {:.3f}".format(rouge2))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} summaries generated.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__texts_count} summaries generated.")
         return {"rouge2": rouge2}

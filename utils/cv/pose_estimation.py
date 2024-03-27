@@ -1,19 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import cv2
-import numpy as np
-import pandas as pd
-import skimage.io as io
-import tensorflow as tf
 from PIL import Image
 from tensorflow.keras.utils import Sequence
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
-import numpy as np
 import pandas as pd
-import skimage.io as io
 import numpy as np
 
-#converting anns to df
+
+# converting anns to df
 def get_meta(coco):
     ids = list(coco.imgs.keys())
     for i, img_id in enumerate(ids):
@@ -24,17 +21,18 @@ def get_meta(coco):
         w = img_meta['width']
         h = img_meta['height']
         url = img_meta['coco_url']
-        
+
         yield img_id, img_file_name, w, h, url, anns
+
 
 def convert_to_df(coco, data_set):
     images_data = []
     persons_data = []
     gen = get_meta(coco)
-    for img_id, img_fname, w, h, url, meta in gen:        
+    for img_id, img_fname, w, h, url, meta in gen:
         images_data.append({
             'image_id': int(img_id),
-            'src_set_image_id': int(img_id), # repeat id to reference after join
+            'src_set_image_id': int(img_id),  # repeat id to reference after join
             'coco_url': url,
             'path': data_set + '/' + img_fname,
             'width': int(w),
@@ -46,7 +44,7 @@ def convert_to_df(coco, data_set):
                 'image_id': m['image_id'],
                 'is_crowd': m['iscrowd'],
                 'bbox': m['bbox'],
-                'bbox_area' : m['bbox'][2] * m['bbox'][3],
+                'bbox_area': m['bbox'][2] * m['bbox'][3],
                 'area': m['area'],
                 'num_keypoints': m['num_keypoints'],
                 'keypoints': m['keypoints'],
@@ -61,14 +59,14 @@ def convert_to_df(coco, data_set):
 
     return images_df, persons_df
 
-def get_df(path_to_val_anns):    
-    val_coco = COCO(path_to_val_anns) # load annotations for validation set
+
+def get_df(path_to_val_anns):
+    val_coco = COCO(path_to_val_anns)  # load annotations for validation set
     images_df, persons_df = convert_to_df(val_coco, 'val2017')
     val_coco_df = pd.merge(images_df, persons_df, right_index=True, left_index=True)
 
     return val_coco_df
     # ^ Dataframe containing all val and test keypoint annotations
-
 
 
 def transform_bbox_square(bbox, slack=1):
@@ -85,8 +83,8 @@ def transform_bbox_square(bbox, slack=1):
         ##
     """
     x, y, w, h = [i for i in bbox]  # (x,y,w,h) anchored to top left
-    center_x = x+w/2
-    center_y = y+h/2
+    center_x = x + w / 2
+    center_y = y + h / 2
 
     if w >= h:
         new_w = w
@@ -97,22 +95,23 @@ def transform_bbox_square(bbox, slack=1):
 
     new_w *= slack  # add slack to bbox
     new_h *= slack  # add slack to bbox
-    new_x = center_x - new_w/2
-    new_y = center_y - new_h/2
-    return (round(new_x), round(new_y), round(new_x+new_w), round(new_y+new_h))
+    new_x = center_x - new_w / 2
+    new_y = center_y - new_h / 2
+    return (round(new_x), round(new_y), round(new_x + new_w), round(new_y + new_h))
+
 
 class PoseEstimationDataset:
     def __init__(self, anno_path, images_path, size, bbox_min_size=900, min_kp=4):
         df = get_df(anno_path)
         df = df.groupby('src_set_image_id').filter(lambda x: x.shape[0] == 1)
-        df = df.loc[df['is_crowd'] == 0] # drop crowd anns
-        df = df.loc[df['num_keypoints'] > min_kp] # drop anns containing x kps
+        df = df.loc[df['is_crowd'] == 0]  # drop crowd anns
+        df = df.loc[df['num_keypoints'] > min_kp]  # drop anns containing x kps
         df = df.loc[df['bbox_area'] > bbox_min_size]
         df = df.reset_index(drop=True)
-        dataset = DataGenerator(df=df,base_dir=images_path,
-                                input_dim=(size,size),
-                                output_dim=(4,4),
-                                num_hg_blocks=1, # does not matter
+        dataset = DataGenerator(df=df, base_dir=images_path,
+                                input_dim=(size, size),
+                                output_dim=(4, 4),
+                                num_hg_blocks=1,  # does not matter
                                 shuffle=True,
                                 batch_size=1,
                                 online_fetch=False,
@@ -123,14 +122,14 @@ class PoseEstimationDataset:
         self.cocoGt = COCO(anno_path)
 
         self.image_ids = []
-        self.oks_values = [] 
+        self.oks_values = []
 
     def submit_keypoint_prediction(self, image_id, keypoints_with_scores, metadata):
-        pred = keypoints_with_scores[0,0].copy()
-        pred[:,:2] *= metadata['input_dim'][0]
-        pred[:,:2] = pred[:,:2].round()
-        pred[:,[0,1]] = pred[:,[1,0]]
-        image_id, oks = self.movenetcoco(metadata, pred.ravel() )
+        pred = keypoints_with_scores[0, 0].copy()
+        pred[:, :2] *= metadata['input_dim'][0]
+        pred[:, :2] = pred[:, :2].round()
+        pred[:, [0, 1]] = pred[:, [1, 0]]
+        image_id, oks = self.movenetcoco(metadata, pred.ravel())
         self.image_ids.append(image_id)
         self.oks_values.append(oks)
 
@@ -141,15 +140,16 @@ class PoseEstimationDataset:
         """
         return oks_eval(self.image_ids, self.oks_values, self.cocoGt)
 
+
 class DataGenerator(Sequence):
 
-    def __init__(self, df, base_dir, input_dim, output_dim, num_hg_blocks, shuffle=False, \
-        batch_size=12, online_fetch=False, is_eval=False, bbox_slack=1.3):
+    def __init__(self, df, base_dir, input_dim, output_dim, num_hg_blocks, shuffle=False, batch_size=12,
+                 online_fetch=False, is_eval=False, bbox_slack=1.3):
 
-        self.df = df                    # df of the the annotations we want
-        self.base_dir = base_dir        # where to read imgs from in collab runtime        
-        self.input_dim = input_dim      # model requirement for input image dimensions
-        self.output_dim = output_dim    # dimesnions of output heatmap of model
+        self.df = df  # df of the the annotations we want
+        self.base_dir = base_dir  # where to read imgs from in collab runtime
+        self.input_dim = input_dim  # model requirement for input image dimensions
+        self.output_dim = output_dim  # dimesnions of output heatmap of model
         self.num_hg_blocks = num_hg_blocks
         self.shuffle = shuffle
         self.batch_size = batch_size
@@ -166,7 +166,8 @@ class DataGenerator(Sequence):
     # number of batches (not number of examples)
     def __len__(self):
         return int(len(self.df) / self.batch_size)
-    #this transforms image 
+
+    # this transforms image
     def transform_image(self, img, bbox):
         new_bbox = transform_bbox_square(bbox, slack=self.bbox_slack)
         cropped_img = img.crop(box=new_bbox)
@@ -175,14 +176,14 @@ class DataGenerator(Sequence):
                              interpolation=cv2.INTER_LINEAR)
         return new_img, cropped_width, cropped_height, new_bbox[0], new_bbox[1]
 
-    #this transforms keypoints, both happen differently 
+    # this transforms keypoints, both happen differently
     def transform_label(self, label, cropped_width, cropped_height, anchor_x, anchor_y):
         label = [int(v) for v in label]
         # adjust x/y coords to new resized img
         transformed_label = []
-        for x, y, v in zip(*[iter(label)]*3):
-            x = round((x-anchor_x) * self.input_dim[0]/cropped_width)
-            y = round((y-anchor_y) * self.input_dim[1]/cropped_height)
+        for x, y, v in zip(*[iter(label)] * 3):
+            x = round((x - anchor_x) * self.input_dim[0] / cropped_width)
+            y = round((y - anchor_y) * self.input_dim[1] / cropped_height)
             # validate kps, throw away if out of bounds
             # TODO: if kp is thrown away then we must update num_keypoints
             if (x > self.input_dim[0] or x < 0) or (y > self.input_dim[1] or y < 0):
@@ -191,18 +192,16 @@ class DataGenerator(Sequence):
             transformed_label.append(x)
             transformed_label.append(y)
             transformed_label.append(v)
-        return np.asarray(transformed_label) 
-    
+        return np.asarray(transformed_label)
 
-    # returns batch at index idx
+        # returns batch at index idx
 
-    
     def __getitem__(self, idx):
         """
         Returns a batch from the dataset
         ### Parameters:
         idx : {int-type} Batch number to retrieve
-        ### Returns:    
+        ### Returns:
         X : ndarray of shape (batch number, input_dim1, input_dim2, 3)
             This corresponds to a batch of images, normalized from [0,255] to [0,1]
         """
@@ -211,7 +210,7 @@ class DataGenerator(Sequence):
 
         metadatas = []
         # get the indices of the requested batch
-        indices = self.indices[idx*self.batch_size:(idx+1)*self.batch_size]
+        indices = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
         for i, data_index in enumerate(indices):
             ann = self.df.loc[data_index]
             img_path = os.path.join(self.base_dir, ann['path'])
@@ -220,7 +219,7 @@ class DataGenerator(Sequence):
 
             transformed_img, cropped_width, cropped_height, anchor_x, anchor_y = self.transform_image(
                 img, ann['bbox'])
-            #transform label is transforming wrt keypoints
+            # transform label is transforming wrt keypoints
             transformed_label = self.transform_label(
                 ann['keypoints'], cropped_width, cropped_height, anchor_x, anchor_y)
 
@@ -235,13 +234,13 @@ class DataGenerator(Sequence):
                 metadata["anchor_y"] = anchor_y
                 metadata["input_dim"] = self.input_dim
                 metadata["output_dim"] = self.output_dim
-                metadata["transformed_label"] = transformed_label #DEBUG
-                metadata["ground_truth_keypoints"] = ann['keypoints'] #DEBUG
+                metadata["transformed_label"] = transformed_label  # DEBUG
+                metadata["ground_truth_keypoints"] = ann['keypoints']  # DEBUG
                 metadatas.append(metadata)
-            #no need to scale
+            # no need to scale
             normalized_img = transformed_img
-            
-            X[i, ] = normalized_img  
+
+            X[i,] = normalized_img
 
         if self.is_eval:
             return X, metadatas
@@ -250,19 +249,18 @@ class DataGenerator(Sequence):
 
 
 class MoveNetCoco:
-    ## taking pred of movenet and translate back keypoints(along with person) to original coco image dims
+    # taking pred of movenet and translate back keypoints(along with person) to original coco image dims
     def __call__(self, metadata, untransformed_predictions):
         metadata = self._undo_bounding_box_transformations(metadata, untransformed_predictions)
         oks = self._create_oks_obj(metadata)
         image_id = metadata['src_set_image_id']
         return image_id, oks
 
-
     def _undo_x(self, metadata, untransformed_x):
-      predicted_x = round(untransformed_x * metadata['cropped_width'] / metadata['input_dim'][0] + metadata['anchor_x'])
-      return round(predicted_x)
+        predicted_x = round(
+            untransformed_x * metadata['cropped_width'] / metadata['input_dim'][0] + metadata['anchor_x'])
+        return round(predicted_x)
 
-    
     def _undo_y(self, metadata, untransformed_y):
         """
         Parameters
@@ -272,10 +270,10 @@ class MoveNetCoco:
         untransformed_y : int
         x coordinate to
         """
-        predicted_y = round(untransformed_y * metadata['cropped_height'] / metadata['input_dim'][1] + metadata['anchor_y'])
+        predicted_y = round(
+            untransformed_y * metadata['cropped_height'] / metadata['input_dim'][1] + metadata['anchor_y'])
         return round(predicted_y)
 
-    
     def _undo_bounding_box_transformations(self, metadata, untransformed_predictions):
         """
         Parameters
@@ -288,8 +286,8 @@ class MoveNetCoco:
         """
 
         untransformed_predictions = untransformed_predictions.flatten()
-        NUM_COCO_KEYPOINTS = 17 # Number of joints to detect
-        NUM_COCO_KP_ATTRBS = 3 # (x,y,v) * 17 keypoints
+        NUM_COCO_KEYPOINTS = 17  # Number of joints to detect
+        NUM_COCO_KP_ATTRBS = 3  # (x,y,v) * 17 keypoints
         predicted_labels = np.zeros(NUM_COCO_KEYPOINTS * NUM_COCO_KP_ATTRBS)
         list_of_scores = np.zeros(NUM_COCO_KEYPOINTS)
 
@@ -309,7 +307,7 @@ class MoveNetCoco:
                 vis_new = 1
                 list_of_scores[i] = conf
 
-            predicted_labels[base]     = x_new
+            predicted_labels[base] = x_new
             predicted_labels[base + 1] = y_new
             predicted_labels[base + 2] = vis_new
 
@@ -318,7 +316,7 @@ class MoveNetCoco:
         return metadata
 
     def _create_oks_obj(self, metadata):
-        #oks is dict like iou, format that coco class is accepting to cal cross-val score
+        # oks is dict like iou, format that coco class is accepting to cal cross-val score
         oks_obj = {}
         oks_obj["image_id"] = int(metadata['src_set_image_id'])
         oks_obj["ann_id"] = int(metadata['ann_id'])
@@ -328,19 +326,17 @@ class MoveNetCoco:
         return oks_obj
 
 
-
-
 def oks_eval(image_ids, list_of_predictions, cocoGt):
-    cocoDt=cocoGt.loadRes(list_of_predictions)
+    cocoDt = cocoGt.loadRes(list_of_predictions)
 
     # Convert keypoint predictions to int type
     for i in range(len(list_of_predictions)):
         list_of_predictions[i]["keypoints"] = list_of_predictions[i]["keypoints"].astype('int')
 
     annType = "keypoints"
-    cocoEval = COCOeval(cocoGt,cocoDt,annType)
+    cocoEval = COCOeval(cocoGt, cocoDt, annType)
     cocoEval.params.imgIds = image_ids
-    cocoEval.params.catIds = [1] # Person category
+    cocoEval.params.catIds = [1]  # Person category
     cocoEval.evaluate()
     cocoEval.accumulate()
     print('\nSummary: ')
@@ -359,8 +355,3 @@ def oks_eval(image_ids, list_of_predictions, cocoGt):
         'Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ]': stats[9]
     }
     return oks
-
-
-
-
-

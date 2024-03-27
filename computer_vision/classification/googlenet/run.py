@@ -1,17 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
 import os
 import warnings
-
 import torch
 import torchvision
-
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
-
 warnings.filterwarnings("ignore")
 
 

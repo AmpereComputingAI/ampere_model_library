@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 import os
-
 import numpy as np
 import pathlib
 import utils.misc as utils
@@ -162,10 +161,10 @@ class ImageNet(ImageDataset):
             return {}
 
         top_1_accuracy = self.__top_1_count / self.__current_img
-        #print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
+        # print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
 
         top_5_accuracy = self.__top_5_count / self.__current_img
-        #print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
+        # print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
         return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}

@@ -21,7 +21,7 @@ Based on 10 images for PyTorch framework
 
 ### Dataset and models
 
-Dataset can be downloaded here: https://www.dropbox.com/s/effs1ksevlwrpqn/brats_19.tar.gz
+Dataset can be downloaded here: censored due to licensing
 
 Extract the dataset:
 ```

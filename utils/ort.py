@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
+import os
+import time
 import onnxruntime as ort
-from utils.benchmark import *
+from utils.benchmark import get_intra_op_parallelism_threads, Runner
 from utils.misc import advertise_aio, check_memory_settings
 
 

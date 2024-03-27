@@ -1,5 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
-# Copyright (c) 2022, Ampere Computing LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,8 +74,8 @@ class Manifest(object):
             # _ -> underscore
             # % -> percent
             # If a punctuation symbol is inside our vocab, we do not remove from text
-            for l in labels:
-                punctuation = punctuation.replace(l, "")
+            for ll in labels:
+                punctuation = punctuation.replace(ll, "")
             # Turn all punctuation to whitespace
             table = str.maketrans(punctuation, " " * len(punctuation))
         for manifest_path in manifest_paths:

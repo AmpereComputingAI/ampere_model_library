@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import numpy as np
-
 from utils.cv.coco import COCODataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
@@ -68,8 +65,8 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
                 coco.translate_cat_id_to_coco(int(out_classes[d]))
             )
 
-    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
-                          pre_processing="YOLO", order="NCHW")
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
+                          anno_path, pre_processing="YOLO", order="NCHW")
     runner = OrtRunner(model_path)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)

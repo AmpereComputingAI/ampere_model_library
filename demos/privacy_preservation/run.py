@@ -1,7 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
 import os
 import time
-from pathlib import Path
 from queue import Queue
 import sys
 
@@ -22,6 +23,7 @@ def parse_args():
     parser.add_argument('-p', '--port', type=int, default=5000, help='Number of port to use')
     return parser.parse_args()
 
+
 def get_video_parameters(source):
     cap = cv2.VideoCapture(source)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -32,6 +34,7 @@ def get_video_parameters(source):
     cap.release()
     return fps, height, width, last_frame
 
+
 def start_demo(getter, pipeline, writer):
     print("Starting")
     start_time = time.time()
@@ -40,12 +43,15 @@ def start_demo(getter, pipeline, writer):
     pipeline.start(last_frame)
     writer.start(getter.src, fps, height, width, last_frame, start_time)
 
+
 app = Flask(__name__)
+
 
 @app.route('/')
 def index():
     """Video streaming home page."""
     return render_template('index.html')
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -60,26 +66,30 @@ if __name__ == "__main__":
 
     getter = VideoGetter(getter_det_queue, pose_postprocessor_queue, frames)
 
-    pipeline = Pipeline(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue, frames, args.detection_model_path, args.model_path, False)
+    pipeline = Pipeline(getter_det_queue, postprocessor_writer_queue, pose_postprocessor_queue, frames,
+                        args.detection_model_path, args.model_path, False)
 
     os.makedirs("out", exist_ok=True)
     writer = VideoWriter(postprocessor_writer_queue, frames, args.save)
 
-    start = time.time() # TODO: Reset the timer when changing source
+    start = time.time()  # TODO: Reset the timer when changing source
+
 
     @app.route('/video_feed')
     def video_feed():
-        #Video streaming route. Put this in the src attribute of an img tag
+        # Video streaming route. Put this in the src attribute of an img tag
         return Response(get_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
     @app.route('/reset', methods=['POST', 'GET'])
     def reset():
         reset_helper()
         return redirect('/')
-    
+
+
     def reset_helper():
         global resetting
-        if resetting: # Ignore reset button if reset already started
+        if resetting:  # Ignore reset button if reset already started
             return
         resetting = True
         global display_idx
@@ -89,7 +99,8 @@ if __name__ == "__main__":
         getter.stop()
         pipeline.stop()
         writer.stop()
-        time.sleep(1) # TODO: If we reset the queues immediately after calling stop, the functions may still be in the loop and crash
+        time.sleep(
+            1)  # TODO: If we reset the queues immediately after calling stop, the functions may still be in the loop and crash
         getter_det_queue = Queue()
         pose_postprocessor_queue = []
         postprocessor_writer_queue = []
@@ -100,7 +111,8 @@ if __name__ == "__main__":
         writer.reset(postprocessor_writer_queue)
         start_demo(getter, pipeline, writer)
         resetting = False
-    
+
+
     @app.route('/getfile', methods=['POST'])
     def getfile():
         file = request.files['videoSrc']
@@ -110,9 +122,10 @@ if __name__ == "__main__":
             getter.src = filename
         except FileNotFoundError:
             return redirect('/')
-  
+
         return redirect('/reset')
-    
+
+
     @app.route('/webcam', methods=['POST'])
     def use_webcam():
         cap = cv2.VideoCapture(0)
@@ -124,11 +137,13 @@ if __name__ == "__main__":
         else:
             return ('', 204)
 
+
     @app.route('/faces', methods=['POST'])
     def toggle_faces():
         pipeline.postprocessor.faces = not pipeline.postprocessor.faces
-  
+
         return redirect('/reset')
+
 
     def get_frames():
         global display_idx
@@ -139,7 +154,8 @@ if __name__ == "__main__":
             while display_idx not in writer.queue:
                 time.sleep(0.01)
             try:
-                input_image = cv2.resize(writer.frames[display_idx].blurred, (640, 360)) # Helps with slow network connection
+                input_image = cv2.resize(writer.frames[display_idx].blurred,
+                                         (640, 360))  # Helps with slow network connection
                 _, buffer = cv2.imencode('.jpg', input_image, (cv2.IMWRITE_JPEG_QUALITY, 70))
             except AttributeError:
                 print("Skipping a frame")
@@ -156,5 +172,5 @@ if __name__ == "__main__":
         end = time.time()
         print("Press CTRL+C to quit")
 
+
     app.run(host="0.0.0.0", port=args.port, debug=False)
-    

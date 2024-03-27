@@ -1,16 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
-import os
-import time
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-import numpy as np
 import utils.misc as utils
 from utils.cv.pose_estimation import PoseEstimationDataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
-from pycocotools.coco import COCO
 import tensorflow as tf
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Movenet model.")
@@ -57,7 +53,7 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path
     runner = TFLiteRunner(model_path)
     image_size = runner.input_details[0]['shape'][1]
 
-    dataset = PoseEstimationDataset(anno_path, images_path, image_size)    
+    dataset = PoseEstimationDataset(anno_path, images_path, image_size)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
@@ -72,9 +68,9 @@ def main():
         if args.model_path is None:
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
-        if args.batch_size!=1:
+        if args.batch_size != 1:
             raise ValueError("Batch size must be 1 for this model")
-        run_tflite_fp32(**vars(args))       
+        run_tflite_fp32(**vars(args))
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified framework: " + args.framework)

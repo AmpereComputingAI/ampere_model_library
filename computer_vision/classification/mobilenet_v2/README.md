@@ -44,7 +44,7 @@ TensorFlow models can be downloaded here: https://www.tensorflow.org/lite/guide/
 
 ONNX Runtime model in fp32 precision can be downloaded here: https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.tar.gz
 
-ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/aidj8ow4zmraoq7/mobilenet_v2_fp16.onnx
+ONNX Runtime model in fp16 precision can be downloaded here: censored due to licensing
 
 ### Running instructions
 

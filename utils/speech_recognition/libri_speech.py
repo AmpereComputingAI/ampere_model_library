@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 
 import pathlib
 
@@ -109,6 +109,6 @@ class LibriSpeech(Dataset):
         else:
             accuracy = 0.0
 
-        #print("Accuracy = {:.3f}".format(accuracy))
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__word_count} words.")
+        # print("Accuracy = {:.3f}".format(accuracy))
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__word_count} words.")
         return {"accuracy": accuracy}
