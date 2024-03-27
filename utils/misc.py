@@ -36,6 +36,14 @@ class FrameworkUnsupportedError(Exception):
     pass
 
 
+def ensure_no_override(func):
+    def check(self, *args, **kwargs):
+        assert self.__class__.__dict__.get(
+            func.__name__) is func, f"{self.__class__.__name__}.{func.__name__} has been overridden"
+        return func(self, *args, **kwargs)
+    return check
+
+
 def get_hash_of_a_file(path_to_file):
     """
     A function calculating md5 hash for a file under the supplied path.

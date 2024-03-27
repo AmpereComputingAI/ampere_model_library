@@ -183,7 +183,7 @@ class CoNLL2003(Dataset):
         self.__f1_count += metric_max_over_ground_truths(f1_score, prediction, ground_truth)
         self.__unsubmitted_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the sequences obtained with get_*_array() calls on which
         predictions were supplied with submit_predictions() function.

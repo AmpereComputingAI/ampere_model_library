@@ -112,7 +112,7 @@ class Criteo(Dataset):
         self.false_positives += sum(torch.logical_and(prediction == 1, self.__labels == 0))
         self.false_negatives += sum(torch.logical_and(prediction == 0, self.__labels == 1))
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         accuracy = float(self.correct_count / self.total_count)
         precision = float(self.true_positives / (self.true_positives + self.false_positives))
         recall = float(self.true_positives / (self.true_positives + self.false_negatives))

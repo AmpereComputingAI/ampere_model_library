@@ -102,7 +102,7 @@ class AlpacaInstruct(Dataset):
         self._f1 += metric_max_over_ground_truth(f1_score, answer, ground_truth)
         self._count += 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         exact_match = self._exact_match / self._count
         f1 = self._f1 / self._count
         return {"exact_match": exact_match, "f1": f1}

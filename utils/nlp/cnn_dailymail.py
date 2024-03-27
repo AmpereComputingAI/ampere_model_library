@@ -212,7 +212,7 @@ class CNN_DailyMail(Dataset):
         self.__rouge2_count += rouge2_score(normalize(summary), normalize(ground_truth))
         self.__unsubmitted_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the texts obtained with get_*_array() calls on which
         predicted summaries were supplied with submit_predictions() function.

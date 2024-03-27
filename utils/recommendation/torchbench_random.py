@@ -28,5 +28,5 @@ class RandomDataset(Dataset):
 
         self.__predictions.append(prediction)
 
-    def summarize_accuracy(self):
-        return {}
+    def _summarize_accuracy(self):
+        return

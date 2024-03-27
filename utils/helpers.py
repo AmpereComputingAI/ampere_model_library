@@ -3,7 +3,7 @@
 import argparse
 import os
 from typing import List
-from utils.misc import print_warning_message
+from utils.misc import print_warning_message, ensure_no_override
 
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
@@ -48,22 +48,32 @@ class Dataset:
     def reset(self) -> bool:
         raise NotImplementedError
 
-    def summarize_accuracy(self) -> dict:
+    def _summarize_accuracy(self) -> dict:
         raise NotImplementedError
 
-    def print_accuracy_metrics(self) -> dict:
-        accuracy_results = self.summarize_accuracy()
+    @ensure_no_override
+    def summarize_accuracy(self) -> dict:
+        accuracy_results = self._summarize_accuracy()
+        if accuracy_results is None:
+            accuracy_results = {}
         assert type(accuracy_results) is dict
         for k, v in accuracy_results.items():
             assert isinstance(k, str)
-            assert v is not None
+            try:
+                float(v)
+            except Exception as e:
+                raise e
+        return accuracy_results
+
+    def print_accuracy_metrics(self) -> dict:
+        accuracy_results = self.summarize_accuracy()
         if len(accuracy_results) == 0:
-            print_warning_message("Accuracy metrics not available.")
+            print_warning_message("No accuracy metrics to print.")
         else:
             max_len = 14
             indent = 2 * " "
             print(f"\n{indent}ACCURACY")
             for metric in accuracy_results.keys():
-                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                print(f"{3 * indent}{metric[:max_len]}{(max_len - len(metric)) * ' '}{3 * indent}" +
                       "= {:>7.3f}".format(float(accuracy_results[metric])))
         return accuracy_results

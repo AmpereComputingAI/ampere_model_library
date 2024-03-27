@@ -156,7 +156,7 @@ class Lambada(Dataset):
         self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
         self.__unsubmitted_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
         predicted answers were supplied with submit_predictions() function.
