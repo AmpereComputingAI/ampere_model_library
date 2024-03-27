@@ -8,13 +8,6 @@ import platform
 import subprocess
 
 
-class AccuracyCalculationError(Exception):
-    """
-    An error being raised when accuracy can't be calculated.
-    """
-    pass
-
-
 class UnsupportedPrecisionValueError(ValueError):
     """
     An error being raised when requested precision is not available.
