@@ -238,7 +238,7 @@ class KiTS19(Dataset):
                 "Not a single image has been completed - cannot calculate accuracy. Note that images of KiTS dataset "
                 "are processed in slices due to their size. That implies that complete processing of one image can "
                 "involve many passes through the network.")
-            return {}
+            raise utils.AccuracyCalculationError
 
         mean_kidney = self.__kidney_score / self.__current_img_id
         # print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))
