@@ -54,8 +54,8 @@ class Dataset:
     def print_accuracy_metrics(self) -> dict:
         accuracy_results = self.summarize_accuracy()
         assert type(accuracy_results) is dict
-        if len(accuracy_results) == 0:
-            print_warning_message("Accuracy metrics not available.")
+        if len(accuracy_results) == 0 or None in accuracy_results.values():
+            print_warning_message("Accuracy metrics are unavailable.")
         else:
             max_len = 14
             indent = 2 * " "
