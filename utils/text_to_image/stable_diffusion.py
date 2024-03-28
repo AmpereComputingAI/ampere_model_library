@@ -27,5 +27,5 @@ class StableDiffusion(Dataset):
         self._idx = 0
         return True
 
-    def summarize_accuracy(self):
-        return {}
+    def _summarize_accuracy(self):
+        return

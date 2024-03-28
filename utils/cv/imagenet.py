@@ -152,13 +152,13 @@ class ImageNet(ImageDataset):
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_predictions() function.
         """
         if self.do_skip():
-            return {}
+            return
 
         top_1_accuracy = self.__top_1_count / self.__current_img
         # print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))

@@ -236,10 +236,12 @@ class BraTS19(Dataset):
         )
         self.__current_img_id += 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         from utils.cv.nnUNet.nnunet.evaluation.region_based_evaluation import evaluate_regions, get_brats_regions
         evaluate_regions(
-            self.__processed_predictions_dir_path, Path(self.__preprocessed_dir_path, "labelsTr"), get_brats_regions()
+            str(self.__processed_predictions_dir_path),
+            str(Path(self.__preprocessed_dir_path, "labelsTr")),
+            get_brats_regions()
         )
         with open(Path(self.__processed_predictions_dir_path, "summary.csv")) as f:
             for line in f:

@@ -264,7 +264,7 @@ class Squad_v1_1(Dataset):
         self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
         self.__unanswered_questions_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
         predicted answers were supplied with submit_predictions() function.
@@ -273,7 +273,7 @@ class Squad_v1_1(Dataset):
         and f1 metric
         """
         if self.do_skip():
-            return {}
+            return
 
         if self.__unanswered_questions_count != 0:
             utils.print_goodbye_message_and_die(

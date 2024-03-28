@@ -171,13 +171,13 @@ class COCOBaseDataset(ImageDataset):
             "segmentation": mask
         })
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_bbox_prediction() function.
         """
         if self.do_skip():
-            return {}
+            return
 
         if self._task == "bbox":
             predictions = np.array(self._predictions)

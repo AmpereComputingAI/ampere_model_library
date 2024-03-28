@@ -110,7 +110,7 @@ class WMT(Dataset):
         self.__outputs.append(translation)
         self.__unanswered_questions_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
         predicted answers were supplied with submit_predictions() function.

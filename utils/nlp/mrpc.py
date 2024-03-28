@@ -83,7 +83,7 @@ class MRPC(Dataset):
         if label == prediction:
             self.__correct += 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the obtained accuracy for the model
 

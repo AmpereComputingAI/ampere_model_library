@@ -99,15 +99,15 @@ class LibriSpeech(Dataset):
         self.__score_count += scores
         self.__word_count += words
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the sequences obtained with get_input_array() calls on which
         predictions done where supplied with submit_predictions() function.
         """
-        if self.__word_count != 0:
+        if self.__word_count > 0:
             accuracy = 1 - ((1.0 * self.__score_count) / self.__word_count)
         else:
-            accuracy = 0.0
+            return
 
         # print("Accuracy = {:.3f}".format(accuracy))
         # print(f"\nAccuracy figures above calculated on the basis of {self.__word_count} words.")
