@@ -3,7 +3,7 @@
 import argparse
 import os
 from typing import List
-from utils.misc import print_warning_message, ensure_no_override
+from utils.misc import print_warning_message
 
 SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
@@ -51,7 +51,7 @@ class Dataset:
     def _summarize_accuracy(self) -> dict:
         raise NotImplementedError
 
-    @ensure_no_override
+    # don't override this method, override _summarize_accuracy instead
     def summarize_accuracy(self) -> dict:
         accuracy_results = self._summarize_accuracy()
         if accuracy_results is None:
