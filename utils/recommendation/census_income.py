@@ -81,7 +81,7 @@ class CensusIncome(Dataset):
         self._results = {}
         return True
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         # summary = ""
         metrics = {}
         for label, metric in [("label_marital", "marital AUC"), ("label_income", "income AUC")]:

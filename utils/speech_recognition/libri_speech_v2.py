@@ -37,9 +37,9 @@ class LibriSpeech(Dataset):
         self._transcriptions = []
         return True
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         if self.do_skip():
-            return {}
+            return
 
         assert len(self._transcriptions) == len(self._librispeech["text"][:self._idx])
         wer_score = load("wer").compute(
