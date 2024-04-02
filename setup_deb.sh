@@ -178,7 +178,7 @@ apt install -y autoconf autogen automake build-essential libasound2-dev \
 	libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
         libmpg123-dev pkg-config
 apt remove -y libsndfile1
-git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && cd ..
+git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
 
 if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
    # Only on AmpereOne family
