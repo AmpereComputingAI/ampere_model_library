@@ -178,6 +178,8 @@ class BERT(unittest.TestCase):
 
 class UNet3D(unittest.TestCase):
     def setUp(self):
+        print(get_downloads_path())
+        quit()
         self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
             # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
@@ -204,7 +206,7 @@ class UNet3D(unittest.TestCase):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
         auc_ref = 0.583
-        acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
+        acc = run_process(wrapper, {"model_path": self.model_path, "kits_path": self.dataset_path,
                                     "batch_size": 1, "num_runs": 30, "timeout": None, "debug": True})
         self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
