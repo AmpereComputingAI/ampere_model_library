@@ -203,13 +203,12 @@ class UNET_KITS(unittest.TestCase):
         def wrapper(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        auc_ref = 0.583
+        mean_kidney_acc, mean_tumor_acc = 0.927, 0.837
         acc = run_process(wrapper, {"model_path": self.model_path, "kits_path": self.dataset_path,
-                                    "batch_size": 1, "num_runs": 15, "timeout": None, "debug": True})
-        print(acc)
-        print(type(acc))
-        quit()
-        # self.assertTrue(acc["auc"] / auc_ref > 0.95)
+                                    "batch_size": 1, "num_runs": 45, "timeout": None, "debug": True})
+
+        self.assertTrue(acc["mean_kidney_acc"] / mean_kidney_acc > 0.95)
+        self.assertTrue(acc["mean_tumor_acc"] / mean_tumor_acc > 0.95)
 
 
 def download_imagenet_maybe():
