@@ -178,7 +178,7 @@ class BERT(unittest.TestCase):
 
 class UNet3D(unittest.TestCase):
     def setUp(self):
-        self.dataset_path = pathlib.Path(get_downloads_path(), "kits19_reduced.tar.gz")
+        self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
             # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
             url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
@@ -187,7 +187,7 @@ class UNet3D(unittest.TestCase):
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(f"tar -xf /tmp/kits19_reduced.tar.gz -C {get_downloads_path()}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run("rm /tmp/criteo_preprocessed.tar.gz".split(),
+            subprocess.run("rm /tmp/kits19_reduced.tar.gz".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         self.model_path = pathlib.Path(get_downloads_path(), "3d_unet_kits_pytorch_fp32.ptc")
