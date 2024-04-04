@@ -221,6 +221,8 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_KITS19_REDUCED_DATASET: ${{ secrets.S3_URL_KITS19_REDUCED_DATASET }}
+      S3_URL_UNET_KITS_PYTORCH_FP32: ${{ secrets.S3_URL_UNET_KITS_PYTORCH_FP32 }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
