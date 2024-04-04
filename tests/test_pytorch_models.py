@@ -176,10 +176,8 @@ class BERT(unittest.TestCase):
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
-class UNet3D(unittest.TestCase):
+class UNET_KITS(unittest.TestCase):
     def setUp(self):
-        print(get_downloads_path())
-        quit()
         self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
             # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
@@ -199,7 +197,7 @@ class UNet3D(unittest.TestCase):
             subprocess.run(f"wget -P /tmp {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def test_dlrm_debug(self):
+    def test_unet_kits(self):
         from computer_vision.semantic_segmentation.unet_3d.kits_19.run import run_pytorch_fp32
 
         def wrapper(**kwargs):
