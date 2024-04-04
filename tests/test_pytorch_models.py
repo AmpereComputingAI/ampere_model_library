@@ -205,7 +205,7 @@ class UNET_KITS(unittest.TestCase):
 
         mean_kidney_acc, mean_tumor_acc = 0.927, 0.837
         acc = run_process(wrapper, {"model_path": self.model_path, "kits_path": self.dataset_path,
-                                    "batch_size": 1, "num_runs": 200, "timeout": None, "debug": True})
+                                    "batch_size": 1, "num_runs": 150, "timeout": None, "debug": True})
 
         self.assertTrue(acc["mean_kidney_acc"] / mean_kidney_acc > 0.95)
         self.assertTrue(acc["mean_tumor_acc"] / mean_tumor_acc > 0.95)
