@@ -119,6 +119,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
@@ -179,6 +180,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install Ampere optimized PyTorch
@@ -221,6 +223,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
