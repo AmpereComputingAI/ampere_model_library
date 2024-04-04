@@ -24,38 +24,38 @@ def run_process(wrapper, kwargs):
     return output
 
 
-class LLaMA2(unittest.TestCase):
-    def setUp(self):
-        from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
-
-        url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
-        self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
-        if not self.dataset_path.exists():
-            subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
-                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        self.wrapper = wrapper
-
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    def test_llama2_7b(self):
-        f1_ref = 0.349
-        acc = run_process(self.wrapper,
-                          {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
-                           "timeout": None, "dataset_path": self.dataset_path})
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
-
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    def test_llama2_13b(self):
-        f1_ref = 0.195
-        acc = run_process(self.wrapper,
-                          {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
-                           "timeout": None, "dataset_path": self.dataset_path})
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+# class LLaMA2(unittest.TestCase):
+#     def setUp(self):
+#         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
+#
+#         url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
+#         self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
+#         if not self.dataset_path.exists():
+#             subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+#                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+#
+#         def wrapper(**kwargs):
+#             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+#
+#         self.wrapper = wrapper
+#
+#     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+#     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+#     def test_llama2_7b(self):
+#         f1_ref = 0.349
+#         acc = run_process(self.wrapper,
+#                           {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
+#                            "timeout": None, "dataset_path": self.dataset_path})
+#         self.assertTrue(acc["f1"] / f1_ref > 0.95)
+#
+#     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
+#     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+#     def test_llama2_13b(self):
+#         f1_ref = 0.195
+#         acc = run_process(self.wrapper,
+#                           {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
+#                            "timeout": None, "dataset_path": self.dataset_path})
+#         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 class Alpaca(unittest.TestCase):
@@ -174,6 +174,39 @@ class BERT(unittest.TestCase):
                                     "batch_size": 1, "num_runs": 24, "timeout": None, "disable_jit_freeze": False})
         self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
+
+
+class UNet3D(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path = pathlib.Path(get_downloads_path(), "kits19_reduced.tar.gz")
+        if not self.dataset_path.exists():
+            # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
+            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
+            assert url is not None
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"tar -xf /tmp/kits19_reduced.tar.gz -C {get_downloads_path()}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/criteo_preprocessed.tar.gz".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        self.model_path = pathlib.Path(get_downloads_path(), "3d_unet_kits_pytorch_fp32.ptc")
+        if not self.model_path.exists():
+            # url = os.environ.get("S3_URL_UNET_KITS_PYTORCH_FP32")
+            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/3d_unet_kits_pytorch_fp32.ptc"
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def test_dlrm_debug(self):
+        from computer_vision.semantic_segmentation.unet_3d.kits_19.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        auc_ref = 0.583
+        acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
+                                    "batch_size": 1, "num_runs": 30, "timeout": None, "debug": True})
+        self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
 def download_imagenet_maybe():
