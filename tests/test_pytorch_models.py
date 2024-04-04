@@ -24,38 +24,38 @@ def run_process(wrapper, kwargs):
     return output
 
 
-# class LLaMA2(unittest.TestCase):
-#     def setUp(self):
-#         from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
-#
-#         url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
-#         self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
-#         if not self.dataset_path.exists():
-#             subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
-#                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-#
-#         def wrapper(**kwargs):
-#             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-#
-#         self.wrapper = wrapper
-#
-#     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-#     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-#     def test_llama2_7b(self):
-#         f1_ref = 0.349
-#         acc = run_process(self.wrapper,
-#                           {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
-#                            "timeout": None, "dataset_path": self.dataset_path})
-#         self.assertTrue(acc["f1"] / f1_ref > 0.95)
-#
-#     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
-#     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-#     def test_llama2_13b(self):
-#         f1_ref = 0.195
-#         acc = run_process(self.wrapper,
-#                           {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
-#                            "timeout": None, "dataset_path": self.dataset_path})
-#         self.assertTrue(acc["f1"] / f1_ref > 0.95)
+class LLaMA2(unittest.TestCase):
+    def setUp(self):
+        from natural_language_processing.text_generation.llama2.run import run_pytorch_fp32
+
+        url = "https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json"
+        self.dataset_path = pathlib.Path(get_downloads_path(), "alpaca_data.json")
+        if not self.dataset_path.exists():
+            subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        self.wrapper = wrapper
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    def test_llama2_7b(self):
+        f1_ref = 0.349
+        acc = run_process(self.wrapper,
+                          {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
+                           "timeout": None, "dataset_path": self.dataset_path})
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    def test_llama2_13b(self):
+        f1_ref = 0.195
+        acc = run_process(self.wrapper,
+                          {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
+                           "timeout": None, "dataset_path": self.dataset_path})
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 class Alpaca(unittest.TestCase):
