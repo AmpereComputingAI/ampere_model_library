@@ -14,7 +14,7 @@ from filelock import FileLock
 
 warnings.filterwarnings("ignore")
 
-WARM_UP_RUNS = 3
+WARM_UP_RUNS = 10
 intra_op_parallelism_threads = None
 
 
