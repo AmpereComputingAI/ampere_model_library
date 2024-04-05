@@ -9,7 +9,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
     from transformers import WhisperProcessor, WhisperForConditionalGeneration
     processor = WhisperProcessor.from_pretrained(model_name)
-    model = WhisperForConditionalGeneration.from_pretrained(model_name).generate
+    model = WhisperForConditionalGeneration.from_pretrained(model_name)
     model.eval()
 
     def single_pass_pytorch(_runner, _librispeech):
@@ -19,7 +19,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         predicted_ids = _runner.run(batch_size * waveform.shape[0], input_features)
         _librispeech.submit_transcription(processor.batch_decode(predicted_ids, skip_special_tokens=True)[0])
 
-    runner = PyTorchRunnerV2(model, throughput_only=True)
+    runner = PyTorchRunnerV2(model.generate, throughput_only=True)
     librispeech = LibriSpeech()
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
