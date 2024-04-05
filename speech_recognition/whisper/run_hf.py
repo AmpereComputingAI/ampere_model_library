@@ -9,7 +9,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
     from transformers import WhisperProcessor, WhisperForConditionalGeneration
     processor = WhisperProcessor.from_pretrained(model_name)
-    model = WhisperForConditionalGeneration.from_pretrained(model_name)
+    model = WhisperForConditionalGeneration.from_pretrained(model_name).generate
     model.eval()
 
     def single_pass_pytorch(_runner, _librispeech):
