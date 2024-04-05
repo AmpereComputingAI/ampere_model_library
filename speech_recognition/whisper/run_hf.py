@@ -28,7 +28,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
-    whisper_variants = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3"]
+    whisper_variants = ["openai/tiny", "openai/base", "openai/small", "openai/medium", "openai/large",
+                        "openai/large-v2", "openai/large-v3"]
     whisper_variants = whisper_variants + [f"{name}.en" for name in whisper_variants[:4]]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
