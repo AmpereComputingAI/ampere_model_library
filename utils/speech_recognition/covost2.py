@@ -37,7 +37,7 @@ class Covost2(Dataset):
         self._translations = []
         return True
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         assert len(self._translations) == len(self._covost2["translation"][:self._idx])
         bleu_score = load("bleu").compute(
             references=self._covost2["translation"][:self._idx], predictions=self._translations
