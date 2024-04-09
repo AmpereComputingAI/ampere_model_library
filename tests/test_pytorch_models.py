@@ -137,14 +137,16 @@ class WhisperTranslate(unittest.TestCase):
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_translate_tiny(self):
         wer_ref = 0.143
-        acc = run_process(self.wrapper, {"model_name": "tiny", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper, {"model_name": "tiny", "num_runs": 30, "timeout": None,
+                                         "dataset_path": self.dataset_path})
         self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
     def test_whisper_translate_medium(self):
         wer_ref = 0.184
-        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
+                                         "dataset_path": self.dataset_path})
         self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
 
 
