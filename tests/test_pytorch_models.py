@@ -122,9 +122,11 @@ class WhisperTranslate(unittest.TestCase):
         if not self.dataset_path.exists():
             url = os.environ.get("S3_URL_COVOST2_DATASET")
             assert url is not None
+            subprocess.run(f"mkdir {self.dataset_path}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(f"wget -P /tmp {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(f"tar -xf /tmp/covost2_ja.tar -C {get_downloads_path()}".split(),
+            subprocess.run(f"tar -xf /tmp/covost2_ja.tar -C {self.dataset_path}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run("rm /tmp/covost2_ja.tar".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
