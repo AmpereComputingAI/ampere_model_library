@@ -138,7 +138,7 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disa
 
     def run_single_pass(pytorch_runner, squad):
         input_tensor = squad.get_input_arrays()
-        output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], 
+        output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1],
                                     **{k: v.cuda() for k, v in input_tensor.items()})
 
         for i in range(batch_size):
