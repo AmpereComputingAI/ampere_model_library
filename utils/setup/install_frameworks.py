@@ -27,12 +27,12 @@ except ModuleNotFoundError:
 try:
     import torch  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch<2.2"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch"])
     native_frameworks.append("PyTorch")
 try:
     import torchvision  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision==0.16.2"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision"])
 
 # summary
 len_native_frameworks = len(native_frameworks)
