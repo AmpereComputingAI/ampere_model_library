@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import argparse
-import torchvision
+import torchvision  # noqa
 from utils.cv.openimages import OpenImagesDataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
