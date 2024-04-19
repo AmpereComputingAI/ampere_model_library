@@ -93,15 +93,13 @@ class Alpaca(unittest.TestCase):
 
 class Whisper(unittest.TestCase):
     def setUp(self):
-        from speech_recognition.whisper.run import run_pytorch_fp32
-        from speech_recognition.whisper.run_hf import run_pytorch_fp32
-
         def wrapper_openai(**kwargs):
+            from speech_recognition.whisper.run import run_pytorch_fp32
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
         def wrapper_hf(**kwargs):
+            from speech_recognition.whisper.run_hf import run_pytorch_fp32
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
 
         self.wrapper_openai = wrapper_openai
         self.wrapper_hf = wrapper_hf

@@ -31,7 +31,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         predicted_ids = _runner.run(sum([x.shape[0] for x in waveform]), input_features)
         decoded_output = processor.batch_decode(predicted_ids, skip_special_tokens=True)
         for i in range(batch_size):
-            _librispeech.submit_transcription(decoded_output[i])
+            _librispeech.submit_transcription(decoded_output[i].lstrip().replace(",", "").replace(".", "").upper())
 
     runner = PyTorchRunnerV2(model, throughput_only=True)
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "

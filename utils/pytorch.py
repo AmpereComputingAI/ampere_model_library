@@ -260,8 +260,8 @@ def apply_compile(model):
         # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
         if '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0":
             backend = "aio"
-            options = {"modelname": model.__self__._get_name()
-            if isinstance(model, types.MethodType) else model._get_name()}
+            options = {
+                "modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()}
             utils.print_warning_message(
                 f"AIO available and enabled, applying torch.compile() with \"{backend}\" backend.")
         else:

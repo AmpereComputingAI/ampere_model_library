@@ -32,7 +32,6 @@ class LibriSpeech(Dataset):
             return
         self._transcriptions.append(text)
 
-
     def reset(self):
         self._idx = 0
         self._transcriptions = []
