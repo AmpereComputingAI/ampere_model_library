@@ -112,7 +112,7 @@ class Whisper(unittest.TestCase):
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_hf_tiny_en(self):
-        wer_ref = 0.155
+        wer_ref = 0.111
         acc = run_process(self.wrapper_hf, {"model_name": "openai/whisper-tiny.en", "num_runs": 18,
                                             "batch_size": 4, "timeout": None})
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
