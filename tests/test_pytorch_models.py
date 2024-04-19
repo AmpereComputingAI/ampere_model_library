@@ -94,23 +94,36 @@ class Alpaca(unittest.TestCase):
 class Whisper(unittest.TestCase):
     def setUp(self):
         from speech_recognition.whisper.run import run_pytorch_fp32
+        from speech_recognition.whisper.run_hf import run_pytorch_fp32
 
-        def wrapper(**kwargs):
+        def wrapper_openai(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        self.wrapper = wrapper
+        def wrapper_hf(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+
+        self.wrapper_openai = wrapper_openai
+        self.wrapper_hf = wrapper_hf
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
         wer_ref = 0.155
-        acc = run_process(self.wrapper, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper_openai, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
+    def test_whisper_hf_tiny_en(self):
+        wer_ref = 0.155
+        acc = run_process(self.wrapper_hf, {"model_name": "openai/whisper-tiny.en", "num_runs": 18,
+                                            "batch_size": 4, "timeout": None})
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
     def test_whisper_large(self):
         wer_ref = 0.124
-        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
 
