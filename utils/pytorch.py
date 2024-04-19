@@ -260,7 +260,7 @@ def apply_compile(model):
         is_cached, cached_path = check_if_cached(model)
         if is_cached:
             print("Loading from cache ...")
-            return torch.load(cached_path)
+            return torch.jit.load(cached_path)
         if '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0":
             backend = "aio"
             options = {"modelname": model.__self__._get_name()
@@ -273,8 +273,7 @@ def apply_compile(model):
             utils.print_warning_message(
                 f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
         model = torch.compile(model, backend=backend, options=options)
-        print(model)
-        torch.save(model, cached_path)
+        torch.jit.save(torch.jit.script(model), cached_path)
         print(f"Cached at {cached_path}")
         return model
     else:
