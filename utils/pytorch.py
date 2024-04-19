@@ -253,6 +253,7 @@ def apply_jit_trace_module(model, example_inputs):
 
 
 def apply_compile(model):
+    torch._dynamo.config.cache_size_limit = 512
     if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
