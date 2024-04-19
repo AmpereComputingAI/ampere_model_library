@@ -5,10 +5,9 @@ TORCH_JIT_TRACE = False  # otherwise, run torch.compile()
 
 
 def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
-    import torch
     from utils.benchmark import run_model
     from utils.misc import print_warning_message
-    from utils.pytorch import PyTorchRunnerV2, apply_compile
+    from utils.pytorch import PyTorchRunnerV2, apply_compile, apply_jit_trace_module
     from utils.speech_recognition.libri_speech_v2 import LibriSpeech
     from transformers import WhisperProcessor, WhisperForConditionalGeneration
     processor = WhisperProcessor.from_pretrained(model_name)
@@ -19,7 +18,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         waveform = [librispeech.get_input_array() for _ in range(batch_size)]
         input_features = processor(
             waveform, sampling_rate=LibriSpeech.sampling_rate, return_tensors="pt").input_features
-        model = torch.jit.trace_module(model, {"generate": input_features})
+        model = apply_jit_trace_module(model, {"generate": input_features})
         librispeech = LibriSpeech()  # reset
         model = model.generate
     else:
