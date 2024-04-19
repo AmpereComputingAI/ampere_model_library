@@ -272,8 +272,7 @@ def apply_compile(model):
             options = {}
             utils.print_warning_message(
                 f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
-        model = torch.compile(model, backend=backend, options=options)
-        torch.save(model, cached_path)
+        torch.save(model.compile(backend=backend, options=options), cached_path)
         print(f"Cached at {cached_path}")
         return model
     else:
