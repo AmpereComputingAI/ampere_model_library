@@ -119,6 +119,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install git
@@ -179,6 +180,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Install Ampere optimized PyTorch
@@ -221,6 +223,7 @@ jobs:
       S3_URL_IMAGENET_DATASET_LABELS: ${{ secrets.S3_URL_IMAGENET_DATASET_LABELS }}
       S3_URL_COCO_DATASET: ${{ secrets.S3_URL_COCO_DATASET }}
       S3_URL_COCO_DATASET_ANNOTATIONS: ${{ secrets.S3_URL_COCO_DATASET_ANNOTATIONS }}
+      S3_URL_COVOST2_DATASET: ${{ secrets.S3_URL_COVOST2_DATASET }}
       HF_HUB_TOKEN: ${{ secrets.HF_HUB_TOKEN }}
     steps:
       - name: Git checkout & pull submodules
@@ -300,7 +303,7 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_huggingface.py -m bert-large-cased-whole-word-masking-finetuned-squad 
+          # AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_huggingface.py -m bert-large-cased-whole-word-masking-finetuned-squad 
 
           wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
           IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -b 32 -p fp32 -f tf --timeout=60

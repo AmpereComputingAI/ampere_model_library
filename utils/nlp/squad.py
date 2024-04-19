@@ -4,6 +4,7 @@ import os
 import numpy as np
 import json
 import re
+import random
 import string
 from collections import Counter
 import utils.misc as utils
@@ -71,8 +72,12 @@ class Squad_v1_1(Dataset):
 
         :yield: str, str, list: context, questions, list of possible (correct) answers
         """
+        random.seed(44)
+        random.shuffle(self.__dataset)
         for section in self.__dataset:
+            random.shuffle(section["paragraphs"])
             for paragraph in section["paragraphs"]:
+                random.shuffle(paragraph["qas"])
                 for qas in paragraph["qas"]:
                     yield paragraph["context"], qas["question"], qas["answers"]
 

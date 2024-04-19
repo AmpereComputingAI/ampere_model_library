@@ -46,7 +46,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
@@ -173,6 +173,12 @@ pip3 install --no-deps --upgrade \
    invisible-watermark>=0.1.5 \
    streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
+
+apt install -y autoconf autogen automake build-essential libasound2-dev \
+	libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
+        libmpg123-dev pkg-config
+apt remove -y libsndfile1
+git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
 
 if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
    # Only on AmpereOne family
