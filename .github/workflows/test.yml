@@ -81,24 +81,24 @@ jobs:
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
           wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
-          python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
-          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
           
           python3 speech_recognition/whisper/run.py -m small.en
           
           wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
-          python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
           wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
-          python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
           wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
           tar -xf vgg16.tar.gz > /dev/null
-          python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_arm64:
     runs-on: self-hosted
@@ -145,24 +145,24 @@ jobs:
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
           wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
-          python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
-          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt > /dev/null 2>&1
-          python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8n.pt -f pytorch -p fp32 --timeout=60
           
           python3 speech_recognition/whisper/run.py -m small.en
           
           wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
-          python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
           wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
-          python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
           wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
           tar -xf vgg16.tar.gz > /dev/null
-          python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_pytorch_arm64_sh:
     runs-on: self-hosted
@@ -260,10 +260,10 @@ jobs:
           
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
           
-          python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt > /dev/null 2>&1
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
+          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
           
           wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1 > /dev/null 2>&1
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
@@ -346,8 +346,8 @@ jobs:
           tar -xvf aio_objdet_dataset.tar.gz > /dev/null
 
           wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
           wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
           tar -xf vgg16.tar.gz > /dev/null
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
