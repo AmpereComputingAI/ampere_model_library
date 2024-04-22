@@ -7,7 +7,7 @@ from pathlib import Path
 
 def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
-
+    import torch
     from omegaconf import OmegaConf
     from contextlib import nullcontext
     from utils.benchmark import run_model
