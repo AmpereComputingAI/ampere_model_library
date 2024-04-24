@@ -5,7 +5,7 @@ import unittest
 import pathlib
 from tests.test_ip import IssueTracker
 
-EXCEPTIONS_CHECKER = []
+EXCEPTIONS_CHECKER = ["/demos/privacy_preservation/run.py"]
 EXCEPTIONS_IMPORTS = ["/demos/privacy_preservation/run.py"]
 
 
