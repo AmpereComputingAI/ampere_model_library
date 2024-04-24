@@ -1,11 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 from typing import Optional, Tuple
-
-import numpy as np
 import torch
-
 from .rnn import rnn
 from .rnn import StackTime
 
@@ -19,19 +15,18 @@ class RNNT(torch.nn.Module):
             feat_config = kwargs.get("feature_config")
             # This may be useful in the future, for MLPerf
             # configuration.
-            in_features = feat_config['features'] * \
-                feat_config.get("frame_splicing", 1)
+            in_features = feat_config['features'] * feat_config.get("frame_splicing", 1)
 
         self.encoder = Encoder(in_features,
-            rnnt["encoder_n_hidden"],
-            rnnt["encoder_pre_rnn_layers"],
-            rnnt["encoder_post_rnn_layers"],
-            rnnt["forget_gate_bias"],
-            None if "norm" not in rnnt else rnnt["norm"],
-            rnnt["rnn_type"],
-            rnnt["encoder_stack_time_factor"],
-            rnnt["dropout"],
-        )
+                               rnnt["encoder_n_hidden"],
+                               rnnt["encoder_pre_rnn_layers"],
+                               rnnt["encoder_post_rnn_layers"],
+                               rnnt["forget_gate_bias"],
+                               None if "norm" not in rnnt else rnnt["norm"],
+                               rnnt["rnn_type"],
+                               rnnt["encoder_stack_time_factor"],
+                               rnnt["dropout"],
+                               )
 
         self.prediction = Prediction(
             num_classes,
@@ -53,7 +48,7 @@ class RNNT(torch.nn.Module):
 
     def forward(self, x_padded: torch.Tensor, x_lens: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return self.encoder(x_padded, x_lens)
-        
+
 
 class Encoder(torch.nn.Module):
     def __init__(self, in_features, encoder_n_hidden,
@@ -91,6 +86,7 @@ class Encoder(torch.nn.Module):
         x_padded = x_padded.transpose(0, 1)
         return x_padded, x_lens
 
+
 class Prediction(torch.nn.Module):
     def __init__(self, vocab_size, n_hidden, pred_rnn_layers,
                  forget_gate_bias, norm, rnn_type, dropout):
@@ -107,8 +103,8 @@ class Prediction(torch.nn.Module):
             dropout=dropout,
         )
 
-    def forward(self, y: Optional[torch.Tensor],
-                state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, y: Optional[torch.Tensor], state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None)\
+            -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
         B - batch size
         U - label length
@@ -150,16 +146,13 @@ class Prediction(torch.nn.Module):
         # del y, state
         return g, hid
 
+
 class Joint(torch.nn.Module):
     def __init__(self, vocab_size, pred_n_hidden, enc_n_hidden,
                  joint_n_hidden, dropout):
         super().__init__()
-        layers = [
-            torch.nn.Linear(pred_n_hidden + enc_n_hidden, joint_n_hidden),
-            torch.nn.ReLU(),
-        ] + ([torch.nn.Dropout(p=dropout), ] if dropout else []) + [
-            torch.nn.Linear(joint_n_hidden, vocab_size)
-        ]
+        layers = ([torch.nn.Linear(pred_n_hidden + enc_n_hidden, joint_n_hidden), torch.nn.ReLU()] +
+                  ([torch.nn.Dropout(p=dropout), ] if dropout else []) + [torch.nn.Linear(joint_n_hidden, vocab_size)])
         self.net = torch.nn.Sequential(
             *layers
         )
@@ -176,13 +169,13 @@ class Joint(torch.nn.Module):
         B, T, H = f.shape
         B, U_, H2 = g.shape
 
-        f = f.unsqueeze(dim=2)   # (B, T, 1, H)
+        f = f.unsqueeze(dim=2)  # (B, T, 1, H)
         f = f.expand((B, T, U_, H))
 
-        g = g.unsqueeze(dim=1)   # (B, 1, U + 1, H)
+        g = g.unsqueeze(dim=1)  # (B, 1, U + 1, H)
         g = g.expand((B, T, U_, H2))
 
-        inp = torch.cat([f, g], dim=3)   # (B, T, U, 2H)
+        inp = torch.cat([f, g], dim=3)  # (B, T, U, 2H)
         res = self.net(inp)
         # del f, g, inp
         return res

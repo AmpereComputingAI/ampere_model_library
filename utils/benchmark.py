@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import json
 import os
 import sys
@@ -15,7 +14,7 @@ from filelock import FileLock
 
 warnings.filterwarnings("ignore")
 
-WARM_UP_RUNS = 3
+WARM_UP_RUNS = 9
 intra_op_parallelism_threads = None
 
 
@@ -160,8 +159,8 @@ class Runner:
     def set_task_size(self, new_task_size):
         """
         A function appending new_task_size to the self._workload_size.
-        Useful for models where the task_size is unknown before finishing the run (eg. text generation models where the
-        number of tokens generated has an upper bound but can be lower)
+        Useful for models where the task_size is unknown before finishing the run (e.g. text generation models where the
+        number of tokens generated has an upper limit but can turn out to be lower)
         """
         if new_task_size is None:
             return
@@ -280,7 +279,7 @@ def run_model(single_pass_func, runner, dataset, batch_size, num_runs, timeout):
         requested_instances_num = (WARM_UP_RUNS + 1) * batch_size
     else:
         requested_instances_num = num_runs * batch_size
-    if dataset.available_instances < requested_instances_num:
+    if dataset.available_instances < requested_instances_num and os.environ.get("IGNORE_DATASET_LIMITS") != "1":
         utils.print_goodbye_message_and_die(
             "Number of runs requested exceeds number of instances available in dataset! "
             f"(Requested: {requested_instances_num}, Available: {dataset.available_instances})")

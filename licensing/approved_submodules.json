@@ -1,0 +1,13 @@
+{
+  "_comment": "Make sure it is legal to (re)distribute the submodule as part of AML before adding it here. Copyright notice should be taken as-is from submodule's LICENSE file, or set to null if either LICENSE or copyright notice in it is missing.",
+  "approved": {
+    "utils/cv/nnUNet": "Copyright [2019] [Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany]",
+    "utils/recommendation/dlrm": "Copyright (c) Facebook, Inc. and its affiliates.",
+    "computer_vision/semantic_segmentation/segment_anything/segment_anything": null,
+    "natural_language_processing/text_generation/nanogpt/nanoGPT": "Copyright (c) 2022 Andrej Karpathy",
+    "utils/recommendation/DeepCTR": "Copyright 2017-present Weichen Shen",
+    "speech_recognition/whisper/whisper": "Copyright (c) 2022 OpenAI",
+    "text_to_image/stable_diffusion/stablediffusion": "Copyright (c) 2022 Stability AI",
+    "speech_recognition/whisper/openai_whisper": "Copyright (c) 2022 OpenAI"
+  }
+}

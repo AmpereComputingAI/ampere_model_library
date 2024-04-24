@@ -1,16 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
-
-import torch
-import numpy as np
-from PIL import Image
 from pathlib import Path
-from einops import rearrange
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, timeout):
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
-
+    import torch
     from omegaconf import OmegaConf
     from contextlib import nullcontext
     from utils.benchmark import run_model
@@ -67,7 +64,8 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
                                     shape=shape,
                                     verbose=False,
                                     unconditional_guidance_scale=scale,
-                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
+                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""])
+                                    if scale != 1.0 else None,
                                     eta=0.0,
                                     x_T=None)
         x_samples = model.decode_first_stage(samples)
@@ -84,7 +82,6 @@ def run_pytorch_cuda(model_path, config, steps, scale, batch_size, num_runs, tim
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
 
     from omegaconf import OmegaConf
-    from contextlib import nullcontext
     from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2
     from pytorch_lightning import seed_everything
@@ -115,7 +112,8 @@ def run_pytorch_cuda(model_path, config, steps, scale, batch_size, num_runs, tim
                                     shape=shape,
                                     verbose=False,
                                     unconditional_guidance_scale=scale,
-                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""]) if scale != 1.0 else None,
+                                    unconditional_conditioning=model.get_learned_conditioning(batch_size * [""])
+                                    if scale != 1.0 else None,
                                     eta=0.0,
                                     x_T=None)
         x_samples = model.decode_first_stage(samples)

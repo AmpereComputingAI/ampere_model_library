@@ -1,11 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
 import os
-
 from utils.cv.coco import COCODataset
-from utils.cv.openimages import OpenImagesDataset
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 
@@ -65,10 +62,11 @@ def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disabl
                     output[i]['labels'][d].item()
                 )
 
-    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path, anno_path,
-                          pre_processing="YOLO", sort_ascending=True, order="NCHW")
-    runner = PyTorchRunner(torchvision.models.detection.retinanet_resnet50_fpn(weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT, pretrained=True),
-                           disable_jit_freeze=disable_jit_freeze)
+    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
+                          anno_path, pre_processing="YOLO", sort_ascending=True, order="NCHW")
+    runner = PyTorchRunner(torchvision.models.detection.retinanet_resnet50_fpn(
+        weights=torchvision.models.detection.RetinaNet_ResNet50_FPN_Weights.DEFAULT, pretrained=True),
+        disable_jit_freeze=disable_jit_freeze)
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 

@@ -1,4 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
+import os
 from typing import List
 from utils.misc import print_warning_message
 
@@ -7,7 +10,7 @@ SUPPORTED_FRAMEWORKS = ["tf", "ort", "pytorch", "ctranslate2", "tflite"]
 
 class DefaultArgParser:
     def __init__(self, supported_frameworks: List[str], default_timeout=60.):
-        self.parser = argparse.ArgumentParser(prog=f"AML model-dedicated runner")
+        self.parser = argparse.ArgumentParser(prog="AML model-dedicated runner")
 
         if len(supported_frameworks) >= 2:
             for framework in supported_frameworks:
@@ -39,22 +42,38 @@ class DefaultArgParser:
 class Dataset:
     available_instances = None
 
+    def do_skip(self) -> bool:
+        return os.environ.get("IGNORE_DATASET_LIMITS") == "1"
+
     def reset(self) -> bool:
         raise NotImplementedError
 
-    def summarize_accuracy(self) -> dict:
+    def _summarize_accuracy(self) -> dict:
         raise NotImplementedError
+
+    # don't override this method, override _summarize_accuracy instead
+    def summarize_accuracy(self) -> dict:
+        accuracy_results = self._summarize_accuracy()
+        if accuracy_results is None:
+            accuracy_results = {}
+        assert type(accuracy_results) is dict
+        for k, v in accuracy_results.items():
+            assert isinstance(k, str)
+            try:
+                float(v)
+            except Exception as e:
+                raise e
+        return accuracy_results
 
     def print_accuracy_metrics(self) -> dict:
         accuracy_results = self.summarize_accuracy()
-        assert type(accuracy_results) is dict
         if len(accuracy_results) == 0:
-            print_warning_message("Accuracy metrics not implemented.")
+            print_warning_message("No accuracy metrics to print.")
         else:
             max_len = 14
             indent = 2 * " "
             print(f"\n{indent}ACCURACY")
             for metric in accuracy_results.keys():
-                print(f"{3 * indent}{metric}{(max_len - len(metric)) * ' '}{3 * indent}" +
+                print(f"{3 * indent}{metric[:max_len]}{(max_len - len(metric)) * ' '}{3 * indent}" +
                       "= {:>7.3f}".format(float(accuracy_results[metric])))
         return accuracy_results

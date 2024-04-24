@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 
 imagenet_labels = {
     0: 'tench, Tinca tinca',
@@ -321,7 +321,7 @@ imagenet_labels = {
     316: 'cicada, cicala',
     317: 'leafhopper',
     318: 'lacewing, lacewing fly',
-    319: "dragonfly, darning needle, devil's darning needle, sewing needle, snake feeder, snake doctor, mosquito hawk, skeeter hawk",
+    319: "dragonfly, darning needle, devil's darning needle, sewing needle, snake feeder, snake doctor, mosquito hawk, skeeter hawk",  # noqa
     320: 'damselfly',
     321: 'admiral',
     322: 'ringlet, ringlet butterfly',
@@ -482,7 +482,7 @@ imagenet_labels = {
     477: "carpenter's kit, tool kit",
     478: 'carton',
     479: 'car wheel',
-    480: 'cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM',
+    480: 'cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM',  # noqa
     481: 'cassette',
     482: 'cassette player',
     483: 'castle',

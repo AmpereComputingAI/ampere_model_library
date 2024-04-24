@@ -13,7 +13,12 @@ log() {
 ARCH=$( uname -m )
 
 if [ -z ${SCRIPT_DIR+x} ]; then
-  SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+fi
+
+if [ ! -f "$SCRIPT_DIR/speech_recognition/whisper/whisper/README.md" ]; then
+   log "Please pull submodules first: git submodule update --init --recursive"
+   exit 1
 fi
 
 if [ "$FORCE_INSTALL" != "1" ]; then
@@ -41,7 +46,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip
+apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
@@ -52,8 +57,8 @@ log "done.\n"
 log "Setup LD_PRELOAD ..."
 sleep 1
 if [ "${ARCH}" = "aarch64" ]; then
-   python3 $SCRIPT_DIR/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=`cat $SCRIPT_DIR/utils/setup/.ld_preload`
+   python3 "$SCRIPT_DIR"/utils/setup/gen_ld_preload.py
+   LD_PRELOAD=$(cat "$SCRIPT_DIR"/utils/setup/.ld_preload)
    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export LD_PRELOAD=$LD_PRELOAD
@@ -83,7 +88,9 @@ pip3 install --no-deps --upgrade \
    datasets==2.13.1 \
    soundfile==0.12.1 \
    librosa==0.10.0.post2 \
-   numba==0.57.1
+   numba==0.59.0 \
+   py-cpuinfo==9.0.0 \
+   cchardet==2.1.7
 
 pip3 install --no-build-isolation --upgrade \
    git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.36
@@ -134,7 +141,7 @@ pip3 install --no-deps --upgrade \
    jiwer==3.0.2 \
    click==8.1.3 \
    rapidfuzz==2.13.7 \
-   llvmlite==0.40.1 \
+   llvmlite==0.42.0 \
    decorator==5.1.1 \
    fsspec==2023.6.0 \
    unicode==2.9 \
@@ -167,13 +174,27 @@ pip3 install --no-deps --upgrade \
    streamlit-drawable-canvas==0.8.0 \
    safetensors>=0.3.1
 
+apt install -y autoconf autogen automake build-essential libasound2-dev \
+	libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
+        libmpg123-dev pkg-config
+apt remove -y libsndfile1
+git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
+
+if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
+   # Only on AmpereOne family
+   pip3 install --upgrade --no-deps \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
+fi
+
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
-	# Torchvision version has to match PyTorch version following this table: https://github.com/pytorch/vision?tab=readme-ov-file#installation
-        pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
+	 # Torchvision version has to match PyTorch version following this table:
+	 # https://github.com/pytorch/vision?tab=readme-ov-file#installation
+	 pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
 fi
 log "done.\n"
 
-touch "$SCRIPT_DIR"/.setup_completed
+cat /etc/machine-id > "$SCRIPT_DIR"/.setup_completed
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"

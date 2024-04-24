@@ -31,7 +31,7 @@ Dataset can be acquired here https://www.image-net.org/
 
 TensorFlow model can be downloaded from here: https://www.tensorflow.org/lite/guide/hosted_models
 
-ONNX Runtime model in fp16 precision can be downloaded here: https://www.dropbox.com/s/r80ndhbht7tixn5/resnet_50_v1.5_fp16.onnx
+ONNX Runtime model in fp16 precision can be downloaded here: censored due to licensing
 
 ### Running instructions
 

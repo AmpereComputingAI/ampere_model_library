@@ -1,6 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 # Copyright 2017-present Weichen Shen
-# Copyright (c) 2022, Ampere Computing LLC
-
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
@@ -37,8 +37,8 @@ class CensusIncome(Dataset):
             lbe = LabelEncoder()
             data[feat] = lbe.fit_transform(data[feat])
 
-        fixlen_feature_columns = [SparseFeat(feat, data[feat].max() + 1, embedding_dim=4) for feat in sparse_features] \
-                                 + [DenseFeat(feat, 1, ) for feat in dense_features]
+        fixlen_feature_columns = [SparseFeat(feat, data[feat].max() + 1, embedding_dim=4) for feat in sparse_features]
+        fixlen_feature_columns += [DenseFeat(feat, 1, ) for feat in dense_features]
 
         self.dnn_feature_columns = fixlen_feature_columns
         linear_feature_columns = fixlen_feature_columns
@@ -60,10 +60,10 @@ class CensusIncome(Dataset):
         for key, val in self.test_model_input.items():
             if val.dtype == "int64":
                 inputs[key] = np.expand_dims(
-                    val[self._current_instance:self._current_instance+self._batch_size].astype("int32"), axis=1)
+                    val[self._current_instance:self._current_instance + self._batch_size].astype("int32"), axis=1)
             elif val.dtype == "float64":
                 inputs[key] = np.expand_dims(
-                    val[self._current_instance:self._current_instance+self._batch_size].astype("float32"), axis=1)
+                    val[self._current_instance:self._current_instance + self._batch_size].astype("float32"), axis=1)
             else:
                 raise TypeError(f"unexpected dtype -> {val.dtype}")
         self._current_instance += self._batch_size
@@ -81,12 +81,12 @@ class CensusIncome(Dataset):
         self._results = {}
         return True
 
-    def summarize_accuracy(self):
-        #summary = ""
+    def _summarize_accuracy(self):
+        # summary = ""
         metrics = {}
         for label, metric in [("label_marital", "marital AUC"), ("label_income", "income AUC")]:
             metrics[metric] = roc_auc_score(self.test_set[label][:self._current_instance], self._results[label])
-            #summary += "\n {:<11} = {:.3f}".format(metric, metrics[metric])
-        #print(summary)
-        #print(f"\nAccuracy figures above calculated on the basis of {self._current_instance} samples.")
+            # summary += "\n {:<11} = {:.3f}".format(metric, metrics[metric])
+        # print(summary)
+        # print(f"\nAccuracy figures above calculated on the basis of {self._current_instance} samples.")
         return metrics

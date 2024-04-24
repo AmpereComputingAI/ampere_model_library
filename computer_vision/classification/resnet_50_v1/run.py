@@ -1,10 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
-import numpy as np
-
 from utils.benchmark import run_model
 from utils.cv.imagenet import ImageNet
 from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
@@ -112,15 +108,15 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 

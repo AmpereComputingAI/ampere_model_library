@@ -1,8 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import tiktoken
 import torch
-
 from utils.pytorch import PyTorchRunner
 from utils.benchmark import run_model
 from utils.nlp.lambada import Lambada
@@ -52,7 +52,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable
     model = GPT.from_pretrained(model_name, dict(dropout=0.0))
     enc = tiktoken.get_encoding("gpt2")
     encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
-    decode = lambda l: enc.decode(l)
+    decode = lambda ll: enc.decode(ll)
     dataset = Lambada(batch_size, encode, decode, lambada_path)
     runner = PyTorchRunner(model, disable_jit_freeze=disable_jit_freeze, func="generate")
 

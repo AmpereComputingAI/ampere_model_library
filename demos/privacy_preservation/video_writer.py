@@ -1,8 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 from pathlib import Path
 import subprocess
 import sys
 import time
 from threading import Thread
+
 
 class VideoWriter:
     """
@@ -25,13 +28,14 @@ class VideoWriter:
         self.start_time = start_time
         out_path = f"out/{Path(str(source)).stem}.avi"
         self.command = ["ffmpeg",
-                        "-y", # overwrite
+                        "-y",  # overwrite
                         "-f", "rawvideo", "-vcodec", "rawvideo",
                         "-s", f"{int(width)}x{int(height)}",
                         "-pix_fmt", "rgb24", "-r", f"{fps}",
-                        "-i", "-", # input comes from pipe
-                        "-an", # no audio
-                        "-vcodec", "libx264", "-preset", "ultrafast", out_path] # mpeg4 - quality is terrible, ffv1 - file size is huge
+                        "-i", "-",  # input comes from pipe
+                        "-an",  # no audio
+                        "-vcodec", "libx264", "-preset", "ultrafast",
+                        out_path]  # mpeg4 - quality is terrible, ffv1 - file size is huge
         if self.save:
             self.proc = subprocess.Popen(self.command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
@@ -59,13 +63,12 @@ class VideoWriter:
             # self.frame = np.concatenate((self.frames[idx].frame, self.frames[idx].blurred), axis=1)
 
             if self.save:
-                self.frame = self.frame[:, :, [2, 1, 0]] # RGB to BGR
+                self.frame = self.frame[:, :, [2, 1, 0]]  # RGB to BGR
                 try:
                     self.proc.stdin.write(self.frame.tostring())
                 except ValueError:
                     pass
             self.frame_number += 1
-
 
     def stop(self):
         if not self.stopped:
@@ -77,7 +80,7 @@ class VideoWriter:
                 if self.proc.stderr is not None:
                     self.proc.stderr.close()
                 self.proc.wait()
-    
+
     def reset(self, queue):
         self.queue = queue
         self.frame_number = 0

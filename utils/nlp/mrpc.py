@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import pandas as pd
 import tensorflow as tf
 from transformers import AutoTokenizer
-
 import utils.misc as utils
 from utils.helpers import Dataset
 
@@ -85,7 +83,7 @@ class MRPC(Dataset):
         if label == prediction:
             self.__correct += 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the obtained accuracy for the model
 
@@ -95,8 +93,7 @@ class MRPC(Dataset):
         """
 
         correct = self.__correct / self.__current_sentence
-        #print("\n Accuracy = {:.3f}".format(correct))
+        # print("\n Accuracy = {:.3f}".format(correct))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_sentence} pair of sentences.")
         return {"Correct": correct}
-

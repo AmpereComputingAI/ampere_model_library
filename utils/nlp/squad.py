@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
+import os
 import numpy as np
 import json
 import re
+import random
 import string
 from collections import Counter
 import utils.misc as utils
@@ -60,7 +61,7 @@ class Squad_v1_1(Dataset):
             dataset_json = json.load(dataset_file)
             encountered_version = dataset_json["version"]
             if encountered_version != expected_version:
-                print_goodbye_message_and_die(
+                utils.print_goodbye_message_and_die(
                     f"Expected SQUAD version {expected_version} but encountered version {encountered_version}")
             dataset = dataset_json["data"]
         return dataset
@@ -71,8 +72,12 @@ class Squad_v1_1(Dataset):
 
         :yield: str, str, list: context, questions, list of possible (correct) answers
         """
+        random.seed(44)
+        random.shuffle(self.__dataset)
         for section in self.__dataset:
+            random.shuffle(section["paragraphs"])
             for paragraph in section["paragraphs"]:
+                random.shuffle(paragraph["qas"])
                 for qas in paragraph["qas"]:
                     yield paragraph["context"], qas["question"], qas["answers"]
 
@@ -89,6 +94,9 @@ class Squad_v1_1(Dataset):
                 try:
                     context, question, correct_answers = next(self.__example_iterator)
                 except StopIteration:
+                    if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                        if self.reset():
+                            return self.__load_next_inputs_maybe()
                     raise utils.OutOfInstances("No more examples to process in the Squad file provided.")
                 contextes.append(context)
                 questions.append(question)
@@ -162,7 +170,8 @@ class Squad_v1_1(Dataset):
         :param model_max_length: int, maximum length of input a model can take, value of tokenizer.model_max_length
         :return: list, list containing inputs in various shapes for model warmup
         """
-        return [np.zeros(shape=(self.__batch_size, padding), dtype=np.int32) for padding in range(pad_to_multiple_of, model_max_length, pad_to_multiple_of)]
+        return [np.zeros(shape=(self.__batch_size, padding), dtype=np.int32)
+                for padding in range(pad_to_multiple_of, model_max_length, pad_to_multiple_of)]
 
     def extract_answer(self, id_in_batch: int, answer_start_id: int, answer_end_id: int):
         """
@@ -173,7 +182,7 @@ class Squad_v1_1(Dataset):
         :param answer_end_id: int, index of answer end in context text
         :return: string, detokenized answer
         """
-        answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id+1]
+        answer = self.__current_inputs["input_ids"][id_in_batch][answer_start_id:answer_end_id + 1]
         return self.__detokenize_func(answer)
 
     def submit_prediction(self, id_in_batch: int, answer: string):
@@ -183,6 +192,9 @@ class Squad_v1_1(Dataset):
         :param id_in_batch: int, index in input batch that answer relates to
         :param answer: string, detokenized answer
         """
+
+        if self.do_skip():
+            return
 
         def normalize(answer_string):
             """
@@ -257,7 +269,7 @@ class Squad_v1_1(Dataset):
         self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
         self.__unanswered_questions_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
         predicted answers were supplied with submit_predictions() function.
@@ -265,15 +277,18 @@ class Squad_v1_1(Dataset):
         :return: dict, dictionary containing two metrics produced: exact_match signifying the ratio of perfect answers
         and f1 metric
         """
+        if self.do_skip():
+            return
+
         if self.__unanswered_questions_count != 0:
             utils.print_goodbye_message_and_die(
                 "Answers for some of the issued questions have not been submitted.")
 
         exact_match = self.__exact_match_count / self.__questions_count
-        #print("\n Exact match = {:.3f}".format(exact_match))
+        # print("\n Exact match = {:.3f}".format(exact_match))
 
         f1 = self.__f1_count / self.__questions_count
-        #print(" F1 = {:.3f}".format(f1))
+        # print(" F1 = {:.3f}".format(f1))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__questions_count} questions answered.")
         return {"exact_match": exact_match, "f1": f1}

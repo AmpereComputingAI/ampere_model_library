@@ -1,16 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
+import os
+import time
 import torch
 import types
 import hashlib
 import pkg_resources
-from utils.profiling import *
+from utils.profiling import aio_profiler_enabled
 from torch.autograd.profiler import profile
 from pathlib import Path
 from packaging import version
 from contextlib import nullcontext
-from utils.benchmark import *
+from utils.benchmark import Runner, get_intra_op_parallelism_threads
+import utils.misc as utils
 
 
 class PyTorchRunner(Runner):
@@ -25,7 +27,7 @@ class PyTorchRunner(Runner):
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(
-                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+                "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
             utils.check_memory_settings()
         else:
             utils.advertise_aio("Torch")
@@ -55,17 +57,21 @@ class PyTorchRunner(Runner):
                                             f"optimizations are not expected to work.")
         else:
             cached_dir = Path(os.path.dirname(os.path.realpath(__file__)) + "/cached")
-            cached_path = cached_dir / f"{self._model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt"
+            cached_path = (cached_dir /
+                           f"{self._model._get_name()}_{hashlib.sha224(str(model).encode('utf-8')).hexdigest()}.pt")
             if os.environ.get("TORCH_COMPILE") == "1" and version.parse(
                     pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
-                # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
-                # There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works correctly for such edge cases.
+                # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is
+                # wrong. There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works
+                # correctly for such edge cases.
                 self._frozen_script = torch.compile(self._model, backend="aio" if AIO else "inductor",
                                                     options={"modelname": self._model._get_name()} if AIO else {})
             elif os.environ.get("TORCH_COMPILE") == "1" and not version.parse(
                     pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 utils.print_goodbye_message_and_die(
-                    f"TORCH_COMPILE=1 set, but installed PyTorch version is {pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 to use torch.compile().")
+                    f"TORCH_COMPILE=1 set, but installed PyTorch version is "
+                    f"{pkg_resources.get_distribution('torch').version}. PyTorch version must be at least 2.0.0 "
+                    f"to use torch.compile().")
             elif cached_path.exists():
                 self._frozen_script = torch.jit.load(cached_path)
                 print(f"Loaded from cached file at {cached_path}")
@@ -146,7 +152,7 @@ class PyTorchRunnerV2(Runner):
         AIO = '_aio_profiler_print' in dir(torch._C)
         if AIO:
             utils.print_warning_message(
-                f"Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
+                "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
             utils.check_memory_settings()
         else:
             utils.advertise_aio("Torch")
@@ -225,7 +231,7 @@ def check_if_cached(model):
 def load_from_cache_or_apply(model, conversion):
     is_cached, cached_path = check_if_cached(model)
     if is_cached:
-        print(f"Loading from cache ...")
+        print("Loading from cache ...")
         return torch.jit.load(cached_path)
     else:
         model = torch.jit.freeze(conversion())
@@ -242,7 +248,12 @@ def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
 
+def apply_jit_trace_module(model, example_inputs):
+    return load_from_cache_or_apply(model, lambda: torch.jit.trace_module(model, example_inputs))
+
+
 def apply_compile(model):
+    torch._dynamo.config.cache_size_limit = 512
     if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
@@ -258,11 +269,8 @@ def apply_compile(model):
             options = {}
             utils.print_warning_message(
                 f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
-        return torch.compile(
-            model,
-            backend=backend,
-            options=options
-        )
+        model = torch.compile(model, backend=backend, options=options)
+        return model
     else:
         utils.print_goodbye_message_and_die(
             f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. "

@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import torch
-
 from utils.benchmark import run_model
 import utils.speech_recognition.rnnt.model as rnnt
 from utils.misc import print_goodbye_message_and_die
@@ -46,11 +43,11 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, dataset_path, di
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, libri_speech):
-        
+
         input_arrays = libri_speech.get_input_arrays()
         _, _, output = pytorch_runner.run(batch_size, input_arrays)
         libri_speech.submit_predictions(output)
-    
+
     rnnt_vocab = rnnt_config['labels']['labels']
     featurizer_config = rnnt_config['input_eval']
 

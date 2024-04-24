@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2024, Ampere Computing LLC
 import os
 import sys
 import torch
 
 
-def run_pytorch_fp32(model_name, num_runs, timeout):
+def run_pytorch_fp32(model_name, num_runs, timeout, **kwargs):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -23,7 +25,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
         )
 
     def transcribe_wrapper(audio):
-        return transcribe(model, audio, verbose=None)
+        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper, throughput_only=True)
     librispeech = LibriSpeech()
@@ -32,7 +34,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout):
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(model_name, num_runs, timeout):
+def run_pytorch_cuda(model_name, num_runs, timeout, **kwargs):
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -52,7 +54,7 @@ def run_pytorch_cuda(model_name, num_runs, timeout):
         )
 
     def transcribe_wrapper(audio):
-        return transcribe(model, audio, verbose=None)
+        return transcribe(model, audio, no_speech_threshold=1.0, verbose=None)
 
     runner = PyTorchRunnerV2(transcribe_wrapper)
     librispeech = LibriSpeech()
@@ -68,7 +70,6 @@ if __name__ == "__main__":
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(whisper_variants)
 
-    import torch
     if torch.cuda.is_available():
         run_pytorch_cuda(**vars(parser.parse()))
     else:

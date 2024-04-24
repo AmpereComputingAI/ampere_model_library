@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
+# Copyright (c) 2024, Ampere Computing LLC
 
 from utils.recommendation.criteo import append_dlrm_to_pypath
 from utils.helpers import Dataset
@@ -23,7 +23,10 @@ class RandomDataset(Dataset):
         pass
 
     def submit_predictions(self, prediction):
+        if self.do_skip():
+            return
+
         self.__predictions.append(prediction)
 
-    def summarize_accuracy(self):
-        return {}
+    def _summarize_accuracy(self):
+        return

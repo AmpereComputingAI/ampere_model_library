@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
 import argparse
-
 import numpy as np
-
 from utils.benchmark import run_model
 from utils.misc import print_goodbye_message_and_die
 from utils.recommendation.criteo import append_dlrm_to_pypath
@@ -266,7 +263,7 @@ def run_pytorch_cuda(batch_size, num_runs, timeout, **kwargs):
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(batch_size, num_runs, timeout):
+def run_pytorch_fp32(batch_size, num_runs, timeout, **kwargs):
     return run_pytorch_fp(batch_size, num_runs, timeout)
 
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2022, Ampere Computing LLC
-
+# Copyright (c) 2024, Ampere Computing LLC
+import os
 import numpy as np
 import pathlib
 import utils.misc as utils
@@ -76,6 +76,9 @@ class ImageNet(ImageDataset):
         try:
             file_name = self.__file_names[self.__current_img]
         except IndexError:
+            if os.environ.get("IGNORE_DATASET_LIMITS") == "1":
+                if self.reset():
+                    return self.__get_path_to_img()
             raise utils.OutOfInstances("No more ImageNet images to process in the directory provided")
         self.__current_img += 1
         return pathlib.PurePath(self.__images_path, file_name)
@@ -138,24 +141,30 @@ class ImageNet(ImageDataset):
         A function meant for submitting a class predictions for a given image.
 
         :param id_in_batch: int, id of an image in the currently processed batch that the provided predictions relate to
-        :param top_1_index: int, index of a prediction with highest confidence
-        :param top_5_indices: list of ints, indices of 5 predictions with highest confidence
+        :param top_1_index: int, index of a prediction with the highest confidence
+        :param top_5_indices: list of ints, indices of 5 predictions with the highest confidence
         :return:
         """
+        if self.do_skip():
+            return
+
         ground_truth = self.__labels[self.__current_img - self.__batch_size + id_in_batch]
         self.__top_1_count += int(ground_truth == top_1_index)
         self.__top_5_count += int(ground_truth in top_5_indices)
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the images obtained with get_input_array() calls on which
         predictions done where supplied with submit_predictions() function.
         """
+        if self.do_skip():
+            return
+
         top_1_accuracy = self.__top_1_count / self.__current_img
-        #print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
+        # print("\n Top-1 accuracy = {:.3f}".format(top_1_accuracy))
 
         top_5_accuracy = self.__top_5_count / self.__current_img
-        #print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
+        # print(" Top-5 accuracy = {:.3f}".format(top_5_accuracy))
 
-        #print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
+        # print(f"\nAccuracy figures above calculated on the basis of {self.__current_img} images.")
         return {"top_1_acc": top_1_accuracy, "top_5_acc": top_5_accuracy}
