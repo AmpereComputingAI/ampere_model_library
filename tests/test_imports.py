@@ -27,19 +27,29 @@ class TestImports(unittest.TestCase):
                 continue
             block_idx = 0
             with open(path, "r") as f:
-                for line in f.readlines():
+                lines = f.readlines()
+                for i, line in enumerate(lines):
                     if line == self.codeblock[block_idx]:
                         block_idx += 1
                         if block_idx == len(self.codeblock):
                             break
                     elif block_idx > 0:
-                        issue_tracker.register(f"Env variables checker codeblock corrupted in file \033[91m"
-                                               f"{str(path).replace(self.aml_dir, '')}\033[0m")
-                        break
+                        if os.environ.get("FIX") == "1":
+                            lines[i] = self.codeblock[block_idx]
+                            block_idx += 1
+                            if block_idx == len(self.codeblock):
+                                break
+                        else:
+                            issue_tracker.register(f"Env variables checker codeblock corrupted in file \033[91m"
+                                                   f"{str(path).replace(self.aml_dir, '')}\033[0m")
+                            break
                     if self.is_func_declaration(line):
                         issue_tracker.register(f"Env variables checker codeblock not found in file \033[91m"
                                                f"{str(path).replace(self.aml_dir, '')}\033[0m")
                         break
+            if os.environ.get("FIX") == "1":
+                with open(path, "w") as f:
+                    f.writelines(lines)
         failure, issues = issue_tracker.is_failure()
         self.assertFalse(
             failure,
