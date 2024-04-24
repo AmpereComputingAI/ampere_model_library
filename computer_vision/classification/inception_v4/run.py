@@ -1,12 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-from utils.benchmark import run_model
-from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run Inception v4 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -37,6 +34,8 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.benchmark import run_model
+    from utils.cv.imagenet import ImageNet
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, imagenet):
@@ -66,6 +65,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_p
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
     args = parse_args()
     download_ampere_imagenet()
 
