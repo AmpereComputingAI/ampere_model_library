@@ -104,7 +104,7 @@ pip3 install --no-deps --upgrade \
    joblib==1.1.0 \
    kiwisolver==1.4.2 \
    matplotlib==3.5.1 \
-   nnunet==1.7.0 \
+   nnunet==1.7.1 \
    packaging==21.3 \
    Pillow==9.1.0 \
    pyparsing==3.0.8 \
