@@ -56,7 +56,6 @@ class TestImports(unittest.TestCase):
             issues + f"\nAll runner files should be prepended with following codeblock:\n\n"
                      f"\033[91m{''.join(self.codeblock)}\033[0m")
 
-
     def test_no_imports_top(self):
         issue_tracker = IssueTracker()
         for path in list(pathlib.Path(self.aml_dir).rglob("*")):
