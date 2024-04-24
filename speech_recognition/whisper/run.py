@@ -67,6 +67,7 @@ def run_pytorch_cuda(model_name, num_runs, timeout, **kwargs):
 
 
 if __name__ == "__main__":
+    import torch
     from utils.helpers import DefaultArgParser
     whisper_variants = ["tiny", "base", "small", "medium", "large"]
     whisper_variants = whisper_variants + [f"{name}.en" for name in whisper_variants[:4]]

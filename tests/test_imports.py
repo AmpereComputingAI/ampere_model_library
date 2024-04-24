@@ -30,4 +30,4 @@ class TestImports(unittest.TestCase):
                     elif inside_func and all([token != line[0] for token in [" ", "\n"]]):
                         inside_func = False
         failure, issues = issue_tracker.is_failure()
-        self.assertFalse(failure, issues + f"\nImports should not be done outside of functions in runner files.")
+        self.assertFalse(failure, issues + "\nImports should not be done outside of functions in runner files.")

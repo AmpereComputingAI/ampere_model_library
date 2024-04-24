@@ -42,8 +42,8 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     from utils.benchmark import run_model
 
     os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
-    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to
-    # set it to True if needed
+    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
+    # to set it to True if needed
     from utils.ort import OrtRunner
     from ultralytics.yolo.utils import ops
 
@@ -78,8 +78,8 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     from utils.benchmark import run_model
 
     os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
-    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to
-    # set it to True if needed
+    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
+    # to set it to True if needed
     from utils.pytorch import PyTorchRunner
     from ultralytics.yolo.utils import ops
 
@@ -120,8 +120,8 @@ def run_pytorch_cuda(
     from utils.benchmark import run_model
 
     os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
-    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user to
-    # set it to True if needed
+    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
+    # to set it to True if needed
     from utils.pytorch import PyTorchRunnerV2
 
     def run_single_pass(pytorch_runner, coco):

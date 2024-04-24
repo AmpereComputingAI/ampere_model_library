@@ -37,6 +37,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, cnn_dm_path, disable_
     from utils.benchmark import run_model
     from transformers import AutoTokenizer, BartForConditionalGeneration
     from utils.nlp.cnn_dailymail import CNN_DailyMail
+
     def run_single_pass(pytorch_runner, cnn_dm):
         input = torch.tensor(np.array(cnn_dm.get_input_ids_array(), dtype=np.int32))
         output = pytorch_runner.run(batch_size, input)
