@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import torch
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
-from utils.cv.nms import non_max_suppression
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run YOLOv5 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
@@ -41,6 +36,10 @@ def parse_args():
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    import torch
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
+    from utils.cv.nms import non_max_suppression
     from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, coco):
@@ -68,6 +67,10 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
 
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    import torch
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
+    from utils.cv.nms import non_max_suppression
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, coco):
@@ -101,6 +104,9 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
 def run_pytorch_cuda(
         model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False, **kwargs):
+    import torch
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2
 
     def run_single_pass(pytorch_runner, coco):
@@ -133,6 +139,7 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, ann
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
 
     if args.framework == "pytorch":

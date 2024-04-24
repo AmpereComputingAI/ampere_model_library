@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import tensorflow as tf
-from tensorflow.python.saved_model import tag_constants
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run YOLOv4 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -41,6 +36,9 @@ def parse_args():
 
 
 def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
+    import tensorflow as tf
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, coco):
@@ -77,6 +75,10 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    import tensorflow as tf
+    from tensorflow.python.saved_model import tag_constants
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.tf import TFSavedModelRunner
 
     def run_single_pass(tf_runner, coco):
@@ -116,6 +118,7 @@ def run_tf_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
     if args.framework == "tf":
         if args.precision == "fp32":

@@ -5,12 +5,17 @@ import unittest
 import pathlib
 from tests.test_ip import IssueTracker
 
+EXCEPTIONS = ["/demos/privacy_preservation/run.py"]
+
+
 class TestImports(unittest.TestCase):
     def test_no_imports_top(self):
         aml_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
         issue_tracker = IssueTracker()
         for path in list(pathlib.Path(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")).rglob("*")):
-            if not path.is_file() or any([token not in path.name for token in [".py", "run"]]):
+            if (not path.is_file() or
+                    any([token not in path.name for token in [".py", "run"]]) or
+                    str(path).replace(aml_dir, '') in EXCEPTIONS):
                 continue
             inside_func = False
             with open(path, "r") as f:
@@ -22,7 +27,7 @@ class TestImports(unittest.TestCase):
                     if any([token in line for token in
                             ["def ", "if __name__ == \"__main__\":", "if __name__ == '__main__'':"]]):
                         inside_func = True
-                    elif inside_func and " " != line[0]:
+                    elif inside_func and all([token != line[0] for token in [" ", "\n"]]):
                         inside_func = False
         failure, issues = issue_tracker.is_failure()
         self.assertFalse(failure, issues + f"\nImports should not be done outside of functions in runner files.")

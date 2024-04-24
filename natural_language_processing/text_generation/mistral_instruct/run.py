@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import os
-import torch
-from transformers import AutoModelForCausalLM
-from transformers import AutoTokenizer
-from utils.nlp.alpaca_instruct import AlpacaInstruct
-from utils.pytorch import PyTorchRunnerV2, apply_compile
-from utils.benchmark import run_model
 
 
 def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwargs):
+    import os
+    import torch
+    from transformers import AutoModelForCausalLM
+    from transformers import AutoTokenizer
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from utils.pytorch import PyTorchRunnerV2, apply_compile
+    from utils.benchmark import run_model
 
     def run_single_pass(pytorch_runner, dataset):
         input_array = dataset.get_input_array()

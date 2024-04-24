@@ -1,16 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import tiktoken
-import torch
-from utils.pytorch import PyTorchRunner
-from utils.benchmark import run_model
-from utils.nlp.lambada import Lambada
-from nanoGPT.model import GPT
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run karpathy/nanoGPT with small modifications.")
     parser.add_argument("-m", "--model_name",
                         type=str, choices=["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"], default="gpt2",
@@ -37,6 +30,12 @@ def parse_args():
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, lambada_path, disable_jit_freeze=True, **kwargs):
+    import tiktoken
+    import torch
+    from utils.pytorch import PyTorchRunner
+    from utils.benchmark import run_model
+    from utils.nlp.lambada import Lambada
+    from nanoGPT.model import GPT
 
     def run_single_pass(pytorch_runner, lambada):
         start_ids = lambada.get_input_array()[0]
@@ -64,6 +63,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, lambada_path, di
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
     if args.framework == "pytorch":
         if args.batch_size != 1:

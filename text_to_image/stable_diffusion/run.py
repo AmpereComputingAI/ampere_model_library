@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import os
-import sys
-from pathlib import Path
 
 
 def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, timeout):
+    import os
+    import sys
+    from pathlib import Path
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
     import torch
     from omegaconf import OmegaConf
@@ -79,6 +79,9 @@ def run_pytorch_fp32(model_path, config, steps, scale, batch_size, num_runs, tim
 
 
 def run_pytorch_cuda(model_path, config, steps, scale, batch_size, num_runs, timeout):
+    import os
+    import sys
+    from pathlib import Path
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "stablediffusion"))
 
     from omegaconf import OmegaConf

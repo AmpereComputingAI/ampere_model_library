@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-from utils.nlp.alpaca_instruct import AlpacaInstruct
-from utils.pytorch import PyTorchRunnerV2, apply_compile
-from utils.benchmark import run_model
 
 
 def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False):
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from utils.pytorch import PyTorchRunnerV2, apply_compile
+    from utils.benchmark import run_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     def run_single_pass(pytorch_runner, _dataset):
@@ -40,6 +40,9 @@ def run_pytorch_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
 
 
 def run_pytorch_cuda(model_path, num_runs, timeout, dataset_path, **kwargs):
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from utils.pytorch import PyTorchRunnerV2
+    from utils.benchmark import run_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     def run_single_pass(pytorch_runner, dataset):

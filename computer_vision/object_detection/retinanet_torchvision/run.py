@@ -1,13 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import os
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run Retinanet model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -40,6 +36,9 @@ def parse_args():
 
 
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    import os
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     import torch
     import torchvision
     from utils.pytorch import PyTorchRunner
@@ -76,6 +75,7 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, anno_path, disa
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
 
     if args.framework == "pytorch":

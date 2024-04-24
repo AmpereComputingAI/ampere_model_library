@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import os
-import sys
-import numpy as np
 
 
 def run_pytorch(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    import os
+    import sys
+    import numpy as np
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "segment_anything"))
     from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunnerV2

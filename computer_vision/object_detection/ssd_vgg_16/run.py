@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import os
-import argparse
-import torchvision
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run SSD VGG-16 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -41,6 +36,10 @@ def parse_args():
 
 
 def run_pytorch_fp(batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
+    import os
+    import torchvision
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, coco):
@@ -71,6 +70,7 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, images_path, anno_path, disa
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
     if args.framework == "pytorch":
         if args.precision == "fp32":

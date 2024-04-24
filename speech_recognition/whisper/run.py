@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import os
-import sys
-import torch
 
 
 def run_pytorch_fp32(model_name, num_runs, timeout, **kwargs):
+    import os
+    import sys
+    import torch
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model
@@ -35,6 +35,9 @@ def run_pytorch_fp32(model_name, num_runs, timeout, **kwargs):
 
 
 def run_pytorch_cuda(model_name, num_runs, timeout, **kwargs):
+    import os
+    import sys
+    import torch
     batch_size = 1
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "whisper"))
     from utils.benchmark import run_model

@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 
-import argparse
-
-from utils.benchmark import run_model
-from utils.nlp.wmt import WMT
-from utils.misc import print_goodbye_message_and_die
-
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run CTranslate model on WMT Translation task.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -44,6 +39,8 @@ def parse_args():
 
 def run_ctranslate(model_path, batch_size, num_runs, timeout, tokenizer_path, dataset_path, targets_path,
                    constant_input, compute_type):
+    from utils.benchmark import run_model
+    from utils.nlp.wmt import WMT
     from utils.ctranslate import CTranslateRunner
 
     def run_single_pass(ct_runner, dataset):
@@ -86,6 +83,7 @@ def run_ctranslate_int8(model_path, batch_size, num_runs, timeout, tokenizer_pat
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
 
     if args.framework == "ctranslate":

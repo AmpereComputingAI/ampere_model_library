@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-from utils.pytorch import PyTorchRunnerV2, apply_compile
-from utils.benchmark import run_model
-from utils.nlp.alpaca_instruct import AlpacaInstruct
-from transformers import LlamaForCausalLM, AutoTokenizer
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_torch_fp16=False):
+    from utils.pytorch import PyTorchRunnerV2, apply_compile
+    from utils.benchmark import run_model
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from transformers import LlamaForCausalLM, AutoTokenizer
     def run_single_pass(pytorch_runner, _dataset):
         input_tensor = tokenizer.encode(_dataset.get_input_string(), return_tensors="pt")
         input_tensor = torch.cat([input_tensor for _ in range(batch_size)], 0)

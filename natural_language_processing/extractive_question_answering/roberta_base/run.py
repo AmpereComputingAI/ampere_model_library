@@ -1,13 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import numpy as np
-from utils.benchmark import run_model
-from utils.nlp.squad import Squad_v1_1
-from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run model from Huggingface's transformers repo for "
                                                  "extractive question answering task.")
     parser.add_argument("-m", "--model_name",
@@ -32,6 +28,9 @@ def parse_args():
 
 
 def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
+    import numpy as np
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner
@@ -67,6 +66,8 @@ def run_tf(model_name, batch_size, num_runs, timeout, squad_path):
 
 
 def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, AutoModelForQuestionAnswering
     from utils.pytorch import PyTorchRunner
 
@@ -100,6 +101,8 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, squad_path, disable_j
 
 
 def run_pytorch_cuda(model_name, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, **kwargs):
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
     from utils.pytorch import PyTorchRunner
     from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
@@ -141,6 +144,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, squad_path, disa
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
     args = parse_args()
     download_squad_1_1_dataset()
 
