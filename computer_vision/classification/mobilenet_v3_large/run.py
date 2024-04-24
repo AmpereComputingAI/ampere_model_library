@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import torch
-import torchvision
-from utils.benchmark import run_model
-from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run Mobilenet V3 Large model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -41,6 +36,10 @@ def parse_args():
 
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+    import torch
+    import torchvision
+    from utils.benchmark import run_model
+    from utils.cv.imagenet import ImageNet
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, imagenet):
@@ -67,6 +66,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, lab
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
     args = parse_args()
     download_ampere_imagenet()
 

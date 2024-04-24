@@ -1,13 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import numpy as np
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run EfficientDet model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -38,6 +34,9 @@ def parse_args():
 
 
 def run_tflite(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    import numpy as np
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.tflite import TFLiteRunner
 
     def run_single_pass(tflite_runner, coco):
@@ -72,6 +71,7 @@ def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, anno
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
     if args.framework == "tf":
         if args.model_path is None:
