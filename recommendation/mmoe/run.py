@@ -17,7 +17,7 @@ except ModuleNotFoundError:
               f"\033[0m")
     sys.exit(1)
 
-    
+
 def run_tf(model_path, batch_size, num_runs, timeout, dataset_path):
     import tensorflow as tf
     from utils.tf import TFSavedModelRunner

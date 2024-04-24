@@ -28,7 +28,7 @@ jobs:
         run:
           python3 -m flake8
 
-      - name: Ensure runner files don't do top imports
+      - name: Ensure runner files don't do imports in global scope and check if env checking codeblock prepended
         run:
           python3 -m unittest tests.test_imports
 
