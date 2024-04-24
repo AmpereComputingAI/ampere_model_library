@@ -28,6 +28,10 @@ jobs:
         run:
           python3 -m flake8
 
+      - name: Ensure runner files don't do top imports
+        run:
+          python3 -m unittest tests.test_imports
+
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
         with:
