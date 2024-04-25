@@ -50,10 +50,6 @@ class BraTS19(Dataset):
         self.__input_details = list()
 
         if not self.__preprocessed_dir_path.is_dir():
-            import pkg_resources
-            from packaging import version
-            if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("2.2"):
-                utils.print_goodbye_message_and_die("nnunet library requires torch<2.2")
             self.__preprocess()
 
         with open(os.path.join(Path(self.__preprocessed_dir_path, "preprocessed_files.pkl")), "rb") as f:

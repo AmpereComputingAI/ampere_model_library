@@ -1,11 +1,27 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-from utils.nlp.alpaca_instruct import AlpacaInstruct
-from utils.pytorch import PyTorchRunnerV2, apply_compile
-from utils.benchmark import run_model
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 
 def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=False):
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from utils.pytorch import PyTorchRunnerV2, apply_compile
+    from utils.benchmark import run_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     def run_single_pass(pytorch_runner, _dataset):
@@ -40,6 +56,9 @@ def run_pytorch_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
 
 
 def run_pytorch_cuda(model_path, num_runs, timeout, dataset_path, **kwargs):
+    from utils.nlp.alpaca_instruct import AlpacaInstruct
+    from utils.pytorch import PyTorchRunnerV2
+    from utils.benchmark import run_model
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     def run_single_pass(pytorch_runner, dataset):
