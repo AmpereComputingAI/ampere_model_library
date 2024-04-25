@@ -22,6 +22,7 @@ def run_process(wrapper, kwargs):
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     print("yo")
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    print("xxx")
     return output
 
 
