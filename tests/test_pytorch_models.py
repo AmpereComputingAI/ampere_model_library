@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import os
+import sys
 import time
 import unittest
 import subprocess
@@ -20,9 +21,10 @@ def run_process(wrapper, kwargs):
     p = Process(target=wrapper, kwargs=kwargs)
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
-    print("yo")
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
-    print("xxx")
+    if p.exitcode != 0:
+        print(f"\nProcess exited with code {p.exitcode}")
+        sys.exit(1)
     return output
 
 
