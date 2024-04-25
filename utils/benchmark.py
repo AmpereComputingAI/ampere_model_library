@@ -110,9 +110,9 @@ class Runner:
                 }
                 for subcategory in self._subcategories.keys():
                     json_data[subcategory] = {
-                        "workload_size": self._subcategories[subcategory]["workload_size"][self.warm_up_runs:times_invoked],
+                        "workload_size": self._subcategories[subcategory]["workload_size"][self.warm_up_runs:times_invoked], # noqa
                         "start_times": self._subcategories[subcategory]["start_times"][self.warm_up_runs:times_invoked],
-                        "finish_times": self._subcategories[subcategory]["finish_times"][self.warm_up_runs:times_invoked],
+                        "finish_times": self._subcategories[subcategory]["finish_times"][self.warm_up_runs:times_invoked], # noqa
                         "threads": os.environ.get("AIO_NUMA_CPUS")
                     }
                 json.dump(json_data, f)
