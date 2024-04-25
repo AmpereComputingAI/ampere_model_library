@@ -22,6 +22,8 @@ def run_process(wrapper, kwargs):
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    print("xxx")
+    print(p.exitcode)
     if p.exitcode != 0:
         print(f"\nProcess exited with code {p.exitcode}")
         sys.exit(1)
