@@ -20,6 +20,7 @@ def run_process(wrapper, kwargs):
     p = Process(target=wrapper, kwargs=kwargs)
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    print("yo")
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
     return output
 
@@ -246,6 +247,7 @@ class DenseNet(unittest.TestCase):
         from computer_vision.classification.densenet_121.run import run_pytorch_fp32
 
         def wrapper(**kwargs):
+            dffd
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
         top_1_ref, top_5_ref = 0.717, 0.905
