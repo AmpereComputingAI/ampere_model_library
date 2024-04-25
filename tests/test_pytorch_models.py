@@ -15,15 +15,20 @@ TIMEOUT = 3 * 60 * 60
 
 
 def run_process(wrapper, kwargs):
+    def wrapper_outer(**kwargs):
+        wrapper(**kwargs)
+        os.environ["SUCCESS"] = "1"
+            
     start = time.time()
     output_queue = Queue()
     kwargs.update({"q": output_queue})
-    p = Process(target=wrapper, kwargs=kwargs)
+    p = Process(target=wrapper_outer, kwargs=kwargs)
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
+    print(os.environ["SUCCESS"])
+    print(output)
     print("xxx")
-    print(p.exitcode)
     if p.exitcode != 0:
         print(f"\nProcess exited with code {p.exitcode}")
         sys.exit(1)
