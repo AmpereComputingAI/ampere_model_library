@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import os
+import signal
 import time
 import unittest
 import subprocess
@@ -11,13 +12,21 @@ from utils.downloads.utils import get_downloads_path
 from multiprocessing import Process, Queue
 
 TIMEOUT = 3 * 60 * 60
+pid = os.getpid()
 
 
 def run_process(wrapper, kwargs):
+    def wrapper_outer(**kwargs):
+        try:
+            wrapper(**kwargs)
+        except Exception as e:
+            print(f"\nException encountered: {e}")
+            os.kill(pid, signal.SIGTERM)
+
     start = time.time()
     output_queue = Queue()
     kwargs.update({"q": output_queue})
-    p = Process(target=wrapper, kwargs=kwargs)
+    p = Process(target=wrapper_outer, kwargs=kwargs)
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
