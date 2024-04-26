@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import os
-import sys
+import signal
 import time
 import unittest
 import subprocess
@@ -12,12 +12,17 @@ from utils.downloads.utils import get_downloads_path
 from multiprocessing import Process, Queue
 
 TIMEOUT = 3 * 60 * 60
+pid = os.getpid()
 
 
 def run_process(wrapper, kwargs):
+    
     def wrapper_outer(**kwargs):
-        wrapper(**kwargs)
-        os.environ["SUCCESS"] = "1"
+        try:
+            wrapper(**kwargs)
+        except Exception as e:
+            print(f"Exception encountered: {e}")
+            os.kill(pid, signal.SIGTERM)
             
     start = time.time()
     output_queue = Queue()
@@ -26,12 +31,6 @@ def run_process(wrapper, kwargs):
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
-    print(os.environ["SUCCESS"])
-    print(output)
-    print("xxx")
-    if p.exitcode != 0:
-        print(f"\nProcess exited with code {p.exitcode}")
-        sys.exit(1)
     return output
 
 
