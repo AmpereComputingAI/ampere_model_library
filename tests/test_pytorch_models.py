@@ -22,7 +22,7 @@ def run_process(wrapper, kwargs):
         except Exception as e:
             print(f"\nException encountered: {e}")
             os.kill(pid, signal.SIGTERM)
-            
+
     start = time.time()
     output_queue = Queue()
     kwargs.update({"q": output_queue})
