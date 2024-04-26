@@ -16,12 +16,11 @@ pid = os.getpid()
 
 
 def run_process(wrapper, kwargs):
-    
     def wrapper_outer(**kwargs):
         try:
             wrapper(**kwargs)
         except Exception as e:
-            print(f"Exception encountered: {e}")
+            print(f"\nException encountered: {e}")
             os.kill(pid, signal.SIGTERM)
             
     start = time.time()
@@ -256,7 +255,6 @@ class DenseNet(unittest.TestCase):
         from computer_vision.classification.densenet_121.run import run_pytorch_fp32
 
         def wrapper(**kwargs):
-            dffd
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
         top_1_ref, top_5_ref = 0.717, 0.905
