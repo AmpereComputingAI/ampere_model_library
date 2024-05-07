@@ -17,6 +17,7 @@ except ModuleNotFoundError:
               f"\033[0m")
     sys.exit(1)
 
+
 def run_pytorch(model_name, num_runs, timeout, use_torch_fp16=False):
     import os
     import sys
@@ -54,11 +55,14 @@ def run_pytorch(model_name, num_runs, timeout, use_torch_fp16=False):
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
 
+
 def run_pytorch_fp32(model_name, num_runs, timeout):
     return run_pytorch(model_name, num_runs, timeout, use_torch_fp16=False)
 
+
 def run_pytorch_fp16(model_name, num_runs, timeout):
     return run_pytorch(model_name, num_runs, timeout, use_torch_fp16=True)
+
 
 def run_pytorch_cuda(model_name, num_runs, timeout, **kwargs):
     import os
