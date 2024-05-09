@@ -38,7 +38,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         librispeech = LibriSpeech()  # reset
         model = model.generate
     else:
-        model = apply_compile(model.generate)
+        model.forward = apply_compile(model.forward)
+        model.model.encoder = apply_compile(model.model.encoder)
 
     def single_pass_pytorch(_runner, _librispeech):
         waveform = [_librispeech.get_input_array() for _ in range(batch_size)]
@@ -49,7 +50,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         for i in range(batch_size):
             _librispeech.submit_transcription(decoded_output[i].lstrip().replace(",", "").replace(".", "").upper())
 
-    runner = PyTorchRunnerV2(model, throughput_only=True)
+    runner = PyTorchRunnerV2(model.generate, throughput_only=True)
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)
