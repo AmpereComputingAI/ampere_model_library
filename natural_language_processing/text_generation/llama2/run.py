@@ -43,7 +43,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
     model.eval()
     if use_torch_fp16:
         model = model.half()
-    model.generate = apply_compile(model.generate)
+    model.forward = apply_compile(model.forward)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
     tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})

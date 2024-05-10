@@ -37,7 +37,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
     if use_torch_fp16:
         model = model.half()
     model.eval()
-    model.generate = apply_compile(model.generate)
+    model.forward = apply_compile(model.forward)
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
