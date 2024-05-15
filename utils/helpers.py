@@ -39,7 +39,6 @@ class DefaultArgParser:
         return self.parser.parse_args()
 
 
-
 class Dataset:
     available_instances = None
 
