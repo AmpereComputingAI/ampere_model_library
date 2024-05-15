@@ -80,8 +80,9 @@ class Dataset:
 
 
 class DummyDataset(Dataset):
-    import sys
-    available_instances = sys.maxsize
+    def __init__(self):
+        import sys
+        self.available_instances = int(sys.maxsize)
 
     def reset(self) -> bool:
         return True

@@ -29,7 +29,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout, filepath, **kwargs):
 
     embedding_model = HuggingFaceEmbeddings(model_name=model_name, show_progress=False)
     embedding_model.client.eval()
-    embedding_model.client.encode = apply_compile(embedding_model.client.encode)
+    embedding_model.client.forward = apply_compile(embedding_model.client.forward)
 
     documents = TextLoader(filepath).load_and_split(CharacterTextSplitter())
 
@@ -40,7 +40,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout, filepath, **kwargs):
         return Chroma.from_documents(_documents, embedding_model)
 
     runner = PyTorchRunnerV2(embeddings_gen, throughput_only=True)
-    return run_model(single_pass_pytorch, runner, DummyDataset, 1, num_runs, timeout)
+    return run_model(single_pass_pytorch, runner, DummyDataset(), 1, num_runs, timeout)
 
 
 if __name__ == "__main__":
