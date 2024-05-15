@@ -39,6 +39,7 @@ class DefaultArgParser:
         return self.parser.parse_args()
 
 
+
 class Dataset:
     available_instances = None
 
@@ -77,3 +78,14 @@ class Dataset:
                 print(f"{3 * indent}{metric[:max_len]}{(max_len - len(metric)) * ' '}{3 * indent}" +
                       "= {:>7.3f}".format(float(accuracy_results[metric])))
         return accuracy_results
+
+
+class DummyDataset(Dataset):
+    import sys
+    available_instances = sys.maxsize
+
+    def reset(self) -> bool:
+        return True
+
+    def _summarize_accuracy(self) -> dict:
+        return {}
