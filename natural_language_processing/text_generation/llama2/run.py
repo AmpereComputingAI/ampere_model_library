@@ -22,12 +22,14 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
     from utils.pytorch import PyTorchRunnerV2, apply_compile
     from utils.benchmark import run_model
     from utils.nlp.alpaca_instruct import AlpacaInstruct
-    from transformers import LlamaForCausalLM, AutoTokenizer
+    from transformers import LlamaForCausalLM, AutoTokenizer, GenerationConfig
 
     def run_single_pass(pytorch_runner, _dataset):
         input_tensor = tokenizer.encode(_dataset.get_input_string(), return_tensors="pt")
         input_tensor = torch.cat([input_tensor for _ in range(batch_size)], 0)
-        output = pytorch_runner.run(inputs=input_tensor, max_length=400)
+        config = GenerationConfig()
+        config.max_length = 400
+        output = pytorch_runner.run(inputs=input_tensor, generation_config=config)
         pytorch_runner.set_task_size(sum([len(output[i]) - len(input_tensor[i]) for i in range(batch_size)]))
         for i in range(batch_size):
             _dataset.submit_prediction(tokenizer.decode(output[i][len(input_tensor[i]):], skip_special_tokens=True))
@@ -41,7 +43,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
     model.eval()
     if use_torch_fp16:
         model = model.half()
-    model.generate = apply_compile(model.generate)
+    model.forward = apply_compile(model.forward)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
     tokenizer.add_special_tokens({'pad_token': tokenizer.eos_token})

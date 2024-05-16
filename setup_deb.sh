@@ -93,7 +93,7 @@ pip3 install --no-deps --upgrade \
    cchardet==2.1.7
 
 pip3 install --no-build-isolation --upgrade \
-   git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.36
+   git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.40
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
@@ -116,7 +116,7 @@ pip3 install --no-deps --upgrade \
    scikit-image==0.19.2 \
    scikit-learn==1.0.2 \
    threadpoolctl==3.1.0 \
-   tokenizers==0.14.1 \
+   tokenizers==0.19.1 \
    tabulate==0.9.0 \
    regex==2022.3.15 \
    portalocker==2.6.0 \
