@@ -1,17 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import os
-import warnings
-import torch
-import torchvision
-from utils.benchmark import run_model
-from utils.cv.imagenet import ImageNet
-from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
-warnings.filterwarnings("ignore")
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run Inception v3 model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -44,6 +52,8 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.benchmark import run_model
+    from utils.cv.imagenet import ImageNet
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, imagenet):
@@ -65,6 +75,8 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pat
 
 
 def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path):
+    from utils.benchmark import run_model
+    from utils.cv.imagenet import ImageNet
     from utils.tflite import TFLiteRunner
 
     def run_single_pass(tflite_runner, imagenet):
@@ -87,6 +99,11 @@ def run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_pa
 
 
 def run_pytorch_fp(model_name, batch_size, num_runs, timeout, images_path, labels_path, disable_jit_freeze=False):
+    import os
+    import torch
+    import torchvision
+    from utils.benchmark import run_model
+    from utils.cv.imagenet import ImageNet
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, imagenet):
@@ -123,6 +140,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, images_path, lab
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die, download_ampere_imagenet
     args = parse_args()
     download_ampere_imagenet()
 

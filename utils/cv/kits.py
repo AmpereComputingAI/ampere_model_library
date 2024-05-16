@@ -232,13 +232,13 @@ class KiTS19(Dataset):
             self.__calc_dice_score(full_prediction, ground_truth)
             self.__current_img_id += 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         if self.__current_img_id < 1:
             utils.print_warning_message(
                 "Not a single image has been completed - cannot calculate accuracy. Note that images of KiTS dataset "
                 "are processed in slices due to their size. That implies that complete processing of one image can "
                 "involve many passes through the network.")
-            return {"mean_kidney_acc": None, "mean_tumor_acc": None, "mean_composite_acc": None}
+            return
 
         mean_kidney = self.__kidney_score / self.__current_img_id
         # print("\n Mean kidney segmentation accuracy = {:.3f}".format(mean_kidney))

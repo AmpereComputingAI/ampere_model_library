@@ -1,14 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-
-import argparse
-import numpy as np
-from utils.benchmark import run_model
-from utils.nlp.squad import Squad_v1_1
-from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run BERT Large model (from mlcommons:inference repo).")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -38,6 +49,9 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
+    import numpy as np
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer
     from utils.tf import TFFrozenModelRunner
 
@@ -47,7 +61,7 @@ def run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path):
         tf_runner.set_input_tensor("input_mask:0", squad.get_attention_mask_array())
         tf_runner.set_input_tensor("segment_ids:0", squad.get_token_type_ids_array())
 
-        output = tf_runner.run(batch_size)
+        output = tf_runner.run(batch_size * seq_size)
 
         for i in range(batch_size):
             answer_start_id, answer_end_id = np.argmax(output["logits:0"][i], axis=0)
@@ -80,13 +94,15 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs)
 
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
     import torch
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-
-        output = pytorch_runner.run(batch_size, **dict(squad.get_input_arrays()))
+        input_tensor = squad.get_input_arrays()
+        output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()
@@ -135,10 +151,13 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disa
     import torch
     from utils.pytorch import PyTorchRunner
     from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
+    from utils.benchmark import run_model
+    from utils.nlp.squad import Squad_v1_1
 
     def run_single_pass(pytorch_runner, squad):
-
-        output = pytorch_runner.run(batch_size, **{k: v.cuda() for k, v in squad.get_input_arrays().items()})
+        input_tensor = squad.get_input_arrays()
+        output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1],
+                                    **{k: v.cuda() for k, v in input_tensor.items()})
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()
@@ -185,13 +204,16 @@ def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, squad_path, disa
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die, download_squad_1_1_dataset
     args = parse_args()
     download_squad_1_1_dataset()
 
     if args.framework == "tf":
+        if args.batch_size > 1:
+            print_goodbye_message_and_die("This model supports only BS=1")
+
         if args.model_path is None:
-            print_goodbye_message_and_die(
-                "a path to model is unspecified!")
+            print_goodbye_message_and_die("a path to model is unspecified!")
 
         if args.precision == "fp32":
             run_tf_fp32(**vars(args))

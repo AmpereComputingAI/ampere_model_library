@@ -4,6 +4,7 @@ import os
 import numpy as np
 import json
 import re
+import random
 import string
 from collections import Counter
 import utils.misc as utils
@@ -71,8 +72,12 @@ class Squad_v1_1(Dataset):
 
         :yield: str, str, list: context, questions, list of possible (correct) answers
         """
+        random.seed(44)
+        random.shuffle(self.__dataset)
         for section in self.__dataset:
+            random.shuffle(section["paragraphs"])
             for paragraph in section["paragraphs"]:
+                random.shuffle(paragraph["qas"])
                 for qas in paragraph["qas"]:
                     yield paragraph["context"], qas["question"], qas["answers"]
 
@@ -264,7 +269,7 @@ class Squad_v1_1(Dataset):
         self.__f1_count += metric_max_over_ground_truths(f1_score, answer, ground_truths)
         self.__unanswered_questions_count -= 1
 
-    def summarize_accuracy(self):
+    def _summarize_accuracy(self):
         """
         A function summarizing the accuracy achieved on the questions obtained with get_*_array() calls on which
         predicted answers were supplied with submit_predictions() function.
@@ -273,7 +278,7 @@ class Squad_v1_1(Dataset):
         and f1 metric
         """
         if self.do_skip():
-            return {}
+            return
 
         if self.__unanswered_questions_count != 0:
             utils.print_goodbye_message_and_die(

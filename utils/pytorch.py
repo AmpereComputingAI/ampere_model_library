@@ -248,7 +248,12 @@ def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
 
 
+def apply_jit_trace_module(model, example_inputs):
+    return load_from_cache_or_apply(model, lambda: torch.jit.trace_module(model, example_inputs))
+
+
 def apply_compile(model):
+    torch._dynamo.config.cache_size_limit = 512
     if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
@@ -264,11 +269,8 @@ def apply_compile(model):
             options = {}
             utils.print_warning_message(
                 f"AIO unavailable or disabled, applying torch.compile() with \"{backend}\" backend.")
-        return torch.compile(
-            model,
-            backend=backend,
-            options=options
-        )
+        model = torch.compile(model, backend=backend, options=options)
+        return model
     else:
         utils.print_goodbye_message_and_die(
             f"Installed PyTorch version is {pkg_resources.get_distribution('torch').version}. "

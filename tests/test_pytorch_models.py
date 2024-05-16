@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 import os
+import signal
 import time
 import unittest
 import subprocess
@@ -11,13 +12,21 @@ from utils.downloads.utils import get_downloads_path
 from multiprocessing import Process, Queue
 
 TIMEOUT = 3 * 60 * 60
+pid = os.getpid()
 
 
 def run_process(wrapper, kwargs):
+    def wrapper_outer(**kwargs):
+        try:
+            wrapper(**kwargs)
+        except Exception as e:
+            print(f"\nException encountered: {e}")
+            os.kill(pid, signal.SIGTERM)
+
     start = time.time()
     output_queue = Queue()
     kwargs.update({"q": output_queue})
-    p = Process(target=wrapper, kwargs=kwargs)
+    p = Process(target=wrapper_outer, kwargs=kwargs)
     p.start()
     output = output_queue.get(block=True, timeout=max(0, int(TIMEOUT - (time.time() - start))))
     p.join(timeout=max(0, int(TIMEOUT - (time.time() - start))))
@@ -93,25 +102,67 @@ class Alpaca(unittest.TestCase):
 
 class Whisper(unittest.TestCase):
     def setUp(self):
-        from speech_recognition.whisper.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
+        def wrapper_openai(**kwargs):
+            from speech_recognition.whisper.run import run_pytorch_fp32
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        self.wrapper = wrapper
+        def wrapper_hf(**kwargs):
+            from speech_recognition.whisper.run_hf import run_pytorch_fp32
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        self.wrapper_openai = wrapper_openai
+        self.wrapper_hf = wrapper_hf
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
     def test_whisper_tiny_en(self):
         wer_ref = 0.155
-        acc = run_process(self.wrapper, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper_openai, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
+    def test_whisper_hf_tiny_en(self):
+        wer_ref = 0.111
+        acc = run_process(self.wrapper_hf, {"model_name": "openai/whisper-tiny.en", "num_runs": 18,
+                                            "batch_size": 4, "timeout": None})
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
     @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
     @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
     def test_whisper_large(self):
         wer_ref = 0.124
-        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None})
+        acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
         self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+
+
+class WhisperTranslate(unittest.TestCase):
+    def setUp(self):
+        from speech_recognition.whisper_translate.run import run_pytorch_fp32
+
+        self.dataset_path = pathlib.Path(get_downloads_path(), "covost2_ja")
+        if not self.dataset_path.exists():
+            url = os.environ.get("S3_URL_COVOST2_DATASET")
+            assert url is not None
+            subprocess.run(f"mkdir {self.dataset_path}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"tar -xf /tmp/covost2_ja.tar -C {self.dataset_path}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/covost2_ja.tar".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        self.wrapper = wrapper
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
+    def test_whisper_translate_medium(self):
+        wer_ref = 0.475
+        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
+                                         "dataset_path": self.dataset_path})
+        self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
 
 
 class DLRM(unittest.TestCase):
@@ -169,7 +220,7 @@ class BERT(unittest.TestCase):
         def wrapper(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        exact_match_ref, f1_ref = 0.792, 0.825
+        exact_match_ref, f1_ref = 0.750, 0.817
         acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
                                     "batch_size": 1, "num_runs": 24, "timeout": None, "disable_jit_freeze": False})
         self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
