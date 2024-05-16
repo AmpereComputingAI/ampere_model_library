@@ -1,13 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
 
-import torch
-import numpy as np
-import tensorflow as tf
-
-from utils.cv.kits import KiTS19
-from utils.benchmark import run_model
-
 
 try:
     from utils import misc  # noqa
@@ -49,7 +42,11 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
 
 
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
+    import torch
+    import numpy as np
     from utils.pytorch import PyTorchRunnerV2
+    from utils.cv.kits import KiTS19
+    from utils.benchmark import run_model
 
     def run_single_pass(pytorch_runner, kits):
         output = pytorch_runner.run(1, torch.from_numpy(np.expand_dims(kits.get_input_array(), axis=0)))
