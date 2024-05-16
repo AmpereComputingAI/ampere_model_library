@@ -4,7 +4,6 @@
 import torch
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.saved_model import tag_constants
 
 from utils.cv.kits import KiTS19
 from utils.benchmark import run_model
