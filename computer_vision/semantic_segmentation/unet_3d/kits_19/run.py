@@ -44,6 +44,7 @@ def run_tf_fp(model_path, num_runs, timeout, kits_path):
 def run_pytorch_fp(model_path, num_runs, timeout, kits_path):
     import torch
     import numpy as np
+    import tensorflow as tf
     from utils.pytorch import PyTorchRunnerV2
     from utils.cv.kits import KiTS19
     from utils.benchmark import run_model
