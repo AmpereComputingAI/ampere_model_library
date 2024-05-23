@@ -227,6 +227,41 @@ class BERT(unittest.TestCase):
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
+class UNET_KITS(unittest.TestCase):
+    def setUp(self):
+        self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
+        if not self.dataset_path.exists():
+            # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
+            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
+            assert url is not None
+            subprocess.run(f"wget -P /tmp {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(f"tar -xf /tmp/kits19_reduced.tar.gz -C {get_downloads_path()}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run("rm /tmp/kits19_reduced.tar.gz".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        self.model_path = pathlib.Path(get_downloads_path(), "3d_unet_kits_pytorch_fp32.ptc")
+        if not self.model_path.exists():
+            # url = os.environ.get("S3_URL_UNET_KITS_PYTORCH_FP32")
+            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/3d_unet_kits_pytorch_fp32.ptc"
+            subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def test_unet_kits(self):
+        from computer_vision.semantic_segmentation.unet_3d.kits_19.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        mean_kidney_acc, mean_tumor_acc = 0.927, 0.837
+        acc = run_process(wrapper, {"model_path": self.model_path, "kits_path": self.dataset_path,
+                                    "batch_size": 1, "num_runs": 500, "timeout": 200, "debug": True})
+
+        self.assertTrue(acc["mean_kidney_acc"] / mean_kidney_acc > 0.90)
+        self.assertTrue(acc["mean_tumor_acc"] / mean_tumor_acc > 0.80)
+
+
 def download_imagenet_maybe():
     dataset_path = pathlib.Path(get_downloads_path(), "ILSVRC2012_onspecta")
     if not dataset_path.exists():
