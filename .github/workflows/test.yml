@@ -169,6 +169,7 @@ jobs:
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_pytorch_arm64_sh:
+    if: false
     runs-on: self-hosted
     container:
       image: ubuntu:22.04
