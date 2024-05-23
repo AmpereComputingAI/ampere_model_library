@@ -231,8 +231,8 @@ class UNET_KITS(unittest.TestCase):
     def setUp(self):
         self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
-            # url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
-            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
+            url = os.environ.get("S3_URL_KITS19_REDUCED_DATASET")
+            # url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
             assert url is not None
             subprocess.run(f"wget -P /tmp {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -243,8 +243,8 @@ class UNET_KITS(unittest.TestCase):
 
         self.model_path = pathlib.Path(get_downloads_path(), "3d_unet_kits_pytorch_fp32.ptc")
         if not self.model_path.exists():
-            # url = os.environ.get("S3_URL_UNET_KITS_PYTORCH_FP32")
-            url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/3d_unet_kits_pytorch_fp32.ptc"
+            url = os.environ.get("S3_URL_UNET_KITS_PYTORCH_FP32")
+            # url = "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/3d_unet_kits_pytorch_fp32.ptc"
             subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
