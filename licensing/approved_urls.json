@@ -38,8 +38,6 @@
     "https://ampereaidevelopus.s3.amazonaws.com/releases/1.10.0/binaries/install_ampere_pytorch_u22_1_10_0.sh)",
     "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/banshee%40ampere_pytorch_1.10.0%40yolo_v8_s.json",
     "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/sklearn2onnx/linear_regression_optimized.joblib",
-    "https://www.dropbox.com/s/ft54q1gi060vm2x/Task004_Hippocampus.zip?dl=1",
-    "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/3d_unet_kits_pytorch_fp32.ptc",
-    "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/kits19_reduced.tar.gz"
+    "https://www.dropbox.com/s/ft54q1gi060vm2x/Task004_Hippocampus.zip?dl=1"
   ]
 }
