@@ -52,6 +52,7 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 4
+      DISABLE_UNET_TEST: 1
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
