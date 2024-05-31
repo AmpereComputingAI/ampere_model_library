@@ -7,7 +7,7 @@ This folder contains the script to run Stable Diffusion in PyTorch framework usi
 ### Model:
 
 Model details are available here: https://huggingface.co/stabilityai/stable-diffusion-2-1-base \
-Model can be downloaded here: https://huggingface.co/stabilityai/stable-diffusion-2-1-base/blob/main/v2-1_512-ema-pruned.ckpt
+Model can be downloaded here: [https://huggingface.co/stabilityai/stable-diffusion-2-1-base/blob/main/v2-1_512-ema-pruned.ckpt](https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt)
 
 
 ### Running instructions
