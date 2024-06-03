@@ -102,7 +102,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 
     def run_single_pass(pytorch_runner, squad):
         input_tensor = squad.get_input_arrays()
-        output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
+        output = pytorch_runner.run(batch_size, **dict(input_tensor))
 
         for i in range(batch_size):
             answer_start_id = output[0][i].argmax()
