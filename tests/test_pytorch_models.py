@@ -13,10 +13,6 @@ from multiprocessing import Process, Queue
 
 TIMEOUT = 3 * 60 * 60
 pid = os.getpid()
-if os.environ.get("DISABLE_UNET_TEST") == 1:
-    skip_unet = True
-else:
-    skip_unet = False
 
 
 def run_process(wrapper, kwargs):
@@ -232,7 +228,9 @@ class BERT(unittest.TestCase):
 
 
 class UNET_KITS(unittest.TestCase):
-    @unittest.skipIf(skip_unet, "if the test runs on x86 skip this model")
+
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def setUp(self):
         self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
