@@ -229,8 +229,6 @@ class BERT(unittest.TestCase):
 
 class UNET_KITS(unittest.TestCase):
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def setUp(self):
         self.dataset_path = pathlib.Path(get_downloads_path(), "kits19")
         if not self.dataset_path.exists():
@@ -249,7 +247,8 @@ class UNET_KITS(unittest.TestCase):
             subprocess.run(f"wget -P {get_downloads_path()} {url}".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(skip_unet, "if the test runs on x86 skip this model")
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
     def test_unet_kits(self):
         from computer_vision.semantic_segmentation.unet_3d.kits_19.run import run_pytorch_fp32
 
