@@ -11,15 +11,15 @@ pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1
                                          variant="fp16")
 
 pipe.to("cpu")
-unet = pipe.unet
-unet.eval()
+
+pipe.eval()
 
 example_input = torch.randn(1, 3, 512, 512)
 # traced_model = torch.jit.trace(pipe, example_input)
 
 # frozen_model = torch.jit.freeze(traced_model)
 
-model = apply_jit_trace(unet, example_input)
+model = apply_jit_trace(pipe, example_input)
 # if using torch < 2.0
 # pipe.enable_xformers_memory_efficient_attention()
 
