@@ -1,11 +1,11 @@
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
+from diffusers import DiffusionPipeline, StableDiffusionPipeline, StableDiffusionXLPipeline
 import torch
 from utils.pytorch import PyTorchRunnerV2, apply_compile
 import os
 
 torch.set_num_threads(128)
 
-pipe = StableDiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0",
+pipe = StableDiffusionXLPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0",
                                          torch_dtype=torch.float16,
                                          use_safetensors=True,
                                          variant="fp16")
