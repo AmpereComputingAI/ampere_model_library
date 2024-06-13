@@ -11,9 +11,6 @@ pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1
                                          variant="fp16")
 
 pipe.to("cpu")
-
-pipe.eval()
-
 example_input = torch.randn(1, 3, 512, 512)
 # traced_model = torch.jit.trace(pipe, example_input)
 
