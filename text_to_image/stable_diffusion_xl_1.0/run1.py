@@ -1,7 +1,7 @@
 from diffusers import DiffusionPipeline, StableDiffusionPipeline
 import torch
-
-from utils.pytorch import apply_jit_trace
+from utils.pytorch import PyTorchRunnerV2, apply_compile
+import os
 
 torch.set_num_threads(128)
 
@@ -19,7 +19,8 @@ example_input = torch.randn(1, 3, 512, 512)
 
 # frozen_model = torch.jit.freeze(traced_model)
 
-model = apply_jit_trace(pipe, example_input)
+aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
+pipe = apply_compile(pipe, aio_available)
 # if using torch < 2.0
 # pipe.enable_xformers_memory_efficient_attention()
 
