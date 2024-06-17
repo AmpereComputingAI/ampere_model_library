@@ -5,19 +5,10 @@ import os
 
 torch.set_num_threads(128)
 
-pipe = StableDiffusionXLPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0",
-                                         torch_dtype=torch.float16,
-                                         use_safetensors=True,
-                                         variant="fp16")
+model = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0")
 
-pipe.to("cpu")
-example_input = torch.randn(1, 3, 512, 512)
-# traced_model = torch.jit.trace(pipe, example_input)
-
-# frozen_model = torch.jit.freeze(traced_model)
-
-aio_available = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
-pipe = apply_compile(pipe)
+model.to("cpu")
+model = apply_compile(model)
 # if using torch < 2.0
 # pipe.enable_xformers_memory_efficient_attention()
 
