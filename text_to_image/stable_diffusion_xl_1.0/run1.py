@@ -5,10 +5,10 @@ import os
 
 torch.set_num_threads(128)
 
-model = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0")
+model = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", use_safetensors=True)
 
 model.to("cpu")
-model = apply_compile(model)
+model.unet = apply_compile(model.unet)
 # if using torch < 2.0
 # pipe.enable_xformers_memory_efficient_attention()
 
