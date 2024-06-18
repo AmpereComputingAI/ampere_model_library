@@ -5,42 +5,42 @@
 set -eo pipefail
 
 log() {
-  COLOR_DEFAULT='\033[0m'
-  COLOR_CYAN='\033[1;36m'
-  echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
+    COLOR_DEFAULT='\033[0m'
+    COLOR_CYAN='\033[1;36m'
+    echo -e "${COLOR_CYAN}$1${COLOR_DEFAULT}"
 }
 
-ARCH=$( uname -m )
+ARCH=$(uname -m)
 
 if [ -z ${SCRIPT_DIR+x} ]; then
-   SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+    SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 fi
 
 if [ ! -f "$SCRIPT_DIR/speech_recognition/whisper/whisper/README.md" ]; then
-   log "Please pull submodules first: git submodule update --init --recursive"
-   exit 1
+    log "Please pull submodules first: git submodule update --init --recursive"
+    exit 1
 fi
 
 if [ "$FORCE_INSTALL" != "1" ]; then
-   log "Checking for aarch64 system ..."
-   sleep 1
-   if [ "${ARCH}" != "aarch64" ]; then
-      log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
-      exit 1
-   fi
-   log "done.\n"
-   
-   log "Checking for Debian based Linux ..."
-   sleep 1
-   if [ -f "/etc/debian_version" ]; then
-      debian_version=$(</etc/debian_version)
-      log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
-      sleep 3
-   else
-      log "\nDebian-based Linux has not been detected! Quitting."
-      exit 1
-   fi
-   log "done.\n"
+    log "Checking for aarch64 system ..."
+    sleep 1
+    if [ "${ARCH}" != "aarch64" ]; then
+        log "\nDetected $ARCH-based system while aarch64 one is expected. Quitting."
+        exit 1
+    fi
+    log "done.\n"
+
+    log "Checking for Debian based Linux ..."
+    sleep 1
+    if [ -f "/etc/debian_version" ]; then
+        debian_version=$(</etc/debian_version)
+        log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
+        sleep 3
+    else
+        log "\nDebian-based Linux has not been detected! Quitting."
+        exit 1
+    fi
+    log "done.\n"
 fi
 
 log "Installing system dependencies ..."
@@ -49,17 +49,17 @@ apt-get update -y
 apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
-if [[ -n "$PYTHON_DEV_SEARCH"  ]]; then
-	apt-get -y install "python${PYTHON_VERSION}-dev"
+if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
+    apt-get -y install "python${PYTHON_VERSION}-dev"
 fi
 log "done.\n"
 
 log "Setup LD_PRELOAD ..."
 sleep 1
 if [ "${ARCH}" = "aarch64" ]; then
-   python3 "$SCRIPT_DIR"/utils/setup/gen_ld_preload.py
-   LD_PRELOAD=$(cat "$SCRIPT_DIR"/utils/setup/.ld_preload)
-   echo "LD_PRELOAD=$LD_PRELOAD"
+    python3 "$SCRIPT_DIR"/utils/setup/gen_ld_preload.py
+    LD_PRELOAD=$(cat "$SCRIPT_DIR"/utils/setup/.ld_preload)
+    echo "LD_PRELOAD=$LD_PRELOAD"
 fi
 export LD_PRELOAD=$LD_PRELOAD
 log "done.\n"
@@ -68,133 +68,142 @@ log "Installing python dependencies ..."
 sleep 1
 # direct dependencies
 pip3 install --no-deps --upgrade \
-   SimpleITK==2.2.1 \
-   batchgenerators==0.21 \
-   medpy==0.4.0 \
-   nibabel==3.2.2 \
-   "numpy<1.24.0" \
-   opencv-python==4.8.0.76 \
-   pandas==1.4.2 \
-   pycocotools==2.0.6 \
-   scikit-build==0.14.1 \
-   scipy==1.8.0 \
-   tifffile==2023.1.23.1 \
-   tqdm \
-   sacrebleu==2.3.1 \
-   sentencepiece==0.1.97 \
-   tiktoken==0.3.3 \
-   ultralytics==8.0.75 \
-   evaluate==0.4.0 \
-   datasets==2.13.1 \
-   soundfile==0.12.1 \
-   librosa==0.10.0.post2 \
-   numba==0.59.0 \
-   py-cpuinfo==9.0.0 \
-   cchardet==2.1.7
+    SimpleITK==2.2.1 \
+    batchgenerators==0.21 \
+    medpy==0.4.0 \
+    nibabel==3.2.2 \
+    "numpy<1.24.0" \
+    opencv-python==4.8.0.76 \
+    pandas==1.4.2 \
+    pycocotools==2.0.6 \
+    scikit-build==0.14.1 \
+    scipy==1.8.0 \
+    tifffile==2023.1.23.1 \
+    tqdm \
+    sacrebleu==2.3.1 \
+    sentencepiece==0.1.97 \
+    tiktoken==0.3.3 \
+    ultralytics==8.0.75 \
+    evaluate==0.4.0 \
+    datasets==2.13.1 \
+    soundfile==0.12.1 \
+    librosa==0.10.0.post2 \
+    numba==0.59.0 \
+    py-cpuinfo==9.0.0 \
+    cchardet==2.1.7
+
+python3 -c '
+import sys
+version = sys.version_info
+if version.major == 3 and version.minor == 11:
+    print("pip3 install --no-deps --upgrade scipy==1.10.0")
+else:
+    print("pip3 install --no-deps --upgrade scipy==1.8.0")
+' | sh
 
 pip3 install --no-build-isolation --upgrade \
-   git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.40
+    git+https://github.com/AmpereComputingAI/transformers.git@ampere/v4.40
 
 # dependencies of dependencies
 pip3 install --no-deps --upgrade \
-   cycler==0.11.0 \
-   filelock==3.6.0 \
-   future==0.18.2 \
-   huggingface-hub==0.20.2 \
-   joblib==1.1.0 \
-   kiwisolver==1.4.2 \
-   matplotlib==3.5.1 \
-   nnunet==1.7.1 \
-   packaging==21.3 \
-   Pillow==9.1.0 \
-   pyparsing==3.0.8 \
-   python-dateutil==2.8.2 \
-   pytz==2022.1 \
-   pyyaml==6.0 \
-   regex==2022.3.15 \
-   sacremoses==0.0.49 \
-   scikit-image==0.19.2 \
-   scikit-learn==1.0.2 \
-   threadpoolctl==3.1.0 \
-   tokenizers==0.19.1 \
-   tabulate==0.9.0 \
-   regex==2022.3.15 \
-   portalocker==2.6.0 \
-   lxml==4.9.2 \
-   colorama==0.4.6 \
-   thop>=0.1.1 \
-   psutil==5.9.5 \
-   multiprocess==0.70.14 \
-   pyarrow==12.0.1 \
-   dill==0.3.6 \
-   aiohttp==3.8.4 \
-   multidict==6.0.4 \
-   yarl==1.9.2 \
-   async_timeout==4.0.2 \
-   aiosignal==1.3.1 \
-   frozenlist==1.3.3 \
-   xxhash==3.2.0 \
-   lazy_loader==0.2 \
-   audioread==3.0.0 \
-   soxr==0.3.5 \
-   msgpack==1.0.5 \
-   jiwer==3.0.2 \
-   click==8.1.3 \
-   rapidfuzz==2.13.7 \
-   llvmlite==0.42.0 \
-   decorator==5.1.1 \
-   fsspec==2023.6.0 \
-   unicode==2.9 \
-   unidecode==1.3.6 \
-   inflect==6.0.4 \
-   pydantic==1.10.9 \
-   cffi==1.15.1 \
-   attrs==23.1.0 \
-   albumentations==0.4.3 \
-   pudb==2019.2 \
-   imageio==2.9.0 \
-   imageio-ffmpeg==0.4.2 \
-   pytorch-lightning==1.9.1 \
-   ftfy==6.1.1 \
-   imwatermark==0.0.2 \
-   PyWavelets==1.4.1 \
-   torchmetrics==0.6 \
-   omegaconf==2.3.0 \
-   lightning_utilities==0.9.0 \
-   wcwidth==0.2.6 \
-   antlr4-python3-runtime==4.9.3 \
-   test-tube>=0.7.5 \
-   streamlit>=0.73.1 \
-   einops==0.3.0 \
-   webdataset==0.2.5 \
-   open-clip-torch==2.7.0 \
-   gradio==3.13.2 \
-   kornia==0.6 \
-   invisible-watermark>=0.1.5 \
-   streamlit-drawable-canvas==0.8.0 \
-   safetensors>=0.3.1
+    cycler==0.11.0 \
+    filelock==3.6.0 \
+    future==0.18.2 \
+    huggingface-hub==0.20.2 \
+    joblib==1.1.0 \
+    kiwisolver==1.4.2 \
+    matplotlib==3.5.1 \
+    nnunet==1.7.1 \
+    packaging==21.3 \
+    Pillow==9.1.0 \
+    pyparsing==3.0.8 \
+    python-dateutil==2.8.2 \
+    pytz==2022.1 \
+    pyyaml==6.0 \
+    regex==2022.3.15 \
+    sacremoses==0.0.49 \
+    scikit-image==0.19.2 \
+    scikit-learn==1.0.2 \
+    threadpoolctl==3.1.0 \
+    tokenizers==0.19.1 \
+    tabulate==0.9.0 \
+    regex==2022.3.15 \
+    portalocker==2.6.0 \
+    lxml==4.9.2 \
+    colorama==0.4.6 \
+    thop \
+    psutil==5.9.5 \
+    multiprocess==0.70.14 \
+    pyarrow==12.0.1 \
+    dill==0.3.6 \
+    aiohttp==3.8.4 \
+    multidict==6.0.4 \
+    yarl==1.9.2 \
+    async_timeout==4.0.2 \
+    aiosignal==1.3.1 \
+    frozenlist==1.3.3 \
+    xxhash==3.2.0 \
+    lazy_loader==0.2 \
+    audioread==3.0.0 \
+    soxr==0.3.5 \
+    msgpack==1.0.5 \
+    jiwer==3.0.2 \
+    click==8.1.3 \
+    rapidfuzz==2.13.7 \
+    llvmlite==0.42.0 \
+    decorator==5.1.1 \
+    fsspec==2023.6.0 \
+    unicode==2.9 \
+    unidecode==1.3.6 \
+    inflect==6.0.4 \
+    pydantic==1.10.9 \
+    cffi==1.15.1 \
+    attrs==23.1.0 \
+    albumentations==0.4.3 \
+    pudb==2019.2 \
+    imageio==2.9.0 \
+    imageio-ffmpeg==0.4.2 \
+    pytorch-lightning==1.9.1 \
+    ftfy==6.1.1 \
+    imwatermark==0.0.2 \
+    PyWavelets==1.4.1 \
+    torchmetrics==0.6 \
+    omegaconf==2.3.0 \
+    lightning_utilities==0.9.0 \
+    wcwidth==0.2.6 \
+    antlr4-python3-runtime==4.9.3 \
+    test-tube \
+    streamlit \
+    einops==0.3.0 \
+    webdataset==0.2.5 \
+    open-clip-torch==2.7.0 \
+    gradio==3.13.2 \
+    kornia==0.6 \
+    invisible-watermark \
+    streamlit-drawable-canvas==0.8.0 \
+    safetensors >=0.1.1 >=0.7.5 >=0.73.1 >=0.1.5 >=0.3.1
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
-	libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
-        libmpg123-dev pkg-config
+    libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
+    libmpg123-dev pkg-config
 apt remove -y libsndfile1
 git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
 
 if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
-   # Only on AmpereOne family
-   pip3 install --upgrade --no-deps \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
-   https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
+    # Only on AmpereOne family
+    pip3 install --upgrade --no-deps \
+        https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/llvmlite-0.42.0.dev0%2B10.gb0bb788-cp310-cp310-linux_aarch64.whl \
+        https://ampereaidevelopus.s3.amazonaws.com/whisper_dataset_issue/numba-0.59.0.dev0%2B45.g596e8a553-cp310-cp310-linux_aarch64.whl
 fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
-	 # Torchvision version has to match PyTorch version following this table:
-	 # https://github.com/pytorch/vision?tab=readme-ov-file#installation
-	 pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
+    # Torchvision version has to match PyTorch version following this table:
+    # https://github.com/pytorch/vision?tab=readme-ov-file#installation
+    pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
 fi
 log "done.\n"
 
-cat /etc/machine-id > "$SCRIPT_DIR"/.setup_completed
+cat /etc/machine-id >"$SCRIPT_DIR"/.setup_completed
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"
