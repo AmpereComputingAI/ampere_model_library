@@ -1,7 +1,6 @@
 from diffusers import DiffusionPipeline, StableDiffusionPipeline, StableDiffusionXLPipeline
 import torch
-from utils.pytorch import PyTorchRunnerV2, apply_compile
-import os
+from utils.pytorch import apply_compile
 
 torch.set_num_threads(128)
 
