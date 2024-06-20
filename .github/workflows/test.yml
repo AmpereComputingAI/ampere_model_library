@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Install deps
         run:
-          apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
+          apt-get update && apt-get install -y git python3-pip && pip3 install --break-system-packages flake8 urlextract
 
       - name: Git checkout w/o submodules
         uses: actions/checkout@v4
