@@ -1,104 +1,26 @@
-Pillow==9.1.0
-PyWavelets==1.4.1
-SimpleITK==2.2.1
-aiohttp==3.8.4
-aiosignal==1.3.1
-albumentations==0.4.3
-antlr4-python3-runtime==4.9.3
-async_timeout==4.0.2
-attrs==23.1.0
-audioread==3.0.0
-batchgenerators==0.21; python_version<='3.10'
-batchgenerators>=0.23; python_version>='3.11'
-cchardet @ git+https://github.com/PyYoshi/cChardet
-cffi==1.15.1
-click==8.1.3
-colorama==0.4.6
-cycler==0.11.0
-datasets==2.13.1
-decorator==5.1.1
-dill==0.3.6
-einops==0.3.0
-evaluate==0.4.0
-filelock==3.6.0
-frozenlist==1.3.3
-fsspec==2023.6.0
-ftfy==6.1.1
-future==0.18.2
-gradio==3.13.2
-huggingface-hub==0.20.2
-imageio-ffmpeg==0.4.2
-imageio==2.9.0
-imwatermark==0.0.2
-inflect==6.0.4
-invisible-watermark>=0.1.5
-jiwer==3.0.2
-joblib>=1.2.0; python_version>='3.11'
-joblib==1.1.0; python_version<='3.10'
-kiwisolver==1.4.2
-kornia==0.6
-lazy_loader==0.2
-librosa==0.10.0.post2
-lightning_utilities==0.9.0
-llvmlite==0.42.0
-lxml==4.9.2
-matplotlib==3.5.1
-medpy==0.4.0
-msgpack==1.0.5
-multidict==6.0.4
-multiprocess==0.70.14
-nibabel==3.2.2
-nnunet==1.7.1
-numba==0.59.0
-numpy<1.24.0
-omegaconf==2.3.0
-open-clip-torch==2.7.0
-opencv-python==4.8.0.76
-packaging==21.3
-pandas==1.4.2
-portalocker==2.6.0
-psutil==5.9.5
-pudb==2019.2
-py-cpuinfo==9.0.0
-pyarrow==12.0.1
-pycocotools==2.0.6
-pydantic==1.10.9
-pyparsing==3.0.8
-python-dateutil==2.8.2
-pytorch-lightning==1.9.1
-pytz==2022.1
-pyyaml==6.0
-rapidfuzz==2.13.7
-regex==2022.3.15
-sacrebleu==2.3.1
-sacremoses==0.0.49
-safetensors>=0.3.1
-scikit-build==0.14.1
-scikit-image==0.19.2
-scikit-learn==1.5.0; python_version>='3.11'
-scikit-learn==1.0.2; python_version<='3.10'
-scipy==1.10.0; python_version>='3.11'
-scipy==1.8.0; python_version<='3.10'
-sentencepiece==0.1.97
-soundfile==0.12.1
-soxr==0.3.5
-streamlit-drawable-canvas==0.8.0
-streamlit>=0.73.1
-tabulate==0.9.0
-test-tube>=0.7.5
-thop>=0.1.1
-threadpoolctl==3.1.0
-tifffile==2023.1.23.1
-tiktoken==0.3.3
-tokenizers==0.19.1
-torchmetrics==0.6; python_version<='3.10'
-torchmetrics>=0.7.0; python_version>='3.11'
+SimpleITK
+batchgenerators
+medpy
+nibabel
+numpy<2
+opencv-python
+pandas
+pycocotools
+scikit-build
+scikit-learn
+scipy
+tifffile
 tqdm
-transformers @ git+https://github.com/amperecomputingai/transformers@ampere/v4.40
+sacrebleu
+sentencepiece
+tiktoken
 ultralytics==8.0.75
-unicode==2.9
-unidecode==1.3.6
-wcwidth==0.2.6
-webdataset==0.2.5
-xxhash==3.2.0
-yarl==1.9.2
+evaluate
+datasets
+soundfile
+librosa
+numba
+py-cpuinfo
+transformers @ git+https://github.com/amperecomputingai/transformers@ampere/v4.40
+cchardet; python_version<='3.10'
+cchardet @ git+https://github.com/PyYoshi/cChardet; python_version>='3.11'
