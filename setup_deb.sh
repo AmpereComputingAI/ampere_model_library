@@ -68,7 +68,7 @@ log "Installing python dependencies ..."
 sleep 1
 
 # get almost all python deps
-pip3 install --no-deps --upgrade -r requirments.txt
+pip3 install --no-deps --upgrade -r requirements.txt
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
@@ -83,7 +83,7 @@ fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
-if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
+if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "true" ]; then
     # Torchvision version has to match PyTorch version following this table:
     # https://github.com/pytorch/vision?tab=readme-ov-file#installation
     pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
