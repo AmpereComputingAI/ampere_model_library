@@ -20,6 +20,7 @@ datasets
 soundfile
 librosa
 numba
+jiwer
 py-cpuinfo
 transformers @ git+https://github.com/amperecomputingai/transformers@ampere/v4.40
 cchardet; python_version<='3.10'
