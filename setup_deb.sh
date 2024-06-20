@@ -92,5 +92,9 @@ if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "true" 
 fi
 log "done.\n"
 
-cat /etc/machine-id >"$SCRIPT_DIR"/.setup_completed
+if [ -f "/etc/machine-id" ]; then
+    cat /etc/machine-id > "$SCRIPT_DIR"/.setup_completed
+else
+    touch "$SCRIPT_DIR"/.setup_completed
+fi
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"
