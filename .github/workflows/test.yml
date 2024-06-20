@@ -12,7 +12,7 @@ concurrency:
 jobs:
   linter:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    container: ubuntu:24.04
     name: Flake8, intellectual property compliance
     steps:
       - name: Install deps
@@ -45,8 +45,8 @@ jobs:
 
   test_x86:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
-    name: x86-64 - Ubuntu 22.04 - all frameworks (native)
+    container: ubuntu:24.04
+    name: x86-64 - Ubuntu 24.04 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
@@ -107,9 +107,9 @@ jobs:
   test_arm64:
     runs-on: self-hosted
     container:
-      image: ubuntu:22.04
+      image: ubuntu:24.04
       options: --memory=170g
-    name: ARM64 - Ubuntu 22.04 - all frameworks (native)
+    name: ARM64 - Ubuntu 24.04 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset

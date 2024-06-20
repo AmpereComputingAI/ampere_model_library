@@ -2,6 +2,9 @@ utils/torch_jit_cache
 =*
 .DS_Store
 .idea/
+.venv
+To
+.cache_aml
 .setup_completed
 .ld_preload
 annotations*
@@ -10,6 +13,8 @@ yolo_v4_tiny_tf_fp32
 val2017*
 *.tflite
 *.pb
+*.pt
+evaluation_results.json
 __pycache__
 *.zip
 utils/cached

@@ -13,27 +13,38 @@ native_frameworks = list()
 try:
     import tensorflow  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow"])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "tensorflow"])
+    except subprocess.CalledProcessError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "tensorflow"])
     native_frameworks.append("TensorFlow")
 
 # ONNXRunTime
 try:
     import onnxruntime  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime"])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime"])
+    except subprocess.CalledProcessError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "onnxruntime"])
     native_frameworks.append("ONNXRunTime")
 
 # PyTorch
 try:
     import torch  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch"])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "torch"])
+    except subprocess.CalledProcessError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "torch"])
     native_frameworks.append("PyTorch")
 try:
     import torchvision  # noqa
 except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision"])
-
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "torchvision"])
+    except subprocess.CalledProcessError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "torchvision"])
 # summary
 len_native_frameworks = len(native_frameworks)
 if len_native_frameworks > 0:
