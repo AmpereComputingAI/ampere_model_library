@@ -46,7 +46,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev
+apt-get install -y python3 python3-pip python3-venv build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
@@ -68,6 +68,8 @@ log "Installing python dependencies ..."
 sleep 1
 
 # get almost all python deps
+python3 -m venv .venv
+source .venv/bin/activate
 pip3 install --no-deps --upgrade -r requirements.txt
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
@@ -78,7 +80,7 @@ git clone https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && auto
 
 if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
     # Only on AmpereOne family
-    pip3 install --upgrade --no-deps -r requirements-ampere.txt
+    pip3 install --upgrade --no-deps -r requirements-ampereone.txt
 fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
