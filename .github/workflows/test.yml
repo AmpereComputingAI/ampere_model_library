@@ -107,9 +107,9 @@ jobs:
   test_arm64:
     runs-on: self-hosted
     container:
-      image: ubuntu:24.04
+      image: debian:12.5
       options: --memory=170g
-    name: ARM64 - Ubuntu 24.04 - all frameworks (native)
+    name: ARM64 - Debian 12.5 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
