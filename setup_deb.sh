@@ -85,7 +85,7 @@ fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
-if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "true" ]; then
+if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
     # Torchvision version has to match PyTorch version following this table:
     # https://github.com/pytorch/vision?tab=readme-ov-file#installation
     pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
