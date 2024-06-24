@@ -26,6 +26,9 @@ transformers @ git+https://github.com/amperecomputingai/transformers@ampere/v4.4
 cchardet; python_version<='3.10'
 cchardet @ git+https://github.com/PyYoshi/cChardet; python_version>='3.11'
 omegaconf
-pytorch-lightning
+pytorch-lightning<1.8.0
 einops
 invisible-watermark
+torchmetrics<1.0.0
+kornia
+open-clip-torch
