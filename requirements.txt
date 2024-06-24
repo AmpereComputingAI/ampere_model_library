@@ -28,3 +28,4 @@ cchardet @ git+https://github.com/PyYoshi/cChardet; python_version>='3.11'
 omegaconf
 pytorch-lightning
 einops
+invisible-watermark
