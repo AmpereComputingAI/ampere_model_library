@@ -11,7 +11,7 @@ model.to("cpu")
 model.unet = apply_compile(model.unet)
 # if using torch < 2.0
 # pipe.enable_xformers_memory_efficient_attention()
-n_steps = 40
+n_steps = 20
 prompt = "An astronaut riding a green horse"
 prompts = ["An astronaut riding a green horse", "a cowboy eating a burger"]
 

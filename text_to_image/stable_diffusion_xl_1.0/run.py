@@ -29,6 +29,9 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         prompt = _stablediffusion.get_input()
+        prompts = [_stablediffusion.get_input() for i in range(batch_size)]
+        print(prompts)
+        quit()
         x_samples = _runner.run(batch_size * steps, prompt=prompt, num_inference_steps=steps)
         _stablediffusion.submit_count(batch_size, x_samples)
 
