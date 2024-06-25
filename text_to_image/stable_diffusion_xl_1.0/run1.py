@@ -18,7 +18,8 @@ prompts = ["An astronaut riding a green horse", "a cowboy eating a burger"]
 with torch.no_grad():
     images = model(prompt=prompts, num_inference_steps=n_steps).images
 
-
+for i, img in enumerate(images):
+    img.save(f"img_{i}.png")
 # image = model(
 #     prompt=prompt,
 #     num_inference_steps=n_steps,
