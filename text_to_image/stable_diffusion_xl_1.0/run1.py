@@ -13,9 +13,10 @@ model.unet = apply_compile(model.unet)
 # pipe.enable_xformers_memory_efficient_attention()
 n_steps = 40
 prompt = "An astronaut riding a green horse"
+prompts = ["An astronaut riding a green horse", "a cowboy eating a burger"]
 
 with torch.no_grad():
-    images = model(prompt=prompt, num_inference_steps=n_steps).images[0]
+    images = model(prompt=prompts, num_inference_steps=n_steps).images
 
 
 # image = model(
@@ -25,5 +26,5 @@ with torch.no_grad():
 #     output_type="latent",
 # ).images
 
-print(type(image))
+# print(type(image))
 
