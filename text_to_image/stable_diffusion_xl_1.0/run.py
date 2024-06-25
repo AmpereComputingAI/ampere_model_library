@@ -29,8 +29,6 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         prompt = _stablediffusion.get_input()
-        print(_stablediffusion.get_input())
-        print(_stablediffusion.get_input())
         prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
         print(prompts)
         quit()
