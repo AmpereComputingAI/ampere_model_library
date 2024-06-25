@@ -24,8 +24,7 @@ def run_pytorch_fp32(model, steps, batch_size, num_runs, timeout, **kwargs):
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    model = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0",
-                                              use_safetensors=True).to("cpu")
+    model = DiffusionPipeline.from_pretrained(model, use_safetensors=True).to("cpu")
     model.unet = apply_compile(model.unet)
 
     def single_pass_pytorch(_runner, _stablediffusion):
