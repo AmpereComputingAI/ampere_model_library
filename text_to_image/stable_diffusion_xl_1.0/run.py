@@ -16,7 +16,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
-def run_pytorch_fp32(model, steps, batch_size, num_runs, timeout, **kwargs):
+def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
     from diffusers import DiffusionPipeline
 
     from utils.benchmark import run_model
@@ -24,7 +24,7 @@ def run_pytorch_fp32(model, steps, batch_size, num_runs, timeout, **kwargs):
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    model = DiffusionPipeline.from_pretrained(model, use_safetensors=True).to("cpu")
+    model = DiffusionPipeline.from_pretrained(model_name, use_safetensors=True).to("cpu")
     model.unet = apply_compile(model.unet)
 
     def single_pass_pytorch(_runner, _stablediffusion):
