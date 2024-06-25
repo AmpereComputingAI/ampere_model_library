@@ -14,7 +14,6 @@ class StableDiffusion(Dataset):
         adjectives = ["big", "small", "thin", "wide", "blonde", "pale"]
         nouns = ["dog", "cat", "horse", "astronaut", "human", "robot"]
         actions = ["sings", "rides a triceratop", "rides a horse", "eats a burger", "washes clothes", "looks at hands"]
-        seed(42)
 
         a = adjectives[randint(0, len(adjectives) - 1)] + " "
         b = nouns[randint(0, len(nouns) - 1)] + " " + actions[randint(0, len(actions) - 1)]
