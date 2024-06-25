@@ -14,16 +14,16 @@ model.unet = apply_compile(model.unet)
 n_steps = 40
 prompt = "An astronaut riding a green horse"
 
-#with torch.no_grad():
-#   images = model(prompt=prompt).images[0]
+with torch.no_grad():
+    images = model(prompt=prompt, num_inference_steps=n_steps).images[0]
 
 
-image = model(
-    prompt=prompt,
-    num_inference_steps=n_steps,
-    denoising_end=0.8,
-    output_type="latent",
-).images
+# image = model(
+#     prompt=prompt,
+#     num_inference_steps=n_steps,
+#     denoising_end=0.8,
+#     output_type="latent",
+# ).images
 
 print(type(image))
 
