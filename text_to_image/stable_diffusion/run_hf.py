@@ -17,8 +17,9 @@ except ModuleNotFoundError:
 
 
 def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
-    from diffusers import DiffusionPipeline
+    import os
     import torch._dynamo
+    from diffusers import DiffusionPipeline
     torch._dynamo.config.suppress_errors = True
 
     from utils.benchmark import run_model
