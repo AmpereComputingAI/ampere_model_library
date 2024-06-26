@@ -252,46 +252,55 @@ class Results:
                 with open(log_filepath, "r") as f:
                     loaded_logs.append(json.load(f))
 
-        measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"])) for log in
-                               loaded_logs]
-        if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
-            ask_for_patience("benchmark on-going, CPU util: {:>3.0f}%".format(psutil.cpu_percent(1)))
-            return None
-        latest_start = max(log["start_times"][0] for log in loaded_logs)
-        earliest_finish = min(log["finish_times"][-1] for log in loaded_logs)
+        results = {}
+        for subcategory in loaded_logs[0].keys():
+            current_logs = []
+            for log in loaded_logs:
+                current_logs.append(log[subcategory])
 
-        measurements_completed_in_overlap_total = 0
-        throughput_total = 0.
-        for log in loaded_logs:
-            input_size_processed_per_process = 0
-            total_latency_per_process = 0.
-            measurements_completed_in_overlap = 0
-            for i in range(len(log["start_times"])):
-                start = log["start_times"][i]
-                finish = log["finish_times"][i]
-                if start >= latest_start and finish <= earliest_finish:
-                    input_size_processed_per_process += log["workload_size"][i]
-                    total_latency_per_process += finish - start
-                    measurements_completed_in_overlap += 1
-                elif earliest_finish < finish:
-                    break
-            if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
+            measurements_counts = [(len(log["start_times"]), len(log["finish_times"]), len(log["workload_size"]))
+                                   for log in current_logs]
+            if not all(x[0] == x[1] == x[2] and x[0] >= MIN_MEASUREMENTS_IN_OVERLAP_COUNT for x in measurements_counts):
                 ask_for_patience("benchmark on-going, CPU util: {:>3.0f}%".format(psutil.cpu_percent(1)))
                 return None
-            measurements_completed_in_overlap_total += measurements_completed_in_overlap
-            throughput_total += input_size_processed_per_process / total_latency_per_process
+            latest_start = max(log["start_times"][0] for log in current_logs)
+            earliest_finish = min(log["finish_times"][-1] for log in current_logs)
 
-        if self._prev_measurements_count is not None and \
-                measurements_completed_in_overlap_total > self._prev_measurements_count:
-            self.stable = abs((throughput_total / self._prev_throughput_total) - 1.) <= MAX_DEVIATION
-        self._prev_throughput_total = throughput_total
-        self._prev_measurements_count = measurements_completed_in_overlap_total
+            measurements_completed_in_overlap_total = 0
+            throughput_total = 0.
+            for log in current_logs:
+                input_size_processed_per_process = 0
+                total_latency_per_process = 0.
+                measurements_completed_in_overlap = 0
+                for i in range(len(log["start_times"])):
+                    start = log["start_times"][i]
+                    finish = log["finish_times"][i]
+                    if start >= latest_start and finish <= earliest_finish:
+                        input_size_processed_per_process += log["workload_size"][i]
+                        total_latency_per_process += finish - start
+                        measurements_completed_in_overlap += 1
+                    elif earliest_finish < finish:
+                        break
+                if measurements_completed_in_overlap < MIN_MEASUREMENTS_IN_OVERLAP_COUNT:
+                    ask_for_patience("benchmark on-going, CPU util: {:>3.0f}%".format(psutil.cpu_percent(1)))
+                    return None
+                measurements_completed_in_overlap_total += measurements_completed_in_overlap
+                throughput_total += input_size_processed_per_process / total_latency_per_process
 
-        if not self.stable and not final_calc:
-            print("\r{}total throughput: {:.2f} ips, CPU util: {:>3.0f}%, stabilizing result ...".format(
-                INDENT, throughput_total, psutil.cpu_percent(1)), end='')
+            if subcategory == "overall" and self._prev_measurements_count is not None and \
+                    measurements_completed_in_overlap_total > self._prev_measurements_count:
+                self.stable = abs((throughput_total / self._prev_throughput_total) - 1.) <= MAX_DEVIATION
+            self._prev_throughput_total = throughput_total
+            self._prev_measurements_count = measurements_completed_in_overlap_total
 
-        return throughput_total
+            if not self.stable and not final_calc and subcategory == "overall":
+                print("\r{}total throughput: {:.2f} ips, CPU util: {:>3.0f}%, stabilizing result ...".format(
+                    INDENT, throughput_total, psutil.cpu_percent(1)), end='')
+            results[subcategory] = {"throughput_total": throughput_total,
+                                    "start_timestamp": latest_start,
+                                    "finish_timestamp": earliest_finish}
+
+        return results["overall"]["throughput_total"]
 
 
 def run_benchmark(model_script, numa_nodes, num_threads_node, num_proc_node, num_threads_per_proc, start_delay=0):
