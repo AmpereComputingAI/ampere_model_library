@@ -18,13 +18,22 @@ except ModuleNotFoundError:
 
 def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
     from diffusers import DiffusionPipeline
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = True
 
     from utils.benchmark import run_model
     from utils.pytorch import apply_compile
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    model = DiffusionPipeline.from_pretrained(model_name, use_safetensors=True).to("cpu")
+    if os.environ.get("IPEX_OPTIMIZE") == "1":
+        model = DiffusionPipeline.from_pretrained(model_name,
+                                                  use_safetensors=True,
+                                                  torch_dtype=torch.bfloat16).to("cpu")
+    else:
+        model = DiffusionPipeline.from_pretrained(model_name,
+                                                  use_safetensors=True).to("cpu")
+
     model.unet = apply_compile(model.unet)
 
     def single_pass_pytorch(_runner, _stablediffusion):
