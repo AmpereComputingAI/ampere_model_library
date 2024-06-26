@@ -27,7 +27,7 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    if os.environ.get("IPEX_OPTIMIZE") == "1":
+    if os.environ.get("ENABLE_BF16_X86") == "1":
         model = DiffusionPipeline.from_pretrained(model_name,
                                                   use_safetensors=True,
                                                   torch_dtype=torch.bfloat16).to("cpu")
