@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-from random import randint, seed
+from random import randint
 from utils.helpers import Dataset
 
 
