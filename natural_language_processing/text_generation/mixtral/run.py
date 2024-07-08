@@ -36,7 +36,7 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
 
     model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
     model.eval()
-    model.generate = apply_compile(model.generate)
+    model.forward = apply_compile(model.forward)
 
     tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
     dataset = AlpacaInstruct(1, dataset_path=dataset_path)
