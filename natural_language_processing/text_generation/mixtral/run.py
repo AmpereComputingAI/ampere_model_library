@@ -27,7 +27,7 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
     def run_single_pass(pytorch_runner, dataset):
         input_array = [{"role": "user", "content": dataset.get_input_string()}]
         inputs = encode(input_array)
-        
+
         outputs = pytorch_runner.run(inputs=inputs, generation_config=config)
         pytorch_runner.set_task_size(outputs.shape[1] - inputs.shape[1])
         response = decode(outputs[:, inputs.shape[1]:])[0]
@@ -42,7 +42,7 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
     encode = lambda i: tokenizer.apply_chat_template(i, return_tensors="pt")
     decode = lambda t: tokenizer.batch_decode(t, skip_special_tokens=True)
     config = GenerationConfig.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
-    config.max_new_tokens=100
+    config.max_new_tokens = 100
     config.do_sample = True
     config.pad_token_id = config.eos_token_id
 
