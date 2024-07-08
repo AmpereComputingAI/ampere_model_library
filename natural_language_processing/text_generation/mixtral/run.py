@@ -31,7 +31,6 @@ def run_pytorch(num_runs, timeout, dataset_path, disable_jit_freeze=False, **kwa
         outputs = pytorch_runner.run(inputs=inputs, generation_config=config)
         pytorch_runner.set_task_size(outputs.shape[1] - inputs.shape[1])
         response = decode(outputs[:, inputs.shape[1]:])[0]
-        print(response)
         dataset.submit_prediction(response)
 
     model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
