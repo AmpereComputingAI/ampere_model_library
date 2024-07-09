@@ -31,4 +31,4 @@ einops
 invisible-watermark
 torchmetrics<1.0.0
 kornia
-open-clip-torch
+open-clip-torch<2.26.1
