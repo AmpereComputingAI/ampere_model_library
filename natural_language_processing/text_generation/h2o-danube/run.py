@@ -30,7 +30,7 @@ def run_pytorch_fp32(model_name, num_runs, timeout, dataset_path, **kwargs):
     pipe = pipeline("text-generation", model=model_name,
                     torch_dtype=torch.bfloat16, device_map="auto")
 
-    model = apply_compile(pipe)
+    pipe.model = apply_compile(pipe.model)
 
     def single_pass_pytorch(_runner, _dataset):
         prompt = encode([{"role": "user", "content": _dataset.get_input_string()}])
