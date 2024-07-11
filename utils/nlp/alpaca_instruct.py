@@ -34,6 +34,8 @@ class AlpacaInstruct(Dataset):
         print('====')
         print(self._current_sample)
         print(self._batch_size)
+        print(self._count)
+        print(self._current_sample * self._batch_size)
         print('====')
         assert self._current_sample * self._batch_size == self._count
 
