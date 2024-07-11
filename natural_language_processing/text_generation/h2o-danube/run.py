@@ -27,27 +27,16 @@ def run_pytorch_fp32(model_name, num_runs, timeout, dataset_path, **kwargs):
     from utils.pytorch import PyTorchRunnerV2
     from utils.nlp.alpaca_instruct import AlpacaInstruct
 
-    # model = DiffusionPipeline.from_pretrained(model_name,
-    #                                          use_safetensors=True,
-    #                                          torch_dtype=torch.bfloat16).to("cpu")
-
-    pipe = pipeline("text-generation", model="h2oai/h2o-danube2-1.8b-chat",
+    pipe = pipeline("text-generation", model=model_name,
                     torch_dtype=torch.bfloat16, device_map="auto")
 
-    # messages = [{"role": "user", "content": "Why is drinking water so healthy?"}]
-    # prompt = pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-
-    # res = pipe(prompt, max_new_tokens=256)
-
-    # print(res[0]["generated_text"])
-
-    # model.unet = apply_compile(model.unet)
+    model = apply_compile(pipe)
 
     def single_pass_pytorch(_runner, _dataset):
         prompt = encode([{"role": "user", "content": _dataset.get_input_string()}])
-        # prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
-        res = _runner.run(1, prompt=prompt, max_new_tokens=256)
-        print(res[0]["generated_text"])
+        response = _runner.run(1, prompt, max_new_tokens=256)
+        _dataset.submit_prediction(response[0]["generated_text"])
+        # print(res[0]["generated_text"])
 
     runner = PyTorchRunnerV2(pipe)
 
