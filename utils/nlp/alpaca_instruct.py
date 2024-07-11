@@ -31,12 +31,6 @@ class AlpacaInstruct(Dataset):
 
     def get_input_string(self):
         self._current_sample += 1
-        print('====')
-        print(self._current_sample)
-        print(self._batch_size)
-        print(self._count)
-        print(self._current_sample * self._batch_size)
-        print('====')
         assert self._current_sample * self._batch_size == self._count
 
         prompt = ("Below is an instruction that describes a task. "
