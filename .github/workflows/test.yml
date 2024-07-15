@@ -107,9 +107,9 @@ jobs:
   test_arm64:
     runs-on: self-hosted
     container:
-      image: debian:12.5
+      image: oraclelinux:9
       options: --memory=170g
-    name: ARM64 - Debian 12.5 - all frameworks (native)
+    name: ARM64 - Oracle Linux 9 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
@@ -128,7 +128,7 @@ jobs:
     steps:
       - name: Install git
         run:
-          apt-get update && apt-get install -y git
+          yum install -y git
 
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
@@ -137,7 +137,7 @@ jobs:
 
       - name: Set up AML
         run:
-          bash setup_deb.sh
+          bash setup_rhel.sh
 
       - name: Unittest
         run: |
