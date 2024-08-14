@@ -61,15 +61,15 @@ def run_tf_fp(model_path, num_runs, timeout, dataset_path):
     return run_model(run_single_pass, runner, dataset, 1, num_runs, timeout)
 
 
-def run_tf_fp32(model_path, num_runs, timeout, dataset_path):
+def run_tf_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_tf_fp16(model_path, num_runs, timeout, dataset_path):
+def run_tf_fp16(model_path, num_runs, timeout, dataset_path, **kwargs):
     return run_tf_fp(model_path, num_runs, timeout, dataset_path)
 
 
-def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path):
+def run_pytorch_fp32(model_path, num_runs, timeout, dataset_path, **kwargs):
     import torch
     import numpy as np
     from utils.cv.brats import BraTS19
