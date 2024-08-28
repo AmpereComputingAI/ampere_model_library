@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-from random import randint
+from random import randint, seed
 from utils.helpers import Dataset
+seed(42)
 
 
 class StableDiffusion(Dataset):
