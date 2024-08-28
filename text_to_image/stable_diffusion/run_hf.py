@@ -53,4 +53,4 @@ if __name__ == "__main__":
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
 
-    run_pytorch_fp32(**vars(parser.parse()))
+    run_pytorch_bf16(**vars(parser.parse()))
