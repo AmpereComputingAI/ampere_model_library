@@ -30,14 +30,14 @@ if [ "$FORCE_INSTALL" != "1" ]; then
     fi
     log "done.\n"
 
-    log "Checking for Debian based Linux ..."
+    log "Checking for RHEL ..."
     sleep 1
-    if [ -f "/etc/debian_version" ]; then
-        debian_version=$(</etc/debian_version)
-        log "Detected Debian $debian_version. Be advised that this script supports Debian >=11.0."
+    if [ -f "/etc/redhat-release" ]; then
+        rhel_version=$(</etc/redhat-release)
+        log "Detected $rhel_version. Be advised that this script supports RHEL>=9.4."
         sleep 3
     else
-        log "\nDebian-based Linux has not been detected! Quitting."
+        log "\nRed Hat Linux has not been detected! Quitting."
         exit 1
     fi
     log "done.\n"
@@ -45,13 +45,10 @@ fi
 
 log "Installing system dependencies ..."
 sleep 1
-apt-get update -y
-apt-get install -y python3 python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
-PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
-PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
-if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
-    apt-get -y install "python${PYTHON_VERSION}-dev"
-fi
+yum install epel-release || :
+yum groupinstall -y 'Development Tools'
+yum install -y python3 python3-devel python3-pip libSM libXext wget git unzip numactl hdf5-devel cmake gcc-c++ 
+git clone -b n4.3.7 https://github.com/FFmpeg/FFmpeg.git && cd FFmpeg && ./configure && make -j && make install && cd .. && rm -r FFmpeg
 log "done.\n"
 
 log "Setup LD_PRELOAD ..."
@@ -71,11 +68,7 @@ sleep 1
 pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements.txt" ||
     pip3 install --upgrade -r "$(dirname "$0")/requirements.txt"
 
-apt install -y autoconf autogen automake build-essential libasound2-dev \
-    libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
-    libmpg123-dev pkg-config
-apt remove -y libsndfile1
-git clone -b 1.2.2 https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
+yum install -y autoconf automake alsa-lib-devel pkg-config
 
 if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
     # Only on AmpereOne family

@@ -1,0 +1,34 @@
+SimpleITK
+batchgenerators
+medpy
+nibabel
+numpy<2
+opencv-python
+pandas
+pycocotools
+scikit-build
+scikit-learn
+scipy
+tifffile
+tqdm
+sacrebleu
+sentencepiece
+tiktoken
+ultralytics==8.0.75
+evaluate
+datasets
+soundfile
+librosa
+numba
+jiwer
+py-cpuinfo
+transformers @ git+https://github.com/amperecomputingai/transformers@ampere/v4.40
+cchardet; python_version<='3.10'
+cchardet @ git+https://github.com/PyYoshi/cChardet; python_version>='3.11'
+omegaconf
+pytorch-lightning<1.8.0
+einops
+invisible-watermark
+torchmetrics<1.0.0
+kornia
+open-clip-torch<2.26.1
