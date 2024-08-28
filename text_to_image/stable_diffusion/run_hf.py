@@ -18,8 +18,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
-def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
-    import os
+def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
     import torch._dynamo
     from diffusers import DiffusionPipeline
     torch._dynamo.config.suppress_errors = True
@@ -29,13 +28,9 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    if os.environ.get("ENABLE_BF16_X86") == "1":
-        model = DiffusionPipeline.from_pretrained(model_name,
-                                                  use_safetensors=True,
-                                                  torch_dtype=torch.bfloat16).to("cpu")
-    else:
-        model = DiffusionPipeline.from_pretrained(model_name,
-                                                  use_safetensors=True).to("cpu")
+    model = DiffusionPipeline.from_pretrained(model_name,
+                                              use_safetensors=True,
+                                              torch_dtype=torch.bfloat16).to("cpu")
 
     model.unet = apply_compile(model.unet)
 
