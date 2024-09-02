@@ -19,7 +19,6 @@ except ModuleNotFoundError:
 
 
 def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
-    import torch as th
     import torch._dynamo
     from diffusers import DiffusionPipeline
     torch._dynamo.config.suppress_errors = True
@@ -29,19 +28,44 @@ def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
     from utils.pytorch import PyTorchRunnerV2
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
-    print(th.get_num_threads())
     model = DiffusionPipeline.from_pretrained(model_name,
                                               use_safetensors=True,
                                               torch_dtype=torch.bfloat16).to("cpu")
-    print(th.get_num_threads())
+
     model.unet = apply_compile(model.unet)
-    print(th.get_num_threads())
+
     def single_pass_pytorch(_runner, _stablediffusion):
         prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
         x_samples = _runner.run(batch_size * steps, prompt=prompts, num_inference_steps=steps)
         _stablediffusion.submit_count(batch_size, x_samples)
 
-    print(th.get_num_threads())
+    runner = PyTorchRunnerV2(model)
+    stablediffusion = StableDiffusion()
+    return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
+
+
+def run_pytorch_fp16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
+    import torch._dynamo
+    from diffusers import DiffusionPipeline
+    torch._dynamo.config.suppress_errors = True
+
+    from utils.benchmark import run_model
+    from utils.pytorch import apply_compile
+    from utils.pytorch import PyTorchRunnerV2
+    from utils.text_to_image.stable_diffusion import StableDiffusion
+
+    model = DiffusionPipeline.from_pretrained(model_name,
+                                              use_safetensors=True,
+                                              torch_dtype=torch.float16,
+                                              variant="fp16").to("cpu")
+
+    model.unet = apply_compile(model.unet)
+
+    def single_pass_pytorch(_runner, _stablediffusion):
+        prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
+        x_samples = _runner.run(batch_size * steps, prompt=prompts, num_inference_steps=steps)
+        _stablediffusion.submit_count(batch_size, x_samples)
+
     runner = PyTorchRunnerV2(model)
     stablediffusion = StableDiffusion()
     return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
@@ -56,4 +80,5 @@ if __name__ == "__main__":
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
 
-    run_pytorch_bf16(**vars(parser.parse()))
+    #run_pytorch_bf16(**vars(parser.parse()))
+    run_pytorch_fp16(**vars(parser.parse()))
