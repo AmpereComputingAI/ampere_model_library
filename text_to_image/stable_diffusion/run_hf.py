@@ -44,7 +44,7 @@ def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
     return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
+def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
     import torch._dynamo
     from diffusers import DiffusionPipeline
     torch._dynamo.config.suppress_errors = True
@@ -55,9 +55,7 @@ def run_pytorch_fp16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
     from utils.text_to_image.stable_diffusion import StableDiffusion
 
     model = DiffusionPipeline.from_pretrained(model_name,
-                                              use_safetensors=True,
-                                              torch_dtype=torch.float16,
-                                              variant="fp16").to("cpu")
+                                              use_safetensors=True).to("cpu")
 
     model.unet = apply_compile(model.unet)
 
@@ -81,4 +79,4 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
 
     #run_pytorch_bf16(**vars(parser.parse()))
-    run_pytorch_fp16(**vars(parser.parse()))
+    run_pytorch_fp32(**vars(parser.parse()))
