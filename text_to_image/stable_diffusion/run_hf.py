@@ -71,16 +71,22 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
 
 if __name__ == "__main__":
     from utils.helpers import DefaultArgParser
+    from utils.misc import print_goodbye_message_and_die
 
     stablediffusion_variants = ["stabilityai/stable-diffusion-xl-base-1.0"]
     parser = DefaultArgParser(["pytorch"])
     parser.require_model_name(stablediffusion_variants)
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
-    parser.add_argument("--precision", type=str, choices=["fp32", "int8"], required=True,
+    parser.add_argument("-p", "--precision", type=str, choices=["fp32", "bf16"], required=True,
                         help="precision in which to run the model")
 
-    print(parser.parse())
-    quit()
-    run_pytorch_bf16(**vars(parser.parse()))
-    run_pytorch_fp32(**vars(parser.parse()))
+    args = parser.parse()
+    if args.precision == "fp32":
+        run_pytorch_fp32(**vars(parser.parse()))
+    elif args.precision == "bf16":
+        run_pytorch_bf16(**vars(parser.parse()))
+    else:
+        print_goodbye_message_and_die(
+            "this model seems to be unsupported in a specified framework: " + args.framework)
+
