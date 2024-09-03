@@ -77,6 +77,10 @@ if __name__ == "__main__":
     parser.require_model_name(stablediffusion_variants)
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
+    parser.add_argument("--precision", type=str, choices=["fp32", "int8"], required=True,
+                        help="precision in which to run the model")
 
-    #run_pytorch_bf16(**vars(parser.parse()))
+    print(parser.parse())
+    quit()
+    run_pytorch_bf16(**vars(parser.parse()))
     run_pytorch_fp32(**vars(parser.parse()))
