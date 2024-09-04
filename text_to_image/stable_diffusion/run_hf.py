@@ -40,8 +40,8 @@ def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
         _stablediffusion.submit_count(batch_size, x_samples)
 
     runner = PyTorchRunnerV2(model)
-    stablediffusion = StableDiffusion()
-    return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
+    stable_diffusion_dataset = StableDiffusion()
+    return run_model(single_pass_pytorch, runner, stable_diffusion_dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
@@ -65,8 +65,8 @@ def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs)
         _stablediffusion.submit_count(batch_size, x_samples)
 
     runner = PyTorchRunnerV2(model)
-    stablediffusion = StableDiffusion()
-    return run_model(single_pass_pytorch, runner, stablediffusion, batch_size, num_runs, timeout)
+    stable_diffusion_dataset = StableDiffusion()
+    return run_model(single_pass_pytorch, runner, stable_diffusion_dataset, batch_size, num_runs, timeout)
 
 
 if __name__ == "__main__":
@@ -88,4 +88,4 @@ if __name__ == "__main__":
         run_pytorch_bf16(**vars(parser.parse()))
     else:
         print_goodbye_message_and_die(
-            "this model seems to be unsupported in a specified framework: " + args.framework)
+            "this model seems to be unsupported in a specified precision: " + args.precision)
