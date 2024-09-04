@@ -32,3 +32,5 @@ invisible-watermark
 torchmetrics<1.0.0
 kornia
 open-clip-torch<2.26.1
+diffusers
+accelerate
