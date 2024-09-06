@@ -18,33 +18,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
-def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
-    import torch._dynamo
-    from diffusers import DiffusionPipeline
-    torch._dynamo.config.suppress_errors = True
-
-    from utils.benchmark import run_model
-    from utils.pytorch import apply_compile
-    from utils.pytorch import PyTorchRunnerV2
-    from utils.text_to_image.stable_diffusion import StableDiffusion
-
-    model = DiffusionPipeline.from_pretrained(model_name,
-                                              use_safetensors=True).to("cpu")
-
-    model.unet = apply_compile(model.unet)
-    model.vae.decoder = apply_compile(model.vae.decoder)
-
-    def single_pass_pytorch(_runner, _stablediffusion):
-        prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
-        x_samples = _runner.run(batch_size * steps, prompt=prompts, num_inference_steps=steps)
-        _stablediffusion.submit_count(batch_size, x_samples)
-
-    runner = PyTorchRunnerV2(model)
-    stable_diffusion_dataset = StableDiffusion()
-    return run_model(single_pass_pytorch, runner, stable_diffusion_dataset, batch_size, num_runs, timeout)
-
-
-def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
+def run_pytorch(model_name, steps, batch_size, num_runs, timeout, dtype, **kwargs):
     import torch._dynamo
     from diffusers import DiffusionPipeline
     torch._dynamo.config.suppress_errors = True
@@ -56,7 +30,7 @@ def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
 
     model = DiffusionPipeline.from_pretrained(model_name,
                                               use_safetensors=True,
-                                              torch_dtype=torch.bfloat16).to("cpu")
+                                              torch_dype=dtype).to("cpu")
 
     model.unet = apply_compile(model.unet)
     model.vae.decoder = apply_compile(model.vae.decoder)
@@ -80,14 +54,17 @@ if __name__ == "__main__":
     parser.require_model_name(stablediffusion_variants)
     parser.ask_for_batch_size()
     parser.add_argument("--steps", type=int, default=25, help="steps through which the model processes the input")
-    parser.add_argument("-p", "--precision", type=str, choices=["fp32", "bf16"], required=True,
+    parser.add_argument("-p", "--precision", type=str, choices=["fp32", "bf16", "fp16"], required=True,
                         help="precision in which to run the model")
 
+    from torch import float32, half, bfloat16
     args = parser.parse()
     if args.precision == "fp32":
-        run_pytorch_fp32(**vars(parser.parse()))
+        run_pytorch(**vars(parser.parse()), dtype=float32)
     elif args.precision == "bf16":
-        run_pytorch_bf16(**vars(parser.parse()))
+        run_pytorch(**vars(parser.parse()), dtype=bfloat16)
+    elif args.precision == "fp16":
+        run_pytorch(**vars(parser.parse()), dtype=half)
     else:
         print_goodbye_message_and_die(
             "this model seems to be unsupported in a specified precision: " + args.precision)
