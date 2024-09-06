@@ -30,8 +30,7 @@ def run_pytorch(model_name, steps, batch_size, num_runs, timeout, dtype, **kwarg
 
     model = DiffusionPipeline.from_pretrained(model_name,
                                               use_safetensors=True,
-                                              torch_dype=dtype).to("cpu")
-
+                                              torch_dtype=dtype).to("cpu")
     model.unet = apply_compile(model.unet)
     model.vae.decoder = apply_compile(model.vae.decoder)
 
