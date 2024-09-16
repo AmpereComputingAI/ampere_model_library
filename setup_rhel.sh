@@ -70,11 +70,11 @@ pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements.
 
 yum install -y autoconf automake alsa-lib-devel pkg-config
 
-if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
-    # Only on AmpereOne family
-    pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements-ampereone.txt" ||
-        pip3 install --upgrade -r "$(dirname "$0")/requirements-ampereone.txt"
-fi
+# if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
+#     # Only on AmpereOne family
+#     pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements-ampereone.txt" ||
+#         pip3 install --upgrade -r "$(dirname "$0")/requirements-ampereone.txt"
+# fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
