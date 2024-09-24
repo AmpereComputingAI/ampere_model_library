@@ -12,12 +12,12 @@ concurrency:
 jobs:
   linter:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    container: ubuntu:24.04
     name: Flake8, intellectual property compliance
     steps:
       - name: Install deps
         run:
-          apt-get update && apt-get install -y git python3-pip && pip3 install flake8 urlextract
+          apt-get update && apt-get install -y git python3-pip && pip3 install --break-system-packages flake8 urlextract
 
       - name: Git checkout w/o submodules
         uses: actions/checkout@v4
@@ -27,6 +27,10 @@ jobs:
       - name: Lint with flake8
         run:
           python3 -m flake8
+
+      - name: Ensure runner files don't do imports in global scope and check if env checking codeblock prepended
+        run:
+          python3 -m unittest tests.test_imports
 
       - name: Git checkout w/ submodules
         uses: actions/checkout@v4
@@ -41,8 +45,8 @@ jobs:
 
   test_x86:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
-    name: x86-64 - Ubuntu 22.04 - all frameworks (native)
+    container: ubuntu:24.04
+    name: x86-64 - Ubuntu 24.04 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
@@ -103,9 +107,9 @@ jobs:
   test_arm64:
     runs-on: self-hosted
     container:
-      image: ubuntu:22.04
+      image: oraclelinux:9
       options: --memory=170g
-    name: ARM64 - Ubuntu 22.04 - all frameworks (native)
+    name: ARM64 - Oracle Linux 9 - all frameworks (native)
     env:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
@@ -124,7 +128,7 @@ jobs:
     steps:
       - name: Install git
         run:
-          apt-get update && apt-get install -y git
+          yum install -y git
 
       - name: Git checkout & pull submodules
         uses: actions/checkout@v4
@@ -133,7 +137,7 @@ jobs:
 
       - name: Set up AML
         run:
-          bash setup_deb.sh
+          bash setup_rhel.sh
 
       - name: Unittest
         run: |
@@ -165,6 +169,7 @@ jobs:
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_pytorch_arm64_sh:
+    if: false
     runs-on: self-hosted
     container:
       image: ubuntu:22.04

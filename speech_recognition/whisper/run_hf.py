@@ -1,5 +1,21 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 TORCH_JIT_TRACE = False  # otherwise, run torch.compile()
 
@@ -22,7 +38,8 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         librispeech = LibriSpeech()  # reset
         model = model.generate
     else:
-        model = apply_compile(model.generate)
+        model.forward = apply_compile(model.forward)
+        model.model.encoder = apply_compile(model.model.encoder)
 
     def single_pass_pytorch(_runner, _librispeech):
         waveform = [_librispeech.get_input_array() for _ in range(batch_size)]
@@ -33,7 +50,7 @@ def run_pytorch_fp32(model_name, batch_size, num_runs, timeout, **kwargs):
         for i in range(batch_size):
             _librispeech.submit_transcription(decoded_output[i].lstrip().replace(",", "").replace(".", "").upper())
 
-    runner = PyTorchRunnerV2(model, throughput_only=True)
+    runner = PyTorchRunnerV2(model.generate, throughput_only=True)
     print_warning_message("Sampling rate Whisper operates at is 16,000 Hz, therefore throughput values below can be "
                           "divided by 16,000 to derive 'seconds of processed audio per second'")
     return run_model(single_pass_pytorch, runner, librispeech, batch_size, num_runs, timeout)

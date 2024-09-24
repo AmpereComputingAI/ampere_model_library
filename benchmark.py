@@ -9,7 +9,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
-LATEST_VERSION = "2.1.0a0+gite0a1120"
+LATEST_VERSION = "2.2.0a0+git6032a25"
 SYSTEMS = {
     "Altra": {
         "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa

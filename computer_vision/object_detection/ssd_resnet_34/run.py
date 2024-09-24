@@ -1,12 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-from utils.cv.coco import COCODataset
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run SSD ResNet-34  model.")
     parser.add_argument("-m", "--model_path",
                         type=str,
@@ -37,6 +50,8 @@ def parse_args():
 
 
 def run_tf_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path):
+    from utils.cv.coco import COCODataset
+    from utils.benchmark import run_model
     from utils.tf import TFFrozenModelRunner
 
     def run_single_pass(tf_runner, coco):
@@ -73,6 +88,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, images_path, anno_pat
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
     if args.framework == "tf":
         if args.model_path is None:

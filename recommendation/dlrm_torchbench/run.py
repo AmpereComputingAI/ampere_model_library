@@ -1,14 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024, Ampere Computing LLC
-import argparse
-import numpy as np
-from utils.benchmark import run_model
-from utils.misc import print_goodbye_message_and_die
-from utils.recommendation.criteo import append_dlrm_to_pypath
-from utils.recommendation.torchbench_random import RandomDataset
+try:
+    from utils import misc  # noqa
+except ModuleNotFoundError:
+    import os
+    import sys
+    filename = "set_env_variables.sh"
+    directory = os.path.realpath(__file__).split("/")[:-1]
+    for idx in range(1, len(directory) - 1):
+        subdir = "/".join(directory[:-idx])
+        if filename in os.listdir(subdir):
+            print(f"\nPlease run \033[91m'source {os.path.join(subdir, filename)}'\033[0m first.")
+            break
+    else:
+        print(f"\n\033[91mFAIL: Couldn't find {filename}, are you running this script as part of Ampere Model Library?"
+              f"\033[0m")
+    sys.exit(1)
 
 
 def parse_args():
+    import argparse
     parser = argparse.ArgumentParser(description="Run torch/benchmark DLRM model.")
     parser.add_argument("-p", "--precision",
                         type=str, choices=["fp32"], required=True,
@@ -30,6 +41,11 @@ def parse_args():
 
 
 def run_pytorch_fp(batch_size, num_runs, timeout):
+    import argparse
+    import numpy as np
+    from utils.benchmark import run_model
+    from utils.recommendation.criteo import append_dlrm_to_pypath
+    from utils.recommendation.torchbench_random import RandomDataset
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
@@ -147,6 +163,11 @@ def run_pytorch_fp(batch_size, num_runs, timeout):
 
 
 def run_pytorch_cuda(batch_size, num_runs, timeout, **kwargs):
+    import argparse
+    import numpy as np
+    from utils.benchmark import run_model
+    from utils.recommendation.criteo import append_dlrm_to_pypath
+    from utils.recommendation.torchbench_random import RandomDataset
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(torch_runner, dataset):
@@ -268,6 +289,7 @@ def run_pytorch_fp32(batch_size, num_runs, timeout, **kwargs):
 
 
 def main():
+    from utils.misc import print_goodbye_message_and_die
     args = parse_args()
 
     if args.framework == "pytorch":
