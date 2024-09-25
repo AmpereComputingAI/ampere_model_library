@@ -18,6 +18,32 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
+def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
+    import torch._dynamo
+    from diffusers import DiffusionPipeline
+    torch._dynamo.config.suppress_errors = True
+
+    from utils.benchmark import run_model
+    from utils.pytorch import apply_compile
+    from utils.pytorch import PyTorchRunnerV2
+    from utils.text_to_image.stable_diffusion import StableDiffusion
+
+    model = DiffusionPipeline.from_pretrained(model_name,
+                                              use_safetensors=True).to("cpu")
+
+    model.unet = apply_compile(model.unet)
+    model.vae.decoder = apply_compile(model.vae.decoder)
+
+    def single_pass_pytorch(_runner, _stablediffusion):
+        prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
+        x_samples = _runner.run(batch_size * steps, prompt=prompts, num_inference_steps=steps)
+        _stablediffusion.submit_count(batch_size, x_samples)
+
+    runner = PyTorchRunnerV2(model)
+    stable_diffusion_dataset = StableDiffusion()
+    return run_model(single_pass_pytorch, runner, stable_diffusion_dataset, batch_size, num_runs, timeout)
+
+
 def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs):
     import torch._dynamo
     from diffusers import DiffusionPipeline
@@ -33,31 +59,7 @@ def run_pytorch_bf16(model_name, steps, batch_size, num_runs, timeout, **kwargs)
                                               torch_dtype=torch.bfloat16).to("cpu")
 
     model.unet = apply_compile(model.unet)
-
-    def single_pass_pytorch(_runner, _stablediffusion):
-        prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
-        x_samples = _runner.run(batch_size * steps, prompt=prompts, num_inference_steps=steps)
-        _stablediffusion.submit_count(batch_size, x_samples)
-
-    runner = PyTorchRunnerV2(model)
-    stable_diffusion_dataset = StableDiffusion()
-    return run_model(single_pass_pytorch, runner, stable_diffusion_dataset, batch_size, num_runs, timeout)
-
-
-def run_pytorch_fp32(model_name, steps, batch_size, num_runs, timeout, **kwargs):
-    import torch._dynamo
-    from diffusers import DiffusionPipeline
-    torch._dynamo.config.suppress_errors = True
-
-    from utils.benchmark import run_model
-    from utils.pytorch import apply_compile
-    from utils.pytorch import PyTorchRunnerV2
-    from utils.text_to_image.stable_diffusion import StableDiffusion
-
-    model = DiffusionPipeline.from_pretrained(model_name,
-                                              use_safetensors=True).to("cpu")
-
-    model.unet = apply_compile(model.unet)
+    model.vae.decoder = apply_compile(model.vae.decoder)
 
     def single_pass_pytorch(_runner, _stablediffusion):
         prompts = [_stablediffusion.get_input() for _ in range(batch_size)]
