@@ -35,3 +35,4 @@ kornia
 open-clip-torch<2.26.1
 diffusers
 accelerate
+boto3==1.29.0; python_version>='3.12'
