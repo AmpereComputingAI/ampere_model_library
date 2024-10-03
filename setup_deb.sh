@@ -68,8 +68,8 @@ log "Installing python dependencies ..."
 sleep 1
 
 # get almost all python deps
-pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements.txt" ||
-    pip3 install --upgrade -r "$(dirname "$0")/requirements.txt"
+pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
+    pip3 install -r "$(dirname "$0")/requirements.txt"
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
@@ -79,8 +79,8 @@ git clone -b 1.2.2 https://github.com/libsndfile/libsndfile.git && cd libsndfile
 
 # if [ "$(PYTHONPATH=$SCRIPT_DIR python3 -c 'from cpuinfo import get_cpu_info; from benchmark import which_ampere_cpu; cpu = which_ampere_cpu(get_cpu_info()["flags"], 1); print("AmpereOne" in cpu)')" == "True" ]; then
 #     # Only on AmpereOne family
-#     pip3 install --break-system-packages --upgrade -r "$(dirname "$0")/requirements-ampereone.txt" ||
-#         pip3 install --upgrade -r "$(dirname "$0")/requirements-ampereone.txt"
+#     pip3 install --break-system-packages -r "$(dirname "$0")/requirements-ampereone.txt" ||
+#         pip3 install -r "$(dirname "$0")/requirements-ampereone.txt"
 # fi
 
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
