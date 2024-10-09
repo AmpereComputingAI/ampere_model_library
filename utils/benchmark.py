@@ -101,12 +101,21 @@ class Runner:
         with self._dump_filelock:
             with open(self._dump_filepath, "w") as f:
                 times_invoked = self._times_invoked
-                json.dump({
+                json_data = {}
+                json_data["overall"] = {
                     "workload_size": self._workload_size[self.warm_up_runs:times_invoked],
                     "start_times": self._start_times[self.warm_up_runs:times_invoked],
                     "finish_times": self._finish_times[self.warm_up_runs:times_invoked],
                     "threads": os.environ.get("AIO_NUMA_CPUS")
-                }, f)
+                }
+                for subcategory in self._subcategories.keys():
+                    json_data[subcategory] = {
+                        "workload_size": self._subcategories[subcategory]["workload_size"],
+                        "start_times": self._subcategories[subcategory]["start_times"],
+                        "finish_times": self._subcategories[subcategory]["finish_times"],
+                        "threads": os.environ.get("AIO_NUMA_CPUS")
+                    }
+                json.dump(json_data, f)
 
     def _dump_loop(self):
         while self._do_dump:
