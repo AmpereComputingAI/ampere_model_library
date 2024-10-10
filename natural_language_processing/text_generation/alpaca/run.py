@@ -28,6 +28,7 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
         inputs = encode(_dataset.get_input_string())
         config = GenerationConfig()
         config.max_new_tokens = 100
+        config.do_sample = True
         outputs = pytorch_runner.run(inputs=inputs.input_ids, generation_config=config)
         pytorch_runner.set_task_size(outputs.shape[1] - inputs.input_ids.shape[1])
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
