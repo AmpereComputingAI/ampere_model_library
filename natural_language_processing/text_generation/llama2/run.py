@@ -30,6 +30,7 @@ def run_pytorch(model_name, batch_size, num_runs, timeout, dataset_path, use_tor
         config = GenerationConfig()
         config.max_length = 400
         config.pad_token_id = tokenizer.pad_token_id
+        config.do_sample = True
         output = pytorch_runner.run(inputs=input_tensor, generation_config=config)
         pytorch_runner.set_task_size(sum([len(output[i]) - len(input_tensor[i]) for i in range(batch_size)]))
         for i in range(batch_size):
