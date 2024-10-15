@@ -8,7 +8,7 @@ pandas
 pycocotools
 scikit-build
 scikit-learn
-scipy
+scipy>=1.9.0
 tifffile
 tqdm
 sacrebleu
