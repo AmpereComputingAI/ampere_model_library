@@ -34,6 +34,10 @@ def run_pytorch(model_path, num_runs, timeout, dataset_path, use_torch_fp16=Fals
         response = decode(outputs[:, inputs.input_ids.shape[1]:])
         _dataset.submit_prediction(response)
 
+    import numpy as np
+    import torch
+    np.random.seed(44)
+    torch.manual_seed(44)
     model = AutoModelForCausalLM.from_pretrained(model_path)
     if use_torch_fp16:
         model = model.half()
