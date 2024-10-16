@@ -93,7 +93,7 @@ class Alpaca(unittest.TestCase):
         def wrapper(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
 
-        exact_match_ref, f1_ref = 0.180, 0.548
+        exact_match_ref, f1_ref = 0.220, 0.547
         acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
                                     "timeout": None, "dataset_path": self.dataset_path})
         self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
