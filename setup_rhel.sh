@@ -64,6 +64,8 @@ log "done.\n"
 log "Installing python dependencies ..."
 sleep 1
 
+ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
+
 # get almost all python deps
 pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
     pip3 install -r "$(dirname "$0")/requirements.txt"
@@ -75,8 +77,6 @@ yum install -y autoconf automake alsa-lib-devel pkg-config
 #     pip3 install --break-system-packages -r "$(dirname "$0")/requirements-ampereone.txt" ||
 #         pip3 install -r "$(dirname "$0")/requirements-ampereone.txt"
 # fi
-
-ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
     # Torchvision version has to match PyTorch version following this table:
