@@ -1,6 +1,6 @@
 ![Ampere AI](https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/ampere_logo_®_primary_stacked_rgb.png "Ampere AI")
 # Ampere Model Library
-![CI tests](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
+![CI tests](https://github.com/AmpereComputingAI/ampere_model_library/actions/workflows/test.yml/badge.svg)
 ![PyTorch pull count](https://img.shields.io/docker/pulls/amperecomputingai/pytorch?logo=pytorch&label=PyTorch&labelColor=%23ffc9bb&color=%23ffa590&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Fpytorch)
 ![TF pull count](https://img.shields.io/docker/pulls/amperecomputingai/tensorflow?logo=tensorflow&label=TensorFlow&labelColor=%23e6cc00&color=%23e69b00&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Ftensorflow)
 ![ORT pull count](https://img.shields.io/docker/pulls/amperecomputingai/onnxruntime?logo=onnx&logoColor=black&label=ONNXRT&labelColor=%23e5e5e5&color=%23cccccc&link=https%3A%2F%2Fhub.docker.com%2Fr%2Famperecomputingai%2Fonnxruntime)
