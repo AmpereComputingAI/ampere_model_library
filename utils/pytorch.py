@@ -24,7 +24,7 @@ class PyTorchRunner(Runner):
                  model,
                  disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False, throughput_only=False):
         super().__init__(throughput_only)
-        AIO = '_aio_profiler_print' in dir(torch._C)
+        AIO = '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0"
         if AIO:
             utils.print_warning_message(
                 "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
@@ -253,7 +253,7 @@ def apply_jit_trace_module(model, example_inputs):
 
 
 def apply_compile(model):
-    torch._dynamo.config.cache_size_limit = 512
+    torch._dynamo.config.cache_size_limit = 8
     if os.environ.get("TORCH_COMPILE") == "0":
         return model
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):

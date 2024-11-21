@@ -88,7 +88,7 @@ git clone -b 1.2.2 https://github.com/libsndfile/libsndfile.git && cd libsndfile
 if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" ]; then
     # Torchvision version has to match PyTorch version following this table:
     # https://github.com/pytorch/vision?tab=readme-ov-file#installation
-    pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
+    pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.19.1
 fi
 log "done.\n"
 
