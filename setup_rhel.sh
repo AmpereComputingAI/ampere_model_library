@@ -47,7 +47,7 @@ log "Installing system dependencies ..."
 sleep 1
 yum install epel-release || :
 yum groupinstall -y 'Development Tools'
-yum install -y python3 python3-devel python3-pip libSM libXext wget git unzip numactl hdf5-devel cmake gcc-c++ 
+yum install -y python3-devel python3-pip libSM libXext wget git unzip numactl hdf5-devel cmake gcc-c++ 
 git clone -b n4.3.7 https://github.com/FFmpeg/FFmpeg.git && cd FFmpeg && ./configure && make -j && make install && cd .. && rm -r FFmpeg
 log "done.\n"
 
