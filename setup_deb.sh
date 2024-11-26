@@ -46,11 +46,14 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y python3-pip build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
+apt-get install -y build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
+if ! python3 -c ""; then
+    apt-get install -y python3 python3-pip
+fi
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
-    apt-get -y install "python${PYTHON_VERSION}-dev"
+    apt-get install -y "python${PYTHON_VERSION}-dev"
 fi
 log "done.\n"
 
