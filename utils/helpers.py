@@ -77,3 +77,15 @@ class Dataset:
                 print(f"{3 * indent}{metric[:max_len]}{(max_len - len(metric)) * ' '}{3 * indent}" +
                       "= {:>7.3f}".format(float(accuracy_results[metric])))
         return accuracy_results
+
+
+class DummyDataset(Dataset):
+    def __init__(self):
+        import sys
+        self.available_instances = int(sys.maxsize)
+
+    def reset(self) -> bool:
+        return True
+
+    def _summarize_accuracy(self) -> dict:
+        return {}
