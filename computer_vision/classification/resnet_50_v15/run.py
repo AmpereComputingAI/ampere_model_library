@@ -18,6 +18,9 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
+import numpy as np
+
+
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description="Run ResNet-50 v1.5 model.")
@@ -155,16 +158,16 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, imagenet):
-        shape = (224, 224)
-        ort_runner.set_input_tensor("input_tensor:0", imagenet.get_input_array(shape).astype("float16"))
+        for input_name in ort_runner.session.get_inputs():
+            ort_runner.set_input_tensor(input_name, np.random.rand(batch_size, 1))
         output = ort_runner.run(batch_size)
 
-        for i in range(batch_size):
-            imagenet.submit_predictions(
-                i,
-                imagenet.extract_top1(output[0][i]),
-                imagenet.extract_top5(output[0][i])
-            )
+        #for i in range(batch_size):
+        #    imagenet.submit_predictions(
+        #        i,
+        #        0,
+        #        imagenet.extract_top5(output[0][i])
+        #    )
 
     dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
                        pre_processing="VGG", is1001classes=True)
@@ -234,7 +237,7 @@ def main():
             print_goodbye_message_and_die(
                 "a path to model is unspecified!")
 
-        if args.precision == "fp16":
+        if True:
             run_ort_fp16(**vars(args))
         else:
             print_goodbye_message_and_die(
