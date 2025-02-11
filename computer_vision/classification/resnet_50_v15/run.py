@@ -158,18 +158,19 @@ def run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_pa
     from utils.ort import OrtRunner
 
     def run_single_pass(ort_runner, imagenet):
-        for input_name in ort_runner.session.get_inputs():
-            ort_runner.set_input_tensor(input_name, np.random.rand(batch_size, 1))
+        imagenet.get_input_array((224,224))
+        for input_node in ort_runner.session.get_inputs():
+            ort_runner.set_input_tensor(input_node.name, np.random.rand(batch_size, 1))
         output = ort_runner.run(batch_size)
 
-        #for i in range(batch_size):
-        #    imagenet.submit_predictions(
-        #        i,
-        #        0,
-        #        imagenet.extract_top5(output[0][i])
-        #    )
+        for i in range(batch_size):
+            imagenet.submit_predictions(
+                i,
+                [0],
+                [0]
+            )
 
-    dataset = ImageNet(batch_size, "RGB", images_path, labels_path,
+    dataset = ImageNet(1, "RGB", images_path, labels_path,
                        pre_processing="VGG", is1001classes=True)
     runner = OrtRunner(model_path)
 
@@ -196,7 +197,7 @@ def run_tflite_int8(model_path, batch_size, num_runs, timeout, images_path, labe
     return run_tflite(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
-def run_ort_fp16(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
+def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, labels_path, **kwargs):
     return run_ort_fp(model_path, batch_size, num_runs, timeout, images_path, labels_path)
 
 
