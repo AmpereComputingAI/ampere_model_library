@@ -97,7 +97,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.pytorch import PyTorchRunner
-    from ultralytics.yolo.utils import ops
+    from ultralytics.utils import ops
 
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)

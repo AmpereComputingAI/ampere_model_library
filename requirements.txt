@@ -14,7 +14,7 @@ tqdm
 sacrebleu
 sentencepiece
 tiktoken
-ultralytics==8.0.75
+ultralytics
 evaluate
 datasets
 soundfile
