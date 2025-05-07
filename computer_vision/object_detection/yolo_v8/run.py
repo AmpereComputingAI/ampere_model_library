@@ -100,9 +100,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     from ultralytics.yolo.utils import ops
 
     def run_single_pass(pytorch_runner, coco):
-        shape = (640, 640)
-        inp = torch.stack(coco.get_input_array(shape))
-        output = pytorch_runner.run(batch_size, inp)
+        output = pytorch_runner.run(batch_size, coco.get_input_array((640, 640)))
         output = ops.non_max_suppression(output)
 
         for i in range(batch_size):
