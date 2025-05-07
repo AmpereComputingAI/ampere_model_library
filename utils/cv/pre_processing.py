@@ -200,6 +200,6 @@ def pre_process_py_objdet(input_array):
     :return: numpy array containing pre-processed image data
     """
     import torch
-    image = image.astype("float32")
-    image /= 255.0
-    return torch.from_numpy(image)
+    input_array = input_array.astype("float32")
+    input_array /= 255.0
+    return torch.from_numpy(input_array)
