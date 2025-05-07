@@ -138,7 +138,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
     }
     config = BertConfig(**bert_config)
     model = BertForQuestionAnswering(config)
-    model.load_state_dict(torch.load(model_path), strict=False)
+    model.load_state_dict(torch.load(model_path, weights_only=False), strict=False)
     dataset = Squad_v1_1(batch_size, tokenize, detokenize, dataset_path=squad_path)
     runner = PyTorchRunner(model,
                            disable_jit_freeze=disable_jit_freeze,
