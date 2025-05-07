@@ -84,7 +84,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, dataset_path, debu
         qr_threshold=200,
         md_threshold=200,
     )
-    dlrm.load_state_dict(torch.load(model_path)["state_dict"])
+    dlrm.load_state_dict(torch.load(model_path, weights_only=False)["state_dict"])
 
     runner = PyTorchRunner(dlrm, example_inputs=dataset.get_inputs(), skip_script=True)
 
