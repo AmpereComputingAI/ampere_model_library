@@ -119,7 +119,7 @@ class PyTorchRunner(Runner):
 
             self._start_times.append(start)
             self._finish_times.append(finish)
-            self._workload_size.append(task_size)
+            self.set_task_size(task_size)
             self._times_invoked += 1
             return output
 
@@ -246,6 +246,9 @@ def apply_jit_script(model):
 
 def apply_jit_trace(model, example_inputs):
     return load_from_cache_or_apply(model, lambda: torch.jit.trace(model, example_inputs))
+
+def apply_jit_trace_module(model, example_inputs):
+    return load_from_cache_or_apply(model, lambda: torch.jit.trace_module(model, example_inputs))
 
 
 def apply_jit_trace_module(model, example_inputs):
