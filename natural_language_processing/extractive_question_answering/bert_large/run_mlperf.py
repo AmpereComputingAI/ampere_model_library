@@ -34,6 +34,8 @@ def parse_args():
                         type=str, default="tf",
                         choices=["tf", "pytorch"],
                         help="specify the framework in which a model should be run")
+    parser.add_argument("--fixed-input", action='store_true',
+                        help="truncate input to fixed shape")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -102,6 +104,9 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 
     def run_single_pass(pytorch_runner, squad):
         input_tensor = squad.get_input_arrays()
+        print(input_tensor)
+        print(type(input_tensor))
+        quit()
         output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
 
         for i in range(batch_size):
@@ -117,7 +122,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
         padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
-        return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
+        return tokenizer(question, text, padding="max_length", truncation=True, max_length=512, return_tensors="pt")
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
