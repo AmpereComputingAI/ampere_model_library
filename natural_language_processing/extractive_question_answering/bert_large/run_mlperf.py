@@ -34,8 +34,6 @@ def parse_args():
                         type=str, default="tf",
                         choices=["tf", "pytorch"],
                         help="specify the framework in which a model should be run")
-    parser.add_argument("--fixed-input", action='store_true',
-                        help="truncate input to fixed shape")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
                         help="timeout in seconds")
@@ -45,6 +43,8 @@ def parse_args():
     parser.add_argument("--squad_path",
                         type=str,
                         help="path to directory with ImageNet validation images")
+    parser.add_argument("--fixed_input", action='store_true',
+                        help="truncate input to fixed shape")
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
@@ -95,7 +95,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs)
     return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, fixed_input=False):
     from utils.benchmark import run_model
     from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
@@ -127,7 +127,10 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
         padding=True, truncation=True, model_max_length=512)
 
     def tokenize(question, text):
-        return tokenizer(question, text, padding="max_length", truncation=True, max_length=512, return_tensors="pt")
+        if fixed_input:
+            return tokenizer(question, text, padding="max_length", truncation=True, max_length=512, return_tensors="pt")
+        else:
+            return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
@@ -209,8 +212,8 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, **kwargs):
-    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze)
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input, **kwargs):
+    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input)
 
 
 def main():
