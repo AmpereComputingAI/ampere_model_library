@@ -103,15 +103,13 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
     from utils.pytorch import PyTorchRunner
 
     def run_single_pass(pytorch_runner, squad):
-        for _ in range(10):
-            input_tensor = squad.get_input_arrays()
-            print(type(input_tensor))
-            print(input_tensor["input_ids"].size()[1])
-            print(input_tensor["input_ids"].shape)
-            print(input_tensor["attention_mask"].shape)
-            print(input_tensor["token_type_ids"].shape)
-            print("-------")
-        quit()
+        input_tensor = squad.get_input_arrays()
+        print(type(input_tensor))
+        print(input_tensor["input_ids"].size()[1])
+        print(input_tensor["input_ids"].shape)
+        print(input_tensor["attention_mask"].shape)
+        print(input_tensor["token_type_ids"].shape)
+        print("-------")
         output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
 
         for i in range(batch_size):
