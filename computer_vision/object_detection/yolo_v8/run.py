@@ -121,8 +121,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     runner = PyTorchRunner(torch.jit.load(torchscript_model),
                            disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=torch.stack(dataset.get_input_array((640, 640))))
-                           #example_inputs=torch.stack((dataset.get_input_array((640, 640)),)))
+                           example_inputs=torch.stack((dataset.get_input_array((640, 640)),)))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
