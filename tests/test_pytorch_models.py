@@ -368,6 +368,8 @@ class YOLO(unittest.TestCase):
 
     def test_yolo_v8_s(self):
         from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
+        from utils.benchmark import set_global_intra_op_parallelism_threads
+        set_global_intra_op_parallelism_threads(int(os.environ.get("AIO_NUM_THREADS")))
 
         def wrapper(**kwargs):
             kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
