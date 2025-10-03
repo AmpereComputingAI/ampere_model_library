@@ -45,6 +45,8 @@ def parse_args():
                         help="path to directory with ImageNet validation images")
     parser.add_argument("--fixed_input", action='store_true',
                         help="truncate input to fixed shape")
+    parser.add_argument("--input_size", type=int, default=384,
+                        help='size of the input')
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
@@ -104,6 +106,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 
     def run_single_pass(pytorch_runner, squad):
         input_tensor = squad.get_input_arrays()
+        print(input_tensor["input_ids"].shape)
+        print(input_tensor["attention_mask"].shape)
+        print(input_tensor["token_type_ids"].shape)
+
+        quit()
         output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
 
         for i in range(batch_size):
