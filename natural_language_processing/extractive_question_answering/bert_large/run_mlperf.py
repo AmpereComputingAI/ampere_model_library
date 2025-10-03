@@ -97,7 +97,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs)
     return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze=False, fixed_input=False):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_size, disable_jit_freeze=False, fixed_input=False):
     from utils.benchmark import run_model
     from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
@@ -127,7 +127,8 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disabl
 
     def tokenize(question, text):
         if fixed_input:
-            return tokenizer(question, text, padding="max_length", truncation=True, max_length=512, return_tensors="pt")
+            return tokenizer(question, text, padding="max_length", truncation=True, max_length=input_size,
+                             return_tensors="pt")
         else:
             return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
 
@@ -211,8 +212,8 @@ def run_pytorch_cuda(model_path, batch_size, num_runs, timeout, squad_path, disa
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input, **kwargs):
-    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input)
+def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input, input_size, **kwargs):
+    return run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, disable_jit_freeze, fixed_input, input_size)
 
 
 def main():
