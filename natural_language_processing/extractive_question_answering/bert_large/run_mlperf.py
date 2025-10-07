@@ -97,7 +97,7 @@ def run_tf_fp16(model_path, batch_size, num_runs, timeout, squad_path, **kwargs)
     return run_tf_fp(model_path, batch_size, num_runs, timeout, squad_path)
 
 
-def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_size, disable_jit_freeze=False, fixed_input=False):
+def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_size, fixed_input, disable_jit_freeze=False):
     from utils.benchmark import run_model
     from utils.nlp.squad import Squad_v1_1
     from transformers import AutoTokenizer, BertConfig, BertForQuestionAnswering
