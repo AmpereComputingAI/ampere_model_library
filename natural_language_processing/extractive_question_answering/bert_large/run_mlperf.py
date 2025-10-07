@@ -110,6 +110,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_
             print(input_tensor["input_ids"].shape)
             print(input_tensor["attention_mask"].shape)
             print(input_tensor["token_type_ids"].shape)
+            print('---')
 
         quit()
         output = pytorch_runner.run(batch_size * input_tensor["input_ids"].size()[1], **dict(input_tensor))
