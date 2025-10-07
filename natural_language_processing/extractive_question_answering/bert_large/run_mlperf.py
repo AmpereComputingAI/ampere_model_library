@@ -104,6 +104,9 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_
     import torch
     from utils.pytorch import PyTorchRunner
 
+    print(input_size)
+    print(fixed_input)
+
     def run_single_pass(pytorch_runner, squad):
         for _ in range(10):
             input_tensor = squad.get_input_arrays()
@@ -129,6 +132,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, input_
 
     def tokenize(question, text):
         if fixed_input:
+            print('h1')
             return tokenizer(question, text, padding="max_length", truncation=True, max_length=input_size,
                              return_tensors="pt")
         else:
