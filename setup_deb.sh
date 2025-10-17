@@ -53,6 +53,8 @@ fi
 if ! pip3 --version; then
     apt-get install -y python3-pip
 fi
+pip install --upgrade pip
+
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
@@ -81,7 +83,7 @@ pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
-    libmpg123-dev pkg-config
+    libmpg123-dev pkg-config ffmpeg
 apt remove -y libsndfile1
 git clone -b 1.2.2 https://github.com/libsndfile/libsndfile.git && cd libsndfile/ && autoreconf -vif && ./configure --enable-werror && make -j && make install && ldconfig && cd .. && rm -rf libsndfile
 
