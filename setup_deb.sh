@@ -11,6 +11,7 @@ log() {
 }
 
 ARCH=$(uname -m)
+PIP_BREAK_SYSTEM_PACKAGES=1
 
 if [ -z ${SCRIPT_DIR+x} ]; then
     SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
@@ -53,7 +54,6 @@ fi
 if ! pip3 --version; then
     apt-get install -y python3-pip
 fi
-pip install --upgrade pip
 
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
@@ -78,8 +78,11 @@ sleep 1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
+pip3 install --upgrade pip
 pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
     pip3 install -r "$(dirname "$0")/requirements.txt"
+
+
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
