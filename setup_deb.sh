@@ -48,10 +48,12 @@ sleep 1
 apt-get update -y
 apt-get install -y build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
 if ! python3 -c ""; then
+    apt-get update -y
     apt-get install -y python3 python3-pip
 fi
 if ! pip3 --version; then
-    apt-get install -y python3-pip
+    apt-get install -y python3-pip || true
+    python3 -m ensurepip --upgrade || true
 fi
 
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
@@ -78,9 +80,6 @@ ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
 echo here1
-
-export PIP_CACHE_DIR=${PIP_CACHE_DIR:-/tmp/pip-cache}
-mkdir -p "$PIP_CACHE_DIR" || true
 
 python3 -m pip --version
 #python3 -m pip install --upgrade --ignore-installed pip
