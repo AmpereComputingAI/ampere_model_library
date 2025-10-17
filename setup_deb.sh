@@ -11,7 +11,6 @@ log() {
 }
 
 ARCH=$(uname -m)
-PIP_BREAK_SYSTEM_PACKAGES=1
 
 if [ -z ${SCRIPT_DIR+x} ]; then
     SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
@@ -78,9 +77,9 @@ sleep 1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
-pip3 install --upgrade pip
-pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
-    pip3 install -r "$(dirname "$0")/requirements.txt"
+python3 -m pip install --ignore-installed --break-system-packages --upgrade pip
+python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
+    python3 -m pip3 install -r "$(dirname "$0")/requirements.txt"
 
 
 
