@@ -79,8 +79,11 @@ ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 # get almost all python deps
 echo here1
 
+export PIP_CACHE_DIR=${PIP_CACHE_DIR:-/tmp/pip-cache}
+mkdir -p "$PIP_CACHE_DIR" || true
+
 python3 -m pip --version
-python3 -m pip install --upgrade --ignore-installed pip
+#python3 -m pip install --upgrade --ignore-installed pip
 echo here2
 python3 -m pip install --break-system-packages --ignore-installed --upgrade pip
 
