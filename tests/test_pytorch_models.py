@@ -223,7 +223,7 @@ class BERT(unittest.TestCase):
         exact_match_ref, f1_ref = 0.750, 0.817
         acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
                                     "batch_size": 1, "num_runs": 24, "timeout": None,
-                                    "input_size": 384, "disable_jit_freeze": False, "fixed_input": False})
+                                    "fixed_input_size": None, "disable_jit_freeze": False})
         self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
         self.assertTrue(acc["f1"] / f1_ref > 0.95)
 

@@ -117,17 +117,13 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, squad_path, fixed_
     tokenizer = AutoTokenizer.from_pretrained(
         "bert-large-uncased-whole-word-masking-finetuned-squad",
         padding=True, truncation=True, model_max_length=512)
-    print(fixed_input_size)
-    
+
     def tokenize(question, text):
         if fixed_input_size is not None:
-            print('h1')
             return tokenizer(question, text, padding="max_length", truncation=True,
                              max_length=fixed_input_size, return_tensors="pt")
         else:
-            print('h2')
             return tokenizer(question, text, padding=True, truncation=True, return_tensors="pt")
-    quit()
 
     def detokenize(answer):
         return tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(answer))
