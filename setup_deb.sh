@@ -79,7 +79,7 @@ ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 # get almost all python deps
 echo here1
 
-python3 -m pip install --ignore-installed --upgrade pip
+python3 -m pip install --break-system-packages --ignore-installed --upgrade pip
 
 echo here2
 python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
