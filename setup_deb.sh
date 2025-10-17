@@ -77,9 +77,15 @@ sleep 1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
-python3 -m pip install --ignore-installed --break-system-packages --upgrade pip
+echo here1
+
+python3 -m pip install --ignore-installed --upgrade pip
+
+echo here2
 python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
     python3 -m pip3 install -r "$(dirname "$0")/requirements.txt"
+
+echo here3
 
 
 
