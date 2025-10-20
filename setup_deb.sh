@@ -87,7 +87,7 @@ echo here1
 python3 -m pip --version
 #python3 -m pip install --upgrade --ignore-installed pip
 echo here2
-python3 -m pip install --break-system-packages --ignore-installed --upgrade pip
+python3 -m pip install --ignore-installed --upgrade pip
 
 echo here3
 python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
