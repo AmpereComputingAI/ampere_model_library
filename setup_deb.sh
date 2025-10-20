@@ -49,7 +49,7 @@ apt-get update -y
 apt-get install -y build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
 if ! python3 -c ""; then
     apt-get update -y
-    apt-get install -y python3 python3-pip
+    apt-get install -y python3 python3-pip python3-venv
 fi
 if ! pip3 --version; then
     apt-get install -y python3-pip
