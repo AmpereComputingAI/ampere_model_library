@@ -55,9 +55,10 @@ if ! pip3 --version; then
     apt-get install -y python3-pip
 fi
 
-apt-get install -y python3-venv
-python3 -m venv /opt/venv
-. /opt/venv/bin/activate
+#apt-get install -y python3-venv
+#python3 -m venv /opt/venv
+#. /opt/venv/bin/activate
+#python3 -m pip config set global.break-system-packages true
 
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
