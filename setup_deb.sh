@@ -89,7 +89,9 @@ echo here3
 python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
     python3 -m pip3 install -r "$(dirname "$0")/requirements.txt"
 
-echo here4
+python3 -m pip --version
+echo HERe555
+exit 1
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
@@ -116,6 +118,3 @@ else
     touch "$SCRIPT_DIR"/.setup_completed
 fi
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"
-
-echo HERe555
-exit 1
