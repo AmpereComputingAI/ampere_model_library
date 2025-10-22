@@ -84,6 +84,13 @@ jobs:
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
+          which -a ffmpeg
+          ffmpeg -version
+          
+          ffmpeg -version | head -n1
+          
+          exit 1
+          
           wget $S3_URL_RESNET_50_V15_TF_FP32 > /dev/null 2>&1
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v15/run.py -m resnet_50_v15_tf_fp32.pb -p fp32 -f tf --timeout=60
           
