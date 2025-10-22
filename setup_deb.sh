@@ -78,20 +78,9 @@ sleep 1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
-echo here1
-
-python3 -m pip --version
-#python3 -m pip install --upgrade --ignore-installed pip
-echo here2
 PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --ignore-installed --upgrade pip
-
-echo here3
 python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
     python3 -m pip3 install -r "$(dirname "$0")/requirements.txt"
-
-python3 -m pip --version
-echo HERe555
-exit 1
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
