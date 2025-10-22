@@ -80,14 +80,8 @@ jobs:
           python3 -m unittest tests.test_pytorch_models
       
       - name: End-user smoke test
-        run: |            
-          which -a ffmpeg
+        run: |                      
           ffmpeg -version
-          
-          ffmpeg -version | head -n1
-          
-          echo here1
-          
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
