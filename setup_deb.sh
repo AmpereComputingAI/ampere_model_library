@@ -55,11 +55,6 @@ if ! pip3 --version; then
     apt-get install -y python3-pip
 fi
 
-#apt-get install -y python3-venv
-#python3 -m venv /opt/venv
-#. /opt/venv/bin/activate
-#python3 -m pip config set global.break-system-packages true
-
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))')
 PYTHON_DEV_SEARCH=$(apt-cache search --names-only "python${PYTHON_VERSION}-dev")
 if [[ -n "$PYTHON_DEV_SEARCH" ]]; then
@@ -96,8 +91,6 @@ python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.
 
 echo here4
 
-
-
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
     libmpg123-dev pkg-config ffmpeg
@@ -123,3 +116,6 @@ else
     touch "$SCRIPT_DIR"/.setup_completed
 fi
 log "Setup completed. Please run: source $SCRIPT_DIR/set_env_variables.sh"
+
+echo HERe555
+exit 1
