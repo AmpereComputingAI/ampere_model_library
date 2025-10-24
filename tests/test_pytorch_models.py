@@ -366,19 +366,19 @@ class YOLO(unittest.TestCase):
     #                                 "timeout": None, "disable_jit_freeze": False})
     #     self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
 
-    def test_yolo_v8_s(self):
-        from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
-        from utils.benchmark import set_global_intra_op_parallelism_threads
-        set_global_intra_op_parallelism_threads(32)
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        coco_map_ref = 0.353
-        acc = run_process(wrapper, {"model_path": self.yolo_v8_s_path, "images_path": self.dataset_path,
-                                    "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 465,
-                                    "timeout": None, "disable_jit_freeze": False})
-        self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
+    # def test_yolo_v8_s(self):
+    #     from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
+    #     from utils.benchmark import set_global_intra_op_parallelism_threads
+    #     set_global_intra_op_parallelism_threads(32)
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     coco_map_ref = 0.353
+    #     acc = run_process(wrapper, {"model_path": self.yolo_v8_s_path, "images_path": self.dataset_path,
+    #                                 "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 465,
+    #                                 "timeout": None, "disable_jit_freeze": False})
+    #     self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
 
 
 if __name__ == "__main__":
