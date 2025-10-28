@@ -80,7 +80,8 @@ jobs:
           python3 -m unittest tests.test_pytorch_models
       
       - name: End-user smoke test
-        run: |            
+        run: |                      
+          ffmpeg -version
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
@@ -115,6 +116,7 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 32
+      AIO_NUM_THREADS: 32
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
@@ -257,21 +259,21 @@ jobs:
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
           wget https://github.com/tloen/alpaca-lora/raw/main/alpaca_data.json > /dev/null 2>&1
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/text_generation/llama2/run.py -m meta-llama/Llama-2-7b-chat-hf --dataset_path=alpaca_data.json
           
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 recommendation/dlrm_torchbench/run.py -p fp32
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 recommendation/dlrm_torchbench/run.py -p fp32
           
-          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
           
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
           
-          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           
           wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt > /dev/null 2>&1
-          IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/object_detection/yolo_v8/run.py -m yolov8l.pt -p fp32 -f pytorch              
           
           wget -O bert_large_mlperf.pt https://zenodo.org/records/3733896/files/model.pytorch?download=1 > /dev/null 2>&1
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
+          OMP_NUM_THREADS=32 AIO_NUM_THREADS=32 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 natural_language_processing/extractive_question_answering/bert_large/run_mlperf.py -m bert_large_mlperf.pt -p fp32 -f pytorch
 
   test_tensorflow_arm64:
     runs-on: self-hosted

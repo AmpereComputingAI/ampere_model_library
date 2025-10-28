@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description="Run YOLOv8 model.")
+    parser = argparse.ArgumentParser(description="Run YOLOv11 model.")
     parser.add_argument("-m", "--model_path",
                         type=str, required=True,
                         help="path to the model")
@@ -32,7 +32,7 @@ def parse_args():
                         help="batch size to feed the model with")
     parser.add_argument("-f", "--framework",
                         type=str,
-                        choices=["pytorch", "ort"], required=True,
+                        choices=["pytorch"], required=True,
                         help="specify the framework in which a model should be run")
     parser.add_argument("--timeout",
                         type=float, default=60.0,
@@ -49,42 +49,6 @@ def parse_args():
     parser.add_argument("--disable_jit_freeze", action='store_true',
                         help="if true model will be run not in jit freeze mode")
     return parser.parse_args()
-
-
-def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, **kwargs):
-    import torch
-    import os
-    from utils.cv.coco import COCODataset
-    from utils.benchmark import run_model
-
-    os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
-    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
-    # to set it to True if needed
-    from utils.ort import OrtRunner
-    from ultralytics.utils import nms
-
-    def run_single_pass(ort_runner, coco):
-        shape = (640, 640)
-        ort_runner.set_input_tensor("images", coco.get_input_array(shape).astype("float32"))
-        output = ort_runner.run(batch_size)
-
-        output = torch.from_numpy(output[0])
-        output = nms.non_max_suppression(output)
-
-        for i in range(batch_size):
-            for d in range(output[i].shape[0]):
-                coco.submit_bbox_prediction(
-                    i,
-                    coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
-                    output[i][d][4].item(),
-                    coco.translate_cat_id_to_coco(output[i][d][5].item())
-                )
-
-    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
-                          anno_path, pre_processing="YOLO", order="NCHW")
-    runner = OrtRunner(model_path)
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
 def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False):
@@ -126,43 +90,6 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
 
-def run_pytorch_cuda(
-        model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze=False, **kwargs):
-    import torch
-    import os
-    from utils.cv.coco import COCODataset
-    from utils.benchmark import run_model
-
-    os.environ["YOLO_VERBOSE"] = os.getenv("YOLO_VERBOSE", "False")
-    # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
-    # to set it to True if needed
-    from utils.pytorch import PyTorchRunnerV2
-
-    def run_single_pass(pytorch_runner, coco):
-        shape = (640, 640)
-        inp = torch.tensor(coco.get_input_array(shape))
-        output = pytorch_runner.run(batch_size, inp)
-
-        for i in range(batch_size):
-            for d in range(output[i].boxes.xywh.shape[0]):
-                coco.submit_bbox_prediction(
-                    i,
-                    coco.convert_bbox_to_coco_order(output[i].boxes.xyxy[d, :].tolist()),
-                    output[i].boxes.conf[d].item(),
-                    coco.translate_cat_id_to_coco(output[i].boxes.cls[d].item())
-                )
-
-    dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
-                          anno_path, pre_processing=None, sort_ascending=True, order="NCHW")
-
-    from ultralytics import YOLO
-    model = YOLO(model_path)
-
-    runner = PyTorchRunnerV2(model)
-
-    return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
-
-
 def run_pytorch_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze, **kwargs):
     return run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_path, disable_jit_freeze)
 
@@ -177,14 +104,6 @@ def main():
             run_pytorch_cuda(**vars(args))
         elif args.precision == "fp32":
             run_pytorch_fp32(**vars(args))
-        else:
-            print_goodbye_message_and_die(
-                "this model seems to be unsupported in a specified precision: " + args.precision)
-    elif args.framework == "ort":
-        if args.precision == "fp32":
-            if args.batch_size != 1:
-                raise ValueError("Batch size must be 1 for this model.")
-            run_ort_fp32(**vars(args))
         else:
             print_goodbye_message_and_die(
                 "this model seems to be unsupported in a specified precision: " + args.precision)
