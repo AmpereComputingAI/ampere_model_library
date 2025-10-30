@@ -313,7 +313,8 @@ class VGG(unittest.TestCase):
     #
     #     top_1_ref, top_5_ref = 0.661, 0.896
     #     acc = run_process(wrapper, {"model_name": "vgg16", "images_path": self.dataset_path,
-    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None})
+    #                                 "labels_path": self.labels_path, "batch_size": 32,
+    #                                 "num_runs": 10, "timeout": None})
     #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
     #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
