@@ -301,6 +301,7 @@ class ResNet(unittest.TestCase):
         self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
         print('here-resnet')
+    print('here-resnet1')
 
 
 class VGG(unittest.TestCase):
@@ -385,6 +386,4 @@ class YOLO(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    print('here2')
     unittest.main()
-    print('here3')

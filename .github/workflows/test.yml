@@ -81,7 +81,6 @@ jobs:
       
       - name: End-user smoke test
         run: |                      
-          ffmpeg -version
           wget https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/aio_objdet_dataset.tar.gz > /dev/null 2>&1
           tar -xf aio_objdet_dataset.tar.gz > /dev/null
           
