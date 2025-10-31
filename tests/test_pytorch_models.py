@@ -300,6 +300,8 @@ class ResNet(unittest.TestCase):
         self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
         self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
+        print('here-resnet')
+
 
 class VGG(unittest.TestCase):
     def setUp(self):
