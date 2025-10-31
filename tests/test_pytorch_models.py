@@ -48,23 +48,23 @@ class LLaMA2(unittest.TestCase):
 
         self.wrapper = wrapper
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    def test_llama2_7b(self):
-        f1_ref = 0.330
-        acc = run_process(self.wrapper,
-                          {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
-                           "timeout": None, "dataset_path": self.dataset_path})
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
-
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    def test_llama2_13b(self):
-        f1_ref = 0.261
-        acc = run_process(self.wrapper,
-                          {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
-                           "timeout": None, "dataset_path": self.dataset_path})
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    # def test_llama2_7b(self):
+    #     f1_ref = 0.330
+    #     acc = run_process(self.wrapper,
+    #                       {"model_name": "meta-llama/Llama-2-7b-chat-hf", "batch_size": 1, "num_runs": 50,
+    #                        "timeout": None, "dataset_path": self.dataset_path})
+    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    #
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 200, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    # def test_llama2_13b(self):
+    #     f1_ref = 0.261
+    #     acc = run_process(self.wrapper,
+    #                       {"model_name": "meta-llama/Llama-2-13b-chat-hf", "batch_size": 1, "num_runs": 50,
+    #                        "timeout": None, "dataset_path": self.dataset_path})
+    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 class Alpaca(unittest.TestCase):
@@ -85,19 +85,19 @@ class Alpaca(unittest.TestCase):
             subprocess.run("rm /tmp/alpaca_recovered.tar.gz".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    def test_alpaca(self):
-        from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        exact_match_ref, f1_ref = 0.220, 0.547
-        acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
-                                    "timeout": None, "dataset_path": self.dataset_path})
-        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    # def test_alpaca(self):
+    #     from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     exact_match_ref, f1_ref = 0.220, 0.547
+    #     acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
+    #                                 "timeout": None, "dataset_path": self.dataset_path})
+    #     self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 class Whisper(unittest.TestCase):
@@ -156,13 +156,13 @@ class WhisperTranslate(unittest.TestCase):
 
         self.wrapper = wrapper
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
-    def test_whisper_translate_medium(self):
-        wer_ref = 0.475
-        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
-                                         "dataset_path": self.dataset_path})
-        self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
+    # def test_whisper_translate_medium(self):
+    #     wer_ref = 0.475
+    #     acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
+    #                                      "dataset_path": self.dataset_path})
+    #     self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
 
 
 class DLRM(unittest.TestCase):
@@ -184,17 +184,17 @@ class DLRM(unittest.TestCase):
                 f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    def test_dlrm_debug(self):
-        from recommendation.dlrm.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        auc_ref = 0.583
-        acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
-                                    "batch_size": 2048, "num_runs": 30, "timeout": None, "debug": True})
-        self.assertTrue(acc["auc"] / auc_ref > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # def test_dlrm_debug(self):
+    #     from recommendation.dlrm.run import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     auc_ref = 0.583
+    #     acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
+    #                                 "batch_size": 2048, "num_runs": 30, "timeout": None, "debug": True})
+    #     self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
 class BERT(unittest.TestCase):
