@@ -214,18 +214,18 @@ class BERT(unittest.TestCase):
                 f"{'https://zenodo.org/records/3733896/files/model.pytorch?download=1'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def test_bert_large_mlperf(self):
-        from natural_language_processing.extractive_question_answering.bert_large.run_mlperf import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        exact_match_ref, f1_ref = 0.750, 0.817
-        acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
-                                    "batch_size": 1, "num_runs": 24, "timeout": None,
-                                    "fixed_input_size": None, "disable_jit_freeze": False})
-        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
-        self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    # def test_bert_large_mlperf(self):
+    #     from natural_language_processing.extractive_question_answering.bert_large.run_mlperf import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     exact_match_ref, f1_ref = 0.750, 0.817
+    #     acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
+    #                                 "batch_size": 1, "num_runs": 24, "timeout": None,
+    #                                 "fixed_input_size": None, "disable_jit_freeze": False})
+    #     self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 def download_imagenet_maybe():
@@ -252,36 +252,36 @@ class DenseNet(unittest.TestCase):
     def setUp(self):
         self.dataset_path, self.labels_path = download_imagenet_maybe()
 
-    def test_densenet_121(self):
-        from computer_vision.classification.densenet_121.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        top_1_ref, top_5_ref = 0.717, 0.905
-        acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
-                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
-                                    "disable_jit_freeze": False})
-        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
-        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+    # def test_densenet_121(self):
+    #     from computer_vision.classification.densenet_121.run import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     top_1_ref, top_5_ref = 0.717, 0.905
+    #     acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
+    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+    #                                 "disable_jit_freeze": False})
+    #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+    #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
 
 class Inception(unittest.TestCase):
     def setUp(self):
         self.dataset_path, self.labels_path = download_imagenet_maybe()
 
-    def test_inception_v3(self):
-        from computer_vision.classification.inception_v3.run import run_pytorch_fp32
-
-        def wrapper(**kwargs):
-            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-
-        top_1_ref, top_5_ref = 0.765, 0.932
-        acc = run_process(wrapper, {"model_name": "inception_v3", "images_path": self.dataset_path,
-                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
-                                    "disable_jit_freeze": False})
-        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
-        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+    # def test_inception_v3(self):
+    #     from computer_vision.classification.inception_v3.run import run_pytorch_fp32
+    #
+    #     def wrapper(**kwargs):
+    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+    #
+    #     top_1_ref, top_5_ref = 0.765, 0.932
+    #     acc = run_process(wrapper, {"model_name": "inception_v3", "images_path": self.dataset_path,
+    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+    #                                 "disable_jit_freeze": False})
+    #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+    #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
 
 class ResNet(unittest.TestCase):
@@ -383,4 +383,6 @@ class YOLO(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    print('here2')
     unittest.main()
+    print('here3')

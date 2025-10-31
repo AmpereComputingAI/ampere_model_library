@@ -246,6 +246,7 @@ jobs:
       - name: Unittest
         run: |
           AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 -m unittest tests.test_pytorch_models
+          echo HERE1
 
       - name: benchmark.py test
         run: |
