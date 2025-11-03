@@ -17,6 +17,7 @@ tiktoken
 ultralytics
 evaluate
 datasets
+datasets[audio]
 soundfile
 librosa
 numba

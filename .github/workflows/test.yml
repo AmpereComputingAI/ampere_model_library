@@ -115,6 +115,7 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 32
+      AIO_NUM_THREADS: 32
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
@@ -220,6 +221,7 @@ jobs:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      OMP_NUM_THREADS: 32
       AIO_NUM_THREADS: 32
       AIO_DEBUG_MODE: 0
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}

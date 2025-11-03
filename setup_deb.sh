@@ -4,6 +4,9 @@
 
 set -eo pipefail
 
+ln -fs /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
+echo "Europe/Warsaw" | tee /etc/timezone >/dev/null
+
 log() {
     COLOR_DEFAULT='\033[0m'
     COLOR_CYAN='\033[1;36m'
@@ -46,7 +49,7 @@ fi
 log "Installing system dependencies ..."
 sleep 1
 apt-get update -y
-apt-get install -y build-essential ffmpeg libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
+apt-get install -y build-essential libsm6 libxext6 wget git unzip numactl libhdf5-dev cmake
 if ! python3 -c ""; then
     apt-get install -y python3 python3-pip
 fi
@@ -76,8 +79,9 @@ sleep 1
 ARCH=$ARCH python3 "$SCRIPT_DIR"/utils/setup/install_frameworks.py
 
 # get almost all python deps
-pip3 install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
-    pip3 install -r "$(dirname "$0")/requirements.txt"
+PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --ignore-installed --upgrade pip
+python3 -m pip install --break-system-packages -r "$(dirname "$0")/requirements.txt" ||
+    python3 -m pip3 install -r "$(dirname "$0")/requirements.txt"
 
 apt install -y autoconf autogen automake build-essential libasound2-dev \
     libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libmp3lame-dev \
@@ -97,6 +101,9 @@ if [ "$(python3 -c 'import torch; print(torch.cuda.is_available())')" == "True" 
     pip3 install --no-build-isolation git+https://github.com/pytorch/vision.git@v0.16.1
 fi
 log "done.\n"
+
+apt-get update -y
+apt-get install -y ffmpeg
 
 if [ -f "/etc/machine-id" ]; then
     cat /etc/machine-id >"$SCRIPT_DIR"/.setup_completed

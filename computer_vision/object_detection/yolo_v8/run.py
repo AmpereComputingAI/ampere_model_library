@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2024, Ampere Computing LLC
+# Copyright (c) 2025, Ampere Computing LLC
 try:
     from utils import misc  # noqa
 except ModuleNotFoundError:
@@ -61,7 +61,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.ort import OrtRunner
-    from ultralytics.yolo.utils import ops
+    from ultralytics.utils import nms
 
     def run_single_pass(ort_runner, coco):
         shape = (640, 640)
@@ -69,7 +69,7 @@ def run_ort_fp32(model_path, batch_size, num_runs, timeout, images_path, anno_pa
         output = ort_runner.run(batch_size)
 
         output = torch.from_numpy(output[0])
-        output = ops.non_max_suppression(output)
+        output = nms.non_max_suppression(output)
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
@@ -97,11 +97,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.pytorch import PyTorchRunner
-    from ultralytics.yolo.utils import ops
+    from ultralytics.utils import nms
 
     def run_single_pass(pytorch_runner, coco):
         output = pytorch_runner.run(batch_size, coco.get_input_array((640, 640)))
-        output = ops.non_max_suppression(output)
+        output = nms.non_max_suppression(output)
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
@@ -121,7 +121,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     runner = PyTorchRunner(torch.jit.load(torchscript_model),
                            disable_jit_freeze=disable_jit_freeze,
-                           example_inputs=torch.stack(dataset.get_input_array((640, 640))))
+                           example_inputs=torch.stack((dataset.get_input_array((640, 640)),)))
 
     return run_model(run_single_pass, runner, dataset, batch_size, num_runs, timeout)
 
