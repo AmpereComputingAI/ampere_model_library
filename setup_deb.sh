@@ -4,9 +4,6 @@
 
 set -eo pipefail
 
-ln -fs /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
-echo "Europe/Warsaw" | tee /etc/timezone >/dev/null
-
 log() {
     COLOR_DEFAULT='\033[0m'
     COLOR_CYAN='\033[1;36m'
