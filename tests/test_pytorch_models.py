@@ -259,7 +259,8 @@ class DenseNet(unittest.TestCase):
     #
     #     top_1_ref, top_5_ref = 0.717, 0.905
     #     acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
-    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+    #                                 "timeout": None,
     #                                 "disable_jit_freeze": False})
     #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
     #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
@@ -277,7 +278,8 @@ class Inception(unittest.TestCase):
     #
     #     top_1_ref, top_5_ref = 0.765, 0.932
     #     acc = run_process(wrapper, {"model_name": "inception_v3", "images_path": self.dataset_path,
-    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+    #                                 "timeout": None,
     #                                 "disable_jit_freeze": False})
     #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
     #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
@@ -312,7 +314,8 @@ class VGG(unittest.TestCase):
     #
     #     top_1_ref, top_5_ref = 0.661, 0.896
     #     acc = run_process(wrapper, {"model_name": "vgg16", "images_path": self.dataset_path,
-    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None})
+    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+    #                                 "timeout": None})
     #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
     #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
@@ -365,17 +368,17 @@ class YOLO(unittest.TestCase):
     #                                 "timeout": None, "disable_jit_freeze": False})
     #     self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
 
-    # def test_yolo_v8_s(self):
-    #     from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
-    #
-    #     def wrapper(**kwargs):
-    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-    #
-    #     coco_map_ref = 0.353
-    #     acc = run_process(wrapper, {"model_path": self.yolo_v8_s_path, "images_path": self.dataset_path,
-    #                                 "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 465,
-    #                                 "timeout": None, "disable_jit_freeze": False})
-    #     self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
+    def test_yolo_v8_s(self):
+        from computer_vision.object_detection.yolo_v8.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        coco_map_ref = 0.353
+        acc = run_process(wrapper, {"model_path": self.yolo_v8_s_path, "images_path": self.dataset_path,
+                                    "anno_path": self.annotations_path, "batch_size": 1, "num_runs": 465,
+                                    "timeout": None, "disable_jit_freeze": False})
+        self.assertTrue(acc["coco_map"] / coco_map_ref > 0.95)
 
 
 if __name__ == "__main__":
