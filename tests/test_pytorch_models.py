@@ -251,19 +251,19 @@ class DenseNet(unittest.TestCase):
     def setUp(self):
         self.dataset_path, self.labels_path = download_imagenet_maybe()
 
-    # def test_densenet_121(self):
-    #     from computer_vision.classification.densenet_121.run import run_pytorch_fp32
-    #
-    #     def wrapper(**kwargs):
-    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-    #
-    #     top_1_ref, top_5_ref = 0.717, 0.905
-    #     acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
-    #                                 "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
-    #                                 "timeout": None,
-    #                                 "disable_jit_freeze": False})
-    #     self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
-    #     self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
+    def test_densenet_121(self):
+        from computer_vision.classification.densenet_121.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        top_1_ref, top_5_ref = 0.717, 0.905
+        acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+                                    "timeout": None,
+                                    "disable_jit_freeze": False})
+        self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
+        self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
 
 class Inception(unittest.TestCase):
