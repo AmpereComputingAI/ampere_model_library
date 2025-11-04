@@ -214,17 +214,17 @@ class BERT(unittest.TestCase):
                 f"{'https://zenodo.org/records/3733896/files/model.pytorch?download=1'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # def test_bert_large_mlperf(self):
-    #     from natural_language_processing.extractive_question_answering.bert_large.run_mlperf import run_pytorch_fp32
-    #
-    #     def wrapper(**kwargs):
-    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-    #
-    #     exact_match_ref, f1_ref = 0.750, 0.817
-    #     acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
-    #                                 "batch_size": 1, "num_runs": 24, "timeout": None, "disable_jit_freeze": False})
-    #     self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
-    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    def test_bert_large_mlperf(self):
+        from natural_language_processing.extractive_question_answering.bert_large.run_mlperf import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        exact_match_ref, f1_ref = 0.750, 0.817
+        acc = run_process(wrapper, {"model_path": self.model_path, "squad_path": self.dataset_path,
+                                    "batch_size": 1, "num_runs": 24, "timeout": None, "disable_jit_freeze": False})
+        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 def download_imagenet_maybe():
