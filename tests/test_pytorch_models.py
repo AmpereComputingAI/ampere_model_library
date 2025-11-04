@@ -184,17 +184,17 @@ class DLRM(unittest.TestCase):
                 f"{'https://dlrm.s3-us-west-1.amazonaws.com/models/tb0875_10M.pt'}".split(),
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    # def test_dlrm_debug(self):
-    #     from recommendation.dlrm.run import run_pytorch_fp32
-    #
-    #     def wrapper(**kwargs):
-    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-    #
-    #     auc_ref = 0.583
-    #     acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
-    #                                 "batch_size": 2048, "num_runs": 30, "timeout": None, "debug": True})
-    #     self.assertTrue(acc["auc"] / auc_ref > 0.95)
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    def test_dlrm_debug(self):
+        from recommendation.dlrm.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        auc_ref = 0.583
+        acc = run_process(wrapper, {"model_path": self.model_path, "dataset_path": self.dataset_path,
+                                    "batch_size": 2048, "num_runs": 30, "timeout": None, "debug": True})
+        self.assertTrue(acc["auc"] / auc_ref > 0.95)
 
 
 class BERT(unittest.TestCase):
