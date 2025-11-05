@@ -85,19 +85,19 @@ class Alpaca(unittest.TestCase):
             subprocess.run("rm /tmp/alpaca_recovered.tar.gz".split(),
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
-    # def test_alpaca(self):
-    #     from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
-    #
-    #     def wrapper(**kwargs):
-    #         kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
-    #
-    #     exact_match_ref, f1_ref = 0.220, 0.547
-    #     acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
-    #                                 "timeout": None, "dataset_path": self.dataset_path})
-    #     self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
-    #     self.assertTrue(acc["f1"] / f1_ref > 0.95)
+    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "Ampere optimized PyTorch required")
+    def test_alpaca(self):
+        from natural_language_processing.text_generation.alpaca.run import run_pytorch_fp32
+
+        def wrapper(**kwargs):
+            kwargs["q"].put(run_pytorch_fp32(**kwargs)[0])
+
+        exact_match_ref, f1_ref = 0.220, 0.547
+        acc = run_process(wrapper, {"model_path": self.model_path, "batch_size": 1, "num_runs": 50,
+                                    "timeout": None, "dataset_path": self.dataset_path})
+        self.assertTrue(acc["exact_match"] / exact_match_ref > 0.95)
+        self.assertTrue(acc["f1"] / f1_ref > 0.95)
 
 
 class Whisper(unittest.TestCase):
@@ -126,12 +126,12 @@ class Whisper(unittest.TestCase):
     #                                         "batch_size": 4, "timeout": None})
     #     self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
-    def test_whisper_large(self):
-        wer_ref = 0.124
-        acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
+    # def test_whisper_large(self):
+    #     wer_ref = 0.124
+    #     acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
+    #     self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
 
 class WhisperTranslate(unittest.TestCase):
