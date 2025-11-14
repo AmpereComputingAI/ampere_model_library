@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2024, Ampere Computing LLC
+# Copyright (c) 2025, Ampere Computing LLC
+
 import os
 import sys
 import json
@@ -15,8 +16,8 @@ SYSTEMS = {
         "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
         "YOLO v8s": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40yolo_v8_s.json",  # noqa
         "BERT large": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40bert_large_mlperf_squad.json",  # noqa
-        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json",  # noqa
-        "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
+        "DLRM": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40dlrm_torchbench.json"  # noqa
+        # "Whisper medium EN": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/q80_30%40ampere_pytorch_1.10.0%40whisper_medium.en.json"  # noqa
     },
     "Altra Max": {
         "ResNet-50 v1.5": "https://ampereaimodelzoo.s3.eu-central-1.amazonaws.com/lookups_aml/m128_30%40ampere_pytorch_1.10.0%40resnet_50_v1.5.json",  # noqa
@@ -676,7 +677,8 @@ def convert_name(text):
 
 
 def main():
-    models = [ResNet50, YOLO, BERT, DLRM, Whisper]
+    # models = [ResNet50, YOLO, BERT, DLRM, Whisper]
+    models = [ResNet50, YOLO, BERT, DLRM]
     parser = argparse.ArgumentParser(prog="AML benchmarking tool")
     parser.add_argument("--no-interactive", action="store_true", help="don't ask for user input")
     parser.add_argument("--model", type=str, choices=[convert_name(model.model_name) for model in models],

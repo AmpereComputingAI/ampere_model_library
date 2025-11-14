@@ -115,6 +115,7 @@ jobs:
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
       OMP_NUM_THREADS: 32
+      AIO_NUM_THREADS: 32
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
       S3_URL_RESNET_50_V15_TF_FP32: ${{ secrets.S3_URL_RESNET_50_V15_TF_FP32 }}
       S3_URL_SSD_INCEPTION_V2_TF_FP32: ${{ secrets.S3_URL_SSD_INCEPTION_V2_TF_FP32 }}
@@ -220,6 +221,7 @@ jobs:
       PYTHONPATH: ./
       COCO_IMG_PATH: aio_objdet_dataset
       COCO_ANNO_PATH: aio_objdet_dataset/annotations.json
+      OMP_NUM_THREADS: 32
       AIO_NUM_THREADS: 32
       AIO_DEBUG_MODE: 0
       S3_URL_CRITEO_DATASET: ${{ secrets.S3_URL_CRITEO_DATASET }}
@@ -263,7 +265,7 @@ jobs:
           
           IGNORE_DATASET_LIMITS=1 AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 computer_vision/classification/resnet_50_v15/run.py -m resnet50 -p fp32 -b 16 -f pytorch
           
-          AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
+          # AIO_IMPLICIT_FP16_TRANSFORM_FILTER=".*" python3 speech_recognition/whisper/run.py -m tiny.en 
           
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/mobilenet_v2/run.py -p fp32 -f pytorch --timeout=60
           

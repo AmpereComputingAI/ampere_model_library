@@ -16,7 +16,8 @@ sentencepiece
 tiktoken
 ultralytics
 evaluate
-datasets
+datasets>=2.19
+datasets[audio]
 soundfile
 librosa
 numba

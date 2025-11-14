@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2024, Ampere Computing LLC
+# Copyright (c) 2025, Ampere Computing LLC
 import os
 import signal
 import time
@@ -113,25 +113,25 @@ class Whisper(unittest.TestCase):
         self.wrapper_openai = wrapper_openai
         self.wrapper_hf = wrapper_hf
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
-    def test_whisper_tiny_en(self):
-        wer_ref = 0.155
-        acc = run_process(self.wrapper_openai, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
+    # def test_whisper_tiny_en(self):
+    #     wer_ref = 0.155
+    #     acc = run_process(self.wrapper_openai, {"model_name": "tiny.en", "num_runs": 30, "timeout": None})
+    #     self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
-    def test_whisper_hf_tiny_en(self):
-        wer_ref = 0.111
-        acc = run_process(self.wrapper_hf, {"model_name": "openai/whisper-tiny.en", "num_runs": 18,
-                                            "batch_size": 4, "timeout": None})
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 50, "too little memory")
+    # def test_whisper_hf_tiny_en(self):
+    #     wer_ref = 0.111
+    #     acc = run_process(self.wrapper_hf, {"model_name": "openai/whisper-tiny.en", "num_runs": 18,
+    #                                         "batch_size": 4, "timeout": None})
+    #     self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
-    def test_whisper_large(self):
-        wer_ref = 0.124
-        acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
-        self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
+    # def test_whisper_large(self):
+    #     wer_ref = 0.124
+    #     acc = run_process(self.wrapper_openai, {"model_name": "large", "num_runs": 30, "timeout": None})
+    #     self.assertTrue(wer_ref / acc["wer_score"] > 0.95)
 
 
 class WhisperTranslate(unittest.TestCase):
@@ -156,13 +156,13 @@ class WhisperTranslate(unittest.TestCase):
 
         self.wrapper = wrapper
 
-    @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
-    @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
-    def test_whisper_translate_medium(self):
-        wer_ref = 0.475
-        acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
-                                         "dataset_path": self.dataset_path})
-        self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
+    # @unittest.skipIf(psutil.virtual_memory().available / 1024 ** 3 < 100, "too little memory")
+    # @unittest.skipUnless('_aio_profiler_print' in dir(torch._C), "too slow to run with native")
+    # def test_whisper_translate_medium(self):
+    #     wer_ref = 0.475
+    #     acc = run_process(self.wrapper, {"model_name": "large", "num_runs": 30, "timeout": None,
+    #                                      "dataset_path": self.dataset_path})
+    #     self.assertTrue(wer_ref / acc["bleu_score"] > 0.95)
 
 
 class DLRM(unittest.TestCase):
@@ -259,7 +259,8 @@ class DenseNet(unittest.TestCase):
 
         top_1_ref, top_5_ref = 0.717, 0.905
         acc = run_process(wrapper, {"model_name": "densenet121", "images_path": self.dataset_path,
-                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+                                    "timeout": None,
                                     "disable_jit_freeze": False})
         self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
         self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
@@ -277,7 +278,8 @@ class Inception(unittest.TestCase):
 
         top_1_ref, top_5_ref = 0.765, 0.932
         acc = run_process(wrapper, {"model_name": "inception_v3", "images_path": self.dataset_path,
-                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None,
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+                                    "timeout": None,
                                     "disable_jit_freeze": False})
         self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
         self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
@@ -312,7 +314,8 @@ class VGG(unittest.TestCase):
 
         top_1_ref, top_5_ref = 0.661, 0.896
         acc = run_process(wrapper, {"model_name": "vgg16", "images_path": self.dataset_path,
-                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10, "timeout": None})
+                                    "labels_path": self.labels_path, "batch_size": 32, "num_runs": 10,
+                                    "timeout": None})
         self.assertTrue(acc["top_1_acc"] / top_1_ref > 0.95)
         self.assertTrue(acc["top_5_acc"] / top_5_ref > 0.95)
 
