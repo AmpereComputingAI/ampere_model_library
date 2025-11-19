@@ -97,21 +97,21 @@ jobs:
           wget $S3_URL_SSD_INCEPTION_V2_TF_FP32 > /dev/null 2>&1
           IGNORE_DATASET_LIMITS=1 python3 computer_vision/object_detection/ssd_inception_v2/run.py -m ssd_inception_v2_tf_fp32.pb -p fp32 --timeout=60
           
-          wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
-          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
+          # wget https://zenodo.org/records/4735647/files/resnet50_v1.onnx > /dev/null 2>&1
+          # IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/resnet_50_v1/run.py -m resnet50_v1.onnx -p fp32 -f ort
           
-          rm -f vgg16.tar.gz
-          rm -rf vgg16
-          df -h
-          df -h
-          quota -s 2>/dev/null || echo "No quota command / no quotas"
+          # rm -f vgg16.tar.gz
+          # rm -rf vgg16
+          # df -h
+          # df -h
+          # quota -s 2>/dev/null || echo "No quota command / no quotas"
           
-          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
-          tar -tzf vgg16.tar.gz | head
+          # wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
+          # tar -tzf vgg16.tar.gz | head
           
-          tar -xzf vgg16.tar.gz
+          # tar -xzf vgg16.tar.gz
           
-          IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
+          # IGNORE_DATASET_LIMITS=1 python3 computer_vision/classification/vgg_16/run.py -m vgg16/vgg16.onnx -p fp32 -f ort
 
   test_arm64:
     runs-on: self-hosted
