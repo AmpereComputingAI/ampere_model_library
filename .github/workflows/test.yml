@@ -106,7 +106,7 @@ jobs:
           df -h
           quota -s 2>/dev/null || echo "No quota command / no quotas"
           
-          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz
+          wget https://s3.amazonaws.com/onnx-model-zoo/vgg/vgg16/vgg16.tar.gz > /dev/null 2>&1
           tar -tzf vgg16.tar.gz | head
           
           tar -xzf vgg16.tar.gz
