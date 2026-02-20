@@ -5,7 +5,6 @@ import time
 import torch
 import types
 import hashlib
-import pkg_resources
 from utils.profiling import aio_profiler_enabled
 from torch.autograd.profiler import profile
 from pathlib import Path
@@ -14,6 +13,12 @@ from contextlib import nullcontext
 from utils.benchmark import Runner, get_intra_op_parallelism_threads
 import utils.misc as utils
 
+class pkg_resources:
+    def get_distribution(name):
+        assert name == 'torch'
+        class Version:
+            version = torch.__version__
+        return Version
 
 class PyTorchRunner(Runner):
     """
