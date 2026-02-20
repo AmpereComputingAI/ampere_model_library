@@ -97,11 +97,13 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.pytorch import PyTorchRunner
-    from ultralytics.utils import nms
+    from ultralytics.utils.nms import non_max_suppression
 
     def run_single_pass(pytorch_runner, coco):
-        output = pytorch_runner.run(batch_size, coco.get_input_array((640, 640)))
-        output = nms.non_max_suppression(output)
+        shape = (640, 640)
+        inp = torch.stack(coco.get_input_array(shape))
+        output = pytorch_runner.run(batch_size, inp)
+        output = non_max_suppression(output)
 
         for i in range(batch_size):
             for d in range(output[i].shape[0]):
