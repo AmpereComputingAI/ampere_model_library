@@ -101,7 +101,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
-        inp = torch.stack(coco.get_input_array(shape))
+        inp = coco.get_input_array(shape)
         output = pytorch_runner.run(batch_size, inp)
         output = non_max_suppression(output)
 
