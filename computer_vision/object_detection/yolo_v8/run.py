@@ -97,21 +97,25 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.pytorch import PyTorchRunner
-    from ultralytics.utils.nms import non_max_suppression
 
     def run_single_pass(pytorch_runner, coco):
         shape = (640, 640)
-        inp = coco.get_input_array(shape)
-        output = pytorch_runner.run(batch_size, inp)
-        output = non_max_suppression(output)
+        dset = coco.get_input_array(shape)
+        outputs = []
+        for inp in dset:
+            output, *_ = pytorch_runner.run(1, inp)
+            outputs.append(output)
+        assert len(outputs) == batch_size
 
         for i in range(batch_size):
-            for d in range(output[i].shape[0]):
+            for b in range(len(outputs[i].boxes)):
+                bbox = outputs[i].boxes.xywh[b]
+                cls = int(outputs[i].boxes.cls[b])
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
-                    output[i][d][4].item(),
-                    coco.translate_cat_id_to_coco(output[i][d][5].item())
+                    coco.convert_bbox_to_coco_order(bbox),
+                    cls,
+                    coco.translate_cat_id_to_coco(cls)
                 )
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
