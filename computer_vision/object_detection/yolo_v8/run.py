@@ -124,15 +124,11 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     from ultralytics import YOLO
     model = YOLO(model_path)
 
-    if os.environ.get("TORCH_COMPILE") == "1":
-        import numpy as np
-        # make sure that model.predictor exists
-        dummy_input = np.zeros((640, 640, 3), dtype=np.uint8)
-        model.predict(dummy_input)
-        assert model.predictor is not None
-    else:
-        torchscript_model = model.export(format="torchscript")
-        model = torch.jit.load(torchscript_model)
+    import numpy as np
+    # make sure that model.predictor exists
+    dummy_input = np.zeros((640, 640, 3), dtype=np.uint8)
+    model.predict(dummy_input)
+    assert model.predictor is not None
 
     runner = PyTorchRunner(model,
                            disable_jit_freeze=disable_jit_freeze,

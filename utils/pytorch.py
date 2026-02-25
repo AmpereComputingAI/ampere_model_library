@@ -75,7 +75,7 @@ class PyTorchRunner(Runner):
                 backend = "aio-2" if AIO else "inductor"
                 options = {"modelname": self._model._get_name()} if AIO else {}
 
-                if self._model._get_name() == "YOLO":
+                if hasattr(self._model, "predictor"):
                     # use compiled model for a prodictor model
                     frozen_script = torch.compile(self._model.model, backend=backend, options=options)
                     self._model.predictor.model.model = frozen_script
