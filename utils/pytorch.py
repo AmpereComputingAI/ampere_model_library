@@ -34,7 +34,7 @@ class PyTorchRunner(Runner):
                  model,
                  disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False, throughput_only=False):
         super().__init__(throughput_only)
-        AIO = True
+        AIO = 'aio-2' in torch.compiler.list_backends()
         if AIO:
             utils.print_warning_message(
                 "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
@@ -169,7 +169,7 @@ class PyTorchRunner(Runner):
 class PyTorchRunnerV2(Runner):
     def __init__(self, model, throughput_only=False):
         super().__init__(throughput_only)
-        AIO = True
+        AIO = 'aio-2' in torch.compiler.list_backends()
         if AIO:
             utils.print_warning_message(
                 "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
