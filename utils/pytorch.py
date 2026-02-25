@@ -15,6 +15,8 @@ import utils.misc as utils
 
 torch._dynamo.config.prepare_freezing = True
 torch._inductor.config.freezing = True
+if 'TORCH_COMPILE' not in os.environ:
+    os.environ["TORCH_COMPILE"] = "1"
 
 class pkg_resources:
     def get_distribution(name):
