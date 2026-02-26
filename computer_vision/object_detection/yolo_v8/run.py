@@ -97,19 +97,25 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
     # Ultralytics sets it to True by default. This way we suppress the logging by default while still allowing the user
     # to set it to True if needed
     from utils.pytorch import PyTorchRunner
-    from ultralytics.utils import nms
 
     def run_single_pass(pytorch_runner, coco):
-        output = pytorch_runner.run(batch_size, coco.get_input_array((640, 640)))
-        output = nms.non_max_suppression(output)
+        shape = (640, 640)
+        dset = coco.get_input_array(shape)
+        outputs = []
+        for inp in dset:
+            output, *_ = pytorch_runner.run(1, inp)
+            outputs.append(output)
+        assert len(outputs) == batch_size
 
         for i in range(batch_size):
-            for d in range(output[i].shape[0]):
+            for b in range(len(outputs[i].boxes)):
+                bbox = outputs[i].boxes.xyxy[b].tolist()
+                cls = int(outputs[i].boxes.cls[b])
                 coco.submit_bbox_prediction(
                     i,
-                    coco.convert_bbox_to_coco_order(output[i][d][:4].tolist()),
-                    output[i][d][4].item(),
-                    coco.translate_cat_id_to_coco(output[i][d][5].item())
+                    coco.convert_bbox_to_coco_order(bbox),
+                    cls,
+                    coco.translate_cat_id_to_coco(cls)
                 )
 
     dataset = COCODataset(batch_size, "RGB", "COCO_val2014_000000000000", images_path,
@@ -117,9 +123,14 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
     from ultralytics import YOLO
     model = YOLO(model_path)
-    torchscript_model = model.export(format="torchscript")
 
-    runner = PyTorchRunner(torch.jit.load(torchscript_model),
+    import numpy as np
+    # make sure that model.predictor exists
+    dummy_input = np.zeros((640, 640, 3), dtype=np.uint8)
+    model.predict(dummy_input)
+    assert model.predictor is not None
+
+    runner = PyTorchRunner(model,
                            disable_jit_freeze=disable_jit_freeze,
                            example_inputs=torch.stack((dataset.get_input_array((640, 640)),)))
 

@@ -5,7 +5,6 @@ import time
 import torch
 import types
 import hashlib
-import pkg_resources
 from utils.profiling import aio_profiler_enabled
 from torch.autograd.profiler import profile
 from pathlib import Path
@@ -13,6 +12,20 @@ from packaging import version
 from contextlib import nullcontext
 from utils.benchmark import Runner, get_intra_op_parallelism_threads
 import utils.misc as utils
+
+torch._dynamo.config.prepare_freezing = True
+torch._inductor.config.freezing = True
+if 'TORCH_COMPILE' not in os.environ:
+    os.environ["TORCH_COMPILE"] = "1"
+
+
+class pkg_resources:
+    def get_distribution(name):
+        assert name == 'torch'
+
+        class Version:
+            version = torch.__version__
+        return Version
 
 
 class PyTorchRunner(Runner):
@@ -24,7 +37,7 @@ class PyTorchRunner(Runner):
                  model,
                  disable_jit_freeze=False, example_inputs=None, func=None, skip_script=False, throughput_only=False):
         super().__init__(throughput_only)
-        AIO = '_aio_profiler_print' in dir(torch._C)
+        AIO = 'aio-2' in torch.compiler.list_backends()
         if AIO:
             utils.print_warning_message(
                 "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
@@ -64,8 +77,17 @@ class PyTorchRunner(Runner):
                 # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is
                 # wrong. There was never a PyTorch 1.14, so this comparison acts like comparing to 2.0, but works
                 # correctly for such edge cases.
-                self._frozen_script = torch.compile(self._model, backend="aio" if AIO else "inductor",
-                                                    options={"modelname": self._model._get_name()} if AIO else {})
+                backend = "aio-2" if AIO else "inductor"
+                options = {"modelname": self._model._get_name()} if AIO else {}
+
+                if hasattr(self._model, "predictor"):
+                    # use compiled model for a prodictor model
+                    frozen_script = torch.compile(self._model.model, backend=backend, options=options)
+                    self._model.predictor.model.model = frozen_script
+                    self._frozen_script = self._model
+                else:
+                    self._frozen_script = torch.compile(self._model, backend=backend, options=options)
+
             elif os.environ.get("TORCH_COMPILE") == "1" and not version.parse(
                     pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
                 utils.print_goodbye_message_and_die(
@@ -142,14 +164,15 @@ class PyTorchRunner(Runner):
     def print_performance_metrics(self):
         if self._is_profiling:
             print(self._profile.key_averages().table(sort_by='cpu_time_total', row_limit=50))
-            torch._C._aio_profiler_print()
+            import pyaio as aio
+            aio.Net.print_profiler_data()
         return self.print_metrics()
 
 
 class PyTorchRunnerV2(Runner):
     def __init__(self, model, throughput_only=False):
         super().__init__(throughput_only)
-        AIO = '_aio_profiler_print' in dir(torch._C)
+        AIO = 'aio-2' in torch.compiler.list_backends()
         if AIO:
             utils.print_warning_message(
                 "Remember to compile your model with torch.jit / torch.compile for Ampere optimizations to work.")
@@ -259,7 +282,7 @@ def apply_compile(model):
     if version.parse(pkg_resources.get_distribution("torch").version) >= version.parse("1.14"):
         # More natural comparison to version.parse("2.0") returns False for 2.0.0a0+git07156c4.dev, which is wrong.
         if '_aio_profiler_print' in dir(torch._C) and os.environ.get("AIO_PROCESS_MODE") != "0":
-            backend = "aio"
+            backend = "aio-2"
             options = {
                 "modelname": model.__self__._get_name() if isinstance(model, types.MethodType) else model._get_name()}
             utils.print_warning_message(
