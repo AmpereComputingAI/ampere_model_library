@@ -109,7 +109,7 @@ def run_pytorch_fp(model_path, batch_size, num_runs, timeout, images_path, anno_
 
         for i in range(batch_size):
             for b in range(len(outputs[i].boxes)):
-                bbox = outputs[i].boxes.xywh[b]
+                bbox = outputs[i].boxes.xyxy[b].tolist()
                 cls = int(outputs[i].boxes.cls[b])
                 coco.submit_bbox_prediction(
                     i,
