@@ -18,12 +18,15 @@ torch._inductor.config.freezing = True
 if 'TORCH_COMPILE' not in os.environ:
     os.environ["TORCH_COMPILE"] = "1"
 
+
 class pkg_resources:
     def get_distribution(name):
         assert name == 'torch'
+
         class Version:
             version = torch.__version__
         return Version
+
 
 class PyTorchRunner(Runner):
     """
